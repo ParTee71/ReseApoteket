@@ -1,0 +1,30 @@
+# Hemligheter och lokal konfiguration – checkas aldrig in
+*.jks
+*.keystore
+local.properties
+google-services.json
+*service-account*.json
+*.enc
+
+# tools/db – beroenden och exporter (innehåller hälsodata)
+tools/db/node_modules/
+tools/db/*.json
+!tools/db/package.json
+!tools/db/package-lock.json
+
+# Node
+node_modules/
+
+# Gradle och byggutdata
+.gradle/
+.kotlin/
+build/
+/app/build/
+/core/build/
+/build-logic/build/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+captures/
