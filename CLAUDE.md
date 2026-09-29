@@ -202,7 +202,7 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 |---|---|
 | `granskare` | Före varje PR: granskar diffen mot de fem reglerna och mockup-regeln, rapporterar i en tabell. |
 | `ci-doktor` | Vid rött CI: läser loggar, skärmdumpsdiffar och CPD-rapporter, föreslår fix. |
-| `testskrivare` | Skriver/utökar tester på rätt nivåer med de delade testhjälparna. |
+| `testskrivare` | Skriver/utökar tester med de delade testhjälparna – bara när tre eller fler testnivåer berörs. |
 | `db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
 
 ## Skills (`.claude/skills/`)
