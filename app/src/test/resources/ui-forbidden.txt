@@ -1,0 +1,36 @@
+# Förbjudna mönster för regel 4 – enda källan.
+# Läses av hooken .claude/hooks/regel4-check.mjs och av UiConsistencyTest (#11).
+# Format per rad: <regex><TAB><vad som ska användas i stället>
+# [feature] = app/src/main/**/ui/** utom ui/components, ui/theme, ui/common
+# [data]    = app/src/main/**/data/** utom data/firestore
+# Regexarna ska fungera både i JavaScript och Kotlin (ingen lookbehind).
+
+[feature]
+\bColor\(0x	MaterialTheme.colorScheme / AppColors
+\bRoundedCornerShape\(	AppShapes
+\bCutCornerShape\(	AppShapes
+\bTextStyle\(	AppTypography
+\bfontSize\s*=	AppTypography
+\bfontWeight\s*=	AppTypography
+\.shadow\(	ApotekCard eller komponentens parametrar
+\.(height|size|clip)\(\s*[0-9]+(\.[0-9]+)?\.dp	komponentens parametrar eller Spacing
+\bpadding\(\s*[0-9]+(\.[0-9]+)?\.dp	Spacing
+\b(Elevated|Outlined)?Card\s*[({]	ApotekCard
+\b(Filled|FilledTonal|Outlined|Elevated|Text)?Button\s*[({]	AppButton
+\b(Filled|FilledTonal|Outlined)?IconButton\s*[({]	AppIconButton
+\bCheckbox\s*[({]	CheckRow
+\b(Outlined)?TextField\s*[({]	AppTextField
+\b[A-Za-z]*TopAppBar\s*[({]	AppTopBar
+\bFilterChip\s*[({]	AppFilterChip / PersonChip
+\bAlertDialog\s*[({]	ConfirmDialog
+\bModalBottomSheet\s*[({]	AppBottomSheet
+\b[A-Za-z]*ProgressIndicator\s*[({]	SuitcaseProgress / AppLoading
+\bSnackbar(Host)?\s*[({]	AppSnackbarHost / UndoSnackbar
+\bLazyColumn\s*[({]	EntityListScreen
+\bScaffold\s*[({]	EntityListScreen / EntityEditScreen
+\bSwipeToDismissBox\s*[({]	SwipeToHide
+
+[data]
+\bFirebaseFirestore\b	FirestoreCollection<T> i data/firestore/
+\bCollectionReference\b	FirestoreCollection<T> i data/firestore/
+\bDocumentReference\b	FirestoreCollection<T> i data/firestore/

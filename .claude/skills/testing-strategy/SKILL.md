@@ -91,8 +91,8 @@ Behövs samma testuppställning på två ställen → gör en hjälpare innan de
 ```bash
 ./gradlew :core:test                                  # om core/ ändrats
 ./gradlew :app:testDebugUnitTest :app:verifyRoborazziDebug cpdCheck   # om app/ eller core/ ändrats
-node --test tools/db/test/                            # om tools/db/ eller rules ändrats (kräver emulator)
-node --test .github/scripts/ .claude/hooks/test/      # dokumentkontroller, alltid
+node --test 'tools/db/test/*.test.mjs'                           # om tools/db/ eller rules ändrats (kräver emulator)
+node --test '.github/scripts/*.test.mjs' '.claude/hooks/test/*.test.mjs'      # dokumentkontroller, alltid
 ```
 
 Från telefonen går Gradle normalt inte att köra: skriv testerna, pusha och låt Actions

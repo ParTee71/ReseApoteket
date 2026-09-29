@@ -24,7 +24,7 @@ resten med `dorny/paths-filter`.
 | – | allt annat (`*.md`, `.claude/**`) | bara `changes` med dokumentkontroller |
 <!-- ci-table:end -->
 
-- **Dokumentkontrollerna körs alltid** i `changes`: `node --test .github/scripts/ .claude/hooks/test/`
+- **Dokumentkontrollerna körs alltid** i `changes`: `node --test '.github/scripts/*.test.mjs' '.claude/hooks/test/*.test.mjs'`
   (denna tabell mot filtren, länkar och skill-/agentnamn, hooktestet).
 - **`push` till `master`** sätter alla filter till sant – baslinje och cache-uppvärmning.
 - **Gradle build cache** (`org.gradle.caching=true` + `gradle/actions/setup-gradle`) gör
