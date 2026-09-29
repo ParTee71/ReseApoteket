@@ -65,9 +65,11 @@ finns på ett ställe.**
 - **Behövs en variant?** Utöka den delade delen med en parameter vars default bevarar
   nuvarande utseende och beteende. Aldrig en lokal kopia. Ny elementtyp/nytt mönster →
   ny delad del med test, skärmdump och plats i `ComponentGallery`.
-- **Kontrolleras automatiskt:** `UiConsistencyTest` (Konsist) och `cpdCheck`
-  (copy-paste-detektor) fäller bygget. Undantag bara via `ui-allowlist.txt` med
-  motivering och användarens ok i PR:en.
+- **Kontrolleras automatiskt:** hooken `regel4-check` ger besked direkt efter varje
+  filändring; `UiConsistencyTest` (Konsist) och `cpdCheck` (copy-paste-detektor) fäller
+  bygget. Förbjudna mönster finns i en fil (`ui-forbidden.txt`), undantag bara via
+  `ui-allowlist.txt` med motivering och användarens ok i PR:en.
+- **Gäller även dokumentationen:** varje regeltabell står i en skill; andra filer länkar.
 
 → Skills: **shared-ui-components**, **ui-style**, **firestore-data-layer**.
 
@@ -81,33 +83,34 @@ release. Nya beroenden eller moduler får inte fördubbla byggtiden – ange eff
 | Ändrade filer | Körs i PR |
 |---|---|
 | `core/**` | `:core:test` + `:app:testDebugUnitTest` + skärmdumpar + `cpdCheck` |
-| `app/**` | `:app:testDebugUnitTest` + skärmdumpar + `cpdCheck` |
+| `app/**`, skill `shared-ui-components` | `:app:testDebugUnitTest` + skärmdumpar + `cpdCheck` |
 | `firestore.rules`, `tools/db/**`, `data/firestore/**` | rules-, rundturs- och kontraktstester mot emulatorn |
 | byggfiler, `gradle/**`, `.github/workflows/**` | allt ovan |
-| bara `*.md`, `.claude/**` | inget |
+| allt annat (`*.md`, `.claude/**`) | bara dokumentkontroller (sekunder) |
 
 Gradles build cache hoppar dessutom över oförändrade testtasks. På `master` körs alltid
-allt. Att slippa köra ett test är aldrig ett skäl att inte skriva det.
-→ Skill: **ci-budget**.
+allt. Dokumentkontrollerna (skill-tabeller mot kod och workflow, länkar, hooktest) körs
+alltid. Att slippa köra ett test är aldrig ett skäl att inte skriva det.
+→ Skill: **ci-budget** (enda källan för tabellen ovan; kontrolleras mot `android.yml`).
 
 ---
 
-## Processregel: mockup före ny GUI
+## Processregel: mockup före ny GUI (skill **mockup**)
 
 Utvecklingen sker mest från telefonen, och en release för att "se hur det blev" är dyr.
 
 - Ny skärm, ny delad komponent eller tydligt ändrat utseende/beteende → visa först en
   **mockup** för användaren (Design-canvas-artifact, jfr B/C-jämförelsen
   https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p) och vänta på ok innan koden skrivs.
-- Mockupen byggs av **katalogens komponenter och mönster** (regel 4), i appens
-  designspråk, med riktiga svenska texter och realistisk data. Öppen fråga → två
+- Mockupen startar från mallen med komponent- och beteendearket och byggs av
+  **katalogens komponenter och mönster** (regel 4), i appens designspråk, med riktiga svenska texter och realistisk data. Öppen fråga → två
   varianter sida vid sida. Något som saknas i katalogen märks "NY KOMPONENT".
 - Länken läggs i issuet under rubriken **Design**.
 - I PR:en visas resultatet med **Roborazzi-skärmdumpar** (ljust + mörkt) bredvid mockupen.
 - Tumregel: syns förändringen i en tumnagel → mockup först. Padding, ordval eller
   ikonbyte → skärmdumpsdiffen i PR:en räcker.
 
-→ Skills: **ui-style**, **refine-issue**, **implement-issue**.
+→ Skills: **mockup**, **ui-style**, **refine-issue**, **implement-issue**.
 
 ---
 
@@ -140,10 +143,13 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 
 - **En PR i taget.** Öppna inte nästa förrän den föregående är mergad (eller uttryckligen
   stängd/pausad av användaren). Gäller `implement-issue` och manuellt arbete.
+- **Kontrollera mergen via GitHub** (`pull_request_read`) innan nästa issue påbörjas –
+  inte via antagande. Först när den är mergad startas arbetsbranchen om från `origin/master`.
 - PR:er går mot `master`. Tester körs i GitHub Actions – pusha branchen och öppna PR:en.
 - **Prenumerera automatiskt** på PR-aktivitet (`subscribe_pr_activity`) så fort en PR
   skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
-  granskningskommentarer, schemalägg check-in. Avsluta prenumerationen när den är klar.
+  granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `ci-doktor`
+  diagnostisera. Avsluta prenumerationen när PR:en är klar.
 
 ## Bygg & test
 
@@ -194,7 +200,8 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 
 | Agent | När |
 |---|---|
-| `granskare` | Före varje PR: granskar diffen mot de fem reglerna och mockup-regeln. |
+| `granskare` | Före varje PR: granskar diffen mot de fem reglerna och mockup-regeln, rapporterar i en tabell. |
+| `ci-doktor` | Vid rött CI: läser loggar, skärmdumpsdiffar och CPD-rapporter, föreslår fix. |
 | `testskrivare` | Skriver/utökar tester på rätt nivåer med de delade testhjälparna. |
 | `db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
 
@@ -213,12 +220,13 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 | **`requirements-kravlista`** | Regel 3 – hålla KRAVLISTA.md aktuell. |
 | **`shared-ui-components`** | Regel 4 – komponenter, ramar, byggstenar, förbud, kontroller. |
 | **`ci-budget`** | Regel 5 – vad som körs när i CI. |
-| `ui-style` | Designspråket (Material 3 Expressive) och mockup-flödet. |
+| `ui-style` | Designspråket (Material 3 Expressive); API:er i `ARKITEKTUR.md` → "Verifierade API:er". |
+| `mockup` | Ny skärm, komponent eller ändrat utseende: mockup före kod. |
 | `firestore-data-layer` | `FirestoreCollection`, `DocCodec`, repositories, offline, rules. |
 | `packing-engine` | Beräkningsformler och kantfall. |
 | `db-access` | Läsa databasen från en Claude-session. |
 | `refine-issue` | Förfina en idé till ett planerat issue (med Design och Återbruk). |
-| `implement-issue` | Genomföra ett issue hela vägen till PR enligt reglerna. |
+| `implement-issue` | Genomföra ett issue hela vägen till PR enligt reglerna (med merge-kontroll först). |
 | `release` | Endast vid uttrycklig release. |
 
 > Reglerna gäller både i Claude-appen på telefonen och i Claude i Android Studio – båda
