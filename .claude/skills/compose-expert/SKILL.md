@@ -1,18 +1,13 @@
 ---
 name: compose-expert
 description: >
-  Compose and Compose Multiplatform expert for UI development across Android, Desktop,
-  iOS, and Web. Use whenever the user mentions Compose APIs (@Composable, remember,
-  LaunchedEffect, NavHost, MaterialTheme, LazyColumn, Modifier, recomposition),
-  Compose Multiplatform (commonMain, expect/actual, Res.*, ComposeUIViewController,
-  UIKitView, ComposeViewport), Android TV (tv-material, D-pad, focus, Carousel),
-  Material 3 motion, atomic design systems, design-to-code workflows, Paging 3, or
-  navigation. Activates Review Mode on GitHub PR URLs and review phrases ("review
-  this PR", "what's wrong with this"). Auto-detects Compose projects on
-  session_start. Backed by actual androidx/androidx and JetBrains/compose-multiplatform-core
-  source receipts. See "## When this skill applies" in SKILL.md for the full trigger
-  surface.
-version: 2.3.1
+  Jetpack Compose-expert för ReseApotekets Android-UI (enbart Android, Material 3 Expressive,
+  Navigation 3). Använd när användaren nämner Compose-API:er (@Composable, remember,
+  LaunchedEffect, MaterialTheme, LazyColumn, Modifier, recomposition, NavDisplay, NavKey,
+  MotionScheme, animation) eller skriver på svenska om skärm, vy, composable, rekomposition,
+  animation, rörelse, navigering, skärmbyte, prestanda i UI eller "skärmen laggar". Laddas
+  tillsammans med android-dev, och före shared-ui-components/ui-style när en skärm eller
+  komponent byggs – de reglerna går före generella Compose-råd.
 ---
 
 ## When this skill applies
@@ -20,14 +15,9 @@ version: 2.3.1
 ### Compose API mentions
 `@Composable`, `remember`, `mutableStateOf`, `derivedStateOf`, `rememberSaveable`,
 `LaunchedEffect`, `DisposableEffect`, `SideEffect`, `rememberCoroutineScope`,
-`Scaffold`, `NavHost`, `NavController`, `MaterialTheme`, `ColorScheme`,
+`Scaffold`, `NavDisplay`, `NavKey`, `MaterialTheme`, `MotionScheme`, `ColorScheme`,
 `Typography`, `LazyColumn`, `LazyRow`, `LazyVerticalGrid`, `HorizontalPager`,
 `Modifier`, `Modifier.Node`, `recomposition`, `CompositionLocal`.
-
-### Compose Multiplatform / KMP
-`Compose Multiplatform`, `CMP`, `KMP`, `commonMain`, `expect`, `actual`,
-`ComposeUIViewController`, `Window` composable, `UIKitView`, `ComposeViewport`,
-`Res.drawable`, `Res.string`, `SkikoMain`.
 
 ### Design system / design-to-code
 `atomic design`, `atoms`, `molecules`, `organisms`, `templates`,
@@ -39,35 +29,19 @@ version: 2.3.1
 "how do I pass data between screens", "Android UI", "Kotlin UI",
 "compose layout", "compose navigation", "compose animation".
 
-## Quick Routing
+## Routing (skills som finns i detta repo)
 
-### State, recomposition, side effects
-- **`remember`, `rememberSaveable`, state hoisting** → `state-management`
-- **`LaunchedEffect`, `SideEffect`, `DisposableEffect`** → `side-effects`
-- **Recomposition frequency, stability, `@Stable`/`@Immutable`** → `performance`
-- **`CompositionLocal`, ambient values** → `composition-locals`
+| Fråga gäller | Gå till |
+|---|---|
+| Vilken komponent/ram ska användas, förbjudna M3-anrop, variant av en komponent | `shared-ui-components` (regel 4 – går före allt nedan) |
+| Färger, typografi, former, rörelse, texter, mockup | `ui-style` |
+| TalkBack, tryckytor, stor text | `accessibility-compose` |
+| StateFlow, `stateIn`, `combine`, effekter | `kotlin-flows` |
+| Coroutines i ViewModel, avbrytning | `kotlin-coroutines` |
+| Skärmdumpar, Robolectric, kontraktstester | `testing-strategy` |
 
-### Animation and motion
-- **`animate*AsState`, `AnimatedVisibility`, `Crossfade`, `updateTransition`** → `animation`
-- **M3 motion tokens, `MotionTokens`, M3 easing curves** → `material3-motion`
-
-### Layout, lists, modifiers
-- **`LazyColumn`, `LazyRow`, `LazyVerticalGrid`, sticky headers** → `lists-scrolling`
-- **Modifier chain ordering, custom layout, `Modifier.Node`** → `modifiers`
-
-### Navigation
-- **`NavHost`, type-safe `@Serializable` routes, nested graphs** → `navigation`
-- **Migrating Nav 2 → Nav 3, `NavDisplay`, `NavKey`** → `navigation-migration`
-
-### Theming and design systems
-- **`MaterialTheme`, `ColorScheme`, `Typography`, dynamic color, M3 tokens** → `theming-material3`
-- **Atom, molecule, organism, template hierarchy, design system structure** → `atomic-design`
-- **Figma → Compose, screenshot → composable, design token translation** → `design-to-compose`
-
-### Production and review
-- **Production crash, Compose stack trace, `remember` leak** → `production-crash-playbook`
-- **PR review, "review this diff", anti-patterns** → `pr-review`
-- **Deprecated Compose API, migration from old API** → `deprecated-patterns`
+Allt annat (state, side effects, prestanda, listor, modifiers, animation, Navigation 3)
+besvaras med principerna nedan.
 
 ## Workflow
 
@@ -76,11 +50,10 @@ When helping with Compose code:
 ### 1. Understand the request
 - What Compose layer is involved? (Runtime, UI, Foundation, Material3, Navigation)
 - Is this a state problem, layout problem, performance problem, or architecture question?
-- Is this Android-only or Compose Multiplatform (CMP)?
 
 ### 2. Analyze the design (if visual reference provided)
-- If the user shares a Figma frame, screenshot, or design spec, decompose the design into a composable tree
-- Map design tokens to MaterialTheme, spacing to CompositionLocals
+- If the user shares a mockup (Design canvas), screenshot, or design spec, decompose it into shared frames + catalog components
+- Map the design to `ui/theme`-tokens and the component catalog (`shared-ui-components`); an element that is missing there becomes a new shared component, never a local one
 - Identify animation needs
 
 ### 3. Apply and verify
@@ -100,54 +73,52 @@ When helping with Compose code:
 
 5. **Side effects exist to bridge Compose's declarative world with imperative APIs**. Use the right one for the job — misusing them causes bugs that are hard to trace.
 
-## Critical Patterns for This Project
+## ReseApotekets mönster
 
-This project uses:
-- **Material 3** with a warm "Sunrise Garden" palette (Amber, Rose, Emerald color tokens)
-- **Navigation Compose** with type-safe `@Serializable` routes
-- **MVVM** with `StateFlow<UiState>` + `collectAsStateWithLifecycle()`
-- **Hilt** for DI, `hiltViewModel()` in composables
-- **Coil** for image loading (`AsyncImage`)
-- **`collectAsState()`** — prefer `collectAsStateWithLifecycle()` for lifecycle safety
+Projektet använder:
+- **Material 3 Expressive** via `ui/theme` (`MaterialExpressiveTheme`, `MotionScheme.expressive()`, `AppTypography`, `AppShapes`, `Spacing`). Inga färger, former, textstilar eller hörn/höjd-dp i feature-kod.
+- **Navigation 3**: `@Serializable` `NavKey`, `rememberNavBackStack`, `NavDisplay` + `entryProvider`, övergångar definierade en gång i `navigation/Transitions`. Ingen `NavHost`/`NavController`.
+- **MVVM** med `StateFlow<UiState>` + `collectAsStateWithLifecycle()` och sealed events (`vm.onEvent(...)`).
+- **Hilt**: `hiltViewModel()` på skärmnivå; ViewModel-scope per nav-post via `lifecycle-viewmodel-navigation3`.
+- **Inga bildbibliotek** – avatarer är emoji, ikoner Material Symbols.
 
-### State hoisting rule
-Screen-level composables (`HomeScreen`, `SettingsScreen`, etc.) take `vm: ViewModel = hiltViewModel()`. Child composables take typed state/callback params — never the ViewModel itself.
+> Expressive- och Nav3-API:er är nya. Använd bara namn och signaturer som verifierats i
+> Gradle-skelettet (#11) och står i `ARKITEKTUR.md`; gissa aldrig ett API-namn.
 
-### Error display pattern
+### Skärmstruktur
+En funktionsskärm består av en `@Composable fun XScreen(vm: XViewModel = hiltViewModel())`
+som samlar state och skickar det till en delad ram:
 ```kotlin
-state.errorMessage?.let { err ->
-    Text(text = err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+@Composable
+fun PersonsScreen(vm: PersonsViewModel = hiltViewModel(), onOpen: (String) -> Unit) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    EntityListScreen(
+        title = stringResource(R.string.persons_title),
+        state = state.list,                                  // ListUiState<Person>
+        row = { person -> PersonRow(person, onClick = { onOpen(person.id) }) },
+        onAdd = { vm.onEvent(PersonsEvent.Add) },
+        onHide = { vm.onEvent(PersonsEvent.Archive(it.id)) },
+        onUndo = { vm.onEvent(PersonsEvent.UndoArchive(it.id)) },
+    )
 }
 ```
+Barn-composables tar typat state och callbacks – aldrig ViewModel. Laddning, tomt läge,
+fel, lägg till och ångra hanteras av ramen, inte av skärmen.
 
-### Loading button pattern
-```kotlin
-Button(onClick = { vm.doAction() }, enabled = !state.isLoading) {
-    if (state.isLoading) {
-        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-        Spacer(Modifier.width(8.dp))
-    }
-    Text("Label")
-}
-```
+### Fel, laddning och knappar
+Hanteras av de delade delarna: `DataError.toMessage()` i snackbar, `AppLoading`,
+`AppButton(loading = …)`. Skriv aldrig egen `CircularProgressIndicator` i en knapp eller
+egen feltext med `colorScheme.error`.
 
-### Card sections pattern (used throughout this app)
-```kotlin
-ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Section title", style = MaterialTheme.typography.titleSmall)
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        // content
-    }
-}
-```
+### Kort och sektioner
+`ApotekCard` + `SectionHeader`, aldrig `Card`/`ElevatedCard` + `HorizontalDivider` med egen padding.
 
 ## Anti-Patterns to Avoid
 
 - Never call `remember` inside conditional blocks or loops
 - Never read `StateFlow.value` in a composable — always use `collectAsStateWithLifecycle()`
 - Never pass `Context` to a ViewModel constructor — use `@ApplicationContext` or `activityContext` passed from the composable for operations that need it
-- Never put navigation logic inside the ViewModel — use callbacks or effects
+- Never mutate the Navigation 3 back stack from a ViewModel — use callbacks or effects
 - `LaunchedEffect(Unit)` for one-time setup; `LaunchedEffect(key)` when the effect should re-run on key change
 - `DisposableEffect` for resources that need cleanup (listeners, subscriptions)
 - Use `rememberLauncherForActivityResult` for Activity Result API — never call `startActivityForResult` directly

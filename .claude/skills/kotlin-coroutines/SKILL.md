@@ -1,6 +1,6 @@
 ---
 name: kotlin-coroutines
-description: Use when writing, reviewing, or debugging coroutine code in Kotlin — including dispatcher selection, scope management, structured concurrency, cancellation, exception handling, or async patterns in Android or KMP projects.
+description: Use when writing, reviewing, or debugging coroutine code in Kotlin — including dispatcher selection, scope management, structured concurrency, cancellation, exception handling, or async patterns in Android projects. Svenska trigger-ord: coroutine, suspend, dispatcher, avbrytning, scope, viewModelScope, await, parallellt, hänger sig, fryser, ANR.
 ---
 
 # Kotlin Coroutines
@@ -201,3 +201,20 @@ class LatestNewsViewModel(private val getLatestNews: GetLatestNewsUseCase) : Vie
 | `try/catch` around `launch {}` | Put try/catch inside the coroutine body |
 | No cancellation check in long loop | Add `ensureActive()` at start of each iteration |
 | `runCatching {}` in suspend functions | Use `suspendRunCatching` instead |
+
+## ReseApoteket
+
+- **Firestore är redan main-safe.** `await()` på Firestore-`Task` och `snapshots()`-flöden
+  blockerar inte; lägg ingen `withContext(Dispatchers.IO)` runt dem. `FirestoreCollection`
+  är enda stället som anropar Firestore och därmed enda stället där felhantering och
+  `CancellationException` behöver hanteras rätt.
+- **`suspendRunCatching`** finns en gång, i `data/firestore/`, och används av
+  `FirestoreCollection` för att bygga `Result<T>` + `DataError`. Skriv inte en egen variant
+  i en feature.
+- **`:core` är ren och synkron.** `PackingEngine`, codecs och formatterare är vanliga
+  funktioner utan coroutines och utan dispatcher – det gör dem triviala att testa.
+- **Dispatcher-injektion** behövs bara där kod gör egen blockerande I/O (DataStore sköter
+  sig själv). Tester använder `StandardTestDispatcher` via `Dispatchers.setMain` i en
+  delad `MainDispatcherRule` – en regel, återanvänd i alla ViewModel-tester.
+- **Engångseffekter** (navigering efter sparning, snackbar) via `Channel(BUFFERED)` i
+  ViewModel; ramarna `EntityEditScreen`/`EntityListScreen` konsumerar dem.
