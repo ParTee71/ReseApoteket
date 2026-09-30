@@ -20,18 +20,45 @@ function withPath(path, convert) {
  * `schemaVersion` är den högsta bland hushållen (informativ – importen kontrollerar varje hushåll).
  */
 export async function exportData(db, { household, now = new Date() } = {}) {
-  const ids = household ? [household] : await householdIds(db);
   const documents = [];
   let schemaVersion = null;
-  for (const id of ids) {
-    const before = documents.length;
-    for await (const doc of walkHousehold(db, id)) {
-      if (isHouseholdDoc(doc.path)) schemaVersion = Math.max(schemaVersion ?? 0, versionOf(doc.data));
-      documents.push({ path: doc.path, data: withPath(doc.path, () => toJson(doc.data)) });
-    }
-    if (household && documents.length === before) throw new Error(`Hushållet ${id} finns inte`);
+  for (const read of await readHouseholds(db, { household })) {
+    if (read.schemaVersion !== null) schemaVersion = Math.max(schemaVersion ?? 0, read.schemaVersion);
+    for (const doc of read.documents) documents.push({ path: doc.path, data: withPath(doc.path, () => toJson(doc.data)) });
   }
   return { exportedAt: now.toISOString(), schemaVersion: schemaVersion ?? CURRENT_VERSION, documents };
+}
+
+/**
+ * Alla dokument och schemaVersion per hushåll ([household] eller alla) – den enda läsningen
+ * av hela hushåll, delad av export och `stats`. Ett angivet hushåll som inte finns ger fel.
+ */
+export async function readHouseholds(db, { household } = {}) {
+  const ids = household ? [household] : await householdIds(db);
+  const result = [];
+  for (const id of ids) {
+    const documents = [];
+    let schemaVersion = null;
+    for await (const doc of walkHousehold(db, id)) {
+      if (isHouseholdDoc(doc.path)) schemaVersion = versionOf(doc.data);
+      documents.push(doc);
+    }
+    if (household && documents.length === 0) throw new Error(`Hushållet ${id} finns inte`);
+    result.push({ household: id, schemaVersion, documents });
+  }
+  return result;
+}
+
+/**
+ * Läser en exportfil. Ett parsningsfel ger ett fast meddelande: Nodes eget meddelande citerar
+ * filens innehåll, och det är hälsodata.
+ */
+export function parseExport(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Filen är inte giltig JSON (innehållet visas inte)');
+  }
 }
 
 /** Antal dokument per samling – det som visas i stället för innehåll (hälsodata). */

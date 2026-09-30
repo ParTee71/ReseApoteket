@@ -28,8 +28,10 @@ service cloud.firestore {
       // resource.data i stället för isMember(): då kan rules bevisa frågan
       // `memberUids array-contains <egen uid>` som inloggningen gör (HUS-1) – get() går inte i en fråga.
       allow read: if signedIn() && request.auth.uid in resource.data.memberUids;
+      // Skaparen är enda medlem: annars kunde någon lägga en annans uid i ett eget hushåll och
+      // få den att välja det vid inloggningen (äldst först, HUS-1). Delning kommer med FUT-2.
       allow create: if signedIn()
-        && request.auth.uid in request.resource.data.memberUids
+        && request.resource.data.memberUids == [request.auth.uid]
         && validHousehold(request.resource.data);
       // memberUids ändras inte från appen förrän delning av hushåll byggs (FUT-2) – annars
       // kunde en medlem stänga ute de andra.

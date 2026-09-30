@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { exportData, importData, MAX_BATCH } from '../lib/backup.mjs';
 import { COLLECTIONS } from '../lib/collections.mjs';
 import { collectionOf } from '../lib/walk.mjs';
-import { clearHouseholds, fixture, seed, useCleanEmulator } from './helpers/emulator.mjs';
+import { clearHouseholds, fixture, otherHousehold, seed, useCleanEmulator } from './helpers/emulator.mjs';
 
 const database = useCleanEmulator();
 const byPath = (docs) => [...docs].sort((a, b) => a.path.localeCompare(b.path));
@@ -40,7 +40,7 @@ test('rundtur: export → radera → import → export ger identiskt innehåll',
 test('--household exporterar och importerar bara det hushållet', async () => {
   const db = database();
   await seed(db);
-  await seed(db, [{ path: 'households/annat', data: { name: 'Annat', memberUids: ['uid-x'], schemaVersion: 1 } }]);
+  await seed(db, [otherHousehold]);
   const one = await exportData(db, { household: 'hushall-test' });
   assert.ok(one.documents.every((d) => d.path.startsWith('households/hushall-test')));
 
@@ -83,7 +83,7 @@ test('ett hushåll utan eget dokument exporteras ändå och fäller inte backupe
 test('--replace gör hushållet exakt som i filen: dokument som tillkommit efter backupen tas bort', async () => {
   const db = database();
   await seed(db);
-  await seed(db, [{ path: 'households/annat', data: { name: 'Annat', memberUids: ['uid-x'], schemaVersion: 1 } }]);
+  await seed(db, [otherHousehold]);
   const backup = await exportData(db, { household: 'hushall-test' });
   await seed(db, [
     { path: 'households/hushall-test/trips/gran-canaria/packingItems/ny', data: { name: 'Tillkommen' } },
