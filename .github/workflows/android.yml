@@ -174,12 +174,12 @@ jobs:
           cache: npm
           cache-dependency-path: tools/db/package-lock.json
 
-      - name: Java 17 (Firebase-emulatorn)
+      - name: Java 21 (firebase-tools 15 kräver minst 21 för emulatorn)
         if: steps.present.outputs.present == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Cache för Firebase-emulatorn
         if: steps.present.outputs.present == 'true'

@@ -75,4 +75,34 @@ node --test '.claude/hooks/test/*.test.mjs'
 
 ---
 
-*Funktioner, Firebase-setup, byggkommandon, backup och versionshistorik fylls på i #19.*
+## Firebase-setup
+
+Görs en gång av dig i Firebase- och GitHub-konsolerna. Inga nycklar hör hemma i repot eller i
+chatten (skill [`data-privacy-security`](.claude/skills/data-privacy-security/SKILL.md)).
+
+1. **Projekt:** skapa Firebase-projektet `reseapoteket` (Spark-planen räcker). Aktivera
+   **Authentication → Google** och **Firestore** i production mode, region `europe-north1`.
+2. **Android-app:** lägg till appen med paketet `se.partee71.reseapoteket` och SHA-1 för både
+   debug- och release-nyckeln. Ladda ner `google-services.json` till `app/` (git-ignorerad) och
+   lägg innehållet som GitHub-secret `GOOGLE_SERVICES_JSON` (release-bygget skriver filen).
+   Utan filen bygger appen ändå, men inloggning fungerar inte.
+3. **Service accounts** (Google Cloud Console → IAM → Service accounts):
+   - `reseapoteket-tools` med rollen **Cloud Datastore User** → nyckeln base64-kodad som
+     GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (veckobackupen, #17).
+   - en läsnyckel med rollen **Cloud Datastore Viewer** → miljövariabeln
+     `FIREBASE_SERVICE_ACCOUNT` i Claude-miljön (se ovan).
+4. **Security rules:** `firestore.rules` deployas manuellt och medvetet – aldrig från CI –
+   från din egen dator, inloggad med `npx --prefix tools/db firebase login`:
+   ```bash
+   npm ci --prefix tools/db
+   npx --prefix tools/db firebase deploy --only firestore:rules,firestore:indexes --project reseapoteket
+   ```
+
+**Testa reglerna lokalt** (kräver Java 21; startar Firebase-emulatorn med ett demo-projekt och rör
+aldrig den riktiga databasen):
+```bash
+npm ci --prefix tools/db
+npx --prefix tools/db firebase emulators:exec --only firestore --project demo-reseapoteket "npm --prefix tools/db test"
+```
+
+*Funktioner, byggkommandon, backup och versionshistorik fylls på i #19.*

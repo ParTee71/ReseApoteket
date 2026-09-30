@@ -1,0 +1,17 @@
+{
+  "name": "reseapoteket-db",
+  "private": true,
+  "description": "ReseApotekets databasverktyg (skill db-access) och tester mot Firebase-emulatorn.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs'"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.19.0",
+    "firebase-tools": "15.32.0"
+  }
+}
