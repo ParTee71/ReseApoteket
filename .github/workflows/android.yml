@@ -1,0 +1,216 @@
+# PR-flödet (regel 5, skill ci-budget – tabellen där är facit för filtren nedan och
+# kontrolleras av .github/scripts/check-ci-table.mjs). Jobbet `changes` startar alltid och
+# avgör vad som körs; `ci-ok` är det enda obligatoriska statuskravet.
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+  workflow_call: # release.yml kör allt som grind
+
+permissions:
+  contents: read
+  pull-requests: read # dorny/paths-filter läser PR:ens ändrade filer
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run_core: ${{ steps.decide.outputs.run_core }}
+      run_app: ${{ steps.decide.outputs.run_app }}
+      run_tools: ${{ steps.decide.outputs.run_tools }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ändrade sökvägar
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            core:
+              - 'core/**'
+            app:
+              - 'app/**'
+              - '.claude/skills/shared-ui-components/**'
+            tools:
+              - 'firestore.rules'
+              - 'firestore.indexes.json'
+              - 'firebase.json'
+              - 'tools/db/**'
+            build:
+              - '*.gradle.kts'
+              - 'gradle/**'
+              - 'gradle.properties'
+              - 'build-logic/**'
+              - '.github/**'
+
+      - name: Vad körs
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          CORE: ${{ steps.filter.outputs.core }}
+          APP: ${{ steps.filter.outputs.app }}
+          TOOLS: ${{ steps.filter.outputs.tools }}
+          BUILD: ${{ steps.filter.outputs.build }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" != "pull_request" ]; then
+            core=true; app=true; tools=true; why="$EVENT – allt körs (baslinje och cache)"
+          else
+            core=false; app=false; tools=false
+            if [ "$CORE" = true ] || [ "$BUILD" = true ]; then core=true; fi
+            if [ "$CORE" = true ] || [ "$APP" = true ] || [ "$BUILD" = true ]; then app=true; fi
+            if [ "$TOOLS" = true ] || [ "$BUILD" = true ]; then tools=true; fi
+            why="PR – filter: core=$CORE app=$APP tools=$TOOLS build=$BUILD"
+          fi
+          {
+            echo "run_core=$core"
+            echo "run_app=$app"
+            echo "run_tools=$tools"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Vad körs"
+            echo "$why"
+            echo ""
+            echo "| Del | Körs |"
+            echo "|---|---|"
+            echo "| \`:core:test\` | $core |"
+            echo "| app-tester, skärmdumpar, \`cpdCheck\` | $app |"
+            echo "| rules/rundtur mot Firebase-emulatorn | $tools |"
+            echo "| dokumentkontroller | true |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: ./.github/actions/doc-checks
+
+  gradle:
+    name: gradle
+    needs: changes
+    if: needs.changes.outputs.run_core == 'true' || needs.changes.outputs.run_app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-android
+
+      - name: Bygg och testa
+        env:
+          RUN_CORE: ${{ needs.changes.outputs.run_core }}
+          RUN_APP: ${{ needs.changes.outputs.run_app }}
+        run: |
+          set -euo pipefail
+          tasks=(cpdCheck)
+          if [ "$RUN_CORE" = true ]; then tasks+=(:core:test); fi
+          if [ "$RUN_APP" = true ]; then tasks+=(:app:testDebugUnitTest :app:verifyRoborazziDebug :app:compileDebugAndroidTestKotlin); fi
+          echo "### Gradle" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`./gradlew ${tasks[*]}\`" >> "$GITHUB_STEP_SUMMARY"
+          ./gradlew --configuration-cache --continue "${tasks[@]}"
+
+      - name: Testrapporter
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testrapporter
+          path: |
+            core/build/reports/tests/
+            app/build/reports/tests/
+          if-no-files-found: ignore
+
+      - name: Skärmdumpsdiffar och CPD-rapport
+        id: failure-artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diffar-och-cpd
+          path: |
+            app/build/outputs/roborazzi/
+            build/reports/cpd/
+          if-no-files-found: ignore
+
+      - name: Länk till diffar
+        if: failure()
+        env:
+          URL: ${{ steps.failure-artifacts.outputs.artifact-url }}
+        run: |
+          {
+            echo "### Felsökning"
+            echo "Roborazzi-diffar (\`*_compare.png\`) och CPD-rapporten: ${URL:-inga filer}"
+            echo "Testrapporter: artifact \`testrapporter\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  rules:
+    name: rules
+    needs: changes
+    if: needs.changes.outputs.run_tools == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Finns tools/db?
+        id: present
+        run: |
+          if [ -f tools/db/package.json ] && [ -f firebase.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tools/db eller firebase.json finns inte än (#15, #17) – inga rules-tester att köra."
+          fi
+
+      - name: Node 22
+        if: steps.present.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/db/package-lock.json
+
+      - name: Java 17 (Firebase-emulatorn)
+        if: steps.present.outputs.present == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache för Firebase-emulatorn
+        if: steps.present.outputs.present == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('tools/db/package-lock.json') }}
+
+      # Bara emulatorn med demo-projekt-ID: inga riktiga Firebase-hemligheter i detta jobb
+      # (skill data-safety-backup). emulators:exec sätter FIRESTORE_EMULATOR_HOST.
+      - name: Rules- och rundturstester mot emulatorn
+        if: steps.present.outputs.present == 'true'
+        run: |
+          npm ci --prefix tools/db --ignore-scripts
+          npx --prefix tools/db firebase emulators:exec --only firestore --project demo-reseapoteket "npm --prefix tools/db test"
+
+  ci-ok:
+    name: ci-ok
+    needs: [changes, gradle, rules]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Alla körda jobb gröna
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Resultat: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::Ett jobb blev $r"; exit 1 ;;
+            esac
+          done

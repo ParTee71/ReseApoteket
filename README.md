@@ -59,10 +59,17 @@ Fråga Claude ("hur många recept har Anna?") – agenten `db-inspektor` använd
 [`db-access`](.claude/skills/db-access/SKILL.md).
 
 ### Tester och CI
-Tester körs i GitHub Actions när en PR öppnas. Bara det som berörs av ändringen körs
-(skill [`ci-budget`](.claude/skills/ci-budget/SKILL.md)). Hooktestet kan köras lokalt:
+Tester körs i GitHub Actions när en PR öppnas. Bara det som berörs av ändringen körs; vad
+som körs när, och vilka flöden som bara körs på begäran, står i skill
+[`ci-budget`](.claude/skills/ci-budget/SKILL.md).
+
+**Grenskydd (en gång, i GitHub):** Settings → Branches → `master` → kräv statuskontrollen
+`ci-ok`. Gör inte `gradle` eller `rules` obligatoriska – hoppade jobb rapporterar ingen status.
+
+Dokumentkontrollerna och hooktestet kan köras lokalt:
 
 ```bash
+node --test '.github/scripts/*.test.mjs'
 node --test '.claude/hooks/test/*.test.mjs'
 ```
 
