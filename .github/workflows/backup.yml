@@ -47,6 +47,8 @@ jobs:
           # Bara firebase-admin: inga utvecklingsverktyg i jobbet som har nyckel och lösenfras.
           npm ci --prefix tools/db --ignore-scripts --omit=dev
           node tools/db/export.mjs --out tools/db/backup.json
+          # Samma kontroll som en återställning gör, utan databas: filen går att importera.
+          node tools/db/import.mjs --in tools/db/backup.json --dry-run
 
       - name: Kryptera och kontrollera
         env:
@@ -54,7 +56,8 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
-            --symmetric --cipher-algo AES256 --output backup.json.gpg tools/db/backup.json
+            --symmetric --cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-count 65011712 \
+            --output backup.json.gpg tools/db/backup.json
           # Beviset att filen går att öppna med lösenfrasen – innan klartexten raderas.
           printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 0 \
             --decrypt backup.json.gpg | cmp - tools/db/backup.json

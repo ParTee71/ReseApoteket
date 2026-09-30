@@ -2,7 +2,7 @@
 // Återställer en export (BCK-3, BCK-6, skill db-access). Skriver – kör alltid --dry-run först.
 import { readFileSync } from 'node:fs';
 import { openFirestore } from './lib/admin.mjs';
-import { importData } from './lib/backup.mjs';
+import { importData, parseExport } from './lib/backup.mjs';
 import { printSummary, runCli } from './lib/cli.mjs';
 
 await runCli({
@@ -21,7 +21,7 @@ Kör när appen inte används – importen skriver över dokument som ändrats u
   },
   main: async ({ in: file, household, replace, 'dry-run': dryRun }) => {
     if (!file) throw new Error('--in saknas');
-    const data = JSON.parse(readFileSync(file, 'utf8'));
+    const data = parseExport(readFileSync(file, 'utf8'));
     // Torrkörning utan --replace behöver ingen databas; med --replace läses den bara.
     const db = dryRun && !replace ? null : openFirestore({ write: !dryRun });
     const { written, removed } = await importData(db, data, { household, dryRun, replace });

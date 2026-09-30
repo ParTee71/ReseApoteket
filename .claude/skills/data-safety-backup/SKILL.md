@@ -129,6 +129,9 @@ Rundturstestet raderar och importerar data. Därför:
 - **`null` vs saknat fält:** codecen skriver alla kända fält, även `null`, och `decode`
   behandlar `null` som saknat. Se *Skrivningar bevarar okända fält*.
 - **Arrays av ID:n** (`travellerIds`, `memberUids`) – ordningen bevaras i rundturen.
+- **Heltal vs decimaltal:** JSON skiljer dem inte åt – ett decimaltal med heltalsvärde (`2.0`)
+  kommer tillbaka från en rundtur som heltal (`2`). Fälthjälparna i `:core` läser alla `Number`,
+  så det är ofarligt; låt aldrig en codec bero på den skillnaden.
 - **Batch-storlek:** Firestore tillåter 500 skrivningar per batch; import delar upp.
 - **Samlingen glömd i `collections.mjs`** → den backas aldrig upp. Testet mot `Paths`
   fångar det; ta aldrig bort det testet.

@@ -34,6 +34,18 @@ export async function exportData(db, { household, now = new Date() } = {}) {
   return { exportedAt: now.toISOString(), schemaVersion: schemaVersion ?? CURRENT_VERSION, documents };
 }
 
+/**
+ * Läser en exportfil. Ett parsningsfel ger ett fast meddelande: Nodes eget meddelande citerar
+ * filens innehåll, och det är hälsodata.
+ */
+export function parseExport(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Filen är inte giltig JSON (innehållet visas inte)');
+  }
+}
+
 /** Antal dokument per samling – det som visas i stället för innehåll (hälsodata). */
 export function summarize(documents) {
   const counts = {};
