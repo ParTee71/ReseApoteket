@@ -47,7 +47,7 @@ KRAVLISTA.md består av numrerade avsnitt med tabeller `| ID | Krav |`. Varje kr
 Beteenden som ramarna ger alla skärmar (listskärmens tillstånd, redigering och
 "Släng ändringar?", arkivera med ångra, radering med bekräftelse, felmeddelanden,
 synkindikator) står som **NFR-/NAV-krav en gång**. Funktionskraven refererar till dem
-(`Personlistan följer NFR-10 och NFR-12.`) i stället för att upprepa texten – regel 4
+(`Personlistan följer NFR-1 och NFR-3.`) i stället för att upprepa texten – regel 4
 gäller även kravlistan.
 
 ## Formler är krav
@@ -66,8 +66,8 @@ bevisar den.
 ## Följdartefakter
 
 - **README.md** – funktionslistan och versionstabellen när en funktion tillkommer eller försvinner.
-- **Version** – `versionName` i `app/build.gradle.kts` vid ny funktion eller borttagning. Själva
-  releasen görs bara på uttrycklig begäran (skill `release`).
+- **Version** – `versionName`/`versionCode` höjs **bara vid release**, aldrig i en
+  funktions-PR. Releasen görs bara på uttrycklig begäran (skill `release`).
 
 ## Checklista
 
@@ -75,5 +75,5 @@ bevisar den.
 - [ ] Nytt ID / redigerat / struket med `~~…~~ *(borttaget)*`; `*(planerad)*` borttaget när det byggts.
 - [ ] Inga ID:n återanvända eller raderade.
 - [ ] Gemensamma beteenden refererade, inte upprepade.
-- [ ] README/version uppdaterad om funktionsomfånget ändrats.
+- [ ] README uppdaterad om funktionsomfånget ändrats (version höjs vid release).
 - [ ] Ett test bevisar det nya/ändrade kravet.

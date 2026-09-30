@@ -18,7 +18,7 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 ```
 :core-modell ⇄ DocCodec<T> ⇄ Map<String, Any?> ⇄ FirestoreCollection<T> ⇄ Firestore
                                                                             │
-          tools/db import  ←  backup.json (krypterad i Actions)  ←  tools/db export
+          tools/db import  ←  backup (gpg-krypterad i Actions)  ←  tools/db export
 ```
 
 | Led | Fil | Ansvar |
@@ -43,10 +43,28 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
   läses redan av gamla dokument. Höj bara vid betydelseändring (omdöpt fält, ändrad enhet,
   ändrad struktur).
 
+## Skrivningar bevarar okända fält
+
+Eftersom nya fält inte höjer `schemaVersion` kan en äldre appversion läsa ett dokument med
+fält den inte känner till. Den får aldrig radera dem när den sparar:
+
+- **`FirestoreCollection.upsert` skriver med `set(…, SetOptions.merge())`**, aldrig ett helt
+  dokument. Fält som inte finns i codecen lämnas orörda i Firestore.
+- **Codecens `encode` skriver alla fält den känner till – även de utan värde, som `null`.**
+  Annars skulle ett fält som användaren tömt (t.ex. `packageSize`) ligga kvar vid merge.
+  `decode` behandlar `null` och saknat fält likadant (default).
+- **Nästlade objekt** (`schedule`, `rule`) skrivs med alla varianters fält; fält som inte
+  gäller den valda varianten skrivs som `null`, så att byte av doseringstyp inte lämnar
+  gamla värden kvar.
+- **Radering av ett helt dokument** görs bara via `delete(id)`, aldrig genom att skriva om det.
+- Test: `CollectionContract` har fallen "okänt fält bevaras vid upsert" och "tömt valfritt
+  fält försvinner vid upsert" (skill `firestore-data-layer`).
+
 ## Checklista: nytt fält på en befintlig modell
 
 1. Fältet på `:core`-modellen **med default** (`= ""`, `= 0`, `= false`, `= null`, `= emptyList()`).
 2. Fältet i codecens `encode` och `decode` via fälthjälparna – aldrig egen parsning.
+   `encode` skriver fältet även när det saknar värde (`null`).
 3. Tolka äldre dokument medvetet: saknas fältet → default. Behöver det härledas från
    andra fält, gör det i `decode` och testa det.
 4. Påverkar fältet vem som får läsa/skriva? Uppdatera `firestore.rules` + rules-test.
@@ -69,12 +87,27 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 |---|---|---|
 | Codec-rundtur | `core/src/test/.../schema/*CodecTest.kt` via `assertCodecRoundTrip(codec, sample)` | modell → map → modell identisk, inklusive nya fält |
 | Tolerans | samma test via `assertToleratesMissingFields` + `assertIgnoresUnknownFields` | äldre och nyare dokument |
+| Fullständig skrivning | samma test via `assertEncodesAllFields(codec, sampleWithNulls)` | `encode` skriver varje känt fält, även `null`, så att merge tömmer och bevarar rätt |
 | Migrering | `core/src/test/.../schema/SchemaMigratorTest.kt` | varje versionssteg |
-| Rundtur end-to-end | `tools/db/test/roundtrip.test.mjs` mot emulatorn | seed → export → radera → import → export identisk |
+| Rundtur end-to-end | `tools/db/test/roundtrip.test.mjs` **endast mot emulatorn** | seed → export → radera → import → export identisk |
 | Samlingslistan | `tools/db/test/collections.test.mjs` | `collections.mjs` = `Paths` = rules |
 
 Varje persisterat fält ska kunna spåras till minst ett test som **asserterar på fältet**
 med ett icke-default-värde.
+
+### Tester rör aldrig den riktiga databasen
+
+Rundturstestet raderar och importerar data. Därför:
+- Alla tester i `tools/db/test/` går via en gemensam testhjälpare som **avbryter direkt om
+  `FIRESTORE_EMULATOR_HOST` saknas**, och som använder projekt-ID:t `demo-reseapoteket`
+  (Firebase-emulatorn behandlar `demo-*` som ett projekt utan koppling till molnet).
+- `tools/db/lib/admin.mjs` i testläge godkänner **bara** `FIRESTORE_EMULATOR_HOST` satt och
+  ett projekt-ID som börjar med `demo-` – oavsett hur testet startats. Testläge är när
+  `NODE_TEST_CONTEXT` är satt eller när anroparen uttryckligen begär det; testhjälparen
+  begär det alltid.
+- Krav: BCK-4.
+- Testdata (`tools/db/test/fixtures/household.json`) är **syntetisk** – aldrig utdrag ur den
+  riktiga databasen.
 
 ## Fallgropar
 
@@ -84,7 +117,8 @@ med ett icke-default-värde.
 - **`Timestamp` vs `Long` vs ISO-sträng:** datum utan tid lagras som ISO-sträng
   (`yyyy-MM-dd`); `Timestamp` bara för `createdAt`/`updatedAt`/`checkedAt`. `tools/db`
   serialiserar `Timestamp` som `{ "__ts": iso }`.
-- **`null` vs saknat fält:** codecen skriver inte `null` för valfria fält som saknar värde.
+- **`null` vs saknat fält:** codecen skriver alla kända fält, även `null`, och `decode`
+  behandlar `null` som saknat. Se *Skrivningar bevarar okända fält*.
 - **Arrays av ID:n** (`travellerIds`, `memberUids`) – ordningen bevaras i rundturen.
 - **Batch-storlek:** Firestore tillåter 500 skrivningar per batch; import delar upp.
 - **Samlingen glömd i `collections.mjs`** → den backas aldrig upp. Testet mot `Paths`

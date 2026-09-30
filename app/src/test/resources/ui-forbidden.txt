@@ -1,36 +1,51 @@
 # Förbjudna mönster för regel 4 – enda källan.
 # Läses av hooken .claude/hooks/regel4-check.mjs och av UiConsistencyTest (#11).
 # Format per rad: <regex><TAB><vad som ska användas i stället>
-# [feature] = app/src/main/**/ui/** utom ui/components, ui/theme, ui/common
-# [data]    = app/src/main/**/data/** utom data/firestore
+# [feature]   = Kotlin i ett ui-paket under app/src/main utom ui/components, ui/theme, ui/common
+#               (även filer direkt under ui/)
+# [firestore] = all Kotlin under app/src/main utom data/firestore/
+# Tillåtet i feature-kod: Text (med AppTypography-stil), Icon (Material Symbols),
+# Column, Row, Box, Spacer med Spacing, samt allt i ui/components och ui/common.
 # Regexarna ska fungera både i JavaScript och Kotlin (ingen lookbehind).
 
 [feature]
-\bColor\(0x	MaterialTheme.colorScheme / AppColors
+\bColor\(	MaterialTheme.colorScheme / AppColors
+\bColor\.[A-Z][A-Za-z]*	MaterialTheme.colorScheme / AppColors
 \bRoundedCornerShape\(	AppShapes
 \bCutCornerShape\(	AppShapes
 \bTextStyle\(	AppTypography
-\bfontSize\s*=	AppTypography
-\bfontWeight\s*=	AppTypography
+\b(fontSize|fontWeight|lineHeight|letterSpacing)\s*=	AppTypography
 \.shadow\(	ApotekCard eller komponentens parametrar
-\.(height|size|clip)\(\s*[0-9]+(\.[0-9]+)?\.dp	komponentens parametrar eller Spacing
-\bpadding\(\s*[0-9]+(\.[0-9]+)?\.dp	Spacing
+\.(height|width|size|clip|requiredHeight|requiredWidth|requiredSize)\(\s*[0-9]+(\.[0-9]+)?\.dp	komponentens parametrar eller Spacing
+\bpadding\([^)]*[0-9]+(\.[0-9]+)?\.dp	Spacing
+\bSurface\s*[({]	ApotekCard
 \b(Elevated|Outlined)?Card\s*[({]	ApotekCard
 \b(Filled|FilledTonal|Outlined|Elevated|Text)?Button\s*[({]	AppButton
 \b(Filled|FilledTonal|Outlined)?IconButton\s*[({]	AppIconButton
+\b(Small|Large|Extended)?FloatingActionButton\s*[({]	AddSplitButton / AppFloatingToolbar
 \bCheckbox\s*[({]	CheckRow
+\bSwitch\s*[({]	SwitchRow
+\bRadioButton\s*[({]	AppSegmentedChoice
+\b[A-Za-z]*SegmentedButton[A-Za-z]*\s*[({]	AppSegmentedChoice
+\bSlider\s*[({]	QuantityStepper
 \b(Outlined)?TextField\s*[({]	AppTextField
+\b[A-Za-z]*DatePicker[A-Za-z]*\s*[({]	DateField
+\bDropdownMenu(Item)?\s*[({]	AppMenu
 \b[A-Za-z]*TopAppBar\s*[({]	AppTopBar
-\bFilterChip\s*[({]	AppFilterChip / PersonChip
+\bNavigation(Bar|Rail)\s*[({]	AppFloatingToolbar
+\b(Filter|Assist|Suggestion|Input)Chip\s*[({]	AppFilterChip / PersonChip
+\bBadge\s*[({]	InfoPill
+\b(Horizontal|Vertical)?Divider\s*[({]	AppDivider
 \bAlertDialog\s*[({]	ConfirmDialog
 \bModalBottomSheet\s*[({]	AppBottomSheet
 \b[A-Za-z]*ProgressIndicator\s*[({]	SuitcaseProgress / AppLoading
 \bSnackbar(Host)?\s*[({]	AppSnackbarHost / UndoSnackbar
 \bLazyColumn\s*[({]	EntityListScreen
+\bLazy(Row|VerticalGrid|HorizontalGrid|VerticalStaggeredGrid)\s*[({]	EntityListScreen (gruppering, columns) / ChipRow
 \bScaffold\s*[({]	EntityListScreen / EntityEditScreen
 \bSwipeToDismissBox\s*[({]	SwipeToHide
 
-[data]
-\bFirebaseFirestore\b	FirestoreCollection<T> i data/firestore/
+[firestore]
+\bFirebaseFirestore\b	FirestoreCollection<T> i data/firestore/ (Hilt-modulen ligger också där)
 \bCollectionReference\b	FirestoreCollection<T> i data/firestore/
 \bDocumentReference\b	FirestoreCollection<T> i data/firestore/

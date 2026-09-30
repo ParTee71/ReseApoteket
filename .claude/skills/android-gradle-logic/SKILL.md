@@ -55,6 +55,11 @@ include(":convention")
 
 ## Step 3: Write Convention Plugins
 
+> The snippets in steps 3 and "Version Catalog Best Practices" are **schematic**. Real
+> versions (AGP, Kotlin, compileSdk, Compose BOM) are chosen in #11 and recorded in
+> `ARKITEKTUR.md` → "Byggkonfiguration"; Material 3 Expressive and Navigation 3 need recent
+> ones. This project always uses Java 17.
+
 ### Application Plugin
 
 ```kotlin
@@ -65,15 +70,15 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             pluginManager.apply("org.jetbrains.kotlin.android")
 
             extensions.configure<ApplicationExtension> {
-                compileSdk = 35
+                compileSdk = 36
                 defaultConfig {
-                    minSdk = 26
-                    targetSdk = 35
+                    minSdk = 30
+                    targetSdk = 35 // minSdk/targetSdk per ARKITEKTUR.md
                 }
             }
 
             extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {
-                jvmToolchain(21)
+                jvmToolchain(17)
             }
         }
     }
@@ -101,12 +106,14 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
 [versions]
 agp = "8.13.2"
 kotlin = "2.0.21"
-compileSdk = "35"
+compileSdk = "36"
 
 [libraries]
 # Use BOM for Firebase to keep versions in sync
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx" }  # version from BOM
+firebaseBom = "<senaste>"   # i [versions]
+# …
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }  # version from BOM (ktx-artefakterna används inte)
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -145,4 +152,5 @@ Java 17 toolchain, Kotlin compiler flags, test timeout and test logging are conf
 - [ ] `:core` has no Android/Firebase dependency
 - [ ] Shared build settings exist once; module files only contain what is unique to the module
 - [ ] `google-services` plugin applied only in `app/build.gradle.kts`; `google-services.json` is git-ignored and written from a secret in CI
+- [ ] Builds without the secret still compile: when `app/google-services.json` is missing (PR builds from forks, sessions), a debug-only stub resource provides `default_web_client_id` (e.g. `app/src/debug/res/values/auth_stub.xml`), so auth code compiles; sign-in simply fails at runtime there
 - [ ] New dependency or plugin: build-time impact stated in the PR (skill `ci-budget`)

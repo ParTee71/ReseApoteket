@@ -28,7 +28,7 @@ tolerera okända fält och äldre `schemaVersion`. Nytt fält eller ny samling �
 ### 2. Tester på alla nivåer
 Ingen beteendeändring utan tester på rätt nivå: `:core` (ren JUnit), ViewModel
 (Fake-repositories + Turbine), Compose via Robolectric i JVM, Roborazzi-skärmdumpar,
-rules- och rundturstester mot Firestore-emulatorn. Befintliga tester uppdateras, tas
+rules- och rundturstester mot Firebase-emulatorn. Befintliga tester uppdateras, tas
 aldrig bort för att "bli gröna". **Flaky tester är buggar** – hitta grundorsaken och gör
 testet deterministiskt, kör aldrig bara om.
 → Skill: **testing-strategy**. Krav: NFR-serien.
@@ -36,8 +36,8 @@ testet deterministiskt, kör aldrig bara om.
 ### 3. Kraven hålls aktuella
 Ändrar du synligt beteende uppdateras [KRAVLISTA.md](KRAVLISTA.md) i samma PR – nytt krav
 får nästa lediga ID, ändrat behåller sitt ID, borttaget stryks med `~~…~~ *(borttaget)*`.
-Gemensamma beteenden beskrivs en gång (NFR/NAV) och refereras. README och `versionName`
-följer med vid större ändringar.
+Gemensamma beteenden beskrivs en gång (NFR/NAV) och refereras. README följer med när
+funktionsomfånget ändras; `versionName` höjs bara vid release (skill **release**).
 → Skill: **requirements-kravlista**.
 
 ### 4. Enhetligt och utan dubbelkod
@@ -74,24 +74,16 @@ finns på ett ställe.**
 → Skills: **shared-ui-components**, **ui-style**, **firestore-data-layer**.
 
 ### 5. CI-budget
-En PR får inte kosta mer än ~8 Actions-minuter. Ingen emulator, lint eller
+En PR får inte kosta mer än ~8 Actions-minuter. Ingen Android-emulator, lint eller
 release-bygge i PR-flödet utan uttryckligt beslut; de körs på begäran, veckovis och vid
 release. Nya beroenden eller moduler får inte fördubbla byggtiden – ange effekten i PR:en.
 
-**Tester körs bara när koden de testar har ändrats:**
-
-| Ändrade filer | Körs i PR |
-|---|---|
-| `core/**` | `:core:test` + `:app:testDebugUnitTest` + skärmdumpar + `cpdCheck` |
-| `app/**`, skill `shared-ui-components` | `:app:testDebugUnitTest` + skärmdumpar + `cpdCheck` |
-| `firestore.rules`, `tools/db/**`, `data/firestore/**` | rules-, rundturs- och kontraktstester mot emulatorn |
-| byggfiler, `gradle/**`, `.github/workflows/**` | allt ovan |
-| allt annat (`*.md`, `.claude/**`) | bara dokumentkontroller (sekunder) |
-
-Gradles build cache hoppar dessutom över oförändrade testtasks. På `master` körs alltid
-allt. Dokumentkontrollerna (skill-tabeller mot kod och workflow, länkar, hooktest) körs
-alltid. Att slippa köra ett test är aldrig ett skäl att inte skriva det.
-→ Skill: **ci-budget** (enda källan för tabellen ovan; kontrolleras mot `android.yml`).
+**Tester körs bara när koden de testar har ändrats.** Ett snabbt jobb avgör utifrån ändrade
+sökvägar vilka testjobb som körs; Gradles build cache hoppar dessutom över oförändrade
+testtasks. På `master` körs alltid allt, och dokumentkontrollerna (skill-tabeller mot kod
+och workflow, länkar, hooktest) körs alltid. Att slippa köra ett test är aldrig ett skäl att
+inte skriva det.
+→ Skill: **ci-budget** – enda källan för vad som körs när; kontrolleras mot `android.yml`.
 
 ---
 
@@ -118,7 +110,7 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 
 1. **Sök efter befintligt mönster.** Komponent, ram, `FirestoreCollection`,
    `EditorState`, formatterare, use case eller testhjälpare – finns det, använd det.
-   `Grep` i `ui/components/`, `ui/common/`, `data/firestore/` och `core/` först.
+   `Grep` i `ui/components/`, `ui/common/`, `data/common/`, `data/firestore/` och `core/` först.
 2. **Följ arkitekturen** även om en genväg vore enklare: MVVM, `StateFlow<UiState>`,
    sealed events, repository som single source of truth, Hilt-DI, fel mappas i datalagret.
 3. **Svenska** i allt användarvänt (UI-strängar i `strings.xml`, återkommande texter en
@@ -175,18 +167,10 @@ Compose → ViewModel (StateFlow<UiState>) → Repository → FirestoreCollectio
                                                          ↑ DocCodec<T> i :core
 ```
 
-| Plats | Innehåll |
-|---|---|
-| `core/` `se.partee71.reseapoteket.core` | `model`, `engine` (`PackingEngine`, formatterare), `schema` (codecs, `SchemaMigrator`) – ren Kotlin/JVM |
-| `app/.../data/` | `auth`, `firestore` (`FirestoreCollection`, `Paths`), `repository` (tunna fasader), `datastore` |
-| `app/.../navigation/` | Navigation 3: nycklar, backstack, `Transitions` |
-| `app/.../ui/theme/` | Expressive-tema, `AppTypography`, `AppShapes`, `Spacing` – enda källan till utseende |
-| `app/.../ui/components/` | Delade komponenter och skärmramar, `ComponentGallery` |
-| `app/.../ui/common/` | `ListUiState`, `EditorState`, `DataError.toMessage()` |
-| `app/.../ui/<feature>/` | `persons`, `regimens`, `familyitems`, `trips`, `packing`, `settings` |
-| `tools/db/` | Node-verktyg: `query`, `get`, `stats`, `export`, `import`, `migrate` + tester |
-
-Detaljer i [ARKITEKTUR.md](ARKITEKTUR.md).
+`:core` är ren Kotlin/JVM (modeller, codecs, `PackingEngine`); `:app` är Android-appen.
+Utseende och gemensamt beteende finns bara i `ui/theme`, `ui/components` och `ui/common`;
+Firestore bara i `data/firestore`; felmappning en gång i `data/common`. Paketträd,
+dataflöde och datamodell står i [ARKITEKTUR.md](ARKITEKTUR.md) (enda källan).
 
 ## Databasåtkomst från sessionen
 
@@ -230,4 +214,4 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 | `release` | Endast vid uttrycklig release. |
 
 > Reglerna gäller både i Claude-appen på telefonen och i Claude i Android Studio – båda
-> läser denna fil och `.claude/`. Skills som ännu inte finns skapas i Epic 1 (#1).
+> läser denna fil och `.claude/`.

@@ -45,6 +45,12 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Bottom sheet | `AppBottomSheet` | M3 modal sheet |
 | Meddelande | `AppSnackbarHost` | M3 snackbar |
 | Firande | `Confetti` | egen `Canvas`, inget bibliotek |
+| Avdelare | `AppDivider` | M3-avdelare med temats färg och tjocklek |
+| Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel |
+| Segmentval (t.ex. tema) | `AppSegmentedChoice` | M3 segmentknappar |
+| Meny (arkivera/radera m.m.) | `AppMenu` | M3 rullgardinsmeny |
+| Datumfält | `DateField` | `AppTextField` + M3 datumväljare |
+| Horisontell rad av chips | `ChipRow` | horisontell lista av `PersonChip`/`AppFilterChip` |
 | Förhandsvisning av mängd | `PackingPreview` | `ReasonFormatter` i `:core` |
 
 ## Beteende: interaktionsmönster → enda tillåtna ram
@@ -72,11 +78,13 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>` i `ui/common/` |
+| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `Unknown`) i `data/common/` |
 | Fel till text | `DataError.toMessage()` i `ui/common/` |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Beräkningar | `PackingEngine` i `:core` |
 | Mängd-, doserings- och regeltexter | `ReasonFormatter`, `DoseScheduleFormatter`, `QuantityRuleFormatter` i `:core` |
-| Resultat av suspend-anrop | `suspendRunCatching` i `data/firestore/` |
+| Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
+| Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
 | Inställningar | `SettingsStore` (DataStore) |
 | Test-fakes och hjälpare | se skill `testing-strategy` |
 | `tools/db`-logik | `tools/db/lib/` (admin, collections, walk, serialize, cli) |
@@ -86,20 +94,20 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 ## Förbjudet
 
 Kontrolleras av `UiConsistencyTest` (Konsist) i bygget och av hooken `regel4-check`
-direkt efter varje filändring. Båda läser samma mönsterfil
-`app/src/test/resources/ui-forbidden.txt` (`mönster<TAB>ersättning`) och samma
-undantagsfil `ui-allowlist.txt`.
+direkt efter varje filändring. De exakta mönstren står **bara** i
+`app/src/test/resources/ui-forbidden.txt` (enda källan, `mönster<TAB>ersättning`), och
+undantag bara i `ui-allowlist.txt`. I korthet:
 
-- **I `ui/<feature>/`** (allt under `ui/` utom `ui/components`, `ui/theme`, `ui/common`):
-  - Material 3-komponenter som har en motsvarighet i komponenttabellen (`Card`,
-    `ElevatedCard`, `Button`, `TextButton`, `OutlinedButton`, `IconButton`, `Checkbox`,
-    `TextField`, `OutlinedTextField`, `TopAppBar`, `FilterChip`, `AlertDialog`,
-    `ModalBottomSheet`, `*ProgressIndicator`, `Snackbar`).
-  - `LazyColumn`, `Scaffold`, `SwipeToDismissBox`, `SnackbarHost` – ramarna äger dem.
-  - Hårdkodat utseende: `Color(`, `RoundedCornerShape(`, `CutCornerShape(`,
-    `TextStyle(`, `fontSize =`, `fontWeight =`, `.shadow(`, literala dp för hörn/höjd.
-    Avstånd mellan komponenter via `Spacing` är tillåtet.
-- **Utanför `data/firestore/`:** `FirebaseFirestore`, `CollectionReference`, `DocumentReference`.
+- **Feature-kod** (Kotlin i ett ui-paket utom `ui/components`, `ui/theme`, `ui/common` –
+  även filer direkt under `ui/`):
+  - Material 3-komponenter och layoutelement som har en motsvarighet i tabellerna ovan –
+    t.ex. kort, knappar, kryss, växlar, fält, menyer, dialoger, sheets, avdelare, chips,
+    progress, snackbar, `LazyColumn`/`LazyRow`, `Scaffold`, `SwipeToDismissBox`.
+  - Hårdkodat utseende: färger, former, textstilar och literala dp för storlek och padding.
+  - **Tillåtet:** `Text` med en `AppTypography`-stil, `Icon` (Material Symbols),
+    `Column`/`Row`/`Box` och `Spacer` med `Spacing`.
+- **All kod utom `data/firestore/`** – även `di/` och `ui/`: `FirebaseFirestore`,
+  `CollectionReference`, `DocumentReference`. Därför ligger `FirestoreModule` i `data/firestore/`.
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
 - **I `ui/components/`:** publik komponent utan skärmdump eller utan plats i `ComponentGallery`.
 - **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Filen är tom som
@@ -108,7 +116,9 @@ undantagsfil `ui-allowlist.txt`.
 ## Dokumentdrift
 
 `UiConsistencyTest` läser komponenttabellen och ramtabellen i denna fil och jämför med
-de publika `@Composable`-funktionerna i `ui.components`:
+de publika `@Composable`-funktionerna i `ui.components`. Jämförelsen **aktiveras i #20**,
+när katalogen byggs. Innan dess (inga publika composables i `ui.components`) hoppar testet
+över den och skriver det i testloggen. Från #20:
 - komponent i koden men inte i tabellen → bygget faller ("lägg till raden i shared-ui-components");
 - komponent i tabellen men inte i koden → bygget faller ("ta bort raden eller bygg komponenten").
 

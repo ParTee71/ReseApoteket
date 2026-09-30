@@ -22,7 +22,7 @@ function readInput() {
   }
 }
 
-/** Tolkar ui-forbidden.txt till { feature: [...], data: [...] }. */
+/** Tolkar ui-forbidden.txt till { feature: [...], firestore: [...] }. */
 export function parsePatterns(text) {
   const scopes = {};
   let current = null;
@@ -53,56 +53,86 @@ export function parseAllowlist(text) {
     });
 }
 
-/** Vilket scope en repo-relativ sökväg hör till, eller null. */
-export function scopeOf(relPath) {
+/**
+ * Vilka scope en repo-relativ sökväg hör till.
+ * - `feature`: Kotlin i ett ui-paket under app/src/main utom ui/components, ui/theme och ui/common
+ *   (även filer direkt under ui/).
+ * - `firestore`: all Kotlin under app/src/main utom data/firestore/.
+ */
+export function scopesFor(relPath) {
   const p = relPath.split(path.sep).join('/');
-  if (!p.startsWith('app/src/main/') || !p.endsWith('.kt')) return null;
-  const ui = p.match(/\/ui\/([^/]+)\//);
-  if (ui) return ['components', 'theme', 'common'].includes(ui[1]) ? null : 'feature';
-  const data = p.match(/\/data\/([^/]+)\//);
-  if (data) return data[1] === 'firestore' ? null : 'data';
-  return null;
+  if (!p.startsWith('app/src/main/') || !p.endsWith('.kt')) return [];
+  const scopes = [];
+  const ui = p.match(/\/ui\/(?:([^/]+)\/)?[^/]+\.kt$|\/ui\/([^/]+)\//);
+  if (ui) {
+    const sub = ui[1] ?? ui[2];
+    if (!['components', 'theme', 'common'].includes(sub)) scopes.push('feature');
+  }
+  if (!/\/data\/firestore\//.test(p)) scopes.push('firestore');
+  return scopes;
+}
+
+/** Repots rot = närmaste förälder till filen som har mönsterfilen. */
+export function findRepoRoot(absFile) {
+  let dir = path.dirname(absFile);
+  for (;;) {
+    if (existsSync(path.join(dir, PATTERNS_FILE))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
 }
 
 /** Hittar förbjudna mönster i en fils innehåll. */
 export function findViolations(relPath, content, scopes, allowlist) {
-  const scope = scopeOf(relPath);
-  if (!scope || !scopes[scope]) return [];
+  const active = scopesFor(relPath).filter((s) => scopes[s]);
+  if (active.length === 0) return [];
   const normalized = relPath.split(path.sep).join('/');
   const hits = [];
   content.split(/\r?\n/).forEach((line, i) => {
     const trimmed = line.trim();
     if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('import ')) return;
-    for (const rule of scopes[scope]) {
-      const m = line.match(rule.regex);
-      if (!m) continue;
-      const allowed = allowlist.some((a) => a.file === normalized && line.includes(a.symbol));
-      if (!allowed) hits.push({ line: i + 1, match: m[0], replacement: rule.replacement, scope });
+    for (const scope of active) {
+      for (const rule of scopes[scope]) {
+        const m = line.match(rule.regex);
+        if (!m) continue;
+        const allowed = allowlist.some((a) => a.file === normalized && line.includes(a.symbol));
+        if (!allowed) hits.push({ line: i + 1, match: m[0], replacement: rule.replacement, scope });
+      }
     }
   });
   return hits;
 }
+
+const SCOPE_TEXT = {
+  feature: 'feature-kod (ui/<feature>/)',
+  firestore: 'kod utanför data/firestore/',
+};
 
 function main() {
   const input = readInput();
   const filePath = input?.tool_input?.file_path;
   if (!filePath) return 0;
 
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
-  const abs = path.isAbsolute(filePath) ? filePath : path.join(projectDir, filePath);
-  const rel = path.relative(projectDir, abs);
-  if (rel.startsWith('..') || !scopeOf(rel) || !existsSync(abs)) return 0;
+  const base = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
+  const abs = path.isAbsolute(filePath) ? filePath : path.join(base, filePath);
+  if (!abs.endsWith('.kt') || !existsSync(abs)) return 0;
 
-  const patternsPath = path.join(projectDir, PATTERNS_FILE);
-  if (!existsSync(patternsPath)) return 0;
-  const scopes = parsePatterns(readFileSync(patternsPath, 'utf8'));
-  const allowPath = path.join(projectDir, ALLOWLIST_FILE);
+  // Repots rot räknas från filen, inte från sessionens projektrot – en session kan ha
+  // flera repon under en gemensam katalog.
+  const root = findRepoRoot(abs);
+  if (!root) return 0;
+  const rel = path.relative(root, abs);
+  if (scopesFor(rel).length === 0) return 0;
+
+  const scopes = parsePatterns(readFileSync(path.join(root, PATTERNS_FILE), 'utf8'));
+  const allowPath = path.join(root, ALLOWLIST_FILE);
   const allowlist = existsSync(allowPath) ? parseAllowlist(readFileSync(allowPath, 'utf8')) : [];
 
   const hits = findViolations(rel, readFileSync(abs, 'utf8'), scopes, allowlist);
   if (hits.length === 0) return 0;
 
-  const where = hits[0].scope === 'feature' ? 'feature-kod (ui/<feature>/)' : 'datalagret utanför data/firestore/';
+  const where = [...new Set(hits.map((h) => SCOPE_TEXT[h.scope] ?? h.scope))].join(' och ');
   const lines = hits.map((h) => `  ${rel}:${h.line}  \`${h.match.trim()}\`  → använd ${h.replacement}`);
   process.stderr.write(
     `Regel 4 (enhetligt och utan dubbelkod): förbjudna mönster i ${where}.\n` +

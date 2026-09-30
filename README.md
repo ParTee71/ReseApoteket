@@ -17,10 +17,20 @@ inför en resa, och låter er pricka av det som plockats fram.
 
 ### Det som ligger i repot
 - `CLAUDE.md`, skills och agenter i `.claude/`.
-- `.claude/settings.json` förhandsgodkänner läsande GitHub- och databaskommandon.
-- Hooken `session-start.sh` installerar `tools/db` och talar om ifall databasnyckeln finns.
+- `.claude/settings.json` förhandsgodkänner utan fråga:
+  - läsning av PR:er, CI-status och jobbloggar, och bevakning av PR-aktivitet;
+  - schemalagda check-ins och triggers (skapa, ändra, ta bort, köra) – samma val som i
+    Dagboken, så att Claude kan följa upp PR:er utan att du behöver svara;
+  - läsande databaskommandon (`tools/db` query, get, stats);
+  - hooktestet och dokumentkontrollerna (`node --test` på de två testkatalogerna, kört
+    från repots rot med relativa sökvägar – i en session med flera repon frågar Claude först).
+  Skrivande databaskommandon (`import`, `migrate`) kräver alltid bekräftelse.
+- Hooken `session-start.sh` installerar `tools/db` (utan livscykelskript) och talar om ifall
+  databasnyckeln finns.
 - Hooken `regel4-check.mjs` kontrollerar regel 4 direkt efter varje filändring, med samma
   mönster som bygget (`app/src/test/resources/ui-forbidden.txt`).
+- Hookarna hittar repot både när det är sessionens projektrot och när sessionen har flera
+  repon under en gemensam katalog.
 
 ### Det du ställer in i Claude-miljön (en gång)
 Görs i Claude-appen: miljömenyn i sessionens titelrad → **Edit**. Nya inställningar gäller

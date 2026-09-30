@@ -1,4 +1,4 @@
-// Test för regel4-check-hooken. Körs med: node --test .claude/hooks/test/
+// Test för regel4-check-hooken. Körs med: node --test '.claude/hooks/test/*.test.mjs'
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, readFileSync } fro
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scopeOf, parsePatterns, findViolations } from '../regel4-check.mjs';
+import { scopesFor, parsePatterns, findViolations, findRepoRoot } from '../regel4-check.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
@@ -15,14 +15,17 @@ const patternsRel = 'app/src/test/resources/ui-forbidden.txt';
 const allowRel = 'app/src/test/resources/ui-allowlist.txt';
 const pkg = 'app/src/main/kotlin/se/partee71/reseapoteket';
 
-/** Tillfälligt projekt med de riktiga mönster- och undantagsfilerna. */
+const readPatterns = () => readFileSync(path.join(repoRoot, patternsRel), 'utf8');
+
+/** Tillfälligt repo (i en egen föräldrakatalog) med de riktiga mönster- och undantagsfilerna. */
 function makeProject(allowlist) {
-  const dir = mkdtempSync(path.join(tmpdir(), 'regel4-'));
+  const parent = mkdtempSync(path.join(tmpdir(), 'regel4-'));
+  const dir = path.join(parent, 'ReseApoteket');
   mkdirSync(path.join(dir, 'app/src/test/resources'), { recursive: true });
   copyFileSync(path.join(repoRoot, patternsRel), path.join(dir, patternsRel));
   if (allowlist !== undefined) writeFileSync(path.join(dir, allowRel), allowlist);
   else copyFileSync(path.join(repoRoot, allowRel), path.join(dir, allowRel));
-  return dir;
+  return { dir, parent };
 }
 
 function writeKt(dir, rel, content) {
@@ -32,10 +35,10 @@ function writeKt(dir, rel, content) {
   return abs;
 }
 
-function runHook(dir, filePath, tool = 'Write') {
+function runHook(projectDir, filePath, tool = 'Write') {
   return spawnSync('node', [hook], {
-    input: JSON.stringify({ tool_name: tool, tool_input: { file_path: filePath }, cwd: dir }),
-    env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
+    input: JSON.stringify({ tool_name: tool, tool_input: { file_path: filePath }, cwd: projectDir }),
+    env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir },
     encoding: 'utf8',
   });
 }
@@ -43,91 +46,137 @@ function runHook(dir, filePath, tool = 'Write') {
 const featureCard = `package x\n\n@Composable\nfun PersonRow() {\n    Card(modifier = Modifier) { Text("Anna") }\n}\n`;
 
 test('stoppar Card( i feature-kod med exit 2 och tipsar om ApotekCard', () => {
-  const dir = makeProject();
-  const file = writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard);
-  const r = runHook(dir, file);
+  const { dir } = makeProject();
+  const r = runHook(dir, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard));
   assert.equal(r.status, 2);
   assert.match(r.stderr, /PersonRow\.kt:5/);
   assert.match(r.stderr, /ApotekCard/);
 });
 
+test('fungerar när sessionens projektrot är en föräldrakatalog med flera repon', () => {
+  const { dir, parent } = makeProject();
+  const r = runHook(parent, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard));
+  assert.equal(r.status, 2, 'hooken måste hitta repot från filen, inte från projektroten');
+  assert.match(r.stderr, new RegExp(`${pkg}/ui/persons/PersonRow\\.kt:5`));
+});
+
 test('släpper igenom samma rad i ui/components', () => {
-  const dir = makeProject();
-  const file = writeKt(dir, `${pkg}/ui/components/ApotekCard.kt`, featureCard);
-  const r = runHook(dir, file);
+  const { dir } = makeProject();
+  const r = runHook(dir, writeKt(dir, `${pkg}/ui/components/ApotekCard.kt`, featureCard));
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stderr, '');
 });
 
-test('delade komponenter med liknande namn är tillåtna i feature-kod', () => {
-  const dir = makeProject();
-  const ok = [
-    'ApotekCard { }', 'AppButton(onClick = {})', 'AppIconButton(onClick = {})',
-    'AddSplitButton()', 'AppTextField(value = "")', 'AppTopBar(title = "")',
-    'AppFilterChip(selected = true)', 'AppSnackbarHost(state)', 'UndoSnackbar()',
-    'CheckRow(checked = true)', 'Modifier.padding(Spacing.l)', 'import androidx.compose.material3.Card',
-    '// Card(modifier) i en kommentar',
-  ].join('\n');
-  const file = writeKt(dir, `${pkg}/ui/trips/TripRow.kt`, ok);
-  const r = runHook(dir, file);
-  assert.equal(r.status, 0, r.stderr);
-});
-
-test('hittar hårdkodat utseende och råa ramelement', () => {
+test('delade komponenter och tillåtna primitiver släpps i feature-kod', () => {
   const scopes = parsePatterns(readPatterns());
-  const content = [
-    'val c = Color(0xFFC8502F)',
-    'shape = RoundedCornerShape(12.dp)',
-    'Text("x", fontSize = 14.sp)',
-    'LazyColumn { }',
-    'Scaffold(topBar = {})',
-    'Modifier.height(48.dp)',
-    'Modifier.padding(16.dp)',
-    'AlertDialog(onDismissRequest = {})',
-    'SwipeToDismissBox(state) { }',
-  ].join('\n');
-  const hits = findViolations(`${pkg}/ui/packing/PackingScreen.kt`, content, scopes, []);
-  assert.deepEqual(hits.map((h) => h.line), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const ok = [
+    'ApotekCard { }', 'AppButton(onClick = {})', 'AppIconButton(onClick = {})', 'AddSplitButton()',
+    'AppTextField(value = "")', 'AppTopBar(title = "")', 'AppFilterChip(selected = true)',
+    'PersonChip()', 'AppSnackbarHost(state)', 'UndoSnackbar()', 'CheckRow(checked = true)',
+    'SwitchRow(checked = true)', 'AppSegmentedChoice()', 'AppMenu()', 'DateField(value)',
+    'AppDivider()', 'ChipRow { }', 'InfoPill()', 'AppFloatingToolbar()', 'QuantityStepper()',
+    'Text("Hej", style = AppTypography.itemTitle)', 'Icon(Icons.Rounded.Luggage, null)',
+    'Spacer(Modifier.height(Spacing.l))', 'Modifier.padding(Spacing.m)',
+    'import androidx.compose.material3.Card', '// Card(modifier) i en kommentar',
+  ];
+  for (const line of ok) {
+    assert.deepEqual(findViolations(`${pkg}/ui/trips/TripRow.kt`, line, scopes, []), [], line);
+  }
 });
 
-test('Firestore utanför data/firestore stoppas, inuti tillåts', () => {
-  const dir = makeProject();
-  const repo = writeKt(dir, `${pkg}/data/repository/PersonRepository.kt`, 'class X(val db: FirebaseFirestore)\n');
-  assert.equal(runHook(dir, repo, 'Edit').status, 2);
-  const coll = writeKt(dir, `${pkg}/data/firestore/FirestoreCollection.kt`, 'class X(val db: FirebaseFirestore)\n');
-  assert.equal(runHook(dir, coll, 'Edit').status, 0);
+test('hittar hårdkodat utseende, råa M3-komponenter och egna ramelement', () => {
+  const scopes = parsePatterns(readPatterns());
+  const bad = [
+    'val c = Color(0xFFC8502F)', 'tint = Color.Red', 'shape = RoundedCornerShape(12.dp)',
+    'Text("x", fontSize = 14.sp)', 'lineHeight = 20.sp', 'Modifier.height(48.dp)',
+    'Modifier.width(120.dp)', 'Modifier.padding(16.dp)', 'Modifier.padding(horizontal = 16.dp)',
+    'LazyColumn { }', 'LazyRow { }', 'Scaffold(topBar = {})', 'AlertDialog(onDismissRequest = {})',
+    'SwipeToDismissBox(state) { }', 'FloatingActionButton(onClick = {})', 'Switch(checked = true)',
+    'SingleChoiceSegmentedButtonRow { }', 'DropdownMenu(expanded = true)', 'DatePicker(state)',
+    'HorizontalDivider()', 'Surface(color = x)', 'Badge { }', 'NavigationBar { }',
+  ];
+  for (const line of bad) {
+    assert.ok(findViolations(`${pkg}/ui/packing/PackingScreen.kt`, line, scopes, []).length > 0, line);
+  }
+});
+
+test('Firestore-typer stoppas överallt utom i data/firestore – även i di/ och ui/', () => {
+  const { dir } = makeProject();
+  const src = 'class X(val db: FirebaseFirestore)\n';
+  assert.equal(runHook(dir, writeKt(dir, `${pkg}/data/repository/PersonRepository.kt`, src), 'Edit').status, 2);
+  assert.equal(runHook(dir, writeKt(dir, `${pkg}/di/FirestoreModule.kt`, src), 'Edit').status, 2);
+  assert.equal(runHook(dir, writeKt(dir, `${pkg}/ui/components/Bad.kt`, src), 'Edit').status, 2);
+  assert.equal(runHook(dir, writeKt(dir, `${pkg}/data/firestore/FirestoreModule.kt`, src), 'Edit').status, 0);
 });
 
 test('allowlist-rad släpper igenom just den filen och symbolen', () => {
-  const dir = makeProject(`# test\n${pkg}/ui/persons/PersonRow.kt:Card( – test\n`);
-  const file = writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard);
-  assert.equal(runHook(dir, file).status, 0);
+  const { dir } = makeProject(`# test\n${pkg}/ui/persons/PersonRow.kt:Card( – test\n`);
+  assert.equal(runHook(dir, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard)).status, 0);
 });
 
-test('filer utanför app/src/main och andra filtyper ignoreras', () => {
-  const dir = makeProject();
-  assert.equal(scopeOf('README.md'), null);
-  assert.equal(scopeOf(`${pkg}/ui/persons/notes.md`), null);
-  assert.equal(scopeOf('app/src/test/kotlin/X.kt'), null);
-  assert.equal(scopeOf(`${pkg}/ui/theme/Theme.kt`), null);
-  assert.equal(scopeOf(`${pkg}/ui/common/EditorState.kt`), null);
-  assert.equal(scopeOf(`${pkg}/ui/persons/PersonsScreen.kt`), 'feature');
-  const file = writeKt(dir, 'docs/Card.kt', featureCard);
-  assert.equal(runHook(dir, file).status, 0);
+test('scope per sökväg', () => {
+  assert.deepEqual(scopesFor('README.md'), []);
+  assert.deepEqual(scopesFor(`${pkg}/ui/persons/notes.md`), []);
+  assert.deepEqual(scopesFor('app/src/test/kotlin/X.kt'), []);
+  assert.deepEqual(scopesFor(`${pkg}/data/firestore/FirestoreCollection.kt`), []);
+  assert.deepEqual(scopesFor(`${pkg}/ui/theme/Theme.kt`), ['firestore']);
+  assert.deepEqual(scopesFor(`${pkg}/ui/common/EditorState.kt`), ['firestore']);
+  assert.deepEqual(scopesFor(`${pkg}/ui/components/screens/EntityListScreen.kt`), ['firestore']);
+  assert.deepEqual(scopesFor(`${pkg}/ui/persons/PersonsScreen.kt`), ['feature', 'firestore']);
+  assert.deepEqual(scopesFor(`${pkg}/ui/AppRoot.kt`), ['feature', 'firestore']);
+  assert.deepEqual(scopesFor(`${pkg}/di/AppModule.kt`), ['firestore']);
+});
+
+test('filer utanför repo, utan mönsterfil eller av annan typ ignoreras', () => {
+  const { dir, parent } = makeProject();
+  assert.equal(runHook(dir, writeKt(dir, 'docs/Card.kt', featureCard)).status, 0);
+  const outside = writeKt(parent, `annat-repo/${pkg}/ui/persons/X.kt`, featureCard);
+  assert.equal(findRepoRoot(outside), null);
+  assert.equal(runHook(parent, outside).status, 0);
 });
 
 test('tom eller trasig indata ger exit 0', () => {
-  const r = spawnSync('node', [hook], { input: 'inte json', encoding: 'utf8' });
-  assert.equal(r.status, 0);
+  assert.equal(spawnSync('node', [hook], { input: 'inte json', encoding: 'utf8' }).status, 0);
 });
 
-test('mönsterfilen har båda scopen och giltiga regexar', () => {
+test('mönsterfilen har båda scopen, giltiga regexar och en ersättning per rad', () => {
   const scopes = parsePatterns(readPatterns());
-  assert.ok(scopes.feature.length >= 20);
-  assert.ok(scopes.data.length >= 3);
-  for (const rule of [...scopes.feature, ...scopes.data]) assert.ok(rule.replacement, rule.source);
+  assert.deepEqual(Object.keys(scopes).sort(), ['feature', 'firestore']);
+  assert.ok(scopes.feature.length >= 30);
+  assert.ok(scopes.firestore.length >= 3);
+  for (const rule of [...scopes.feature, ...scopes.firestore]) assert.ok(rule.replacement, rule.source);
 });
 
-function readPatterns() {
-  return readFileSync(path.join(repoRoot, patternsRel), 'utf8');
-}
+test('hook-kommandona i settings.json hittar skripten både i repot och från en föräldrakatalog', () => {
+  const settings = JSON.parse(readFileSync(path.join(repoRoot, '.claude/settings.json'), 'utf8'));
+  const postCmd = settings.hooks.PostToolUse[0].hooks[0].command;
+  const startCmd = settings.hooks.SessionStart[0].hooks[0].command;
+
+  const { dir, parent } = makeProject();
+  mkdirSync(path.join(dir, '.claude/hooks'), { recursive: true });
+  for (const f of ['regel4-check.mjs', 'session-start.sh']) {
+    copyFileSync(path.join(repoRoot, '.claude/hooks', f), path.join(dir, '.claude/hooks', f));
+  }
+  const file = writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard);
+  const input = JSON.stringify({ tool_name: 'Write', tool_input: { file_path: file } });
+
+  for (const projectDir of [dir, parent]) {
+    const post = spawnSync('bash', ['-c', postCmd], {
+      input, env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir }, encoding: 'utf8',
+    });
+    assert.equal(post.status, 2, `PostToolUse med projektrot ${projectDir}: ${post.stderr}`);
+
+    const start = spawnSync('bash', ['-c', startCmd], {
+      env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir, CLAUDE_CODE_REMOTE: 'true', FIREBASE_SERVICE_ACCOUNT: '' },
+      encoding: 'utf8',
+    });
+    assert.equal(start.status, 0, start.stderr);
+    assert.match(start.stdout, /FIREBASE_SERVICE_ACCOUNT: saknas/);
+    assert.doesNotMatch(start.stdout, /eyJ|BEGIN PRIVATE KEY/, 'nyckelinnehåll får aldrig skrivas ut');
+  }
+
+  const none = spawnSync('bash', ['-c', postCmd], {
+    input, env: { ...process.env, CLAUDE_PROJECT_DIR: mkdtempSync(path.join(tmpdir(), 'tom-')) }, encoding: 'utf8',
+  });
+  assert.equal(none.status, 0, 'utan hook i projektet ska kommandot vara tyst');
+});

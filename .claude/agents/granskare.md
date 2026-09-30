@@ -22,7 +22,9 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
 
 ## Kontrollpunkter
 
-- **Regel 1 Datasäkerhet:** nytt eller ändrat persisterat fält eller ny samling utan
+- **Regel 1 Datasäkerhet:** skrivning som inte går via `upsert` med merge, codec som inte
+  skriver alla kända fält, tester som kan nå den riktiga databasen; nytt eller ändrat
+  persisterat fält eller ny samling utan
   default, codec via fälthjälpare, `firestore.rules`, rad i `tools/db/lib/collections.mjs`
   och rundturstest som asserterar på fältet?
 - **Regel 2 Tester:** ändrat beteende utan test på rätt nivå? Bugfix utan regressionstest?
@@ -42,7 +44,8 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
   - ny rad i `ui-allowlist.txt` eller höjd CPD-tröskel utan motivering;
   - ny komponent utan rad i tabellen i `shared-ui-components`.
 - **Regel 5 CI-budget:** nytt steg i PR-flödet, nytt beroende eller plugin utan angiven
-  byggtidseffekt, emulator/lint/release-bygge i PR-flödet, `paths-ignore` på
+  byggtidseffekt, Android-emulator/lint/release-bygge i PR-flödet (Firebase-emulatorn i
+  jobbet `rules`, filter `tools`, är tillåten), `paths-ignore` på
   workflow-nivå, tabellen i `ci-budget` och filtren i `android.yml` ur synk.
 - **Process:** GUI-ändring utan godkänd mockup-länk i issuet eller utan skärmdumpar i PR:en.
 - **Integritet:** loggning av receptdata eller PII, hemligheter eller nycklar i diffen,

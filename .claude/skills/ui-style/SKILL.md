@@ -25,7 +25,7 @@ https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p
 
 | Token | Ljust | Användning |
 |---|---|---|
-| Primär | korall `#C8502F` | primärknappar, kryss, progress |
+| Primär | korall `#BF4A2A` (4,6:1 mot ytan, 5,0:1 mot vit) | primärknappar, kryss, progress, sektionsrubrik Mediciner |
 | Yta | aprikos `#FFF4EE` | bakgrund |
 | Kort | vit | `ApotekCard` |
 | Text | `#241B16` | brödtext |
@@ -35,7 +35,8 @@ https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p
 | Sektion Övrigt | blå `#2C6584` | |
 | Personfärger | åtta förval via `AppColors.person(index)` | avatar, vänsterkant på personens rader |
 
-Mörkt tema härleds i `ui/theme` med samma roller; kontrast kontrolleras i båda.
+Mörkt tema härleds i `ui/theme` med samma roller; kontrast kontrolleras i båda. Varje
+färg som bär text ska klara 4,5:1 mot sin bakgrund – räkna efter vid ny nyans.
 
 ## Typografi (`AppTypography`)
 

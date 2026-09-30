@@ -2,9 +2,20 @@
 *.jks
 *.keystore
 local.properties
+keystore.properties
 google-services.json
 *service-account*.json
+*serviceAccount*.json
+*adminsdk*.json
+.env
+.env.*
 *.enc
+*.gpg
+.claude/settings.local.json
+
+# Hälsodata: backup- och exportfiler var de än hamnar (skill data-privacy-security)
+backup*.json
+export*.json
 
 # tools/db – beroenden och exporter (innehåller hälsodata)
 tools/db/node_modules/

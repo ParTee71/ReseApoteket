@@ -30,6 +30,8 @@ Du skriver tester för ReseApoteket.
 - Ta aldrig bort, `@Ignore`:a eller försvaga befintliga tester.
 - Nya komponenter: Robolectric-test, Roborazzi-skärmdump ljust + mörkt och plats i
   `ComponentGallery`.
+- Tester mot Firestore skrivs bara mot Firebase-emulatorn (`demo-reseapoteket`), aldrig mot
+  den riktiga databasen.
 - Kör det som går att köra i sessionen (`./gradlew :core:test`, `node --test …`) och
   rapportera resultatet ärligt.
 

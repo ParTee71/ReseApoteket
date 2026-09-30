@@ -11,7 +11,8 @@ av klart.
 
 > **Tester körs i GitHub Actions.** Från telefonen/webben finns normalt ingen Android SDK:
 > resonera om korrekthet, skriv testerna, pusha och låt Actions köra dem. `./gradlew :core:test`
-> och Node-tester i `tools/db` och `.github/scripts` kan ofta köras i sessionen – gör det.
+> och Node-testerna i `.claude/hooks/test` och `.github/scripts` kan köras i sessionen – gör det.
+> Tester i `tools/db` körs bara mot Firebase-emulatorn, aldrig mot den riktiga databasen.
 
 ## Steg 0 – Föregående PR och branch (alltid först)
 
@@ -31,8 +32,10 @@ En PR i taget, och sessionen har normalt en enda arbetsbranch.
 
 ## Steg 1 – Förstå arbetet
 
-- Hämta issuet: `mcp__github__issue_read` (owner `ParTee71`, repo `ReseApoteket`). Dess
-  acceptanskriterier, Design- och Återbruk-avsnitt är kontraktet.
+- Hämta issuet **och dess kommentarer**: `mcp__github__issue_read` (owner `ParTee71`, repo
+  `ReseApoteket`, metod `get` och `get_comments`). Acceptanskriterier, Design- och
+  Återbruk-avsnitt är kontraktet; kommentarer med rubriken "Tillägg" ändrar eller
+  kompletterar det och gäller före issuetexten.
 - Oklart eller riskabelt omfång → kör `refine-issue` först eller bekräfta omfånget.
 - Klassa: bugg, funktion eller underhåll.
 
