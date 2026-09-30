@@ -1,9 +1,8 @@
 // Läsning för sessionen (skill db-access, agent db-inspektor): query, get och stats. Skriver
 // aldrig och sparar inget på disk. Samlingar och sökvägar tolkas relativt ett hushåll.
-import { summarize } from './backup.mjs';
-import { versionOf } from './schema.mjs';
+import { readHouseholds, summarize } from './backup.mjs';
 import { toJson } from './serialize.mjs';
-import { collectionOf, householdExists, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';
+import { collectionOf, householdExists, householdIds, householdOf } from './walk.mjs';
 
 /**
  * Hushållet att läsa i: [household] om angivet, annars det enda som finns. Flera hushåll utan
@@ -75,17 +74,9 @@ export async function getDocument(db, docPath, { household } = {}) {
 
 /** Per hushåll: schemaVersion och antal dokument per samling – inget innehåll. */
 export async function householdStats(db, { household } = {}) {
-  const ids = household ? [household] : await householdIds(db);
-  const result = [];
-  for (const id of ids) {
-    const documents = [];
-    let schemaVersion = null;
-    for await (const doc of walkHousehold(db, id)) {
-      if (isHouseholdDoc(doc.path)) schemaVersion = versionOf(doc.data);
-      documents.push(doc);
-    }
-    if (household && documents.length === 0) throw new Error(`Hushållet ${id} finns inte`);
-    result.push({ household: id, schemaVersion, counts: summarize(documents) });
-  }
-  return result;
+  return (await readHouseholds(db, { household })).map(({ household: id, schemaVersion, documents }) => ({
+    household: id,
+    schemaVersion,
+    counts: summarize(documents),
+  }));
 }

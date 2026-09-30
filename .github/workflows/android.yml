@@ -164,7 +164,7 @@ jobs:
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::tools/db eller firebase.json finns inte än (#15, #17) – inga rules-tester att köra."
+            echo "::notice::tools/db/package.json eller firebase.json saknas – inga rules-tester att köra."
           fi
 
       - name: Node 22

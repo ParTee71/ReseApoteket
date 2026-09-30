@@ -39,6 +39,9 @@ export function adminFirestore() {
 /** Den syntetiska fixturen (test/fixtures/household.json), delad av testerna. */
 export const fixture = JSON.parse(readRepoFile('tools/db/test/fixtures/household.json'));
 
+/** Ett andra hushåll, för tester av att bara det valda hushållet rörs. */
+export const otherHousehold = { path: 'households/annat', data: { name: 'Annat', memberUids: ['uid-x'], schemaVersion: 1 } };
+
 /** Lägger fixturens dokument direkt i databasen – utan import, så att exporten testas fristående. */
 export async function seed(db, documents = fixture.documents) {
   for (const { path: docPath, data } of documents) await db.doc(docPath).set(fromJson(data));

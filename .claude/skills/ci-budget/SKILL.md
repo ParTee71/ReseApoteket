@@ -40,8 +40,8 @@ resten med `dorny/paths-filter`.
 - **`gradle`** kör en enda Gradle-körning: `cpdCheck` plus `:core:test` och/eller app-uppgifterna
   enligt filtren, med `--configuration-cache --continue`. Testrapporter laddas alltid upp;
   Roborazzi-diffar och CPD-rapporten vid fel, länkade i jobbsammanfattningen.
-- **`rules`** hoppar över (med en notis) så länge `tools/db/package.json` eller `firebase.json`
-  saknas (#15, #17).
+- **`rules`** hoppar över (med en notis) om `tools/db/package.json` eller `firebase.json`
+  saknas.
 - **`release.yml`** anropar `android.yml`, `instrumented.yml` och `quality.yml`
   (`workflow_call`) som grindar – samma jobb, ingen kopia.
 

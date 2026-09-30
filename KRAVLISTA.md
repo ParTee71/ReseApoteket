@@ -174,7 +174,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering (HUS-3). Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. |
 | BCK-6 | Återställning: backupen dekrypteras till `tools/db/`, `import --dry-run` visar antal dokument per samling, och importen skriver sedan dokumenten exakt som i filen; med `--replace` tas dokument som tillkommit efter backupen bort, så att hushållet blir exakt som i backupen (README → Backup och återställning). |
 | BCK-7 | Import kontrollerar hela filen innan något skrivs och vägrar hushåll vars `schemaVersion` är nyare än verktyget förstår, trasiga värden och sökvägar utanför de kända samlingarna. |
-| BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Felmeddelanden visar sökväg, aldrig innehåll. |
+| BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Undantag: JSON skiljer inte heltal från decimaltal, så ett decimaltal med heltalsvärde (t.ex. `2.0`) kommer tillbaka som heltal – appen läser båda likadant. En tom export ger fel. Felmeddelanden visar sökväg, aldrig innehåll. |
 
 ---
 
