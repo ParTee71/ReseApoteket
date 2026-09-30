@@ -1,15 +1,11 @@
 // query, get och stats (skill db-access) – bara läsning. Endast emulatorn.
 import { beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { getDocument, householdStats, parseWhere, queryCollection, resolveHousehold } from '../lib/query.mjs';
-import { seed, useCleanEmulator } from './helpers/emulator.mjs';
+import { otherHousehold, seed, useCleanEmulator } from './helpers/emulator.mjs';
+import { runScript } from './helpers/run.mjs';
 
 const database = useCleanEmulator();
-const toolsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const other = { path: 'households/annat', data: { name: 'Annat', memberUids: ['uid-x'], schemaVersion: 1 } };
 
 beforeEach(() => seed(database()));
 
@@ -57,7 +53,7 @@ test('--household som inte finns, eller som inte matchar en full sökväg, ger f
 
 test('flera hushåll kräver --household; households listar alla', async () => {
   const db = database();
-  await seed(db, [other]);
+  await seed(db, [otherHousehold]);
   await assert.rejects(queryCollection(db, 'persons'), /Flera hushåll \(2\) – ange --household/);
   assert.equal((await queryCollection(db, 'persons', { household: 'hushall-test' })).length, 1);
   assert.deepEqual((await queryCollection(db, 'households', { fields: ['name'] })).map((r) => r.name).sort(), ['Annat', 'Familjen Test']);
@@ -89,7 +85,7 @@ test('stats visar schemaVersion och antal per samling, inget innehåll', async (
 });
 
 test('skripten från kommandoraden: tabell, --json och --help', () => {
-  const run = (script, args) => spawnSync(process.execPath, [path.join(toolsDir, script), ...args], { encoding: 'utf8' });
+  const run = runScript;
   const table = run('query.mjs', ['persons', '--fields', 'name']);
   assert.equal(table.status, 0, table.stderr);
   assert.match(table.stdout, /^id\s+name\n/);

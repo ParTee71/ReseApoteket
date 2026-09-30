@@ -73,7 +73,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott; lista, tomt tillstånd, fel och "Visa arkiverade" enligt NFR-1. *(planerad, #21)* |
 | PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista och en av åtta personfärger; skapas och redigeras enligt NFR-2. *(planerad, #21)* |
-| PER-3 | En person arkiveras med svep och kan ångras (NFR-3); en arkiverad person föreslås inte i nya resor, men gamla resor behåller den. *(planerad, #21)* |
+| PER-3 | En person arkiveras med svep och kan ångras (NFR-3); en arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(planerad, #21)* |
 | PER-4 | Persondetaljen visar personens **Recept** och **Kosttillskott** i var sin sektion. *(planerad, #21)* |
 
 ## 7. Recept
@@ -91,7 +91,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ID | Krav |
 |----|------|
 | KOS-1 | Kosttillskott beter sig som recept (REC-1–5) med egen sektion **Kosttillskott**, grön sektionsfärg och "dos" i stället för "styrka". *(planerad, #23)* |
-| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. *(planerad, #23)* |
+| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. *(planerad, #23 – pulver saknas i `MedicineForm` och kräver ett nytt värde med högre `schemaVersion`, BCK-5)* |
 | KOS-3 | Ett nytt kosttillskott kan börja från snabbvalen **D-vitamin**, **Omega-3**, **Magnesium** och **Probiotika**, som fyller i namnet. *(planerad, #23)* |
 
 ## 9. Familjeartiklar
@@ -100,13 +100,13 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | FAM-1 | Fliken **Familjeartiklar** listar hushållets gemensamma saker grupperade per kategori: **Krämer & salvor**, **Plåster & förband**, **Verktyg**, **Övrigt**; tomt tillstånd med exempel att lägga till (NFR-1). *(planerad, #24)* |
 | FAM-2 | En familjeartikel har namn (obligatoriskt), kategori, enhet, mängdregel, anteckning och aktiv/inaktiv (NFR-2); arkiveras med svep och ångra (NFR-3). *(planerad, #24)* |
-| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7); samma regeltext i lista, redigering och packlista, med förhandsvisning t.ex. "För 4 personer i 10 dagar: 2 tuber". *(planerad, #24)* |
+| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7); samma regeltext i lista, redigering och packlista, med förhandsvisning t.ex. "För 4 resenärer i 10 dagar: 2 tuber". *(planerad, #24)* |
 
 ## 10. Resa
 
 | ID | Krav |
 |----|------|
-| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. Appen startar på Resor. *(planerad, #25 – fliken med namn och antal dagar sedan #20)* |
+| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. *(planerad, #25 – fliken med namn och antal dagar sedan #20)* |
 | RES-2 | En resa har namn ("Vart/vad?", förval "Resa <datum>"), antal dagar 1–60, startdatum (förval i morgon) och resenärer ("Vem åker med?", alla aktiva personer förvalda); minst en resenär krävs. *(planerad, #25)* |
 | RES-3 | En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan (BER) och öppnar den. *(planerad, #25)* |
 | RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd och en avprickning behålls, egna rader rörs inte. *(planerad, #25)* |
@@ -168,13 +168,13 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | ID | Krav |
 |----|------|
 | BCK-1 | All hushållsdata ska överleva en export → import-rundtur utan förlust (`tools/db export`/`import`, rundturstest mot emulatorn). |
-| BCK-2 | En backup tas automatiskt varje vecka (`backup.yml`, måndag 03:00 UTC), krypteras med gpg (AES-256, integritetskontroll) och sparas i 90 dagar som artifact i det privata repot; klartexten lämnar aldrig jobbet. En misslyckad backup öppnar ett issue. |
+| BCK-2 | En backup tas automatiskt varje vecka (`backup.yml`, måndag 03:00 UTC), krypteras med gpg (AES-256, integritetskontroll) och sparas i 90 dagar som artifact i det privata repot; klartexten lämnar aldrig jobbet. En misslyckad schemalagd backup öppnar ett issue. |
 | BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit: skrivningar slås ihop med det lagrade dokumentet, och ett fält som användaren tömt försvinner ändå. |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. |
 | BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering (HUS-3). Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. |
 | BCK-6 | Återställning: backupen dekrypteras till `tools/db/`, `import --dry-run` visar antal dokument per samling, och importen skriver sedan dokumenten exakt som i filen; med `--replace` tas dokument som tillkommit efter backupen bort, så att hushållet blir exakt som i backupen (README → Backup och återställning). |
 | BCK-7 | Import kontrollerar hela filen innan något skrivs och vägrar hushåll vars `schemaVersion` är nyare än verktyget förstår, trasiga värden och sökvägar utanför de kända samlingarna. |
-| BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Felmeddelanden visar sökväg, aldrig innehåll. |
+| BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Undantag: JSON skiljer inte heltal från decimaltal, så ett decimaltal med heltalsvärde (t.ex. `2.0`) kommer tillbaka som heltal – appen läser båda likadant. En tom export ger fel. Felmeddelanden visar sökväg, aldrig innehåll. |
 
 ---
 
@@ -204,7 +204,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-13 | Skärmdumpar (ljust och mörkt) jämförs mot incheckade referensbilder i varje PR som rör appen; en oväntad skillnad fäller PR:en och diffbilden sparas (skill `testing-strategy`). |
 | NFR-14 | Kopierad kod fäller bygget (`cpdCheck`, skill `shared-ui-components`). |
 | NFR-15 | Dokumentationen kontrolleras i varje PR: CI-tabellen mot filtren, relativa länkar, nämnda skills och agenter, och hooktestet. |
-| NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet (en användare kan lista just de hushåll där den själv är medlem): allt ligger under `households/{hid}`, ett hushåll har alltid minst en medlem vars lista inte kan ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal. Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas manuellt. |
+| NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet (en användare kan lista just de hushåll där den själv är medlem): allt ligger under `households/{hid}`, ett hushåll skapas med skaparen som enda medlem, har alltid minst en medlem och medlemslistan kan inte ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal. Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas manuellt. |
 
 ---
 

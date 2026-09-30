@@ -2,15 +2,11 @@
 // Endast emulatorn (barnprocessen ärver NODE_TEST_CONTEXT och är därmed i testläge).
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { fixture, seed, useCleanEmulator } from './helpers/emulator.mjs';
-
-const toolsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const node = (script, args) => spawnSync(process.execPath, [path.join(toolsDir, script), ...args], { encoding: 'utf8' });
+import { runScript as node } from './helpers/run.mjs';
 
 const database = useCleanEmulator();
 let dir;
@@ -31,7 +27,7 @@ test('export.mjs skriver filen och visar bara antal per samling', () => {
 
 test('import.mjs --dry-run visar vad som skulle skrivas', () => {
   const out = path.join(dir, 'backup.json');
-  execFileSync(process.execPath, [path.join(toolsDir, 'export.mjs'), '--out', out]);
+  assert.equal(node('export.mjs', ['--out', out]).status, 0);
   const result = node('import.mjs', ['--in', out, '--dry-run']);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Torrkörning/);
@@ -62,4 +58,32 @@ test('printTable: kolumner från alla rader, avkortade celler markeras och radbr
   assert.ok(lines[3].includes('rad ett ⏎ rad två'));
   assert.equal(lines[4], '(2 dokument)');
   assert.equal(lines[5], '(inga dokument)');
+});
+
+test('export.mjs fäller när databasen är tom – en tom backup ska aldrig bli grön', async () => {
+  const out = path.join(dir, 'tom.json');
+  const docs = await database().collection('households').listDocuments();
+  for (const ref of docs) await database().recursiveDelete(ref);
+  const result = node('export.mjs', ['--out', out]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Inga dokument/);
+});
+
+test('import.mjs --replace från kommandoraden återställer hushållet exakt', async () => {
+  const out = path.join(dir, 'backup.json');
+  assert.equal(node('export.mjs', ['--out', out]).status, 0);
+  await database().doc('households/hushall-test/familyItems/extra').set({ name: 'Tillagd efter backupen' });
+  const result = node('import.mjs', ['--in', out, '--replace']);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Tog bort:\n {2}familyItems: 1/);
+  assert.equal((await database().doc('households/hushall-test/familyItems/extra').get()).exists, false);
+});
+
+test('en trasig fil ger ett fast felmeddelande utan utdrag ur innehållet', () => {
+  const broken = path.join(dir, 'trasig.json');
+  writeFileSync(broken, '{"documents": [{"path": "households/h1", "data": {"name": "Levaxin 50" ');
+  const result = node('import.mjs', ['--in', broken, '--dry-run']);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /inte giltig JSON/);
+  assert.doesNotMatch(result.stderr, /Levaxin/);
 });

@@ -16,6 +16,7 @@ import se.partee71.reseapoteket.ui.auth.AuthUiState
 import se.partee71.reseapoteket.ui.auth.AuthViewModel
 import se.partee71.reseapoteket.ui.auth.SignInScreen
 import se.partee71.reseapoteket.ui.auth.UpdateRequiredScreen
+import se.partee71.reseapoteket.ui.components.AppLoading
 
 /** Appens rot: inloggningen styr vad som visas (AUTH-1). */
 @Composable
@@ -36,7 +37,8 @@ fun AppRootContent(
         when (state.gate) {
             AuthGate.SignedOut, AuthGate.NeedsHousehold -> SignInScreen(state, onEvent)
             AuthGate.UpdateRequired -> UpdateRequiredScreen()
-            AuthGate.Loading -> Unit
+            // Syns bara en kort stund vid start; hänger något ser användaren att appen arbetar.
+            AuthGate.Loading -> AppLoading()
             AuthGate.Ready -> main()
         }
     }

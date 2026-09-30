@@ -53,10 +53,15 @@ class GoogleAuthRepository @Inject constructor(
     }
 
     override suspend fun signOut(): Result<Unit> = suspendRunCatching(::authError) {
-        // Valet rensas först: nästa användare på enheten ska aldrig ärva hushållet, inte ens
-        // om processen dör mitt i utloggningen.
-        session.select(null)
+        // Firebase först: annars syns en inloggad användare utan hushåll en stund, och
+        // AuthViewModel börjar välja hushåll igen. Valet rensas alltid (finally) – nästa användare
+        // på enheten ska aldrig ärva hushållet; dör processen emellan rensar AuthViewModel valet
+        // när den ser att ingen är inloggad.
+        try {
+            auth.signOut()
+        } finally {
+            session.select(null)
+        }
         credentials.clearCredentialState(ClearCredentialStateRequest())
-        auth.signOut()
     }
 }
