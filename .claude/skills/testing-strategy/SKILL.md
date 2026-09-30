@@ -57,7 +57,7 @@ hjälparna och testar bara det som är unikt för funktionen:
 |---|---|---|
 | `FakeCollection<T>` | `app/src/test/.../data/` | egna in-memory-fakes per repository |
 | `CollectionContract` | `app/src/test/.../data/` | separata tester per repository-implementation |
-| `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields`, `assertEncodesAllFields` | `core/src/test/.../schema/` | egna codec-asserts |
+| `assertCodecContract` (samlar `assertEveryFieldDiffersFromDefault`, `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields`, `assertEncodesAllFields`), `assertVariantCodecContract` | `core/src/test/.../schema/CodecAssertions.kt` | egna codec-asserts |
 | `MainDispatcherRule` | `app/src/test/.../testing/` | egen `Dispatchers.setMain` per test |
 | `runListScreenContract(screen, data)` | `app/src/test/.../ui/` | att testa tomt/fel/laddar/lägg till per skärm |
 | `runEditScreenContract(screen, valid, invalid)` | `app/src/test/.../ui/` | att testa spara-aktivering/släng-dialog/sparfel per skärm |

@@ -36,12 +36,20 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 - `households/{hid}.schemaVersion` anger dataformatet.
 - **Högre än `Schema.CURRENT_VERSION`** → appen visar "Uppdatera appen" och skriver
   ingenting (en gammal app får aldrig skriva över nyare data).
-- **Lägre** → lat migrering i `SchemaMigrator` vid läsning; skrivning sker i nytt format.
+- **Lägre** → `SchemaMigrator` lyfter dokumenten vid läsning; skrivning sker i nytt format.
+  Versionen hör till hushållet, inte till varje dokument, så **varje steg är idempotent** och
+  hushållets `schemaVersion` höjs **bara** av en fullständig migrering av alla dess dokument
+  (appen eller `tools/db/migrate.mjs`) – aldrig av en vanlig skrivning.
+- Saknas `schemaVersion` gäller `Schema.FIRST_VERSION`, aldrig "senaste".
 - Höjs versionen: nytt steg i `SchemaMigrator` **och** spegling i `tools/db/migrate.mjs`,
   test per steg, och `lib/schema.mjs` följer med (ett test jämför konstanterna).
 - De flesta ändringar kräver **ingen** versionshöjning: ett nytt valfritt fält med default
   läses redan av gamla dokument. Höj bara vid betydelseändring (omdöpt fält, ändrad enhet,
-  ändrad struktur).
+  ändrad struktur) **och vid ett nytt enum-värde eller en ny `schedule`/`rule`-variant** –
+  en äldre app tolkar okända enum-värden som default och skulle skriva tillbaka fel värde.
+- Okänd `schedule`/`rule`-typ blir `Unknown(raw)` och skrivs tillbaka oförändrad.
+- Modellens defaults = vad ett tomt dokument betyder (därför är `schedule`/`rule` `Unknown`
+  som default); `assertToleratesMissingFields` kontrollerar det.
 
 ## Skrivningar bevarar okända fält
 
@@ -85,7 +93,8 @@ fält den inte känner till. Den får aldrig radera dem när den sparar:
 
 | Test | Var | Skyddar |
 |---|---|---|
-| Codec-rundtur | `core/src/test/.../schema/*CodecTest.kt` via `assertCodecRoundTrip(codec, sample)` | modell → map → modell identisk, inklusive nya fält |
+| Hela codec-kontraktet | `core/src/test/.../schema/CodecsTest.kt` via `assertCodecContract(codec, sample, defaults)` – en rad per codec; nästlade via `assertVariantCodecContract` | provet har icke-default-värde i **varje** fält (kontrolleras med reflektion), rundtur, tolerans, okända fält och fullständig skrivning |
+| Codec-rundtur | ingår i kontraktet: `assertCodecRoundTrip(codec, sample)` | modell → map → modell identisk, inklusive nya fält |
 | Tolerans | samma test via `assertToleratesMissingFields` + `assertIgnoresUnknownFields` | äldre och nyare dokument |
 | Fullständig skrivning | samma test via `assertEncodesAllFields(codec, sampleWithNulls)` | `encode` skriver varje känt fält, även `null`, så att merge tömmer och bevarar rätt |
 | Migrering | `core/src/test/.../schema/SchemaMigratorTest.kt` | varje versionssteg |
