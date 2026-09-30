@@ -3,7 +3,9 @@ package se.partee71.reseapoteket.testing
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.schema.HouseholdCodec
 import se.partee71.reseapoteket.core.schema.Schema
@@ -25,14 +27,19 @@ import se.partee71.reseapoteket.domain.EnsureHouseholdUseCase
  */
 class HouseholdFixture(scope: CoroutineScope, folder: File) {
     val store = FakeStore()
+
+    /** `false` = hushållets version går inte att läsa just nu (som när servern inte svarat). */
+    val versionsKnown = MutableStateFlow(true)
     private val versions = HouseholdVersionSource { id ->
-        store.documents.map { all -> (all[Paths.HOUSEHOLDS]?.get(id)?.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION }
+        combine(store.documents, versionsKnown) { all, known ->
+            if (known) (all[Paths.HOUSEHOLDS]?.get(id)?.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION else null
+        }.filterNotNull()
     }
     private val dataStore = PreferenceDataStoreFactory.create(scope = scope) { File(folder, "settings.preferences_pb") }
     val session = HouseholdSession(SettingsStore(dataStore), versions, scope)
     val collections = FakeCollectionFactory(store, session)
     val directory = FakeHouseholdDirectory(collections)
-    val repository = DefaultHouseholdRepository(collections, session, FixedClock())
+    val repository = DefaultHouseholdRepository(collections, directory, session, FixedClock())
     val ensureHousehold = EnsureHouseholdUseCase(directory, repository, session)
 
     /** Lägger ett hushåll direkt i den fejkade databasen, som om en annan enhet skapat det. */
@@ -41,9 +48,10 @@ class HouseholdFixture(scope: CoroutineScope, folder: File) {
     fun households(): List<Household> = store.documents.value[Paths.HOUSEHOLDS].orEmpty().map { (id, doc) -> HouseholdCodec.decode(id, doc) }
 }
 
-/** Som servern: hushåll där uid är medlem. [failure] simulerar t.ex. att nätet saknas. */
+/** Som servern: hushåll där uid är medlem. [failure] och [createFailure] simulerar t.ex. att nätet saknas. */
 class FakeHouseholdDirectory(private val collections: FakeCollectionFactory) : HouseholdDirectory {
     var failure: DataError? = null
+    var createFailure: DataError? = null
     var calls = 0
         private set
 
@@ -51,5 +59,10 @@ class FakeHouseholdDirectory(private val collections: FakeCollectionFactory) : H
         calls++
         failure?.let { return Result.failure(it) }
         return collections.households().getAll().map { all -> all.filter { uid in it.memberUids } }
+    }
+
+    override suspend fun create(household: Household): Result<Unit> {
+        createFailure?.let { return Result.failure(it) }
+        return collections.households().upsert(household)
     }
 }

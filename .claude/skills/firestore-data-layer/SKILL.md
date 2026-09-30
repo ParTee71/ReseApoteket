@@ -59,7 +59,7 @@ fälthjälparna; toleranta mot saknade och okända fält.
   översätts i `data/firestore/FirestoreValues.kt`, rekursivt; `:core` ser aldrig Firebase-typer.
 - **Fel:** `firestoreError` mappar `FirebaseFirestoreException` → `DataError` en gång, via
   `suspendRunCatching`. `DataError` (`Offline`, `PermissionDenied`, `Cancelled`,
-  `UpdateRequired`, `NoHousehold`, `Unknown`) används även av `AuthRepository`. UI visar
+  `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) används även av `AuthRepository`. UI visar
   texten via `DataError.toMessage()`.
 - **`FakeCollection`** (test) använder samma `prepareForWrite`/`readDocument` och emulerar
   Firestores merge (djup för nästlade maps, heltal som `Long`). `CollectionContract` i

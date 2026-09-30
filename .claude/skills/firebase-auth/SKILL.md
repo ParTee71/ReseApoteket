@@ -48,7 +48,9 @@ interface AuthRepository {
 - The household step starts by itself once per user when `authState` has a user and `HouseholdSession.selection` is `null` (`selection` emits only after DataStore has loaded, so a stored household never triggers a lookup).
 - `busy` covers both steps; the button shows "Loggar in …" (`AppButton(loading = true)`).
 - Errors arrive already mapped; `Cancelled` is silent (AUTH-2), anything else is shown once via `AppSnackbarHost` and cleared with `AuthEvent.ErrorShown`.
-- The lookup uses `Source.SERVER`: an empty cache must never mean "no household" (HUS-1). Offline → `DataError.Offline`, nothing is created.
+- `HouseholdDirectory` talks to the **server** only: the lookup uses `Source.SERVER` (an empty cache must never mean "no household", HUS-1) and `create` returns only when the server has accepted the new household (else `Offline` after 15 s, or the rules error) – so the app never selects a household that does not exist. Offline → nothing is created or selected.
+- Signed out with a household still selected (sign-out from another place, process death) → `AuthViewModel` clears the selection, so the next account never inherits it.
+- `gate = Loading` until the selected household's `schemaVersion` is known – the app is never shown before "Uppdatera appen" could apply.
 - Rules: `households` read is `request.auth.uid in resource.data.memberUids` so the `array-contains` query is provable (a `get()` in the read rule cannot be evaluated for a query).
 - `gate = UpdateRequired` when the selected household's `schemaVersion` is newer than the app → `UpdateRequiredScreen` (HUS-3).
 
@@ -94,7 +96,7 @@ Always use `GetSignInWithGoogleOption` for first-time sign-in flows.
 |---|---|---|---|
 | `GetCredentialCancellationException` | User dismissed picker | `Cancelled` | Silent — not an error |
 | `GetCredentialException` | No Google accounts on device, API not available | `Unknown` | Show error |
-| `FirebaseAuthException` | Firebase rejected the token | `PermissionDenied` | Show error; log only the exception class, never email/uid (skill `data-privacy-security`) |
+| `FirebaseAuthException` | Firebase rejected the token | `SignInRejected` | Show error; log only the exception class, never email/uid (skill `data-privacy-security`) |
 | `FirebaseNetworkException`, `IOException` | No network | `Offline` | Show error |
 
 ## Dependencies (added in the Gradle skeleton, #11)

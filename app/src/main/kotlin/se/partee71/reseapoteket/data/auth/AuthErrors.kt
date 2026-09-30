@@ -11,6 +11,6 @@ fun authError(error: Throwable): DataError = when (error) {
     is DataError -> error
     is GetCredentialCancellationException -> DataError.Cancelled
     is FirebaseNetworkException, is IOException -> DataError.Offline
-    is FirebaseAuthException -> DataError.PermissionDenied
+    is FirebaseAuthException -> DataError.SignInRejected
     else -> DataError.Unknown
 }

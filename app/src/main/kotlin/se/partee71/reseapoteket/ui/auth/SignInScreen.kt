@@ -1,12 +1,8 @@
 package se.partee71.reseapoteket.ui.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,25 +29,24 @@ fun SignInScreen(state: AuthUiState, onEvent: (AuthEvent) -> Unit, modifier: Mod
             onEvent(AuthEvent.ErrorShown)
         }
     }
-    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        EmptyState(
-            icon = R.drawable.ic_luggage,
-            title = stringResource(R.string.app_name),
-            message = stringResource(R.string.sign_in_welcome),
-            note = stringResource(R.string.sign_in_note),
-            fullScreen = true,
-            action = {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    AppSnackbarHost(snackbar)
-                    AppButton(
-                        text = stringResource(if (state.busy) R.string.sign_in_busy else R.string.sign_in_google),
-                        onClick = { onEvent(AuthEvent.SignIn(context)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        icon = R.drawable.ic_login,
-                        loading = state.busy,
-                    )
-                }
-            },
-        )
-    }
+    EmptyState(
+        icon = R.drawable.ic_luggage,
+        title = stringResource(R.string.app_name),
+        message = stringResource(R.string.sign_in_welcome),
+        modifier = modifier,
+        note = stringResource(R.string.sign_in_note),
+        fullScreen = true,
+        action = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                AppSnackbarHost(snackbar)
+                AppButton(
+                    text = stringResource(if (state.busy) R.string.sign_in_busy else R.string.sign_in_google),
+                    onClick = { onEvent(AuthEvent.SignIn(context)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = R.drawable.ic_login,
+                    loading = state.busy,
+                )
+            }
+        },
+    )
 }

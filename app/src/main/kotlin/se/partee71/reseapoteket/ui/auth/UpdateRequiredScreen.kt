@@ -1,10 +1,6 @@
 package se.partee71.reseapoteket.ui.auth
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -18,21 +14,20 @@ import se.partee71.reseapoteket.ui.components.EmptyState
 fun UpdateRequiredScreen(modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
     val releasesUrl = stringResource(R.string.releases_url)
-    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        EmptyState(
-            icon = R.drawable.ic_download,
-            title = stringResource(R.string.update_required_title),
-            message = stringResource(R.string.update_required_message),
-            note = stringResource(R.string.update_required_note),
-            fullScreen = true,
-            action = {
-                AppButton(
-                    text = stringResource(R.string.update_required_action),
-                    onClick = { uriHandler.openUri(releasesUrl) },
-                    modifier = Modifier.fillMaxWidth(),
-                    icon = R.drawable.ic_download,
-                )
-            },
-        )
-    }
+    EmptyState(
+        icon = R.drawable.ic_download,
+        title = stringResource(R.string.update_required_title),
+        message = stringResource(R.string.update_required_message),
+        modifier = modifier,
+        note = stringResource(R.string.update_required_note),
+        fullScreen = true,
+        action = {
+            AppButton(
+                text = stringResource(R.string.update_required_action),
+                onClick = { uriHandler.openUri(releasesUrl) },
+                modifier = Modifier.fillMaxWidth(),
+                icon = R.drawable.ic_download,
+            )
+        },
+    )
 }

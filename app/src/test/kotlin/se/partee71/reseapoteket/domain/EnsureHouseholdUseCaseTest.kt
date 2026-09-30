@@ -50,6 +50,24 @@ class EnsureHouseholdUseCaseTest {
     }
 
     @Test
+    fun `hushåll utan createdAt räknas inte som äldst`() = runTest(UnconfinedTestDispatcher()) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.storeHousehold(Household("a-okand", "Utan datum", listOf("uid-anna"), createdAt = null))
+        fixture.storeHousehold(Household("b-daterat", "Familjen", listOf("uid-anna"), createdAt = Instant.fromEpochSeconds(100)))
+
+        assertEquals(HouseholdStatus.Ready("b-daterat"), fixture.ensureHousehold("uid-anna").getOrThrow())
+    }
+
+    @Test
+    fun `nytt hushåll som servern inte tar emot väljs inte`() = runTest(UnconfinedTestDispatcher()) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.directory.createFailure = DataError.PermissionDenied
+
+        assertEquals(DataError.PermissionDenied, fixture.ensureHousehold("uid-anna").dataError())
+        assertEquals(null, fixture.session.householdId.value)
+    }
+
+    @Test
     fun `hushåll med nyare schemaversion väljs men kräver uppdatering`() = runTest(UnconfinedTestDispatcher()) {
         val fixture = HouseholdFixture(backgroundScope, folder.root)
         fixture.storeHousehold(Household("h1", "Familjen", listOf("uid-anna"), schemaVersion = Schema.CURRENT_VERSION + 1))

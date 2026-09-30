@@ -1,7 +1,11 @@
 package se.partee71.reseapoteket.domain
 
 import javax.inject.Inject
+import kotlin.time.Instant
+import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.schema.Schema
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.household.HouseholdDirectory
 import se.partee71.reseapoteket.data.household.HouseholdSession
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
@@ -25,8 +29,10 @@ class EnsureHouseholdUseCase @Inject constructor(
     private val session: HouseholdSession,
 ) {
     suspend operator fun invoke(uid: String): Result<HouseholdStatus> =
-        directory.householdsOf(uid).mapCatching { found ->
-            val existing = found.minWithOrNull(compareBy({ it.createdAt }, { it.id }))
+        suspendRunCatching({ DataError.Unknown }) {
+            val found = directory.householdsOf(uid).getOrThrow()
+            // Äldst först; ett hushåll utan createdAt vet vi inget om och kommer sist.
+            val existing = found.minWithOrNull(compareBy<Household, Instant?>(nullsLast()) { it.createdAt }.thenBy { it.id })
             if (existing == null) {
                 HouseholdStatus.Ready(households.create(DEFAULT_NAME, uid).getOrThrow())
             } else {

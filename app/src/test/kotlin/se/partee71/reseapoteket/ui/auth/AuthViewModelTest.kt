@@ -3,10 +3,10 @@ package se.partee71.reseapoteket.ui.auth
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -21,12 +21,16 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.HouseholdFixture
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 
-/** Robolectric bara för att kunna skicka en `Context` i händelsen; allt annat är fakes. */
+/**
+ * Robolectric bara för att kunna skicka en `Context` i händelsen; allt annat är fakes. Köad
+ * dispatcher: med en okonfinerad körs DataStore-skrivningar inuti sina egna flödesinsamlare och
+ * snurrar i evighet – och ordningsproblem ska inte döljas (som i HouseholdSessionTest).
+ */
 @RunWith(RobolectricTestRunner::class)
 class AuthViewModelTest {
 
     @get:Rule
-    val main = MainDispatcherRule()
+    val main = MainDispatcherRule(StandardTestDispatcher())
 
     @get:Rule
     val folder = TemporaryFolder()
@@ -77,7 +81,7 @@ class AuthViewModelTest {
 
         assertEquals(DataError.Offline, vm.state.first { it.error != null }.error)
         vm.onEvent(AuthEvent.ErrorShown)
-        assertNull(vm.awaitGate(AuthGate.SignedOut).error)
+        assertEquals(AuthUiState(AuthGate.SignedOut), vm.state.first { it.error == null })
     }
 
     @Test
@@ -109,6 +113,49 @@ class AuthViewModelTest {
         vm.awaitGate(AuthGate.Ready)
         assertEquals(0, auth.signInCalls)
         assertEquals(1, fixture.households().size)
+    }
+
+    @Test
+    fun `utloggning och inloggning med ett annat konto ger det kontots hushåll`() = runTest(main.dispatcher) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.storeHousehold(Household("annas", "Annas", listOf("uid-anna")))
+        fixture.storeHousehold(Household("eriks", "Eriks", listOf("uid-erik")))
+        val (_, vm) = viewModel(fixture)
+        vm.onEvent(AuthEvent.SignIn(context))
+        vm.awaitGate(AuthGate.Ready)
+        assertEquals("annas", fixture.session.householdId.value)
+
+        auth.signOut()
+        vm.awaitGate(AuthGate.SignedOut)
+        auth.nextSignIn = Result.success(AuthUser("uid-erik"))
+        vm.onEvent(AuthEvent.SignIn(context))
+
+        vm.awaitGate(AuthGate.Ready)
+        assertEquals("eriks", fixture.session.householdId.value)
+    }
+
+    @Test
+    fun `utloggad med ett kvarglömt hushållsval rensar valet`() = runTest(main.dispatcher) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.session.select("nagon-annans")
+        val (_, vm) = viewModel(fixture)
+
+        vm.awaitGate(AuthGate.SignedOut)
+        fixture.session.householdId.first { it == null }
+    }
+
+    @Test
+    fun `appen visas inte förrän hushållets version är känd`() = runTest(main.dispatcher) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.storeHousehold(Household("h1", "Familjen", listOf("uid-anna"), schemaVersion = Schema.CURRENT_VERSION + 1))
+        fixture.versionsKnown.value = false
+        fixture.session.select("h1")
+        auth.authState.value = AuthUser("uid-anna")
+        val (_, vm) = viewModel(fixture)
+
+        assertEquals(AuthGate.Loading, vm.awaitGate(AuthGate.Loading).gate)
+        fixture.versionsKnown.value = true
+        vm.awaitGate(AuthGate.UpdateRequired)
     }
 
     @Test

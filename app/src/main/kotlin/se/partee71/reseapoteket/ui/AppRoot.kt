@@ -28,25 +28,23 @@ fun AppRoot(modifier: Modifier = Modifier, viewModel: AuthViewModel = hiltViewMo
     AppRootContent(state, viewModel::onEvent, modifier)
 }
 
+/** Appens bakgrund sätts här, en gång; skärmarna ritar ovanpå den. */
 @Composable
 fun AppRootContent(state: AuthUiState, onEvent: (AuthEvent) -> Unit, modifier: Modifier = Modifier) {
-    when (state.gate) {
-        AuthGate.SignedOut, AuthGate.NeedsHousehold -> SignInScreen(state, onEvent, modifier)
-        AuthGate.UpdateRequired -> UpdateRequiredScreen(modifier)
-        AuthGate.Loading -> Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-        AuthGate.Ready -> MainPlaceholder(modifier)
+    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        when (state.gate) {
+            AuthGate.SignedOut, AuthGate.NeedsHousehold -> SignInScreen(state, onEvent)
+            AuthGate.UpdateRequired -> UpdateRequiredScreen()
+            AuthGate.Loading -> Unit
+            AuthGate.Ready -> MainPlaceholder()
+        }
     }
 }
 
 /** Huvudflödet – blir Navigation 3-värden (`NavDisplay`) i #20. */
 @Composable
-private fun MainPlaceholder(modifier: Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center,
-    ) {
+private fun MainPlaceholder() {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
             text = stringResource(R.string.app_name),
             style = AppTypography.screenTitle,

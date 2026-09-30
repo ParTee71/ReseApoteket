@@ -53,9 +53,10 @@ class GoogleAuthRepository @Inject constructor(
     }
 
     override suspend fun signOut(): Result<Unit> = suspendRunCatching(::authError) {
+        // Valet rensas först: nästa användare på enheten ska aldrig ärva hushållet, inte ens
+        // om processen dör mitt i utloggningen.
+        session.select(null)
         credentials.clearCredentialState(ClearCredentialStateRequest())
         auth.signOut()
-        // Nästa användare på enheten ska inte ärva hushållet.
-        session.select(null)
     }
 }

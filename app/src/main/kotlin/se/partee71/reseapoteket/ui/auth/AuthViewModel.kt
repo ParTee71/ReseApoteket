@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,7 +44,7 @@ sealed interface AuthEvent {
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val auth: AuthRepository,
-    session: HouseholdSession,
+    private val session: HouseholdSession,
     private val ensureHousehold: EnsureHouseholdUseCase,
 ) : ViewModel() {
 
@@ -61,6 +62,13 @@ class AuthViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), AuthUiState())
 
     init {
+        // Utloggad (även om sessionen försvunnit utifrån) = inget valt hushåll, så att nästa
+        // användare på enheten aldrig hamnar i den förras hushåll.
+        viewModelScope.launch {
+            combine(auth.authState, session.selection) { user, householdId -> user == null && householdId != null }
+                .filter { it }
+                .collect { session.select(null) }
+        }
         // En inloggad användare utan valt hushåll får ett – en gång per användare; efter ett fel
         // försöker knappen igen.
         viewModelScope.launch {
@@ -78,6 +86,10 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Kontoväljaren kräver aktivitetens kontext, som hålls bara medan väljaren är öppen
+     * (skill firebase-auth); roteras skärmen under tiden frigörs den när väljaren stängts.
+     */
     private fun signIn(activityContext: Context) {
         if (signingIn.value) return
         viewModelScope.launch {
@@ -106,7 +118,9 @@ class AuthViewModel @Inject constructor(
         fun gateOf(user: AuthUser?, householdId: String?, version: HouseholdVersion?): AuthGate = when {
             user == null -> AuthGate.SignedOut
             householdId == null -> AuthGate.NeedsHousehold
-            version?.householdId == householdId && Schema.isNewerThanApp(version.version) -> AuthGate.UpdateRequired
+            // Versionen avgör om appen får visas – vänta på den i stället för att blinka förbi (HUS-3).
+            version?.householdId != householdId -> AuthGate.Loading
+            Schema.isNewerThanApp(version.version) -> AuthGate.UpdateRequired
             else -> AuthGate.Ready
         }
     }

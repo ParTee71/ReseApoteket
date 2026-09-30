@@ -27,8 +27,8 @@ class AuthErrorsTest {
     }
 
     @Test
-    fun `Firebase nekar token är PermissionDenied`() {
-        assertEquals(DataError.PermissionDenied, authError(FirebaseAuthInvalidCredentialsException("ERROR_INVALID_CREDENTIAL", "ogiltig")))
+    fun `Firebase nekar token är SignInRejected`() {
+        assertEquals(DataError.SignInRejected, authError(FirebaseAuthInvalidCredentialsException("ERROR_INVALID_CREDENTIAL", "ogiltig")))
     }
 
     @Test

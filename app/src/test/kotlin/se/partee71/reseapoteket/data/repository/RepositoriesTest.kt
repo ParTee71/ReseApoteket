@@ -16,6 +16,7 @@ import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.household.HouseholdSession
+import se.partee71.reseapoteket.testing.FakeHouseholdDirectory
 
 /** Repositories byggs med `FakeCollectionFactory`; här testas bara domänfrågorna. */
 class RepositoriesTest {
@@ -29,7 +30,7 @@ class RepositoriesTest {
     fun `nytt hushåll får ägaren som enda medlem, blir aktivt och kan observeras`() = runTest(UnconfinedTestDispatcher()) {
         val store = PreferenceDataStoreFactory.create(scope = backgroundScope) { folder.newFile("s.preferences_pb") }
         val session = HouseholdSession(SettingsStore(store), { flowOf(1) }, backgroundScope)
-        val repository = DefaultHouseholdRepository(collections, session, FixedClock())
+        val repository = DefaultHouseholdRepository(collections, FakeHouseholdDirectory(collections), session, FixedClock())
 
         val id = repository.create("Familjen", "uid-anna").getOrThrow()
 

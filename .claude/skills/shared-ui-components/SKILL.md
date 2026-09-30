@@ -79,7 +79,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>` i `ui/common/` |
-| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `NoHousehold`, `Unknown`) i `data/common/` |
+| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) i `data/common/` |
 | Fel till text | `DataError.toMessage()` i `ui/common/` |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Beräkningar | `PackingEngine` i `:core` |
