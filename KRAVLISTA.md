@@ -3,7 +3,7 @@
 > Räknar ut hur mycket av familjens mediciner, kosttillskott och apoteksvaror som ska
 > packas inför en resa, och låter familjen pricka av det som plockats fram.
 >
-> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: skelett – ingen appversion än.
+> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inga funktioner än.
 
 Så här används listan: skill [`requirements-kravlista`](.claude/skills/requirements-kravlista/SKILL.md).
 Krav märkta *(planerad)* är beslutade men inte byggda; markeringen tas bort i PR:en som
@@ -28,10 +28,10 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| TP-1 | Enbart Android. minSdk, targetSdk och compileSdk anges i `app/build.gradle.kts` och i ARKITEKTUR.md → "Byggkonfiguration". *(planerad, #11)* |
-| TP-2 | Gränssnitt i **Jetpack Compose** med **Material 3 Expressive**. *(planerad, #11)* |
-| TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. *(planerad, #11)* |
-| TP-4 | Två moduler: **`:core`** (ren Kotlin/JVM: modeller, codecs, beräkning) och **`:app`**. *(planerad, #11)* |
+| TP-1 | Enbart Android. minSdk, targetSdk och compileSdk anges i `app/build.gradle.kts` och i ARKITEKTUR.md → "Byggkonfiguration". |
+| TP-2 | Gränssnitt i **Jetpack Compose** med **Material 3 Expressive** (API:er och versioner i ARKITEKTUR.md → "Verifierade API:er"). |
+| TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. |
+| TP-4 | Två moduler: **`:core`** (ren Kotlin/JVM: modeller, codecs, beräkning) och **`:app`**. |
 | TP-5 | Data lagras i **Cloud Firestore** med offline-cache; inställningar i **DataStore**. *(planerad, #15)* |
 | TP-6 | Inloggning via **Firebase Auth + Credential Manager**. *(planerad, #16)* |
 | TP-7 | Navigering med **Navigation 3**. *(planerad, #20)* |
@@ -121,9 +121,9 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). *(planerad, #11, #20)* |
+| NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). *(planerad, #20 – kontrollerna finns sedan #11)* |
 | NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export (skill `data-privacy-security`). *(planerad)* |
-| NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). *(planerad, #11)* |
+| NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). |
 | NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats (skill `ci-budget`). *(planerad, #12)* |
 | NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`). *(planerad, #20)* |
 | NFR-12 | Release-bygget är minifierat. *(planerad, #12)* |

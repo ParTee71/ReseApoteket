@@ -14,8 +14,8 @@ agenter länkar hit – de kopierar dem inte. Komponenttabellen och ramtabellen 
 `UiConsistencyTest` och jämförs med koden (se *Dokumentdrift*). Håll formatet: en rad per
 komponent, komponentnamnet i backticks först i kolumn två.
 
-> Komponenterna och ramarna byggs i #20. Kolumnen *Bygger på* fylls i från
-> `ARKITEKTUR.md` → "Verifierade API:er" (#11) – gissa aldrig ett API-namn.
+> Komponenterna och ramarna byggs i #20. De exakta API:erna bakom kolumnen *Bygger på*
+> står i `ARKITEKTUR.md` → "Verifierade API:er" – gissa aldrig ett API-namn.
 
 ## Utseende: elementtyp → enda tillåtna komponent
 
@@ -96,7 +96,8 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 Kontrolleras av `UiConsistencyTest` (Konsist) i bygget och av hooken `regel4-check`
 direkt efter varje filändring. De exakta mönstren står **bara** i
 `app/src/test/resources/ui-forbidden.txt` (enda källan, `mönster<TAB>ersättning`), och
-undantag bara i `ui-allowlist.txt`. I korthet:
+undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant bevisas av
+`ui-forbidden-examples.txt`, som båda kör – ändras ett mönster, lägg till ett exempel där. I korthet:
 
 - **Feature-kod** (Kotlin i ett ui-paket utom `ui/components`, `ui/theme`, `ui/common` –
   även filer direkt under `ui/`):

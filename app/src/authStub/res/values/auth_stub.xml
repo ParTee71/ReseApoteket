@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Läggs till i debug bara när app/google-services.json saknas (PR-bygge, Claude-session): gör att
+         inloggningskoden kompilerar. Inloggning misslyckas då vid körning. När filen finns
+         genererar google-services-pluginen det riktiga värdet i stället. -->
+    <string name="default_web_client_id" translatable="false">stub-saknar-google-services-json</string>
+</resources>

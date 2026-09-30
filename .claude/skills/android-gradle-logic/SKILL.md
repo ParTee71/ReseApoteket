@@ -5,139 +5,40 @@ description: Use when setting up or refactoring Android Gradle build logic — c
 
 # Android Gradle Build Logic
 
-Centralise build logic in reusable Convention Plugins instead of copy-pasting `build.gradle.kts` configuration across modules.
+Build logic lives in **one place** and every version in the version catalog – never
+copy-pasted configuration across modules. The real setup (versions, SDK levels, where the
+shared configuration lives, why) is in `ARKITEKTUR.md` → "Byggkonfiguration" – the only
+source; this skill describes the rules, not the numbers.
 
-## Project Structure
+## Version catalog rules
 
-```
-root/
-├── build-logic/
-│   ├── convention/
-│   │   ├── src/main/kotlin/
-│   │   │   ├── AndroidApplicationConventionPlugin.kt
-│   │   │   ├── AndroidLibraryConventionPlugin.kt
-│   │   │   └── AndroidComposeConventionPlugin.kt
-│   │   └── build.gradle.kts
-│   └── settings.gradle.kts
-├── gradle/
-│   └── libs.versions.toml
-├── app/
-│   └── build.gradle.kts
-└── settings.gradle.kts
-```
-
-## Step 1: Include `build-logic` as a Composite Build
-
-```kotlin
-// settings.gradle.kts
-pluginManagement {
-    includeBuild("build-logic")
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-```
-
-## Step 2: Configure `build-logic/settings.gradle.kts`
-
-```kotlin
-dependencyResolutionManagement {
-    repositories { google(); mavenCentral() }
-    versionCatalogs {
-        create("libs") { from(files("../gradle/libs.versions.toml")) }
-    }
-}
-rootProject.name = "build-logic"
-include(":convention")
-```
-
-## Step 3: Write Convention Plugins
-
-> The snippets in steps 3 and "Version Catalog Best Practices" are **schematic**. Real
-> versions (AGP, Kotlin, compileSdk, Compose BOM) are chosen in #11 and recorded in
-> `ARKITEKTUR.md` → "Byggkonfiguration"; Material 3 Expressive and Navigation 3 need recent
-> ones. This project always uses Java 17.
-
-### Application Plugin
-
-```kotlin
-class AndroidApplicationConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            pluginManager.apply("com.android.application")
-            pluginManager.apply("org.jetbrains.kotlin.android")
-
-            extensions.configure<ApplicationExtension> {
-                compileSdk = 36
-                defaultConfig {
-                    minSdk = 30
-                    targetSdk = 35 // minSdk/targetSdk per ARKITEKTUR.md
-                }
-            }
-
-            extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {
-                jvmToolchain(17)
-            }
-        }
-    }
-}
-```
-
-### Compose Plugin
-
-```kotlin
-class AndroidComposeConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
-            val extension = extensions.getByType<CommonExtension<*, *, *, *, *, *>>()
-            extension.buildFeatures.compose = true
-        }
-    }
-}
-```
-
-## Version Catalog Best Practices
-
-```toml
-# gradle/libs.versions.toml
-[versions]
-agp = "8.13.2"
-kotlin = "2.0.21"
-compileSdk = "36"
-
-[libraries]
-# Use BOM for Firebase to keep versions in sync
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-firebaseBom = "<senaste>"   # i [versions]
-# …
-firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }  # version from BOM (ktx-artefakterna används inte)
-
-[plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
-```
+- Every dependency and plugin version is in `gradle/libs.versions.toml`; build files use
+  `libs.…` only.
+- BOMs keep families in sync: Compose BOM for Compose, Firebase BOM for Firebase (no
+  `-ktx` artefacts). A library pinned outside its BOM (today `material3`, see
+  `ARKITEKTUR.md` → "Verifierade API:er") gets a comment in the catalog saying why.
+- AGP 9 has built-in Kotlin: `:app` does **not** apply `org.jetbrains.kotlin.android`. The
+  Kotlin version comes from the `kotlin-jvm` plugin declared in the root `plugins {}`.
+- No JVM toolchain: Java 17 is set via `sourceCompatibility`/`targetCompatibility` and
+  Kotlin's `jvmTarget`, so any newer JDK can build.
+- If more modules are ever added, move the shared configuration from the root
+  `build.gradle.kts` to a `build-logic/` convention plugin (included with
+  `pluginManagement { includeBuild("build-logic") }`) – still one place.
 
 ## This Project's Gradle Setup (ReseApoteket)
 
-Two modules, planned in #11:
+Two modules, built in #11:
 
 | Module | Plugins | Rule |
 |---|---|---|
 | `:core` | `kotlin("jvm")`, `kotlin("plugin.serialization")` | Pure Kotlin/JVM. **No Android or Firebase dependencies**, ever – that is what keeps `:core:test` fast and runnable without an Android SDK. Dependencies: `kotlinx-serialization-json`, `kotlinx-datetime`; tests: `junit`, `kotlin-test`. |
-| `:app` | `android.application`, `kotlin.android`, `kotlin.compose`, `ksp`, `hilt`, `kotlin.serialization`, `google-services` (only when `app/google-services.json` exists), `roborazzi` | `implementation(project(":core"))`. Material 3 Expressive, Navigation 3, Firestore, Hilt. |
+| `:app` | `android.application` (AGP 9 has built-in Kotlin – no `kotlin.android`), `kotlin.compose`, `ksp`, `hilt`, `kotlin.serialization`, `google-services` (only when `app/google-services.json` exists), `roborazzi` | `implementation(project(":core"))`. Material 3 Expressive, Navigation 3, Firestore, Hilt. |
 
 ### Shared configuration lives in one place (rule 4)
-Java 17 toolchain, Kotlin compiler flags, test timeout and test logging are configured **once** – either in a `build-logic` convention plugin (structure above) or in the root `build.gradle.kts` – never copy-pasted into both module files. With only two modules a small convention plugin or a root `subprojects {}`/`plugins.withId {}` block is enough; pick one and document it in `ARKITEKTUR.md`.
+Java 17 (no toolchain), Kotlin compiler flags, test timeout and test logging are configured **once** – in the root `build.gradle.kts` (`subprojects {}` with `plugins.withId {}`), chosen in #11 and documented in `ARKITEKTUR.md` → "Byggkonfiguration" – never copy-pasted into both module files. Move it to a `build-logic` convention plugin only if more modules are added.
 
 ### Root-level tasks
-- `cpdCheck` (copy-paste detector, PMD CPD for Kotlin) over `core/src`, `app/src/main`, `app/src/test`, wired into `check`.
+- `cpdCheck` (copy-paste detector, PMD CPD for Kotlin via PMD's CLI as a `JavaExec` task – the `de.aaschmid.cpd` plugin does not work with Gradle 9) over `core/src`, `app/src/main`, `app/src/test`, wired into `check`.
 - Build performance flags in `gradle.properties`: `org.gradle.caching=true`, `org.gradle.configuration-cache=true`, `org.gradle.parallel=true` (skill `ci-budget`).
 
 ### AGP / Kotlin
@@ -152,5 +53,5 @@ Java 17 toolchain, Kotlin compiler flags, test timeout and test logging are conf
 - [ ] `:core` has no Android/Firebase dependency
 - [ ] Shared build settings exist once; module files only contain what is unique to the module
 - [ ] `google-services` plugin applied only in `app/build.gradle.kts`; `google-services.json` is git-ignored and written from a secret in CI
-- [ ] Builds without the secret still compile: when `app/google-services.json` is missing (PR builds from forks, sessions), a debug-only stub resource provides `default_web_client_id` (e.g. `app/src/debug/res/values/auth_stub.xml`), so auth code compiles; sign-in simply fails at runtime there
+- [ ] Builds without the secret still compile: when `app/google-services.json` is missing (PR builds from forks, sessions), a debug-only stub resource provides `default_web_client_id` (`app/src/authStub/res`, added to the debug source set only when the JSON is missing), so auth code compiles; sign-in simply fails at runtime there
 - [ ] New dependency or plugin: build-time impact stated in the PR (skill `ci-budget`)
