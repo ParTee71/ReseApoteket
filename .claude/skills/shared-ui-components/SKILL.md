@@ -73,18 +73,21 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 
 | Behov | Enda stället |
 |---|---|
-| Firestore-CRUD | `FirestoreCollection<T>(path, codec)` i `data/firestore/` |
-| Sökvägar | `Paths` i `data/firestore/` (speglad i `tools/db/lib/collections.mjs`) |
+| Firestore-CRUD | `EntityCollection<T>` från `CollectionFactory` (`data/common/`); enda implementationen `FirestoreCollection<T>` i `data/firestore/`, i test `FakeCollection<T>` |
+| Sökvägar, codecs per samling | `Paths` och `CollectionTable` i `data/firestore/` (speglade i `tools/db/lib/collections.mjs`) |
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>` i `ui/common/` |
-| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `Unknown`) i `data/common/` |
+| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `NoHousehold`, `Unknown`) i `data/common/` |
 | Fel till text | `DataError.toMessage()` i `ui/common/` |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Beräkningar | `PackingEngine` i `:core` |
 | Mängd-, doserings- och regeltexter | `ReasonFormatter`, `DoseScheduleFormatter`, `QuantityRuleFormatter` i `:core` |
 | Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
+| Aktivt hushåll | `HouseholdSession` i `data/household/` (`HouseholdScope`) |
+| Synkläge | `SyncStatus` (`syncing`, `writeErrors`) i `data/common/` |
+| Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument` i `data/common/DocumentRules.kt` – används av både `FirestoreCollection` och `FakeCollection` |
 | Inställningar | `SettingsStore` (DataStore) |
 | Test-fakes och hjälpare | se skill `testing-strategy` |
 | `tools/db`-logik | `tools/db/lib/` (admin, collections, walk, serialize, cli) |
@@ -133,7 +136,7 @@ En ändring av denna fil kör därför app-testerna i CI (skill `ci-budget`).
 
 ## `cpdCheck` (copy-paste-detektor)
 
-PMD CPD för Kotlin över `core/src`, `app/src/main` och `app/src/test`, tröskel ca 80
+PMD CPD för Kotlin över `core/src`, `app/src/main`, `app/src/test`, `app/src/sharedTest` och `app/src/androidTest`, tröskel ca 80
 tokens (satt i #11). Fäller bygget. En träff betyder: bryt ut till en av byggstenarna
 ovan eller utöka en ram. Tröskeln höjs inte för att "det bara är lite likt".
 

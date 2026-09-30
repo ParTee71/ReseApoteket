@@ -141,9 +141,12 @@ ReseApoteket/
 ├── app/                          Android-appen
 │   └── se.partee71.reseapoteket
 │       ├── data/
-│       │   ├── common/           DataError, suspendRunCatching – felmappning en gång
+│       │   ├── common/           DataError, suspendRunCatching, EntityCollection, CollectionFactory,
+│       │   │                     HouseholdScope, SyncStatus, läs- och skrivregler (DocumentRules)
 │       │   ├── auth/             AuthRepository (Credential Manager + Firebase Auth)
-│       │   ├── firestore/        FirestoreCollection<T>, Paths, CollectionFactory, FirestoreModule (Hilt)
+│       │   ├── firestore/        FirestoreCollection<T>, CollectionTable, Paths, FirestoreSyncStatus,
+│       │   │                     Timestamp ↔ Instant, felmappning, FirestoreModule (Hilt)
+│       │   ├── household/        HouseholdSession (aktivt hushåll och dess schemaVersion)
 │       │   ├── repository/       tunna fasader per domän
 │       │   └── datastore/        SettingsStore
 │       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
@@ -311,7 +314,7 @@ inloggningskoden kompilerar; inloggning misslyckas då vid körning. Finns filen
 `google-services`-pluginen i stället och stubben används inte.
 
 **`cpdCheck`** (rotprojektet, kopplad till `check`): PMD CPD för Kotlin över `core/src`,
-`app/src/main` och `app/src/test`, utom `*Preview.kt`. Körs via PMD:s CLI (`JavaExec`),
+`app/src/main`, `app/src/test`, `app/src/sharedTest` och `app/src/androidTest`, utom `*Preview.kt`. Körs via PMD:s CLI (`JavaExec`),
 eftersom Gradle-pluginen `de.aaschmid.cpd` inte fungerar med Gradle 9. Tröskel **80 tokens**:
 skelettet ger inga träffar, och ett kopierat block på ~10 rader (t.ex. en funktion med en
 `when`/`map`-kedja) fångas. Rapport i `build/reports/cpd/cpd.txt` och i felmeddelandet.

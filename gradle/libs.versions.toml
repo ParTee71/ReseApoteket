@@ -31,6 +31,7 @@ turbine                  = "1.2.1"
 androidxTestRunner       = "1.7.0"
 androidxTestExtJunit     = "1.3.0"
 concurrentFutures        = "1.2.0"
+errorProneAnnotations    = "2.30.0"
 pmd                      = "7.28.0"
 
 [libraries]
@@ -63,6 +64,7 @@ googleid                              = { group = "com.google.android.libraries.
 kotlinx-serialization-json            = { group = "org.jetbrains.kotlinx",       name = "kotlinx-serialization-json",        version.ref = "kotlinxSerialization" }
 kotlinx-datetime                      = { group = "org.jetbrains.kotlinx",       name = "kotlinx-datetime",                  version.ref = "kotlinxDatetime" }
 kotlinx-coroutines-android            = { group = "org.jetbrains.kotlinx",       name = "kotlinx-coroutines-android",        version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-play-services      = { group = "org.jetbrains.kotlinx",       name = "kotlinx-coroutines-play-services",  version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test               = { group = "org.jetbrains.kotlinx",       name = "kotlinx-coroutines-test",           version.ref = "kotlinxCoroutines" }
 # Test
 junit                                 = { group = "junit",                       name = "junit",                             version.ref = "junit" }
@@ -72,6 +74,7 @@ roborazzi                             = { group = "io.github.takahirom.roborazzi
 roborazzi-compose                     = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose",               version.ref = "roborazzi" }
 roborazzi-junit-rule                  = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule",            version.ref = "roborazzi" }
 androidx-test-runner                  = { group = "androidx.test",               name = "runner",                            version.ref = "androidxTestRunner" }
+errorprone-annotations                = { group = "com.google.errorprone",       name = "error_prone_annotations",           version.ref = "errorProneAnnotations" }
 androidx-concurrent-futures           = { group = "androidx.concurrent",         name = "concurrent-futures",                version.ref = "concurrentFutures" }
 androidx-test-ext-junit               = { group = "androidx.test.ext",           name = "junit",                             version.ref = "androidxTestExtJunit" }
 konsist                               = { group = "com.lemonappdev",             name = "konsist",                           version.ref = "konsist" }

@@ -19,7 +19,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ÖV-2 | Appen ska ha en **packlista** där framplockade saker prickas av. *(planerad)* |
 | ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå. *(planerad)* |
 | ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. *(planerad)* |
-| ÖV-5 | Appen ska fungera **offline**; ändringar synkas när nätet kommer tillbaka. *(planerad)* |
+| ÖV-5 | Appen ska fungera **offline**: allt läses från den lokala Firestore-cachen och ändringar sparas direkt och synkas när nätet kommer tillbaka. |
 | ÖV-6 | Hela gränssnittet ska vara på **svenska**. *(planerad)* |
 
 ---
@@ -32,7 +32,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | TP-2 | Gränssnitt i **Jetpack Compose** med **Material 3 Expressive** (API:er och versioner i ARKITEKTUR.md → "Verifierade API:er"). |
 | TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. *(planerad, #16, #20 – Hilt finns sedan #11)* |
 | TP-4 | Två moduler: **`:core`** (ren Kotlin/JVM: modeller, codecs, beräkning) och **`:app`**. |
-| TP-5 | Data lagras i **Cloud Firestore** med offline-cache; inställningar i **DataStore**. *(planerad, #15)* |
+| TP-5 | Data lagras i **Cloud Firestore** med offline-cache (100 MB); enhetens inställningar i **DataStore**. |
 | TP-6 | Inloggning via **Firebase Auth + Credential Manager**. *(planerad, #16)* |
 | TP-7 | Navigering med **Navigation 3**. *(planerad, #20)* |
 | TP-8 | Backup och databasåtkomst från utvecklingssessioner via Node-verktyget **`tools/db`**. *(planerad, #17, #18)* |
@@ -109,9 +109,9 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 |----|------|
 | BCK-1 | All hushållsdata ska överleva en export → import-rundtur utan förlust. *(planerad, #17)* |
 | BCK-2 | En backup ska tas automatiskt varje vecka, krypteras och sparas i 90 dagar. *(planerad, #17)* |
-| BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit. *(planerad, #15)* |
+| BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit: skrivningar slås ihop med det lagrade dokumentet, och ett fält som användaren tömt försvinner ändå. |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. *(planerad, #17)* |
-| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering. Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. *(planerad, #15 – migreringen och versionen finns sedan #14)* |
+| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering. Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. *(planerad, #20 – texten "Uppdatera appen" visas i UI:t; spärren och migreringen finns sedan #15)* |
 
 ---
 
@@ -125,8 +125,8 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas efter första försöket; bakåt med osparade ändringar frågar "Släng ändringar?"; sparfel visas som meddelande. *(planerad, #20)* |
 | NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder. *(planerad, #20)* |
 | NFR-4 | **Permanent radering** kräver alltid bekräftelse. *(planerad, #20)* |
-| NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt. *(planerad, #15, #20)* |
-| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas. *(planerad, #15)* |
+| NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt; varje fel från datalagret har en egen text. *(planerad, #20 – texterna och mappningen finns sedan #15)* |
+| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad, #20 – synkläget finns sedan #15)* |
 
 ### Kvalitet, integritet och tester
 

@@ -110,7 +110,7 @@ jobs:
           set -euo pipefail
           tasks=(cpdCheck)
           if [ "$RUN_CORE" = true ]; then tasks+=(:core:test); fi
-          if [ "$RUN_APP" = true ]; then tasks+=(:app:testDebugUnitTest :app:verifyRoborazziDebug :app:compileDebugAndroidTestKotlin); fi
+          if [ "$RUN_APP" = true ]; then tasks+=(:app:testDebugUnitTest :app:verifyRoborazziDebug :app:assembleDebugAndroidTest); fi
           echo "### Gradle" >> "$GITHUB_STEP_SUMMARY"
           echo "\`./gradlew ${tasks[*]}\`" >> "$GITHUB_STEP_SUMMARY"
           ./gradlew --configuration-cache --continue "${tasks[@]}"
