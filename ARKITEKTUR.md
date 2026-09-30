@@ -215,14 +215,15 @@ som det börjar användas.
 2026.09.00) är alla Expressive-API:er `internal`. Därför pinnas `material3` till
 `1.5.0-alpha29` i `libs.versions.toml` (övriga Compose-artefakter följer BOM:en). Byts till
 stabil när en stabil version med publika Expressive-API:er släpps. Alla Expressive-API:er
-kräver `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`, som bara får stå som
-`@file:OptIn` i `ui/theme` och `ui/components` (och i tester).
+kräver `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`, som bara får stå i `ui/theme` och
+`ui/components` (och i tester) – kontrolleras av scopet `[expressive]` i `ui-forbidden.txt`.
 
 | Behov | API (paket.Klass / funktion) | Artefakt:version | Stabil/experimentell | Verifierad |
 |---|---|---|---|---|
 | Expressive-tema | `androidx.compose.material3.MaterialExpressiveTheme` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Expressive-rörelse | `androidx.compose.material3.MotionScheme.expressive()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Ljust Expressive-färgschema | `androidx.compose.material3.expressiveLightColorScheme()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Mörkt färgschema | `androidx.compose.material3.darkColorScheme()` – Expressive saknar mörk motsvarighet; `AppColors` definierar båda scheman med samma roller | `material3:1.5.0-alpha29` | stabil | 2026-09-30 |
 | Vågig linjär progress | `androidx.compose.material3.LinearWavyProgressIndicator(progress = { … })` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Split-knapp | `androidx.compose.material3.SplitButtonLayout` + `SplitButtonDefaults.LeadingButton` / `TrailingButton(checked, onCheckedChange)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Knappgrupp | `androidx.compose.material3.ButtonGroup(overflowIndicator) { clickableItem(…) }` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
@@ -257,7 +258,8 @@ Beslutad och uppmätt i #11.
 | PMD (CPD) | 7.28.0 | se `cpdCheck` nedan |
 
 **Gemensam byggkonfiguration** står på ett ställe: rotens `build.gradle.kts` (`subprojects {}`):
-Java 17, Kotlins `jvmTarget`, testtimeout (10 min) och testloggning. Med två moduler räcker det;
+Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten) och testloggning
+(`STARTED`-rader, så att ett test som hänger syns som sista rad utan resultat). Med två moduler räcker det;
 `build-logic/` införs om fler moduler kommer. Modulfilerna innehåller bara det som är unikt.
 
 **`default_web_client_id` utan `google-services.json`:** saknas filen (PR-bygge, session)
@@ -270,6 +272,9 @@ inloggningskoden kompilerar; inloggning misslyckas då vid körning. Finns filen
 eftersom Gradle-pluginen `de.aaschmid.cpd` inte fungerar med Gradle 9. Tröskel **80 tokens**:
 skelettet ger inga träffar, och ett kopierat block på ~10 rader (t.ex. en funktion med en
 `when`/`map`-kedja) fångas. Rapport i `build/reports/cpd/cpd.txt` och i felmeddelandet.
+
+**Skärmdumpar:** katalogen anges bara i `roborazzi.outputDir` (`app/build.gradle.kts`); med
+`roborazzi.record.filePathStrategy` i `gradle.properties` är filnamnen i testerna relativa till den.
 
 **Svenska testnamn** kräver UTF-8-locale för att Gradle ska kunna skriva testrapporten
 (`LANG=C.UTF-8`, som i GitHub Actions). Lokalt med annan locale: `export LC_ALL=C.UTF-8`.

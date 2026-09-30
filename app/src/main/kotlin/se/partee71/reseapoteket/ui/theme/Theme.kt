@@ -13,6 +13,10 @@ import androidx.compose.runtime.Composable
 /**
  * Appens tema: Material 3 Expressive med fjädrande rörelse. Färger, typografi, former och
  * avstånd fylls i enligt skill `ui-style` när designsystemet byggs.
+ *
+ * Mörkt läge använder `darkColorScheme()`: Expressive har bara ett ljust standardschema
+ * (`expressiveLightColorScheme()`) i `material3:1.5.0-alpha29`. `AppColors` definierar båda
+ * scheman med samma roller när designsystemet byggs (ARKITEKTUR.md → "Verifierade API:er").
  */
 @Composable
 fun ReseApoteketTheme(

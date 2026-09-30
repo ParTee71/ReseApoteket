@@ -28,7 +28,7 @@ export function parseSections(text) {
   let current = null;
   for (const line of text.split(/\r?\n/)) {
     if (!line.trim() || line.startsWith('#')) continue;
-    const section = line.match(/^\[(\w+)\]\s*$/);
+    const section = line.match(/^\[([\w-]+)\]\s*$/);
     if (section) sections[(current = section[1])] = [];
     else if (current) sections[current].push(line);
   }
@@ -48,16 +48,30 @@ export function parsePatterns(text) {
   );
 }
 
-/** Tolkar ui-allowlist.txt till [{ file, symbol }]. */
+/**
+ * Tolkar ui-allowlist.txt till [{ file, symbol }]. Format per rad:
+ * `<sökväg>:<symbol> – <motivering>`. En rad utan symbol eller motivering är ett fel.
+ */
 export function parseAllowlist(text) {
-  return text
-    .split(/\r?\n/)
-    .filter((l) => l.trim() && !l.startsWith('#'))
-    .map((l) => {
-      const [location] = l.split(/\s+[–-]\s+/);
-      const idx = location.lastIndexOf(':');
-      return { file: location.slice(0, idx).trim(), symbol: location.slice(idx + 1).trim() };
-    });
+  const entries = [];
+  text.split(/\r?\n/).forEach((line, i) => {
+    if (!line.trim() || line.startsWith('#')) return;
+    const [location, ...reason] = line.split(/\s+[–-]\s+/);
+    const idx = location.lastIndexOf(':');
+    const file = idx > 0 ? location.slice(0, idx).trim() : '';
+    const symbol = idx > 0 ? location.slice(idx + 1).trim() : '';
+    if (!file || !symbol || !reason.join('').trim()) {
+      throw new Error(`ui-allowlist.txt rad ${i + 1}: ogiltig rad, formatet är "<sökväg>:<symbol> – <motivering>"`);
+    }
+    entries.push({ file, symbol });
+  });
+  return entries;
+}
+
+/** Ett undantag gäller bara träffar vars matchade text och symbolen överlappar – inte hela raden. */
+export function isAllowed(allowlist, file, match) {
+  const m = match.trim();
+  return allowlist.some((a) => a.file === file && (m.includes(a.symbol) || a.symbol.includes(m)));
 }
 
 /**
@@ -65,6 +79,7 @@ export function parseAllowlist(text) {
  * - `feature`: Kotlin i ett ui-paket under app/src/main utom ui/components, ui/theme och ui/common
  *   (även filer direkt under ui/).
  * - `firestore`: all Kotlin under app/src/main utom data/firestore/.
+ * - `expressive`: all Kotlin under app/src/main utom ui/theme/ och ui/components/.
  */
 export function scopesFor(relPath) {
   const p = relPath.split(path.sep).join('/');
@@ -76,6 +91,7 @@ export function scopesFor(relPath) {
     if (!['components', 'theme', 'common'].includes(sub)) scopes.push('feature');
   }
   if (!/\/data\/firestore\//.test(p)) scopes.push('firestore');
+  if (!/\/ui\/(theme|components)\//.test(p)) scopes.push('expressive');
   return scopes;
 }
 
@@ -103,8 +119,7 @@ export function findViolations(relPath, content, scopes, allowlist) {
       for (const rule of scopes[scope]) {
         const m = line.match(rule.regex);
         if (!m) continue;
-        const allowed = allowlist.some((a) => a.file === normalized && line.includes(a.symbol));
-        if (!allowed) hits.push({ line: i + 1, match: m[0], replacement: rule.replacement, scope });
+        if (!isAllowed(allowlist, normalized, m[0])) hits.push({ line: i + 1, match: m[0], replacement: rule.replacement, scope });
       }
     }
   });
@@ -114,6 +129,7 @@ export function findViolations(relPath, content, scopes, allowlist) {
 const SCOPE_TEXT = {
   feature: 'feature-kod (ui/<feature>/)',
   firestore: 'kod utanför data/firestore/',
+  expressive: 'kod utanför ui/theme/ och ui/components/',
 };
 
 function main() {
@@ -134,7 +150,13 @@ function main() {
 
   const scopes = parsePatterns(readFileSync(path.join(root, PATTERNS_FILE), 'utf8'));
   const allowPath = path.join(root, ALLOWLIST_FILE);
-  const allowlist = existsSync(allowPath) ? parseAllowlist(readFileSync(allowPath, 'utf8')) : [];
+  let allowlist = [];
+  try {
+    allowlist = existsSync(allowPath) ? parseAllowlist(readFileSync(allowPath, 'utf8')) : [];
+  } catch (e) {
+    process.stderr.write(`Regel 4: ${e.message}\n`);
+    return 2;
+  }
 
   const hits = findViolations(rel, readFileSync(abs, 'utf8'), scopes, allowlist);
   if (hits.length === 0) return 0;

@@ -104,14 +104,20 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
   - Material 3-komponenter och layoutelement som har en motsvarighet i tabellerna ovan –
     t.ex. kort, knappar, kryss, växlar, fält, menyer, dialoger, sheets, avdelare, chips,
     progress, snackbar, `LazyColumn`/`LazyRow`, `Scaffold`, `SwipeToDismissBox`.
-  - Hårdkodat utseende: färger, former, textstilar och literala dp för storlek och padding.
+  - Hårdkodat utseende: färger, former, textstilar (även `MaterialTheme.typography` – använd
+    `AppTypography`) och literala dp för storlek och padding.
   - **Tillåtet:** `Text` med en `AppTypography`-stil, `Icon` (Material Symbols),
     `Column`/`Row`/`Box` och `Spacer` med `Spacing`.
+- **All kod utom `ui/theme/` och `ui/components/`:** `ExperimentalMaterial3ExpressiveApi` (opt-in
+  för Expressive). Behövs ett Expressive-API i en skärm → bygg eller utöka en delad komponent.
 - **All kod utom `data/firestore/`** – även `di/` och `ui/`: `FirebaseFirestore`,
   `CollectionReference`, `DocumentReference`. Därför ligger `FirestoreModule` i `data/firestore/`.
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
-- **I `ui/components/`:** publik komponent utan skärmdump eller utan plats i `ComponentGallery`.
-- **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Filen är tom som
+- **I `ui/components/`:** publik komponent utan skärmdump (ljust + mörkt) eller utan plats i
+  `ComponentGallery` – hoppas över, som dokumentdriften, tills katalogen byggs i #20.
+- **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Undantaget gäller bara
+  träffar vars matchade text överlappar symbolen – andra förbjudna mönster på samma rad stoppas
+  ändå. En rad utan symbol eller motivering fäller hooken och bygget. Filen är tom som
   standard. Varje ny rad kräver användarens uttryckliga ok i PR:en.
 
 ## Dokumentdrift

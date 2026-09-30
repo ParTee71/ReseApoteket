@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.ui.theme.AppTypography
 
 /** Appens rot. Blir Navigation 3-värden (`NavDisplay`) i #20. */
 @Composable
@@ -22,7 +23,7 @@ fun AppRoot(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineMedium,
+            style = AppTypography.screenTitle,
             color = MaterialTheme.colorScheme.onBackground,
         )
     }
