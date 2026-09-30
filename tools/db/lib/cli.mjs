@@ -50,9 +50,8 @@ export function printTable(rows) {
   // En avkortad cell slutar med "…", så att ett värde aldrig ser komplett ut när det inte är det.
   const fit = (v, width) => (v.length > width ? `${v.slice(0, width - 1)}…` : v.padEnd(width));
   const line = (values) => values.map((v, i) => fit(String(v), widths[i])).join('  ').trimEnd();
-  const cell = text;
   console.log(line(columns));
   console.log(line(widths.map((w) => '-'.repeat(w))));
-  for (const row of rows) console.log(line(columns.map((c) => cell(row[c]))));
+  for (const row of rows) console.log(line(columns.map((c) => text(row[c]))));
   console.log(`(${rows.length} dokument)`);
 }
