@@ -114,6 +114,11 @@ dependencies {
     testImplementation(libs.roborazzi.junit.rule)
     testImplementation(libs.konsist)
 
+    constraints {
+        // AGP låser androidTest till appens versioner; androidx.test.ext:junit kräver 1.2.0.
+        implementation(libs.androidx.concurrent.futures)
+    }
+
     // Instrumenttester: bara på begäran och i release (skill ci-budget); kompileras i PR.
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.runner)
