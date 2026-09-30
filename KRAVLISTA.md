@@ -43,7 +43,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| NAV-1 | Toppnivå med fyra flikar – **Resor**, **Personer**, **Familjeartiklar**, **Inställningar** – i en flytande verktygsrad. *(planerad, #20)* |
+| NAV-1 | Toppnivå med fyra flikar – **Resor**, **Personer**, **Familjeartiklar**, **Inställningar** – i en flytande verktygsrad. Appen startar på Resor. *(planerad, #20)* |
 | NAV-2 | Underskärmar döljer verktygsraden; fliktillstånd bevaras vid byte. *(planerad, #20)* |
 | NAV-3 | Alla skärmbyten använder samma rörelse. *(planerad, #20)* |
 
@@ -73,7 +73,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott; lista, tomt tillstånd, fel och "Visa arkiverade" enligt NFR-1. *(planerad, #21)* |
 | PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista och en av åtta personfärger; skapas och redigeras enligt NFR-2. *(planerad, #21)* |
-| PER-3 | En person arkiveras med svep och kan ångras (NFR-3); en arkiverad person föreslås inte i nya resor, men gamla resor behåller den. *(planerad, #21)* |
+| PER-3 | En person arkiveras med svep och kan ångras (NFR-3); en arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(planerad, #21)* |
 | PER-4 | Persondetaljen visar personens **Recept** och **Kosttillskott** i var sin sektion. *(planerad, #21)* |
 
 ## 7. Recept
@@ -91,7 +91,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ID | Krav |
 |----|------|
 | KOS-1 | Kosttillskott beter sig som recept (REC-1–5) med egen sektion **Kosttillskott**, grön sektionsfärg och "dos" i stället för "styrka". *(planerad, #23)* |
-| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. *(planerad, #23)* |
+| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. *(planerad, #23 – pulver saknas i `MedicineForm` och kräver ett nytt värde med högre `schemaVersion`, BCK-5)* |
 | KOS-3 | Ett nytt kosttillskott kan börja från snabbvalen **D-vitamin**, **Omega-3**, **Magnesium** och **Probiotika**, som fyller i namnet. *(planerad, #23)* |
 
 ## 9. Familjeartiklar
@@ -100,13 +100,13 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | FAM-1 | Fliken **Familjeartiklar** listar hushållets gemensamma saker grupperade per kategori: **Krämer & salvor**, **Plåster & förband**, **Verktyg**, **Övrigt**; tomt tillstånd med exempel att lägga till (NFR-1). *(planerad, #24)* |
 | FAM-2 | En familjeartikel har namn (obligatoriskt), kategori, enhet, mängdregel, anteckning och aktiv/inaktiv (NFR-2); arkiveras med svep och ångra (NFR-3). *(planerad, #24)* |
-| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7); samma regeltext i lista, redigering och packlista, med förhandsvisning t.ex. "För 4 personer i 10 dagar: 2 tuber". *(planerad, #24)* |
+| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7); samma regeltext i lista, redigering och packlista, med förhandsvisning t.ex. "För 4 resenärer i 10 dagar: 2 tuber". *(planerad, #24)* |
 
 ## 10. Resa
 
 | ID | Krav |
 |----|------|
-| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. Appen startar på Resor. *(planerad, #20, #25)* |
+| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. *(planerad, #20, #25)* |
 | RES-2 | En resa har namn ("Vart/vad?", förval "Resa <datum>"), antal dagar 1–60, startdatum (förval i morgon) och resenärer ("Vem åker med?", alla aktiva personer förvalda); minst en resenär krävs. *(planerad, #25)* |
 | RES-3 | En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan (BER) och öppnar den. *(planerad, #25)* |
 | RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd och en avprickning behålls, egna rader rörs inte. *(planerad, #25)* |
@@ -168,7 +168,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | ID | Krav |
 |----|------|
 | BCK-1 | All hushållsdata ska överleva en export → import-rundtur utan förlust (`tools/db export`/`import`, rundturstest mot emulatorn). |
-| BCK-2 | En backup tas automatiskt varje vecka (`backup.yml`, måndag 03:00 UTC), krypteras med gpg (AES-256, integritetskontroll) och sparas i 90 dagar som artifact i det privata repot; klartexten lämnar aldrig jobbet. En misslyckad backup öppnar ett issue. |
+| BCK-2 | En backup tas automatiskt varje vecka (`backup.yml`, måndag 03:00 UTC), krypteras med gpg (AES-256, integritetskontroll) och sparas i 90 dagar som artifact i det privata repot; klartexten lämnar aldrig jobbet. En misslyckad schemalagd backup öppnar ett issue. |
 | BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit: skrivningar slås ihop med det lagrade dokumentet, och ett fält som användaren tömt försvinner ändå. |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. |
 | BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering (HUS-3). Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. |
