@@ -29,7 +29,9 @@ export function openFirestore({ test = false, write = false, projectId } = {}) {
 
   const name = write && process.env.FIREBASE_SERVICE_ACCOUNT_RW ? 'FIREBASE_SERVICE_ACCOUNT_RW' : 'FIREBASE_SERVICE_ACCOUNT';
   const encoded = process.env[name];
-  if (!encoded) throw new Error(`${name} saknas – lägg in den i miljöns inställningar (skill db-access), aldrig i chatten.`);
+  if (!encoded) {
+    throw new Error(`${name} saknas – lägg in den som miljövariabel i Claude-miljöns inställningar och starta en ny session (README → Utveckling via Claude). Klistra aldrig in nyckeln i chatten.`);
+  }
   let account;
   try {
     account = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));

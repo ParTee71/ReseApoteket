@@ -30,8 +30,12 @@ node tools/db/query.mjs households                        # hushåll kontot ser
 node tools/db/query.mjs persons --fields name,emoji       # relativt aktivt hushåll
 node tools/db/query.mjs persons/<pid>/regimens --where kind=MEDICINE --limit 20
 node tools/db/query.mjs trips --json                      # rå JSON
-node tools/db/get.mjs households/<hid>/trips/<tid>        # ett dokument
+node tools/db/get.mjs households/<hid>/trips/<tid>        # ett dokument (full sökväg)
+node tools/db/get.mjs trips/<tid>                         # samma, relativt aktivt hushåll
 ```
+
+`--where` kan anges flera gånger (likhet); `true`, `false`, `null` och tal tolkas som
+sådana. Tidsstämplar visas som `{ "__ts": "…Z" }`. Okända samlingar och sökvägar vägras.
 
 Alla har `--help`. Finns bara ett hushåll väljs det automatiskt; annars `--household <hid>`.
 
