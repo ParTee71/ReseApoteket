@@ -15,6 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # Emulatorn behöver ~7 GB för sin datadisk; runnern har för lite kvar när Firebase-
+      # emulatorn också ligger på den. Ta bort förinstallerade verktyg vi aldrig använder.
+      - name: Frigör disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+            /usr/local/lib/android/sdk/ndk /usr/local/share/boost
+          df -h / | tail -n1
+
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-android
 
@@ -55,6 +63,7 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
+          disk-size: 4G
           emulator-options: -no-window -no-boot-anim -no-snapshot -camera-back none -gpu swiftshader_indirect
           script: npx --prefix tools/db firebase emulators:exec --only firestore,auth --project demo-reseapoteket "./gradlew --configuration-cache :app:connectedDebugAndroidTest"
 
