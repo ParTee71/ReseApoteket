@@ -106,12 +106,16 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     // I appen, inte bara androidTest: Firebase hittar sina komponenter via appens manifest,
     // så auth-emulatorn i instrumenttesterna kräver det här. Används av inloggningen i #16.
     implementation(libs.firebase.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services)
+    implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.datastore.preferences)
 

@@ -2,6 +2,19 @@
 <resources>
     <string name="app_name" translatable="false">ReseApoteket</string>
 
+    <!-- Inloggning (AUTH-1–3) -->
+    <string name="sign_in_welcome">Håll koll på vad ni ska packa i reseapoteket</string>
+    <string name="sign_in_google">Logga in med Google</string>
+    <string name="sign_in_busy">Loggar in …</string>
+    <string name="sign_in_note">Du loggar in med ditt Google-konto. Ett hushåll skapas åt dig första gången.</string>
+
+    <!-- Uppdatera appen (HUS-3, BCK-5) -->
+    <string name="update_required_title">Uppdatera appen</string>
+    <string name="update_required_message">Ert hushåll har sparats med en nyare version av ReseApoteket. Installera den senaste versionen för att fortsätta.</string>
+    <string name="update_required_note">Ingenting av hushållets data ändras förrän appen är uppdaterad.</string>
+    <string name="update_required_action">Hämta senaste versionen</string>
+    <string name="releases_url" translatable="false">https://github.com/ParTee71/ReseApoteket/releases/latest</string>
+
     <!-- Felmeddelanden – enda stället (NFR-5, DataError.toMessage) -->
     <string name="error_offline">Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.</string>
     <string name="error_permission_denied">Du har inte behörighet till det här hushållet.</string>
