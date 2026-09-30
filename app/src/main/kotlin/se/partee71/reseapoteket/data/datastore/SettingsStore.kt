@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
+/** Temaval i Inställningar (SET-1). Lagras med namnet; ett okänt namn ger [System]. */
+enum class ThemeMode { System, Light, Dark }
+
 /** Enhetens inställningar (DataStore) – bara sådant som inte hör till hushållets data. */
 @Singleton
 class SettingsStore @Inject constructor(private val store: DataStore<Preferences>) {
@@ -27,7 +30,16 @@ class SettingsStore @Inject constructor(private val store: DataStore<Preferences
         store.edit { prefs -> if (id == null) prefs.remove(ACTIVE_HOUSEHOLD) else prefs[ACTIVE_HOUSEHOLD] = id }
     }
 
+    val themeMode: Flow<ThemeMode> = preferences.map { prefs ->
+        ThemeMode.entries.firstOrNull { it.name == prefs[THEME_MODE] } ?: ThemeMode.System
+    }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        store.edit { it[THEME_MODE] = mode.name }
+    }
+
     private companion object {
         val ACTIVE_HOUSEHOLD = stringPreferencesKey("activeHouseholdId")
+        val THEME_MODE = stringPreferencesKey("themeMode")
     }
 }

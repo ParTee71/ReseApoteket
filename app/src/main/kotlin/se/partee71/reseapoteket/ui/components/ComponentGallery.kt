@@ -1,0 +1,264 @@
+package se.partee71.reseapoteket.ui.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.model.DoseSchedule
+import se.partee71.reseapoteket.core.model.QuantityRule
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.reseapoteket.ui.theme.Tone
+
+/**
+ * Alla komponenter och ramar på en skärm, med riktiga svenska texter (skill
+ * shared-ui-components). Nås från Inställningar → "Komponenter" i debug-bygget.
+ * `UiConsistencyTest` kontrollerar att varje publik komponent finns här.
+ */
+@Composable
+fun ComponentGallery(onBack: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxSize()) {
+        AppTopBar("Komponenter", size = TopBarSize.Small, onBack = onBack)
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l, vertical = Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+        ) {
+            GallerySection("Knappar och meny") { Buttons() }
+            GallerySection("Kort, rader och rubriker") { Rows() }
+            GallerySection("Fält, val och mängder") { Fields() }
+            GallerySection("Progress och navigering") { Progress() }
+            GallerySection("Dialog, sheet, meddelanden") { Overlays() }
+            GallerySection("Ramar") { Frames(onBack) }
+        }
+    }
+}
+
+@Composable
+private fun GallerySection(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Text(title, style = AppTypography.headline, modifier = Modifier.semantics { heading() })
+        content()
+    }
+}
+
+@Composable
+private fun Label(text: String) = Text(text, style = AppTypography.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+@Composable
+private fun Buttons() {
+    Label("AppButton")
+    AppButton("Ny resa", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_add)
+    AppButton("Sparar …", {}, Modifier.fillMaxWidth(), loading = true)
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
+        AppButton("Avbryt", {}, variant = ButtonVariant.Text)
+        AppButton("Spara", {}, enabled = false)
+    }
+    AppButton("Radera", {}, variant = ButtonVariant.Destructive)
+    Label("AppIconButton · AppMenu · AddSplitButton")
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s), verticalAlignment = Alignment.CenterVertically) {
+        AppIconButton(R.drawable.ic_arrow_back, "Tillbaka", {}, variant = IconButtonVariant.Tonal)
+        AppIconButton(R.drawable.ic_add, "Lägg till", {}, variant = IconButtonVariant.Tonal)
+        AppMenu(sampleMenu())
+    }
+    AddSplitButton("Lägg till", {}, menuItems = listOf(AppMenuItem("Räkna om", {}), AppMenuItem("Dölj packade", {})))
+    AddSplitButton("Lägg till person", {})
+}
+
+@Composable
+private fun sampleMenu() = listOf(
+    AppMenuItem("Arkivera", {}, R.drawable.ic_archive),
+    AppMenuItem("Radera", {}, R.drawable.ic_delete, destructive = true),
+)
+
+@Composable
+private fun Rows() {
+    var packed by remember { mutableStateOf(false) }
+    var sorted by remember { mutableStateOf(true) }
+    ApotekCard {
+        SectionHeader("Mediciner", icon = R.drawable.ic_medication, count = "4 / 5")
+        ItemRow(
+            "Anna",
+            subtitle = "3 recept · 1 kosttillskott",
+            leading = { PersonAvatar("🦊", AppColors.person(0)) },
+            navigates = true,
+            onClick = {},
+        )
+        AppDivider()
+        CheckRow("Enalapril 10 mg", packed, { packed = it }, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
+        CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
+        AppDivider()
+        SwitchRow("Flytta avprickade sist", sorted, { sorted = it }, subtitle = "I packlistan")
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        InfoPill("Mediciner")
+        InfoPill("Kosttillskott", tone = Tone.Green)
+        InfoPill("Övrigt", tone = Tone.Blue)
+    }
+    ChipRow {
+        listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧").forEachIndexed { i, emoji -> PersonAvatar(emoji, AppColors.person(i)) }
+    }
+}
+
+@Composable
+private fun Fields() {
+    var name by remember { mutableStateOf("Solkräm") }
+    var date by remember { mutableStateOf<LocalDate?>(LocalDate(2026, 12, 19)) }
+    var form by remember { mutableIntStateOf(0) }
+    var theme by remember { mutableIntStateOf(2) }
+    var count by remember { mutableIntStateOf(7) }
+    var schedule by remember { mutableStateOf<DoseSchedule>(DoseSchedule.Daily(dosesPerDay = 2)) }
+    var rule by remember { mutableStateOf<QuantityRule>(QuantityRule.PerDays(1, 7)) }
+    val selected = remember { mutableStateOf(setOf("Anna", "Erik")) }
+    AppTextField(name, { name = it }, "Namn", helper = "Visas i packlistan")
+    AppTextField("", {}, "Namn", error = "Ange ett namn")
+    DateField("Startdatum", date, { date = it })
+    ChipRow {
+        listOf("Tablett", "Kapsel", "Flytande", "Inhalator").forEachIndexed { i, label ->
+            AppFilterChip(label, selected = form == i, onClick = { form = i })
+        }
+    }
+    ChipRow(wrap = false) {
+        listOf("Anna" to "🦊", "Erik" to "🐻", "Lova" to "🐰").forEachIndexed { i, (person, emoji) ->
+            PersonChip(person, emoji, AppColors.person(i), person in selected.value, {
+                selected.value = if (person in selected.value) selected.value - person else selected.value + person
+            })
+        }
+    }
+    AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), theme, { theme = it })
+    QuantityStepper(count, { count = it }, "dagar")
+    DoseScheduleRow(schedule, { schedule = it }, unitName = { if (it == 1) "tablett" else "tabletter" })
+    PackingPreview("För en 7-dagarsresa", "18 tabletter · 2 kartor", reason = "2 × 1 tablett/dag × (7 + 2) dagar")
+    QuantityRuleRow(rule, { rule = it }, unitName = { if (it == 1) "tub" else "tuber" })
+}
+
+@Composable
+private fun Progress() {
+    ApotekCard { SuitcaseProgress(packed = 9, total = 14) }
+    SuitcaseProgress(packed = 4, total = 10, compact = true)
+    Box(Modifier.fillMaxWidth().height(96.dp)) { AppLoading() }
+    var tab by remember { mutableIntStateOf(0) }
+    AppFloatingToolbar(
+        items = listOf(
+            ToolbarItem("Resor", R.drawable.ic_luggage),
+            ToolbarItem("Personer", R.drawable.ic_person),
+            ToolbarItem("Familjeartiklar", R.drawable.ic_family_items),
+            ToolbarItem("Inställningar", R.drawable.ic_settings),
+        ),
+        selectedIndex = tab,
+        onSelect = { tab = it },
+    )
+}
+
+@Composable
+private fun Overlays() {
+    var dialog by remember { mutableStateOf(false) }
+    var sheet by remember { mutableStateOf(false) }
+    var celebrate by remember { mutableStateOf(false) }
+    var archived by remember { mutableStateOf<UndoRequest?>(null) }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        AppButton("Dialog", { dialog = true }, variant = ButtonVariant.Secondary)
+        AppButton("Sheet", { sheet = true }, variant = ButtonVariant.Secondary)
+        AppButton("Snackbar", { scope.launch { snackbar.showSnackbar("Ingen anslutning just nu.") } }, variant = ButtonVariant.Secondary)
+    }
+    AppButton("Arkivera Solkräm", { archived = UndoRequest("solkram", "Solkräm") }, variant = ButtonVariant.Text)
+    UndoSnackbar(archived, snackbar, onUndo = { archived = null }, onDismissed = { archived = null })
+    if (dialog) {
+        ConfirmDialog("Radera Alvedon?", "Receptet tas bort för gott. Det går inte att ångra.", "Radera", { dialog = false }, { dialog = false }, destructive = true)
+    }
+    if (sheet) {
+        AppBottomSheet("Levaxin 50 µg", onDismiss = { sheet = false }) {
+            QuantityStepper(12, {}, "tabletter")
+            AppButton("Återställ till förslag (9)", {}, variant = ButtonVariant.Text)
+        }
+    }
+    EmptyState(R.drawable.ic_family_items, "Inga familjeartiklar än", "Solkräm, plåster, febertermometer – saker hela familjen delar.") {
+        AppButton("Lägg till", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_add)
+    }
+    Box(Modifier.fillMaxWidth().height(120.dp)) {
+        AppButton("Allt packat!", { celebrate = !celebrate }, Modifier.align(Alignment.Center), variant = ButtonVariant.Text)
+        Confetti(Modifier.fillMaxSize(), play = celebrate)
+    }
+    AppSnackbarHost(snackbar)
+}
+
+@Composable
+private fun Frames(onBack: () -> Unit) {
+    var undo by remember { mutableStateOf<UndoRequest?>(null) }
+    var items by remember { mutableStateOf(listOf("Solkräm", "Plåster", "Febertermometer")) }
+    Label("EntityListScreen · SwipeToHide · UndoSnackbar")
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        EntityListScreen(
+            title = "Familjeartiklar",
+            state = if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items),
+            empty = EmptyContent(R.drawable.ic_family_items, "Inga familjeartiklar än", "Solkräm, plåster, febertermometer.", "Lägg till"),
+            onAdd = {},
+            key = { it },
+            undo = undo,
+            onUndo = { undo?.let { items = items + it.name }; undo = null },
+            onUndoDismissed = { undo = null },
+        ) { item ->
+            SwipeToHide(onHide = { items = items - item; undo = UndoRequest(item, item) }) {
+                ItemRow(item, subtitle = "1 per resenär", navigates = true, onClick = {})
+            }
+        }
+    }
+    Label("EntityListScreen – fel")
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        EntityListScreen<String>(
+            title = "Personer",
+            state = ListUiState.Error(DataError.Offline),
+            empty = EmptyContent(R.drawable.ic_person, "Inga personer än", "", "Lägg till person"),
+            onAdd = {},
+            key = { it },
+        ) {}
+    }
+    Label("EntityEditScreen")
+    var name by remember { mutableStateOf("") }
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        EntityEditScreen(
+            title = "Ny familjeartikel",
+            state = EditorUiState(value = name, errors = if (name.isBlank()) mapOf("name" to R.string.error_unknown) else emptyMap(), isValid = name.isNotBlank(), isDirty = name.isNotEmpty()),
+            effects = emptyFlow(),
+            onSave = {},
+            onClose = onBack,
+            onArchive = {},
+            delete = DeleteAction("Radera Solkräm?", "Artikeln tas bort för gott. Det går inte att ångra.") {},
+        ) {
+            AppTextField(name, { name = it }, "Namn")
+        }
+    }
+}
+
+private val FRAME_HEIGHT = 480.dp

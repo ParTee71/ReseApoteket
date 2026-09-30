@@ -4,9 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.onRoot
+import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
 private val themes = listOf("light" to false, "dark" to true)
@@ -34,12 +39,40 @@ fun ComposeContentTestRule.captureLightAndDark(
     name: String,
     settle: ComposeContentTestRule.() -> Unit = { waitForIdle() },
     content: @Composable () -> Unit,
+) = captureThemes(name, settle, content) { onRoot().captureRoboImage(it) }
+
+/**
+ * Som [captureLightAndDark], men fotograferar hela skärmen – för dialoger, menyer och sheets,
+ * som ritas i egna fönster ovanpå innehållet. [open] körs före bilderna (t.ex. [clickWithoutRipple]
+ * på knappen som öppnar menyn).
+ */
+@OptIn(ExperimentalRoborazziApi::class)
+fun ComposeContentTestRule.captureScreenLightAndDark(
+    name: String,
+    open: ComposeContentTestRule.() -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    var opened = false
+    captureThemes(name, settle = { waitForIdle(); if (!opened) { open(); opened = true; waitForIdle() } }, content) { captureScreenRoboImage(it) }
+}
+
+private fun ComposeContentTestRule.captureThemes(
+    name: String,
+    settle: ComposeContentTestRule.() -> Unit,
+    content: @Composable () -> Unit,
+    capture: (String) -> Unit,
 ) {
     var dark by mutableStateOf(false)
     setContent { ReseApoteketTheme(darkTheme = dark, content = content) }
     for ((suffix, isDark) in themes) {
         dark = isDark
         settle()
-        onRoot().captureRoboImage("${name}_$suffix.png")
+        capture("${name}_$suffix.png")
     }
 }
+
+/**
+ * Klick via tillgänglighetsåtgärden: ingen tryckeffekt (ripple) som hinner tona olika långt
+ * före bilden – annars blir skärmdumpen instabil.
+ */
+fun SemanticsNodeInteraction.clickWithoutRipple() = performSemanticsAction(SemanticsActions.OnClick)

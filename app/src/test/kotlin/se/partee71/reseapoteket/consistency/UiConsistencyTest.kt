@@ -125,7 +125,7 @@ class UiConsistencyTest {
             listOfNotNull(
                 "$name saknar skärmdump ${name}_*_light.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_light.png") } },
                 "$name saknar skärmdump ${name}_*_dark.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_dark.png") } },
-                "$name saknas i ComponentGallery".takeIf { gallery != null && !gallery.contains("$name(") },
+                "$name saknas i ComponentGallery".takeIf { gallery != null && !Regex("""\b$name\s*[({<]""").containsMatchIn(gallery) },
             )
         }
         assertTrue(problems.isEmpty(), problems.joinToString("\n"))

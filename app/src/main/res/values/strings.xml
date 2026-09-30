@@ -23,4 +23,90 @@
     <string name="error_sign_in_rejected">Inloggningen godkändes inte. Försök igen.</string>
     <string name="error_no_household">Inget hushåll är valt.</string>
     <string name="error_unknown">Något gick fel. Försök igen.</string>
+    <!-- Återkommande texter – används av ramarna och komponenterna, en gång (regel 4) -->
+    <string name="save">Spara</string>
+    <string name="cancel">Avbryt</string>
+    <string name="ok">OK</string>
+    <string name="back">Tillbaka</string>
+    <string name="more_options">Fler val</string>
+    <string name="add">Lägg till</string>
+    <string name="archive">Arkivera</string>
+    <string name="delete">Radera</string>
+    <string name="undo">Ångra</string>
+    <string name="archived_format">%s arkiverad</string>
+    <string name="retry">Försök igen</string>
+    <string name="empty_generic">Inget här än</string>
+    <string name="loading">Laddar</string>
+    <string name="show_archived">Visa arkiverade</string>
+    <string name="hide_archived">Dölj arkiverade</string>
+    <string name="list_error_title">Kunde inte hämta listan</string>
+    <string name="discard_title">Släng ändringar?</string>
+    <string name="discard_message">Det du ändrat sparas inte.</string>
+    <string name="discard_confirm">Släng</string>
+    <string name="keep_editing">Fortsätt redigera</string>
+    <string name="decrease_format">Minska %s</string>
+    <string name="increase_format">Öka %s</string>
+    <string name="pick_date">Välj datum</string>
+    <string name="packed_of_format">av %d packat</string>
+    <string name="all_packed">Allt packat! 🧳 Trevlig resa</string>
+    <string name="unknown_variant">Det här kan inte visas i den här versionen. Uppdatera appen för att ändra.</string>
+
+    <!-- Dosering (DoseScheduleRow) -->
+    <string name="dose_daily">Dagligen</string>
+    <string name="dose_weekdays">Veckodagar</string>
+    <string name="dose_interval">Intervall</string>
+    <string name="dose_as_needed">Vid behov</string>
+    <string name="dose_doses_per_day">doser per dag</string>
+    <string name="dose_units_per_dose">%s per dos</string>
+    <string name="dose_interval_days">dagar mellan doserna</string>
+    <string name="dose_as_needed_quantity">%s att ta med</string>
+    <string name="day_mon">mån</string>
+    <string name="day_tue">tis</string>
+    <string name="day_wed">ons</string>
+    <string name="day_thu">tor</string>
+    <string name="day_fri">fre</string>
+    <string name="day_sat">lör</string>
+    <string name="day_sun">sön</string>
+
+    <!-- Mängdregel (QuantityRuleRow) -->
+    <string name="rule_fixed">Fast antal</string>
+    <string name="rule_per_traveller">Per resenär</string>
+    <string name="rule_per_days">Per N dagar</string>
+    <string name="rule_per_traveller_label">%s per resenär</string>
+    <string name="rule_per_days_label">dagar per %s</string>
+
+    <!-- Navigering (NAV-1–3) -->
+    <string name="tab_trips">Resor</string>
+    <string name="tab_persons">Personer</string>
+    <string name="tab_family_items">Familjeartiklar</string>
+    <string name="tab_settings">Inställningar</string>
+
+    <!-- Tomma flikar -->
+    <string name="trips_empty_title">Inga resor än</string>
+    <string name="trips_empty_message">Lägg till en resa så räknar appen ut vad ni ska packa.</string>
+    <string name="trips_add">Ny resa</string>
+    <string name="persons_empty_title">Inga personer än</string>
+    <string name="persons_empty_message">Lägg till dem som brukar resa, med sina mediciner och kosttillskott.</string>
+    <string name="persons_add">Lägg till person</string>
+    <string name="family_items_empty_title">Inga familjeartiklar än</string>
+    <string name="family_items_empty_message">Solkräm, plåster, febertermometer – saker hela familjen delar.</string>
+    <plurals name="trip_days">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dagar</item>
+    </plurals>
+
+    <!-- Inställningar (SET-1) -->
+    <string name="settings_appearance">Utseende</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_light">Ljust</string>
+    <string name="theme_dark">Mörkt</string>
+    <string name="theme_system">System</string>
+    <string name="settings_about">Om</string>
+    <string name="settings_version_format">Version %s</string>
+    <string name="settings_components">Komponenter</string>
+    <string name="settings_components_note">Bara i debug-bygget</string>
+
+    <!-- Skärmar som byggs i senare versioner -->
+    <string name="coming_soon_title">Kommer snart</string>
+    <string name="coming_soon_message">Den här delen byggs i en senare version av appen.</string>
 </resources>

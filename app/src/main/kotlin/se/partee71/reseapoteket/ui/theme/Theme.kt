@@ -6,26 +6,25 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.expressiveLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 /**
- * Appens tema: Material 3 Expressive med fjädrande rörelse. Färger, typografi, former och
- * avstånd fylls i enligt skill `ui-style` när designsystemet byggs.
- *
- * Mörkt läge använder `darkColorScheme()`: Expressive har bara ett ljust standardschema
- * (`expressiveLightColorScheme()`) i `material3:1.5.0-alpha29`. `AppColors` definierar båda
- * scheman med samma roller när designsystemet byggs (ARKITEKTUR.md → "Verifierade API:er").
+ * Appens tema: Material 3 Expressive med fjädrande rörelse, [AppColors] och [AppTypography]
+ * (skill `ui-style`). Ingen dynamic color. Ljust, mörkt eller system väljs i Inställningar;
+ * `MainActivity` räknar ut [darkTheme].
  */
 @Composable
 fun ReseApoteketTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    MaterialExpressiveTheme(
-        colorScheme = if (darkTheme) darkColorScheme() else expressiveLightColorScheme(),
-        motionScheme = MotionScheme.expressive(),
-        content = content,
-    )
+    CompositionLocalProvider(LocalExtendedColors provides if (darkTheme) AppColors.darkExtended else AppColors.lightExtended) {
+        MaterialExpressiveTheme(
+            colorScheme = if (darkTheme) AppColors.dark else AppColors.light,
+            motionScheme = MotionScheme.expressive(),
+            typography = AppTypeScale,
+            content = content,
+        )
+    }
 }

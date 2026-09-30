@@ -151,13 +151,13 @@ ReseApoteket/
 │       │   └── datastore/        SettingsStore
 │       ├── domain/               use cases som spänner över flera repositories (EnsureHouseholdUseCase)
 │       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
-│       ├── navigation/           Navigation 3: nycklar, back stack, Transitions
+│       ├── navigation/           Navigation 3: AppKey, AppBackStack (en stack per flik), AppNavHost, Transitions
 │       └── ui/
 │           ├── theme/            Expressive-tema, AppColors, AppTypography, AppShapes, Spacing
 │           ├── components/       delade komponenter och skärmramar, ComponentGallery
-│           ├── common/           ListUiState, EditorState, Validator, DataError.toMessage()
+│           ├── common/           ListUiState, ListLoader, EditorState, Validator, DateFormat, DataError.toMessage()
 │           ├── auth/             AuthViewModel (vad appen visar), SignInScreen, UpdateRequiredScreen
-│           └── persons/ regimens/ familyitems/ trips/ packing/ settings/
+│           └── persons/ regimens/ familyitems/ trips/ packing/ settings/ placeholder/
 ├── tools/db/                     Node: query, get, stats, export, import, migrate + lib/ + tester
 ├── firestore.rules               security rules
 └── .github/workflows/            android.yml, instrumented.yml, quality.yml, release.yml, backup.yml
@@ -271,15 +271,14 @@ kräver `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`, som bara får stå 
 |---|---|---|---|---|
 | Expressive-tema | `androidx.compose.material3.MaterialExpressiveTheme` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Expressive-rörelse | `androidx.compose.material3.MotionScheme.expressive()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
-| Ljust Expressive-färgschema | `androidx.compose.material3.expressiveLightColorScheme()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
-| Mörkt färgschema | `androidx.compose.material3.darkColorScheme()` – Expressive saknar mörk motsvarighet; `AppColors` definierar båda scheman med samma roller | `material3:1.5.0-alpha29` | stabil | 2026-09-30 |
+| Färgscheman | `androidx.compose.material3.lightColorScheme(…)` / `darkColorScheme(…)` med appens palett i `AppColors` – ingen dynamic color, så Expressives standardschema används inte | `material3:1.5.0-alpha29` | stabil | 2026-09-30 |
 | Vågig linjär progress | `androidx.compose.material3.LinearWavyProgressIndicator(progress = { … })` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Split-knapp | `androidx.compose.material3.SplitButtonLayout` + `SplitButtonDefaults.LeadingButton` / `TrailingButton(checked, onCheckedChange)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Knappgrupp | `androidx.compose.material3.ButtonGroup(overflowIndicator) { clickableItem(…) }` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
-| Flytande verktygsrad | `androidx.compose.material3.HorizontalFloatingToolbar(expanded)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Flytande verktygsrad | `androidx.compose.material3.HorizontalFloatingToolbar(expanded, colors = FloatingToolbarDefaults.standardFloatingToolbarColors(toolbarContainerColor, toolbarContentColor))` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Laddningsindikator | `androidx.compose.material3.LoadingIndicator()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Flexibel toppbar | `androidx.compose.material3.LargeFlexibleTopAppBar(title)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
-| Formmorf för kryss | `androidx.graphics.shapes.Morph(start, end)` med `androidx.compose.material3.MaterialShapes` (t.ex. `Square` → `Cookie9Sided`) och `Morph.toPath(progress)` | `graphics-shapes:1.0.1` (via material3), `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Formmorf för kryss | `androidx.graphics.shapes.Morph(start, end)` med `androidx.compose.material3.MaterialShapes` (`Circle` → `Cookie9Sided` i `CheckRow`) och `Morph.toPath(progress)` | `graphics-shapes:1.0.1` (via material3), `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
 | Navigation-nyckel | `androidx.navigation3.runtime.NavKey` + `@Serializable` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
 | Back stack | `androidx.navigation3.runtime.rememberNavBackStack(vararg NavKey)` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
 | Navigationsvisning | `androidx.navigation3.ui.NavDisplay(backStack, onBack, entryDecorators, entryProvider)` | `navigation3-ui:1.2.0` | stabil | 2026-09-30 |
