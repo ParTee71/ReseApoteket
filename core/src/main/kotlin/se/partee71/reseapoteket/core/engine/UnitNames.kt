@@ -1,0 +1,53 @@
+package se.partee71.reseapoteket.core.engine
+
+import se.partee71.reseapoteket.core.model.ItemUnit
+
+/**
+ * Svenska enhetsnamn och pluralböjning – en gång, för alla formatterare (skill packing-engine).
+ */
+object UnitNames {
+    private data class Noun(val one: String, val many: String)
+
+    private val units = mapOf(
+        ItemUnit.TABLETT to Noun("tablett", "tabletter"),
+        ItemUnit.KAPSEL to Noun("kapsel", "kapslar"),
+        ItemUnit.ML to Noun("ml", "ml"),
+        ItemUnit.DOS to Noun("dos", "doser"),
+        ItemUnit.PUFF to Noun("puff", "puffar"),
+        ItemUnit.ST to Noun("st", "st"),
+        ItemUnit.TUB to Noun("tub", "tuber"),
+    )
+
+    /** Vad en förpackning av enheten kallas ("karta à 10 tabletter"). */
+    private val packages = mapOf(
+        ItemUnit.TABLETT to Noun("karta", "kartor"),
+        ItemUnit.KAPSEL to Noun("karta", "kartor"),
+        ItemUnit.ML to Noun("flaska", "flaskor"),
+    )
+    private val defaultPackage = Noun("förpackning", "förpackningar")
+
+    private val days = Noun("dag", "dagar")
+    private val travellers = Noun("resenär", "resenärer")
+
+    private fun Noun.of(count: Int) = if (count == 1) one else many
+
+    /** "1 tablett", "18 tabletter". */
+    fun quantity(count: Int, unit: ItemUnit): String = "$count ${units.getValue(unit).of(count)}"
+
+    /** Enhetens namn utan antal, böjt efter [count]. */
+    fun unit(unit: ItemUnit, count: Int = 1): String = units.getValue(unit).of(count)
+
+    /** "2 kartor". */
+    fun packages(count: Int, unit: ItemUnit): String = "$count ${(packages[unit] ?: defaultPackage).of(count)}"
+
+    fun days(count: Int): String = "$count ${days.of(count)}"
+
+    fun travellers(count: Int): String = "$count ${travellers.of(count)}"
+
+    /** Svenska ordningstal: 1:a, 2:a, 3:e … 11:e, 12:e … 21:a, 22:a. */
+    fun ordinal(n: Int): String {
+        val lastTwo = n % 100
+        val suffix = if (lastTwo in 11..12) "e" else if (n % 10 in 1..2) "a" else "e"
+        return "$n:$suffix"
+    }
+}

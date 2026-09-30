@@ -32,17 +32,22 @@ Tabellen visar det motorn använder. Fullständiga fält och lagring: `ARKITEKTU
 
 ```kotlin
 object PackingEngine {
-    fun suggest(trip: Trip, persons: List<Person>, regimens: List<Regimen>,
-                familyItems: List<FamilyItem>, settings: HouseholdSettings): PackingSuggestion
+    fun suggest(trip: Trip, persons: List<Person>, regimensByPerson: Map<String, List<Regimen>>,
+                familyItems: List<FamilyItem>, settings: HouseholdSettings): PackingSuggestion  // items + warnings
     fun merge(existing: List<PackingItem>, suggestion: PackingSuggestion): List<PackingItem>
-    fun regimenQuantity(schedule: DoseSchedule, trip: Trip, settings: HouseholdSettings): Int
-    fun familyQuantity(rule: QuantityRule, travellers: Int, trip: Trip, settings: HouseholdSettings): Int
+    fun regimenLine(regimen: Regimen, trip: Trip, settings: HouseholdSettings): PackingLine      // mängd, förpackningar, reason, warning
+    fun familyLine(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings): PackingLine
+    fun regimenQuantity(schedule: DoseSchedule, trip: Trip, settings: HouseholdSettings): Int?  // null = kan inte räknas ut
+    fun familyQuantity(rule: QuantityRule, travellers: Int, trip: Trip, settings: HouseholdSettings): Int?
 }
 ```
 
 `regimenQuantity` och `familyQuantity` är **enda stället** där formlerna finns. `suggest`
 och förhandsvisningarna (`PackingPreview` i recept, kosttillskott och familjeartiklar)
-anropar dem – ingen formel skrivs två gånger (regel 4).
+anropar `regimenLine`/`familyLine` – ingen formel skrivs två gånger (regel 4). Recepten
+skickas per person (`regimensByPerson`, samma form som `RegimenRepository.regimensFor`),
+eftersom `Regimen` inte bär sitt person-ID. Rad-ID:n är stabila (`regimen-<pid>-<rid>`,
+`family-<fid>`).
 
 ## Formler
 
@@ -64,8 +69,10 @@ anropar dem – ingen formel skrivs två gånger (regel 4).
 - Urval: bara `active && !archived` regimens för personer i `travellerIds` som själva
   inte är arkiverade; bara `active && !archived` familjeartiklar.
 - Samma medicinnamn hos två personer ger **två rader** (en per person).
-- Sortering: sektion (Mediciner, Kosttillskott, Övrigt) → person (`sortOrder`) → namn,
-  via den generiska `Sortable`-jämföraren.
+- Sortering: sektion (Mediciner, Kosttillskott, Övrigt) → person (`sortOrder`, via den
+  generiska `Sortable`-jämföraren) → namn i **svensk ordning** (å, ä, ö sist); familje-
+  artiklar på `sortOrder` → namn.
+- Veckodagar utan startdatum kan inte räknas ut: 0 + varning ("startdatum saknas").
 
 ## Texter
 
@@ -87,7 +94,7 @@ För varje förslagsrad matchas befintlig rad på (`sourceType`, `sourceId`, `pe
 - **`checked`, `checkedAt`, `hidden`** behålls alltid.
 - **Ny i förslaget** → läggs till.
 - **Saknas i förslaget** (t.ex. resenär borttagen) → tas bort om inte avprickad; avprickad
-  rad behålls och markeras "inte längre i förslaget".
+  rad behålls och får förklaringen "Inte längre i förslaget" (`NO_LONGER_SUGGESTED`).
 - **`MANUAL`-rader** rörs aldrig.
 
 ## Kantfall som ALLTID ska ha test (`core/src/test/.../engine/`)

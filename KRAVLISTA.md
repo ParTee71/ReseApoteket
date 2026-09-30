@@ -82,7 +82,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | REC-1 | Ett recept har namn (obligatoriskt), form, styrka, enhet, förpackningsstorlek (valfri), dosering, anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. *(planerad, #22)* |
 | REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1. *(planerad, #22)* |
-| REC-3 | Doseringen visas i klartext, samma text i lista, redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån/ons/fre", "1 dos var 3:e dag", "vid behov: ta med 10". *(planerad, #22)* |
+| REC-3 | Doseringen visas i klartext, samma text i lista, redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån, ons, fre", "1 dos var 3:e dag", "vid behov: ta med 10". *(planerad, #22)* |
 | REC-4 | Under doseringen visas vad som skulle packas, t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor", med hushållets marginaldagar (BER). *(planerad, #22)* |
 | REC-5 | Inaktiva recept visas nedtonade och räknas inte med i packförslaget. Ett recept raderas permanent via menyn med bekräftelse (NFR-4). *(planerad, #22)* |
 
@@ -117,16 +117,16 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 
 | ID | Krav |
 |----|------|
-| BER-1 | `effectiveDays = trip.days + settings.marginDays`. *(planerad, #25)* |
-| BER-2 | Dagligen: `dosesPerDay × unitsPerDose × effectiveDays`. *(planerad, #25)* |
-| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`. *(planerad, #25)* |
-| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose`; vid behov: `quantity`; okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). *(planerad, #25)* |
-| BER-5 | Fast antal: `quantity`. *(planerad, #25)* |
-| BER-6 | Per resenär: `quantity × antal resenärer`. *(planerad, #25)* |
-| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity`. *(planerad, #25)* |
-| BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. *(planerad, #25)* |
-| BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. *(planerad, #25)* |
-| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10". *(planerad, #25)* |
+| BER-1 | `effectiveDays = trip.days + settings.marginDays`. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-2 | Dagligen: `dosesPerDay × unitsPerDose × effectiveDays`. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose`; vid behov: `quantity`; okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-5 | Fast antal: `quantity`. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-6 | Per resenär: `quantity × antal resenärer`. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity`. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. *(planerad, #25 – beräkningen finns i `:core`)* |
+| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10". *(planerad, #25 – beräkningen finns i `:core`)* |
 
 ## 12. Packlista
 
