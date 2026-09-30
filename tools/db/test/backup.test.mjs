@@ -2,24 +2,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { GeoPoint, Timestamp } from 'firebase-admin/firestore';
-import { validateExport } from '../lib/backup.mjs';
+import { prepareImport } from '../lib/backup.mjs';
 import { CURRENT_VERSION } from '../lib/schema.mjs';
 import { fromJson, toJson } from '../lib/serialize.mjs';
 
 const household = { path: 'households/h', data: { schemaVersion: 1 } };
 
-test('import vägrar en fil med nyare schemaVersion än verktyget (BCK-5)', () => {
-  assert.throws(
-    () => validateExport({ schemaVersion: CURRENT_VERSION + 1, documents: [household] }),
-    /nyare|förstår bara/,
-  );
+test('import vägrar hushåll med nyare schemaVersion än verktyget, men bara de hushållen (BCK-7)', () => {
+  const newer = { path: 'households/ny', data: { schemaVersion: CURRENT_VERSION + 1 } };
+  const data = { schemaVersion: CURRENT_VERSION + 1, documents: [household, newer] };
+  assert.throws(() => prepareImport(data), /households\/ny har schemaVersion/);
+  assert.deepEqual(prepareImport(data, { household: 'h' }).map((d) => d.path), ['households/h']);
 });
 
 test('import vägrar okända sökvägar och filer som inte är exporter', () => {
-  assert.throws(() => validateExport({ schemaVersion: 1, documents: [{ path: 'users/x', data: {} }] }), /Okänd sökväg/);
-  assert.throws(() => validateExport({ schemaVersion: 1 }), /documents saknas/);
-  assert.throws(() => validateExport({ documents: [household] }), /schemaVersion/);
-  assert.throws(() => validateExport({ schemaVersion: 1, documents: [household] }, { household: 'annat' }), /finns inte i filen/);
+  assert.throws(() => prepareImport({ documents: [{ path: 'users/x', data: {} }] }), /Okänd sökväg/);
+  assert.throws(() => prepareImport({ schemaVersion: 1 }), /documents saknas/);
+  assert.throws(() => prepareImport({ documents: [{ path: 'households/h' }] }), /households\/h: data saknas/);
+  assert.throws(() => prepareImport({ documents: [household] }, { household: 'annat' }), /finns inte i filen/);
 });
 
 test('tidsstämplar serialiseras med alla nio decimaler och tillbaka', () => {
@@ -34,6 +34,18 @@ test('tidsstämplar serialiseras med alla nio decimaler och tillbaka', () => {
 test('okända Firestore-typer stoppar exporten', () => {
   assert.throws(() => toJson({ ref: new Uint8Array([1]) }), /stöds inte/);
   assert.throws(() => toJson({ plats: new GeoPoint(59.3, 18.1) }), /stöds inte/);
+});
+
+test('en egen map med nyckeln __ts överlever rundturen som map', () => {
+  const data = { fält: { __ts: 'inte en tid' }, annat: { __map: 1 } };
+  const json = toJson(data);
+  assert.deepEqual(json, { fält: { __map: { __ts: 'inte en tid' } }, annat: { __map: { __map: 1 } } });
+  assert.deepEqual(fromJson(json), data);
+});
+
+test('felmeddelanden innehåller aldrig värdet', () => {
+  assert.throws(() => toJson({ n: 2 ** 60 }), (error) => !error.message.includes(String(2 ** 60)));
+  assert.throws(() => fromJson({ t: { __ts: 'hemligt-värde' } }), (error) => !error.message.includes('hemligt'));
 });
 
 test('tal som JSON inte kan bära exakt stoppar exporten i stället för att ändras', () => {

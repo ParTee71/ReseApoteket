@@ -1,29 +1,24 @@
 // Skripten som backup.yml och sessionen kör: export.mjs och import.mjs från kommandoraden.
 // Endast emulatorn (barnprocessen ärver NODE_TEST_CONTEXT och är därmed i testläge).
-import { after, before, test } from 'node:test';
+import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { adminFirestore, clearHouseholds, fixture, seed } from './helpers/emulator.mjs';
+import { fixture, seed, useCleanEmulator } from './helpers/emulator.mjs';
 
 const toolsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const node = (script, args) => spawnSync(process.execPath, [path.join(toolsDir, script), ...args], { encoding: 'utf8' });
 
-let db;
+const database = useCleanEmulator();
 let dir;
-before(async () => {
-  db = adminFirestore();
+before(() => {
   dir = mkdtempSync(path.join(tmpdir(), 'tools-db-'));
-  await clearHouseholds(db);
-  await seed(db);
 });
-after(async () => {
-  await clearHouseholds(db);
-  rmSync(dir, { recursive: true, force: true });
-});
+beforeEach(() => seed(database()));
+after(() => rmSync(dir, { recursive: true, force: true }));
 
 test('export.mjs skriver filen och visar bara antal per samling', () => {
   const out = path.join(dir, 'backup.json');

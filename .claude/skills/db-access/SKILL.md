@@ -46,7 +46,9 @@ node tools/db/migrate.mjs --to <N>                        # schemamigrering
 - Kör **alltid** `--dry-run` först och visa sammanfattningen.
 - Skrivning kräver en nyckel med skrivroll (`FIREBASE_SERVICE_ACCOUNT_RW`) – den ska bara
   finnas i miljön när användaren uttryckligen bett om det.
-- `import` vägrar om filens `schemaVersion` är högre än appens.
+- `import` kontrollerar hela filen först och vägrar hushåll med högre `schemaVersion` än appens.
+- `import --replace` tar bort dokument under filens hushåll som inte finns i filen (exakt
+  återställning); visa alltid torrkörningens "Skulle ta bort" först.
 - Aldrig ad hoc-skrivningar med egna skript eller `node -e`.
 
 ## Integritet (skill `data-privacy-security`)

@@ -17,7 +17,12 @@ export async function migrateHouseholds(db, to, { household, dryRun = false, ste
   for (const id of household ? [household] : await householdIds(db)) {
     const docs = [];
     for await (const doc of walkHousehold(db, id)) docs.push(doc);
-    if (docs[0]?.path !== `households/${id}`) throw new Error(`Hushållet ${id} saknar hushållsdokument – kan inte migreras`);
+    // Utan hushållsdokument finns ingen version att utgå från: hoppa över och rapportera,
+    // i stället för att stoppa migreringen av alla andra hushåll.
+    if (docs[0]?.path !== `households/${id}`) {
+      result['hoppade över (saknar hushållsdokument)'] = (result['hoppade över (saknar hushållsdokument)'] ?? 0) + 1;
+      continue;
+    }
     const from = versionOf(docs[0].data);
     if (from >= to) continue;
     for (let v = from; v < to; v++) if (!steps[v]) throw new Error(`Migreringssteg saknas för version ${v}`);

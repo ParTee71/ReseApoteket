@@ -112,9 +112,9 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit: skrivningar slås ihop med det lagrade dokumentet, och ett fält som användaren tömt försvinner ändå. |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. |
 | BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering. Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. *(planerad, #20 – texten "Uppdatera appen" visas i UI:t; spärren och migreringen finns sedan #15)* |
-| BCK-6 | Återställning: backupen dekrypteras till `tools/db/`, `import --dry-run` visar antal dokument per samling, och importen skriver sedan dokumenten exakt som i filen (README → Backup och återställning). |
-| BCK-7 | Import vägrar en fil vars `schemaVersion` är nyare än verktyget förstår, och sökvägar utanför de kända samlingarna. |
-| BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) stoppar exporten i stället för att tappas tyst. |
+| BCK-6 | Återställning: backupen dekrypteras till `tools/db/`, `import --dry-run` visar antal dokument per samling, och importen skriver sedan dokumenten exakt som i filen; med `--replace` tas dokument som tillkommit efter backupen bort, så att hushållet blir exakt som i backupen (README → Backup och återställning). |
+| BCK-7 | Import kontrollerar hela filen innan något skrivs och vägrar hushåll vars `schemaVersion` är nyare än verktyget förstår, trasiga värden och sökvägar utanför de kända samlingarna. |
+| BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Felmeddelanden visar sökväg, aldrig innehåll. |
 
 ---
 

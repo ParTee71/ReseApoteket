@@ -44,7 +44,8 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          npm ci --prefix tools/db --ignore-scripts
+          # Bara firebase-admin: inga utvecklingsverktyg i jobbet som har nyckel och lösenfras.
+          npm ci --prefix tools/db --ignore-scripts --omit=dev
           node tools/db/export.mjs --out tools/db/backup.json
 
       - name: Kryptera och kontrollera

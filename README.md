@@ -127,8 +127,10 @@ Run workflow), krypterar den med gpg och sparar `backup.json.gpg` som artifact i
    node tools/db/import.mjs --in tools/db/backup.json --dry-run
    node tools/db/import.mjs --in tools/db/backup.json
    ```
-   Ett enda hushåll: lägg till `--household <hid>`. Importen vägrar filer från en nyare
-   `schemaVersion` än verktyget.
+   Importen kontrollerar hela filen innan något skrivs och vägrar hushåll med nyare
+   `schemaVersion` än verktyget. Ett enda hushåll: `--household <hid>`. Utan `--replace` ligger
+   dokument som tillkommit efter backupen kvar; med `--replace` blir hushållet exakt som i
+   backupen (torrkörningen visar vad som skulle tas bort).
    Kör när appen inte används: importen skriver över dokument som ändrats under tiden.
 4. Radera `tools/db/backup.json`.
 
