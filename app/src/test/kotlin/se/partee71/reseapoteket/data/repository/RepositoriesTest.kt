@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.data.repository
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.cash.turbine.test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -14,6 +15,8 @@ import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.dataError
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.household.HouseholdSession
 import se.partee71.reseapoteket.testing.FakeHouseholdDirectory
@@ -39,6 +42,23 @@ class RepositoriesTest {
         assertEquals(listOf("uid-anna"), household.memberUids)
         assertEquals("Familjen", household.name)
         assertEquals(FixedClock().instant, household.createdAt)
+    }
+
+    @Test
+    fun `ett nytt försök efter timeout skriver samma hushåll, inte ett till`() = runTest(UnconfinedTestDispatcher()) {
+        val store = PreferenceDataStoreFactory.create(scope = backgroundScope) { folder.newFile("s.preferences_pb") }
+        val session = HouseholdSession(SettingsStore(store), { flowOf(1) }, backgroundScope)
+        val directory = FakeHouseholdDirectory(collections)
+        val repository = DefaultHouseholdRepository(collections, directory, session, FixedClock())
+        directory.createFailure = DataError.Offline
+
+        assertEquals(DataError.Offline, repository.create("Mitt hushåll", "uid-anna").dataError())
+        directory.createFailure = null
+        val id = repository.create("Mitt hushåll", "uid-anna").getOrThrow()
+
+        assertEquals(listOf(id), collections.households().getAll().getOrThrow().map { it.id })
+        val next = repository.create("Andra", "uid-anna").getOrThrow()
+        assertTrue(next != id, "efter en lyckad skapelse får nästa hushåll ett nytt ID")
     }
 
     @Test

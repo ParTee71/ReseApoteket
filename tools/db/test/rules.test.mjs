@@ -56,9 +56,12 @@ test('oautentiserad nekas allt', async () => {
   await assertFails(setDoc(doc(db(null), 'households', 'nytt'), { memberUids: ['x'], schemaVersion: 1 }));
 });
 
-test('hushåll kan skapas bara av någon som själv står i memberUids', async () => {
+test('hushåll kan skapas bara med skaparen som enda medlem', async () => {
   await assertSucceeds(setDoc(doc(db('cecilia'), 'households', 'h2'), { memberUids: ['cecilia'], schemaVersion: 1 }));
   await assertFails(setDoc(doc(db('cecilia'), 'households', 'h3'), { memberUids: ['david'], schemaVersion: 1 }));
+  // Annars kunde cecilia lägga davids uid i ett eget, äldre hushåll som david sedan väljer.
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h6'), { memberUids: ['cecilia', 'david'], schemaVersion: 1 }));
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h7'), { memberUids: ['david', 'cecilia'], schemaVersion: 1 }));
 });
 
 test('ett befintligt hushåll kan inte skrivas över av någon annan', async () => {
