@@ -185,11 +185,11 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | ID | Krav |
 |----|------|
 | NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp, fel med "Försök igen" och innehåll på samma sätt överallt. |
-| NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas efter första försöket; bakåt med osparade ändringar frågar "Släng ändringar?"; sparfel visas som meddelande. |
+| NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas när fältet ändrats eller efter ett sparförsök; uppgifter som inte går att läsa visas som fel med "Försök igen"; bakåt med osparade ändringar frågar "Släng ändringar?"; sparfel visas som meddelande. |
 | NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder; samma åtgärd finns för TalkBack. |
 | NFR-4 | **Permanent radering** kräver alltid bekräftelse. |
 | NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt; varje fel från datalagret har en egen text. |
-| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad – synkläget finns sedan #15)* |
+| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad, saknar ännu issue – synkläget finns sedan #15)* |
 
 ### Kvalitet, integritet och tester
 

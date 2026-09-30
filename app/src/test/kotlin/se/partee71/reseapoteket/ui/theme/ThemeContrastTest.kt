@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.luminance
 import kotlin.test.assertTrue
 import org.junit.Test
 
-/** Varje färg som bär text klarar 4,5:1 mot sin bakgrund, i båda temana (skill `ui-style`, NFR-3). */
+/** Varje färg som bär text klarar 4,5:1 mot sin bakgrund, i båda temana (skill `ui-style`, NFR-11). */
 class ThemeContrastTest {
 
     private fun contrast(a: Color, b: Color): Double {

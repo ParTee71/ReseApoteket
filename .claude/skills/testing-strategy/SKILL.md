@@ -93,9 +93,8 @@ miljön får aldrig köra dem utan emulator (skill `data-safety-backup`).
 ## Dokumentdrift-kontrollen
 
 `UiConsistencyTest` jämför komponent- och ramtabellen i skill `shared-ui-components` med
-koden. Kod → tabell kontrolleras så snart `ui.components` har en publik composable (#16);
-tabell → kod och platsen i `ComponentGallery` när galleriet finns (#20). Det som hoppas över
-skrivs i testloggen.
+koden i båda riktningar, och att varje publik komponent har skärmdumpar och en plats i
+`ComponentGallery`.
 
 ## Skärmdumpar (Roborazzi)
 

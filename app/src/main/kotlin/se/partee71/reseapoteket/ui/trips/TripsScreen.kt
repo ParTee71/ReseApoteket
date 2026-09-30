@@ -14,6 +14,7 @@ import javax.inject.Inject
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.data.repository.TripRepository
+import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.activeOnly
@@ -21,20 +22,12 @@ import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ItemRow
 
-sealed interface TripsEvent {
-    data object Retry : TripsEvent
-}
-
 @HiltViewModel
 class TripsViewModel @Inject constructor(trips: TripRepository) : ViewModel() {
     private val loader = ListLoader(trips.observe().activeOnly(), viewModelScope)
     val state = loader.state
 
-    fun onEvent(event: TripsEvent) {
-        when (event) {
-            TripsEvent.Retry -> loader.retry()
-        }
-    }
+    fun onEvent(event: ListEvent) = loader.onEvent(event)
 }
 
 /** Fliken Resor – appens startskärm (NAV-2). */
@@ -47,7 +40,7 @@ fun TripsScreen(onAdd: () -> Unit, onOpen: (String) -> Unit, viewModel: TripsVie
 @Composable
 fun TripsContent(
     state: ListUiState<Trip>,
-    onEvent: (TripsEvent) -> Unit,
+    onEvent: (ListEvent) -> Unit,
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -64,7 +57,7 @@ fun TripsContent(
         onAdd = onAdd,
         key = Trip::id,
         modifier = modifier,
-        onRetry = { onEvent(TripsEvent.Retry) },
+        onRetry = { onEvent(ListEvent.Retry) },
     ) { trip ->
         ItemRow(
             title = trip.name,

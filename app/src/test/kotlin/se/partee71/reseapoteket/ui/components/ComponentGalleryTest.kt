@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.testing.captureLightAndDark
 
-/** Galleriet med stor text (fontScale 1.3) – visar att komponenterna tål dynamisk text (NFR-3). */
+/** Galleriet med stor text (fontScale 1.3) – visar att komponenterna tål dynamisk text (NFR-11). */
 @RunWith(RobolectricTestRunner::class)
 class ComponentGalleryTest {
 

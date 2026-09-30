@@ -11,7 +11,7 @@ object DateFormat {
     private val display = DateTimeFormatter.ofPattern("EEE d MMM yyyy", swedish)
     private const val DAY_MILLIS = 86_400_000L
 
-    /** "lör 20 dec 2026" – utan punkterna som svensk CLDR sätter efter förkortningar. */
+    /** "lör 19 dec 2026" – utan punkterna som svensk CLDR sätter efter förkortningar. */
     fun display(date: LocalDate): String = display.format(date.toJavaLocalDate()).replace(".", "")
 
     /** Midnatt UTC, som Material-datumväljaren räknar. */

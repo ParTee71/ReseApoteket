@@ -40,6 +40,7 @@
     <string name="show_archived">Visa arkiverade</string>
     <string name="hide_archived">Dölj arkiverade</string>
     <string name="list_error_title">Kunde inte hämta listan</string>
+    <string name="load_error_title">Kunde inte hämta uppgifterna</string>
     <string name="discard_title">Släng ändringar?</string>
     <string name="discard_message">Det du ändrat sparas inte.</string>
     <string name="discard_confirm">Släng</string>

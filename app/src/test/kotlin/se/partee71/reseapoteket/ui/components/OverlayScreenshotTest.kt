@@ -108,7 +108,7 @@ class OverlayScreenshotTest {
     @Composable
     private fun SwipeSample() {
         Box(Modifier.background(MaterialTheme.colorScheme.background).padding(Spacing.l)) {
-            ApotekCard { SwipeToHide(onHide = {}) { ItemRow("Solkräm", subtitle = "1 tub per 7 dagar") } }
+            ApotekCard { SwipeToHide(onHide = {}) { ItemRow("Solkräm", it, subtitle = "1 tub per 7 dagar") } }
         }
     }
 

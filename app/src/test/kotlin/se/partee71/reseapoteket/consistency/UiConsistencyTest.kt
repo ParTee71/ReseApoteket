@@ -106,11 +106,6 @@ class UiConsistencyTest {
         val inTable = documentedComponents()
         val missingInTable = inCode - inTable
         assertTrue(missingInTable.isEmpty(), "Lägg till raden i shared-ui-components: $missingInTable")
-        // Katalogen byggs i omgångar; tabell → kod kontrolleras när ComponentGallery finns (#20).
-        if (galleryText() == null) {
-            println("Dokumentdrift: tabell → kod hoppas över tills ComponentGallery finns (#20)")
-            return
-        }
         val missingInCode = inTable - inCode
         assertTrue(missingInCode.isEmpty(), "Ta bort raden i shared-ui-components eller bygg komponenten: $missingInCode")
     }
@@ -120,18 +115,18 @@ class UiConsistencyTest {
         val components = publicComponents("Skärmdump/galleri") - "ComponentGallery"
         val screenshots = File(repoRoot, "app/src/test/screenshots").list().orEmpty().toSet()
         val gallery = galleryText()
-        if (gallery == null) println("Skärmdump/galleri: platsen i ComponentGallery kontrolleras från #20")
         val problems = components.flatMap { name ->
             listOfNotNull(
                 "$name saknar skärmdump ${name}_*_light.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_light.png") } },
                 "$name saknar skärmdump ${name}_*_dark.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_dark.png") } },
-                "$name saknas i ComponentGallery".takeIf { gallery != null && !Regex("""\b$name\s*[({<]""").containsMatchIn(gallery) },
+                "$name saknas i ComponentGallery".takeIf { !Regex("""\b$name\s*[({<]""").containsMatchIn(gallery) },
             )
         }
         assertTrue(problems.isEmpty(), problems.joinToString("\n"))
     }
 
-    private fun galleryText(): String? = production.files.firstOrNull { it.name == "ComponentGallery" }?.text
+    private fun galleryText(): String =
+        checkNotNull(production.files.firstOrNull { it.name == "ComponentGallery" }?.text) { "ComponentGallery saknas i ui/components" }
 
     /** Publika composables i `ui.components`; hoppar över testet (med orsak i loggen) så länge det inte finns några. */
     private fun publicComponents(check: String): Set<String> {

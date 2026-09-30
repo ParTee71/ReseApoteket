@@ -29,6 +29,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil, `done` packad-stil, `accent` personens färg |
 | Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss |
 | Sektionsrubrik med räknare | `SectionHeader` | `InfoPill` för räknaren |
+| Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
@@ -59,7 +60,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
 | Listskärm | `EntityListScreen` | Laddning → `AppLoading`; tomt → `EmptyState` med primärknapp; fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden; "Visa arkiverade" där arkivering finns |
-| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas efter första försöket; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka; arkivera/radera i menyn |
+| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka; arkivera/radera i menyn |
 | Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
 | Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep |
@@ -120,7 +121,7 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
   `CollectionReference`, `DocumentReference`. Därför ligger `FirestoreModule` i `data/firestore/`.
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
 - **I `ui/components/`:** publik komponent utan skärmdump (ljust + mörkt) eller utan plats i
-  `ComponentGallery` – platsen i galleriet kontrolleras när `ComponentGallery` finns (#20).
+  `ComponentGallery`.
 - **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Undantaget gäller bara
   träffar vars matchade text överlappar symbolen – andra förbjudna mönster på samma rad stoppas
   ändå. En rad utan symbol eller motivering fäller hooken och bygget. Filen är tom som
@@ -132,8 +133,6 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
 de publika `@Composable`-funktionerna i `ui.components`:
 - komponent i koden men inte i tabellen → bygget faller ("lägg till raden i shared-ui-components");
 - komponent i tabellen men inte i koden → bygget faller ("ta bort raden eller bygg komponenten").
-  Den riktningen kontrolleras när `ComponentGallery` finns (#20) – katalogen byggs i omgångar
-  och tabellen beskriver målet. Innan dess skriver testet i loggen att den hoppas över.
 
 En ändring av denna fil kör därför app-testerna i CI (skill `ci-budget`).
 

@@ -9,14 +9,12 @@ import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsContent
-import se.partee71.reseapoteket.ui.familyitems.FamilyItemsEvent
 import se.partee71.reseapoteket.ui.persons.PersonsContent
-import se.partee71.reseapoteket.ui.persons.PersonsEvent
 import se.partee71.reseapoteket.ui.runListScreenContract
 import se.partee71.reseapoteket.ui.trips.TripsContent
-import se.partee71.reseapoteket.ui.trips.TripsEvent
 
 /** Flikarna Resor, Personer och Familjeartiklar är listskärmar på `EntityListScreen` (NAV-1, NFR-1). */
 @RunWith(RobolectricTestRunner::class)
@@ -28,19 +26,19 @@ class TabScreensTest {
     @Test
     fun `Resor uppfyller listkontraktet`() =
         rule.runListScreenContract(Trip("t1", "Kreta", days = 7), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
-            TripsContent(state, { if (it == TripsEvent.Retry) onRetry() }, onAdd, {})
+            TripsContent(state, { if (it == ListEvent.Retry) onRetry() }, onAdd, {})
         }
 
     @Test
     fun `Personer uppfyller listkontraktet`() =
         rule.runListScreenContract(Person("p1", "Anna", "🦊", "#D97757"), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
-            PersonsContent(state, { if (it == PersonsEvent.Retry) onRetry() }, onAdd, {})
+            PersonsContent(state, { if (it == ListEvent.Retry) onRetry() }, onAdd, {})
         }
 
     @Test
     fun `Familjeartiklar uppfyller listkontraktet`() =
         rule.runListScreenContract(FamilyItem("f1", "Solkräm"), "Solkräm", "Inga familjeartiklar än", "Lägg till") { state, onAdd, onRetry ->
-            FamilyItemsContent(state, { if (it == FamilyItemsEvent.Retry) onRetry() }, onAdd, {})
+            FamilyItemsContent(state, { if (it == ListEvent.Retry) onRetry() }, onAdd, {})
         }
 
     @Test

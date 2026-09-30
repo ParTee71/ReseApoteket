@@ -16,13 +16,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import kotlinx.datetime.LocalDate
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.DateFormat
 import se.partee71.reseapoteket.ui.theme.AppColors
 
-/** Datumfält: visar datumet på svenska ("lör 20 dec 2026") och öppnar datumväljaren vid tryck. */
+/**
+ * Datumfält: visar datumet på svenska ("lör 19 dec 2026") och öppnar datumväljaren vid tryck.
+ * TalkBack läser fältet som en knapp med etikett, datum och eventuellt fel.
+ */
 @Composable
 fun DateField(
     label: String,
@@ -33,20 +40,24 @@ fun DateField(
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
     val pickLabel = stringResource(R.string.pick_date)
+    val shown = date?.let(DateFormat::display).orEmpty()
+    val description = listOf(label, shown.ifEmpty { pickLabel }, error.orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
     Box(modifier) {
+        // Fältet visar bara värdet; ytan ovanpå är det enda som tar emot tryck och fokus.
         AppTextField(
-            value = date?.let(DateFormat::display).orEmpty(),
+            value = shown,
             onValueChange = {},
             label = label,
+            modifier = Modifier.focusProperties { canFocus = false }.clearAndSetSemantics {},
             error = error,
             readOnly = true,
             trailingIcon = R.drawable.ic_calendar,
         )
-        // Ett skrivskyddat fält tar inte emot tryck; ytan ovanpå öppnar väljaren.
         Box(
             Modifier
                 .matchParentSize()
-                .clickable(role = Role.Button, onClickLabel = pickLabel) { picking = true },
+                .clickable(role = Role.Button, onClickLabel = pickLabel) { picking = true }
+                .semantics { contentDescription = description },
         )
     }
     if (picking) {

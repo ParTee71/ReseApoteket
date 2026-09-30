@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppShapes
@@ -30,14 +33,24 @@ import se.partee71.reseapoteket.ui.theme.Spacing
 
 /**
  * Arkivera/dölj med svep åt vänster: raden döljs direkt och [onHide] anropas; ramen visar
- * sedan `UndoSnackbar`. Samma åtgärd finns som TalkBack-åtgärd ("Arkivera"), eftersom svep
- * inte går att göra med skärmläsare. Permanent radering sker aldrig med svep.
+ * sedan `UndoSnackbar`. Permanent radering sker aldrig med svep.
+ *
+ * Samma åtgärd finns för TalkBack ("Arkivera"), eftersom svep inte går att göra med
+ * skärmläsare: [content] får en modifier som raden ska använda, så att åtgärden hamnar på
+ * den nod som TalkBack läser. Står raden kvar efter svepet (t.ex. när arkiverade visas)
+ * glider den tillbaka.
  */
 @Composable
-fun SwipeToHide(onHide: () -> Unit, modifier: Modifier = Modifier, label: String = stringResource(R.string.archive), content: @Composable () -> Unit) {
+fun SwipeToHide(
+    onHide: () -> Unit,
+    modifier: Modifier = Modifier,
+    label: String = stringResource(R.string.archive),
+    content: @Composable (Modifier) -> Unit,
+) {
     val hide by rememberUpdatedState(onHide)
     val state = rememberSwipeToDismissBoxState()
     val tone = AppColors.extended.primaryTone
+    val scope = rememberCoroutineScope()
     SwipeToDismissBox(
         state = state,
         backgroundContent = {
@@ -50,11 +63,25 @@ fun SwipeToHide(onHide: () -> Unit, modifier: Modifier = Modifier, label: String
                 Text(label, style = AppTypography.button, color = tone.content)
             }
         },
-        modifier = modifier.semantics { customActions = listOf(CustomAccessibilityAction(label) { hide(); true }) },
+        modifier = modifier,
         enableDismissFromStartToEnd = false,
-        onDismiss = { value -> if (value == SwipeToDismissBoxValue.EndToStart) hide() },
+        onDismiss = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                hide()
+                // Försvinner raden avbryts detta med den; står den kvar glider den tillbaka.
+                scope.launch {
+                    delay(RESET_DELAY_MILLIS)
+                    state.reset()
+                }
+            }
+        },
     ) {
         // Ogenomskinlig, så att bakgrunden bara syns där raden svepts undan.
-        Box(Modifier.clip(AppShapes.row).background(AppColors.extended.card)) { content() }
+        Box(Modifier.clip(AppShapes.row).background(AppColors.extended.card)) {
+            content(Modifier.semantics { customActions = listOf(CustomAccessibilityAction(label) { hide(); true }) })
+        }
     }
 }
+
+/** Hur länge en svept rad som inte försvinner ligger undan innan den glider tillbaka. */
+internal const val RESET_DELAY_MILLIS = 1_000L

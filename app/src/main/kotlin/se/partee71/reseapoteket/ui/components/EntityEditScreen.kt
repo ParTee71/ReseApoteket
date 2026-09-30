@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -44,7 +45,8 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * - "Spara" ([saveLabel]) aktiv först när formuläret är giltigt och ändrat;
  * - bakåt med osparade ändringar → "Släng ändringar?";
  * - sparfel → snackbar via `DataError.toMessage()`; lyckad sparning → [onClose];
- * - arkivera/radera i menyn när [onArchive]/[delete] finns.
+ * - arkivera/radera i menyn när [onArchive]/[delete] finns;
+ * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
  *
  * @param onClose lämnar skärmen (navigationens tillbaka).
  */
@@ -59,6 +61,7 @@ fun EntityEditScreen(
     saveLabel: String = stringResource(R.string.save),
     onArchive: (() -> Unit)? = null,
     delete: DeleteAction? = null,
+    onRetry: () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -94,8 +97,17 @@ fun EntityEditScreen(
         snackbarHost = { AppSnackbarHost(snackbar) },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
+            val loadError = state.loadError
             if (state.loading) {
                 AppLoading()
+            } else if (loadError != null) {
+                EmptyState(
+                    icon = R.drawable.ic_wifi_off,
+                    title = stringResource(R.string.load_error_title),
+                    message = stringResource(loadError.toMessage()),
+                    isError = true,
+                    action = { AppButton(stringResource(R.string.retry), onRetry, Modifier.fillMaxWidth(), variant = ButtonVariant.Secondary) },
+                )
             } else {
                 Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()

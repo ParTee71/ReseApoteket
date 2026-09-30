@@ -26,8 +26,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val mode by settings.themeMode.collectAsStateWithLifecycle(ThemeMode.System)
-            val dark = when (mode) {
+            // null tills inställningen lästs (millisekunder): då syns fönstrets bakgrund i stället
+            // för en blixt i fel tema.
+            val mode by settings.themeMode.collectAsStateWithLifecycle(initialValue = null)
+            val dark = when (mode ?: return@setContent) {
                 ThemeMode.System -> isSystemInDarkTheme()
                 ThemeMode.Light -> false
                 ThemeMode.Dark -> true

@@ -71,7 +71,7 @@ private fun GallerySection(title: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun Label(text: String) = Text(text, style = AppTypography.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun Label(text: String) = GroupLabel(text)
 
 @Composable
 private fun Buttons() {
@@ -229,8 +229,8 @@ private fun Frames(onBack: () -> Unit) {
             onUndo = { undo?.let { items = items + it.name }; undo = null },
             onUndoDismissed = { undo = null },
         ) { item ->
-            SwipeToHide(onHide = { items = items - item; undo = UndoRequest(item, item) }) {
-                ItemRow(item, subtitle = "1 per resenär", navigates = true, onClick = {})
+            SwipeToHide(onHide = { items = items - item; undo = UndoRequest(item, item) }) { swipe ->
+                ItemRow(item, swipe, subtitle = "1 per resenär", navigates = true, onClick = {})
             }
         }
     }

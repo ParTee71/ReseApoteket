@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -44,6 +43,10 @@ class ComponentBehaviorTest {
     val rule = createComposeRule()
 
     private fun show(content: @Composable () -> Unit) = rule.setContent { ReseApoteketTheme(content = content) }
+
+    private companion object {
+        const val SETTLE_MILLIS = 2_000L
+    }
 
     private val tablets: (Int) -> String = { if (it == 1) "tablett" else "tabletter" }
 
@@ -112,8 +115,7 @@ class ComponentBehaviorTest {
         var date by mutableStateOf<LocalDate?>(LocalDate(2026, 12, 19))
         var changes = 0
         show { DateField("Startdatum", date, { date = it; changes++ }) }
-        rule.onNodeWithText("lör 19 dec 2026").assertIsDisplayed()
-        rule.onNodeWithText("lör 19 dec 2026").performClick()
+        rule.onNodeWithContentDescription("Startdatum, lör 19 dec 2026").assertIsDisplayed().performClick()
         rule.onNodeWithText("OK").performClick()
         assertEquals(1, changes)
         assertEquals(LocalDate(2026, 12, 19), date)
@@ -184,20 +186,30 @@ class ComponentBehaviorTest {
     }
 
     @Test
-    fun `svep åt vänster arkiverar, och samma åtgärd finns för TalkBack`() {
+    fun `svep åt vänster arkiverar`() {
         var hidden = 0
-        show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm") } }
+        show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm", it, onClick = {}) } }
         rule.onNodeWithText("Solkräm").performTouchInput { swipeLeft() }
         rule.waitForIdle()
         assertEquals(1, hidden)
     }
 
     @Test
-    fun `arkivera-åtgärden för TalkBack döljer raden`() {
+    fun `en svept rad som står kvar glider tillbaka`() {
+        show { SwipeToHide(onHide = {}) { ItemRow("Solkräm", it, onClick = {}) } }
+        val start = rule.onNodeWithText("Solkräm").fetchSemanticsNode().positionInRoot.x
+        rule.onNodeWithText("Solkräm").performTouchInput { swipeLeft() }
+        rule.mainClock.advanceTimeBy(RESET_DELAY_MILLIS + SETTLE_MILLIS)
+        rule.waitForIdle()
+        assertEquals(start, rule.onNodeWithText("Solkräm").fetchSemanticsNode().positionInRoot.x)
+    }
+
+    @Test
+    fun `arkivera-åtgärden för TalkBack ligger på raden som TalkBack läser`() {
         var hidden = 0
-        show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm") } }
-        val node = rule.onNodeWithText("Solkräm", useUnmergedTree = true).fetchSemanticsNode()
-        val actions = generateSequence(node) { it.parent }.firstNotNullOf { it.config.getOrNull(SemanticsActions.CustomActions) }
+        show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm", it, subtitle = "1 tub", onClick = {}) } }
+        // Den sammanslagna noden är den TalkBack fokuserar; åtgärden ska finnas just där.
+        val actions = rule.onNodeWithText("Solkräm").fetchSemanticsNode().config[SemanticsActions.CustomActions]
         actions.single { it.label == "Arkivera" }.action()
         assertEquals(1, hidden)
     }

@@ -5,6 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import se.partee71.reseapoteket.R
@@ -112,6 +114,35 @@ class EditorStateTest {
             editor.run { Result.failure(DataError.PermissionDenied) }
             assertEquals(EditorEffect.Failed(DataError.PermissionDenied), awaitItem())
         }
+    }
+
+    @Test
+    fun `ett andra sparförsök medan det första pågår skriver inte två gånger`() = runTest {
+        val editor = editor()
+        editor.update(NAME) { it.copy(name = "Solkräm") }
+        val gate = CompletableDeferred<Unit>()
+        var writes = 0
+        val first = launch { editor.save { writes++; gate.await(); Result.success(Unit) } }
+        testScheduler.runCurrent()
+        assertTrue(editor.state.value.saving)
+        editor.save { writes++; Result.success(Unit) }
+        gate.complete(Unit)
+        first.join()
+        assertEquals(1, writes)
+    }
+
+    @Test
+    fun `ett läsfel avslutar laddningen och Försök igen laddar om`() {
+        val editor = EditorState(Form(), validator, loading = true)
+        editor.loadFailed(DataError.Offline)
+        assertFalse(editor.state.value.loading)
+        assertEquals(DataError.Offline, editor.state.value.loadError)
+        assertFalse(editor.state.value.canSave)
+        editor.reload()
+        assertTrue(editor.state.value.loading)
+        assertNull(editor.state.value.loadError)
+        editor.load(Form("Plåster"))
+        assertNull(editor.state.value.loadError)
     }
 
     private companion object {

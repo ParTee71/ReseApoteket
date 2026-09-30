@@ -39,8 +39,13 @@ fun <T> Flow<List<T>>.asListUiState(): Flow<ListUiState<T>> =
         .onStart { emit(ListUiState.Loading) }
         .catch { emit(ListUiState.Error(it as? DataError ?: DataError.Unknown)) }
 
+/** Händelser som alla listskärmar har gemensamt; skärmens egna händelser läggs i en egen typ. */
+sealed interface ListEvent {
+    data object Retry : ListEvent
+}
+
 /**
- * Listtillståndet för en ViewModel: [state] från [source] och [retry] för "Försök igen".
+ * Listtillståndet för en ViewModel: [state] från [source] och [onEvent] för [ListEvent].
  * Delas av alla listskärmars ViewModels, så att laddning, tomt och fel beter sig likadant.
  */
 class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope) {
@@ -49,8 +54,10 @@ class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope) {
     val state: StateFlow<ListUiState<T>> =
         source.asListUiState(retries).stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ListUiState.Loading)
 
-    fun retry() {
-        retries.tryEmit(Unit)
+    fun onEvent(event: ListEvent) {
+        when (event) {
+            ListEvent.Retry -> retries.tryEmit(Unit)
+        }
     }
 }
 

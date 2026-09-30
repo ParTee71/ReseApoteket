@@ -13,6 +13,7 @@ import javax.inject.Inject
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.data.repository.FamilyItemRepository
+import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.activeOnly
@@ -20,20 +21,12 @@ import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ItemRow
 
-sealed interface FamilyItemsEvent {
-    data object Retry : FamilyItemsEvent
-}
-
 @HiltViewModel
 class FamilyItemsViewModel @Inject constructor(items: FamilyItemRepository) : ViewModel() {
     private val loader = ListLoader(items.observe().activeOnly(), viewModelScope)
     val state = loader.state
 
-    fun onEvent(event: FamilyItemsEvent) {
-        when (event) {
-            FamilyItemsEvent.Retry -> loader.retry()
-        }
-    }
+    fun onEvent(event: ListEvent) = loader.onEvent(event)
 }
 
 /** Fliken Familjeartiklar. */
@@ -46,7 +39,7 @@ fun FamilyItemsScreen(onAdd: () -> Unit, onOpen: (String) -> Unit, viewModel: Fa
 @Composable
 fun FamilyItemsContent(
     state: ListUiState<FamilyItem>,
-    onEvent: (FamilyItemsEvent) -> Unit,
+    onEvent: (ListEvent) -> Unit,
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -63,7 +56,7 @@ fun FamilyItemsContent(
         onAdd = onAdd,
         key = FamilyItem::id,
         modifier = modifier,
-        onRetry = { onEvent(FamilyItemsEvent.Retry) },
+        onRetry = { onEvent(ListEvent.Retry) },
     ) { item ->
         ItemRow(title = item.name, onClick = { onOpen(item.id) }, navigates = true)
     }

@@ -23,7 +23,7 @@ class ListLoaderTest {
         val loader = ListLoader(source, backgroundScope)
         loader.state.test {
             assertEquals(ListUiState.Error(DataError.Offline), expectMostRecentItem())
-            loader.retry()
+            loader.onEvent(ListEvent.Retry)
             assertEquals(ListUiState.Content(listOf("Solkräm")), expectMostRecentItem())
         }
         assertEquals(2, attempts)

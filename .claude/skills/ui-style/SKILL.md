@@ -42,8 +42,9 @@ färg som bär text ska klara 4,5:1 mot sin bakgrund – räkna efter vid ny nya
 
 - **Nunito 800** för rubriker: resans namn som stor rundad display (~34 sp), sektionsrubriker.
 - **Nunito Sans** för brödtext.
-- Typsnitten ligger i `res/font/` (hämtade från Google Fonts, SIL Open Font License – licensen
-  följer med i filernas metadata). Inga nedladdningsbara typsnitt: appen ska se likadan ut offline.
+- Typsnitten ligger i `res/font/` (hämtade från Google Fonts, SIL Open Font License 1.1).
+  Upphovsrätt och licens står i `app/src/main/assets/licenses/fonts.txt`, som följer med appen;
+  ett nytt typsnitt läggs till där. Inga nedladdningsbara typsnitt: appen ska se likadan ut offline.
 - Mängder och räknare stora och feta: "18 tabletter · 2 kartor", "9 av 14 packat".
 - Namngivna stilar (`screenTitle`, `sectionTitle`, `itemTitle`, `itemSubtitle`, `body`,
   `quantity`, `pill`, `button`). Aldrig `fontSize` i feature-kod.

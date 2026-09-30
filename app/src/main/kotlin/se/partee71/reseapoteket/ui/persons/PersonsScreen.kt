@@ -13,6 +13,7 @@ import javax.inject.Inject
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.data.repository.PersonRepository
+import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.activeOnly
@@ -22,20 +23,12 @@ import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.theme.AppColors
 
-sealed interface PersonsEvent {
-    data object Retry : PersonsEvent
-}
-
 @HiltViewModel
 class PersonsViewModel @Inject constructor(persons: PersonRepository) : ViewModel() {
     private val loader = ListLoader(persons.observe().activeOnly(), viewModelScope)
     val state = loader.state
 
-    fun onEvent(event: PersonsEvent) {
-        when (event) {
-            PersonsEvent.Retry -> loader.retry()
-        }
-    }
+    fun onEvent(event: ListEvent) = loader.onEvent(event)
 }
 
 /** Fliken Personer. */
@@ -48,7 +41,7 @@ fun PersonsScreen(onAdd: () -> Unit, onOpen: (String) -> Unit, viewModel: Person
 @Composable
 fun PersonsContent(
     state: ListUiState<Person>,
-    onEvent: (PersonsEvent) -> Unit,
+    onEvent: (ListEvent) -> Unit,
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -65,7 +58,7 @@ fun PersonsContent(
         onAdd = onAdd,
         key = Person::id,
         modifier = modifier,
-        onRetry = { onEvent(PersonsEvent.Retry) },
+        onRetry = { onEvent(ListEvent.Retry) },
     ) { person ->
         ItemRow(
             title = person.name,

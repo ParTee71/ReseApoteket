@@ -6,18 +6,19 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -125,15 +126,22 @@ private fun <T> ListContent(
     row: @Composable (T) -> Unit,
 ) {
     val groups = remember(items, group) { if (group == null) listOf(null to items) else items.groupBy(group).toList() }
+    // Varje rad är ett eget listobjekt (lat inläsning, animering per rad); korten byggs av bitar.
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = Spacing.l, end = Spacing.l, top = Spacing.xs, bottom = clearance + ADD_BUTTON_CLEARANCE),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
-        items(groups, key = { (header, rows) -> header?.title ?: key(rows.first()) }) { (header, rows) ->
-            ApotekCard(Modifier.animateItem()) {
-                header?.let { SectionHeader(it.title, icon = it.icon, count = rows.size.toString(), tone = it.tone) }
-                rows.forEach { item -> Box(Modifier.fillMaxWidth()) { key(key(item)) { row(item) } } }
+        groups.forEachIndexed { index, (header, rows) ->
+            if (index > 0) item(key = "gap:$index") { Spacer(Modifier.height(Spacing.m)) }
+            header?.let {
+                item(key = "header:${it.title}") {
+                    CardSegment(top = true, bottom = false, Modifier.animateItem()) {
+                        SectionHeader(it.title, icon = it.icon, count = rows.size.toString(), tone = it.tone)
+                    }
+                }
+            }
+            itemsIndexed(rows, key = { _, item -> key(item) }) { position, item ->
+                CardSegment(top = header == null && position == 0, bottom = position == rows.lastIndex, Modifier.animateItem()) { row(item) }
             }
         }
     }

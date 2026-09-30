@@ -24,9 +24,11 @@ data class EditorUiState<T>(
     val isDirty: Boolean = false,
     val loading: Boolean = false,
     val saving: Boolean = false,
+    /** Det lagrade värdet gick inte att läsa; ramen visar felet och "Försök igen". */
+    val loadError: DataError? = null,
 ) {
     /** "Spara" är aktiv först när formuläret är giltigt och ändrat (NFR-2). */
-    val canSave: Boolean get() = isValid && isDirty && !saving && !loading
+    val canSave: Boolean get() = isValid && isDirty && !saving && !loading && loadError == null
 
     /** Felet för [field], om det ska visas. */
     @StringRes
@@ -68,6 +70,16 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
         _state.value = compute(value, loading = false)
     }
 
+    /** Det lagrade värdet gick inte att läsa – formuläret visar felet i stället för en evig laddning. */
+    fun loadFailed(error: DataError) {
+        _state.update { it.copy(loading = false, loadError = error) }
+    }
+
+    /** Inför ett nytt läsförsök ("Försök igen"). */
+    fun reload() {
+        _state.update { it.copy(loading = true, loadError = null) }
+    }
+
     /** Ändrar värdet; [fields] markeras som rörda så att deras fel börjar synas. */
     fun update(vararg fields: String, transform: (T) -> T) {
         touched += fields
@@ -79,15 +91,17 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
      * Lyckat → [EditorEffect.Done]; fel → [EditorEffect.Failed] och formuläret står kvar.
      */
     suspend fun save(write: suspend (T) -> Result<Unit>) {
+        if (_state.value.saving) return // ett dubbeltryck sparar inte två gånger
         attempted = true
         val current = compute(value, loading = false)
         _state.value = current
-        if (!current.isValid || current.saving) return
+        if (!current.isValid) return
         run { write(current.value) }
     }
 
     /** Kör en åtgärd som stänger formuläret (arkivera, radera) med samma fel- och klarhantering. */
     suspend fun run(action: suspend () -> Result<Unit>) {
+        if (_state.value.saving) return
         _state.update { it.copy(saving = true) }
         val error = action().dataError()
         _state.update { it.copy(saving = false) }
