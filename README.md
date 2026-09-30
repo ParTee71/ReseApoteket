@@ -13,6 +13,35 @@ inför en resa, och låter er pricka av det som plockats fram.
 
 ---
 
+## Funktioner
+
+Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
+
+**Finns i dag (0.1.0, skelett):**
+- Inloggning med Google-konto; hushållet skapas automatiskt vid första inloggningen (AUTH, HUS).
+- Data i Cloud Firestore som fungerar offline och synkas när nätet är tillbaka (ÖV-5).
+- "Uppdatera appen" om hushållets data sparats av en nyare appversion (HUS-3).
+- Veckovis krypterad backup och återställning med `tools/db` (BCK).
+- Databasåtkomst från en Claude-session, bara läsning (TP-8).
+
+**Planerat:**
+- Grund-UI: flikarna Resor, Personer, Familjeartiklar och Inställningar, designsystemet (#20).
+- Personer med egna recept och kosttillskott (#21–#23).
+- Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster (#24).
+- Resor och packförslag som räknas ut från resans längd och vilka som åker med (#25).
+- Packlista med avprickning (#26) och inställningar (#27).
+
+## Kom igång (Android Studio)
+
+1. Android Studio (senaste stabila) med JDK 17 och Android SDK-plattform 37 (`compileSdk`).
+2. Klona repot och öppna det. Utan `app/google-services.json` bygger appen ändå (debug får
+   en stubbad Firebase-konfiguration mot demo-projektet), men inloggning fungerar inte – se
+   [Firebase-setup](#firebase-setup).
+3. Byggkommandon och vilka tester som finns: [CLAUDE.md → Bygg & test](CLAUDE.md#bygg--test).
+   Arkitektur och byggkonfiguration: [ARKITEKTUR.md](ARKITEKTUR.md).
+
+---
+
 ## Utveckling via Claude
 
 ### Det som ligger i repot
@@ -141,4 +170,12 @@ Run workflow), krypterar den med gpg och sparar `backup.json.gpg` som artifact i
    Kör när appen inte används: importen skriver över dokument som ändrats under tiden.
 4. Radera `tools/db/backup.json`.
 
-*Funktioner, byggkommandon och versionshistorik fylls på i #19.*
+---
+
+## Versionshistorik
+
+Versionen höjs bara vid release (skill [`release`](.claude/skills/release/SKILL.md)).
+
+| Version | Innehåll |
+|---|---|
+| 0.1.0 | Skelett: byggsystem, CI, datamodell och datalager (#11–#15), inloggning och hushåll (#16), backup (#17), databasåtkomst från sessionen (#18). Ingen release publicerad ännu. |

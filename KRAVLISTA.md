@@ -3,7 +3,7 @@
 > Räknar ut hur mycket av familjens mediciner, kosttillskott och apoteksvaror som ska
 > packas inför en resa, och låter familjen pricka av det som plockats fram.
 >
-> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning och hushåll finns, övriga funktioner kommer.
+> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning, hushåll, backup och databasåtkomst finns; funktionerna för resor och packning kommer i #20–#27.
 
 Så här används listan: skill [`requirements-kravlista`](.claude/skills/requirements-kravlista/SKILL.md).
 Krav märkta *(planerad)* är beslutade men inte byggda; markeringen tas bort i PR:en som
@@ -20,7 +20,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå. *(planerad)* |
 | ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. |
 | ÖV-5 | Appen ska fungera **offline**: allt läses från den lokala Firestore-cachen och ändringar sparas direkt och synkas när nätet kommer tillbaka. |
-| ÖV-6 | Hela gränssnittet ska vara på **svenska**. *(planerad)* |
+| ÖV-6 | Hela gränssnittet ska vara på **svenska**. *(planerad, #20 – det som finns, inloggningen, är på svenska sedan #16)* |
 
 ---
 
@@ -69,35 +69,85 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 ## 6. Personer
 
-*Fylls i av #21.*
+| ID | Krav |
+|----|------|
+| PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott; lista, tomt tillstånd, fel och "Visa arkiverade" enligt NFR-1. *(planerad, #21)* |
+| PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista och en av åtta personfärger; skapas och redigeras enligt NFR-2. *(planerad, #21)* |
+| PER-3 | En person arkiveras med svep och kan ångras (NFR-3); en arkiverad person föreslås inte i nya resor, men gamla resor behåller den. *(planerad, #21)* |
+| PER-4 | Persondetaljen visar personens **Recept** och **Kosttillskott** i var sin sektion. *(planerad, #21)* |
 
 ## 7. Recept
 
-*Fylls i av #22.*
+| ID | Krav |
+|----|------|
+| REC-1 | Ett recept har namn (obligatoriskt), form, styrka, enhet, förpackningsstorlek (valfri), dosering, anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. *(planerad, #22)* |
+| REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1. *(planerad, #22)* |
+| REC-3 | Doseringen visas i klartext, samma text i lista, redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån/ons/fre", "1 dos var 3:e dag", "vid behov: ta med 10". *(planerad, #22)* |
+| REC-4 | Under doseringen visas vad som skulle packas, t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor", med hushållets marginaldagar (BER). *(planerad, #22)* |
+| REC-5 | Inaktiva recept visas nedtonade och räknas inte med i packförslaget. Ett recept raderas permanent via menyn med bekräftelse (NFR-4). *(planerad, #22)* |
 
 ## 8. Kosttillskott
 
-*Fylls i av #23.*
+| ID | Krav |
+|----|------|
+| KOS-1 | Kosttillskott beter sig som recept (REC-1–5) med egen sektion **Kosttillskott**, grön sektionsfärg och "dos" i stället för "styrka". *(planerad, #23)* |
+| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. *(planerad, #23)* |
+| KOS-3 | Ett nytt kosttillskott kan börja från snabbvalen **D-vitamin**, **Omega-3**, **Magnesium** och **Probiotika**, som fyller i namnet. *(planerad, #23)* |
 
 ## 9. Familjeartiklar
 
-*Fylls i av #24.*
+| ID | Krav |
+|----|------|
+| FAM-1 | Fliken **Familjeartiklar** listar hushållets gemensamma saker grupperade per kategori: **Krämer & salvor**, **Plåster & förband**, **Verktyg**, **Övrigt**; tomt tillstånd med exempel att lägga till (NFR-1). *(planerad, #24)* |
+| FAM-2 | En familjeartikel har namn (obligatoriskt), kategori, enhet, mängdregel, anteckning och aktiv/inaktiv (NFR-2); arkiveras med svep och ångra (NFR-3). *(planerad, #24)* |
+| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7); samma regeltext i lista, redigering och packlista, med förhandsvisning t.ex. "För 4 personer i 10 dagar: 2 tuber". *(planerad, #24)* |
 
 ## 10. Resa
 
-*Fylls i av #25.*
+| ID | Krav |
+|----|------|
+| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. Appen startar på Resor. *(planerad, #20, #25)* |
+| RES-2 | En resa har namn ("Vart/vad?", förval "Resa <datum>"), antal dagar 1–60, startdatum (förval i morgon) och resenärer ("Vem åker med?", alla aktiva personer förvalda); minst en resenär krävs. *(planerad, #25)* |
+| RES-3 | En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan (BER) och öppnar den. *(planerad, #25)* |
+| RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd och en avprickning behålls, egna rader rörs inte. *(planerad, #25)* |
 
 ## 11. Beräkning
 
-*Fylls i av #25. Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-engine/SKILL.md).*
+Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-engine/SKILL.md).
+
+| ID | Krav |
+|----|------|
+| BER-1 | `effectiveDays = trip.days + settings.marginDays`. *(planerad, #25)* |
+| BER-2 | Dagligen: `dosesPerDay × unitsPerDose × effectiveDays`. *(planerad, #25)* |
+| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`. *(planerad, #25)* |
+| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose`; vid behov: `quantity`; okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). *(planerad, #25)* |
+| BER-5 | Fast antal: `quantity`. *(planerad, #25)* |
+| BER-6 | Per resenär: `quantity × antal resenärer`. *(planerad, #25)* |
+| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity`. *(planerad, #25)* |
+| BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. *(planerad, #25)* |
+| BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. *(planerad, #25)* |
+| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10". *(planerad, #25)* |
 
 ## 12. Packlista
 
-*Fylls i av #26.*
+| ID | Krav |
+|----|------|
+| PAK-1 | Packlistan visar resans namn, "7 dagar · 3 resenärer" och packprogress "9 av 14 packat", och sektionerna **Mediciner** och **Kosttillskott** (per person, i personens färg) och **Övrigt**, var och en med räknare. *(planerad, #26)* |
+| PAK-2 | Varje rad visar namn, mängd och enhet stort ("18 tabletter · 2 kartor") och förklaringen (BER-10). En avprickning sparar tidpunkten; avprickade rader hamnar sist i gruppen om inställningen SET-3 är på. *(planerad, #26)* |
+| PAK-3 | Mängden ändras i ett bottom sheet; en ändrad mängd märks **"ändrad"** och kan återställas till förslaget. *(planerad, #26)* |
+| PAK-4 | **"Lägg till"** skapar en egen rad; menyn har **"Räkna om"** (RES-4) och **"Dölj packade"**. En rad döljs med svep och ångra (NFR-3) och syns under **"Dolda"**. *(planerad, #26)* |
+| PAK-5 | När allt är packat visas konfetti och **"Allt packat! 🧳 Trevlig resa"** och resans status blir packad; tas en avprickning bort blir den planerad igen. *(planerad, #26)* |
 
 ## 13. Inställningar
 
-*Fylls i av #20 (tema) och #27.*
+| ID | Krav |
+|----|------|
+| SET-1 | Tema **ljust**, **mörkt** eller **system**, sparat på enheten; ingen dynamisk färg. *(planerad, #20, #27)* |
+| SET-2 | Hushållets namn och **marginaldagar** 0–7 (förval 2) med förklaringen "Extra dagar som läggs på varje resa, ifall något krånglar". *(planerad, #27)* |
+| SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten. *(planerad, #27)* |
+| SET-4 | Kontot visar Google-kontots namn och e-post; **"Logga ut"** kräver bekräftelse (NFR-4) och leder till inloggningen (AUTH-4). *(planerad, #27)* |
+| SET-5 | **Data & backup:** text om synk och veckobackup, `schemaVersion` och appversion; **"Exportera som JSON"** delar hushållets data i samma format som `tools/db export` (BCK-6), bara efter uttrycklig handling. *(planerad, #27)* |
+| SET-6 | **Om:** version och länk till repot; i debug-byggen öppnar "Komponenter" komponentgalleriet. *(planerad, #20, #27)* |
 
 ## 14. Datamodell
 
@@ -145,9 +195,9 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 | ID | Krav |
 |----|------|
-| NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). *(planerad, #20 – kontrollerna finns sedan #11)* |
-| NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). *(planerad – backup och enhetsöverföring avstängda sedan #11)* |
-| NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). *(planerad, #17 – rundtur mot emulatorn; övriga nivåer finns sedan #11 och #15)* |
+| NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). *(planerad, #20 – kontrollerna finns sedan #11, de första delade komponenterna sedan #16)* |
+| NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). *(planerad, #27 – användarens egen export; Androids backup och enhetsöverföring avstängda sedan #11, krypterad backup sedan #17)* |
+| NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). |
 | NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats; `master` kör alltid allt. Emulator, lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
 | NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`). *(planerad, #20)* |
 | NFR-12 | Release-bygget är minifierat; det byggs veckovis och före varje release (`quality.yml`). |
