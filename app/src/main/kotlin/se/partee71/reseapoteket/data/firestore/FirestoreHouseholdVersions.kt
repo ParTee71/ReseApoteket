@@ -9,10 +9,14 @@ import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.data.common.HouseholdVersionSource
 
-/** Läser `schemaVersion` direkt ur hushållsdokumentet (utan codec – används av sessionen). */
+/**
+ * Läser `schemaVersion` direkt ur hushållsdokumentet (utan codec – används av sessionen).
+ * Ett saknat dokument får [Schema.FIRST_VERSION]: då finns ingen data att skydda, och rules
+ * nekar ändå skrivningar under ett hushåll som inte finns. Vid fel emitteras ingenting.
+ */
 class FirestoreHouseholdVersions @Inject constructor(private val db: FirebaseFirestore) : HouseholdVersionSource {
-    override fun schemaVersion(householdId: String): Flow<Int?> =
+    override fun schemaVersion(householdId: String): Flow<Int> =
         db.document(Paths.household(householdId)).snapshots()
-            .map { doc -> if (doc.exists()) (doc.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION else null }
-            .catch { emit(null) }
+            .map { doc -> (doc.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION }
+            .catch { /* ingen version → skrivspärren förblir stängd */ }
 }

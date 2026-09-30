@@ -134,7 +134,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 |----|------|
 | NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). *(planerad, #20 – kontrollerna finns sedan #11)* |
 | NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). *(planerad – backup och enhetsöverföring avstängda sedan #11)* |
-| NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). *(planerad, #15, #17 – JVM-, Robolectric-, skärmdumps- och Konsist-nivåerna finns sedan #11)* |
+| NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). *(planerad, #17 – rundtur mot emulatorn; övriga nivåer finns sedan #11 och #15)* |
 | NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats; `master` kör alltid allt. Emulator, lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
 | NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`). *(planerad, #20)* |
 | NFR-12 | Release-bygget är minifierat; det byggs veckovis och före varje release (`quality.yml`). |

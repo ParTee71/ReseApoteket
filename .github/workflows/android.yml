@@ -47,6 +47,7 @@ jobs:
               - 'firestore.indexes.json'
               - 'firebase.json'
               - 'tools/db/**'
+              - 'app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/Paths.kt'
             build:
               - '*.gradle.kts'
               - 'gradle/**'

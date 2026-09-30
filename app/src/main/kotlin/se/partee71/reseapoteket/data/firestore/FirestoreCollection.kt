@@ -15,14 +15,16 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import se.partee71.reseapoteket.core.model.Identified
-import se.partee71.reseapoteket.core.model.Sortable
 import se.partee71.reseapoteket.core.schema.DocCodec
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.EntityCollection
 import se.partee71.reseapoteket.data.common.HouseholdScope
+import se.partee71.reseapoteket.data.common.currentVersion
 import se.partee71.reseapoteket.data.common.prepareForWrite
 import se.partee71.reseapoteket.data.common.readDocument
+import se.partee71.reseapoteket.data.common.sortForList
 import se.partee71.reseapoteket.data.common.suspendRunCatching
+import se.partee71.reseapoteket.data.common.writeBlocker
 
 /**
  * Den enda Firestore-koden för samlingar (skill firestore-data-layer). [path] ger samlingens
@@ -42,9 +44,7 @@ class FirestoreCollection<T : Identified>(
     override fun observe(): Flow<List<T>> = scope.householdId.flatMapLatest { hid ->
         val ref = refOrNull(hid) ?: return@flatMapLatest emptyFlow()
         ref.snapshots().map { snapshot ->
-            val items = snapshot.documents.map { decode(it.id, it.data.orEmpty()) }
-            @Suppress("UNCHECKED_CAST")
-            if (items.firstOrNull() is Sortable) items.sortedWith(Sortable.ORDER as Comparator<T>) else items
+            sortForList(snapshot.documents.map { decode(it.id, it.data.orEmpty()) })
         }
     }.catch { throw firestoreError(it) }
 
@@ -68,14 +68,16 @@ class FirestoreCollection<T : Identified>(
 
     override suspend fun delete(id: String): Result<Unit> = write { ref -> ref.document(id).delete() }
 
+    /** `update`, inte `set`: ett dokument som raderats under tiden återuppstår inte som spöke. */
     override suspend fun setArchived(id: String, archived: Boolean): Result<Unit> = write { ref ->
-        ref.document(id).set(mapOf("archived" to archived), SetOptions.merge())
+        ref.document(id).update("archived", archived)
     }
 
     override suspend fun batch(upserts: List<T>, deletes: List<String>): Result<Unit> =
         suspendRunCatching(::firestoreError) {
             scope.writeBlocker()?.let { throw it }
             val ref = ref()
+            // Atomärt inom varje bit om 500 skrivningar (Firestores gräns), inte över bitar.
             val operations = upserts.map { BatchOp.Set(it.id, encode(it)) } + deletes.map { BatchOp.Delete(it) }
             operations.chunked(MAX_BATCH).forEach { chunk ->
                 val batch = db.batch()
@@ -89,7 +91,7 @@ class FirestoreCollection<T : Identified>(
     private fun encode(item: T) = toFirestore(prepareForWrite(codec.encode(item), clock.now()))
 
     private fun decode(id: String, data: Map<String, Any?>) =
-        readDocument(codec, name, scope.schemaVersion.value, id, fromFirestore(data))
+        readDocument(codec, name, scope.currentVersion(), id, fromFirestore(data))
 
     /** Skrivningen läggs i cachen direkt; servern svarar senare (offline först). */
     private suspend fun write(block: (CollectionReference) -> Task<*>): Result<Unit> =

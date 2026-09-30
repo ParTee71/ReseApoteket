@@ -10,7 +10,7 @@ import se.partee71.reseapoteket.core.model.Identified
  * - Läsning är flöden från den lokala cachen och följer det aktiva hushållet; utan hushåll
  *   emitteras inget. Listor sorteras på `sortOrder` när modellen är `Sortable`.
  * - Skrivning läggs i cachen direkt och synkas när nätet finns (offline först); `Result`
- *   rapporterar bara fel som syns direkt. Fel från synken kommer via [SyncStatus.writeErrors].
+ *   rapporterar bara fel som syns direkt. Fel från synken kommer via [SyncStatus.lastWriteError].
  * - `upsert` slår ihop med det lagrade dokumentet: okända fält bevaras, `null` tömmer (BCK-3).
  */
 interface EntityCollection<T : Identified> {
@@ -26,9 +26,10 @@ interface EntityCollection<T : Identified> {
 
     suspend fun delete(id: String): Result<Unit>
 
+    /** Ändrar bara `archived`; ett dokument som inte finns skapas inte. */
     suspend fun setArchived(id: String, archived: Boolean): Result<Unit>
 
-    /** Flera skrivningar atomärt (delas i bitar om 500, Firestores gräns). */
+    /** Flera skrivningar i ett svep – atomärt inom varje bit om 500 (Firestores gräns). */
     suspend fun batch(upserts: List<T>, deletes: List<String> = emptyList()): Result<Unit>
 
     /** Klientgenererat, slumpat ID – fungerar offline. */

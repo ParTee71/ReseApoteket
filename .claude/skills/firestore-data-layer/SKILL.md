@@ -40,15 +40,21 @@ fälthjälparna; toleranta mot saknade och okända fält.
 | `observe(id): Flow<T?>` | ett dokument, `null` om det saknas |
 | `get(id)`, `getAll()` | engångsläsning som `Result` |
 | `upsert(item)` | `set(…, merge)` med codecens fullständiga fältlista; okända fält bevaras, `null` tömmer; `updatedAt` sätts, `createdAt` utan värde skrivs inte (`prepareForWrite`) |
-| `delete(id)`, `setArchived(id, archived)` | permanent radering respektive arkivering |
-| `batch(upserts, deletes)` | atomärt, i bitar om 500 |
+| `delete(id)` | permanent radering |
+| `setArchived(id, archived)` | ändrar bara `archived` via `update` – ett raderat dokument återuppstår inte |
+| `batch(upserts, deletes)` | i bitar om 500 – atomärt inom varje bit, inte över bitar |
 | `newId()` | slumpat klient-ID – fungerar offline |
 
 - **Offline först:** en skrivning läggs i cachen och `Result` blir klart direkt – den väntar
   aldrig på servern. Servern svarar senare; väntande skrivningar och sena fel syns i
-  `SyncStatus` (`syncing` → "synkas…", `writeErrors` → meddelande).
-- **Skrivskydd:** är hushållets `schemaVersion` nyare än appen vägras skrivningar med
-  `DataError.UpdateRequired` (`HouseholdScope.writeBlocker`); läsning fungerar.
+  `SyncStatus` (`syncing` → "synkas…", `lastWriteError` ligger kvar tills UI:t visat det och
+  anropat `clearWriteError()` – ett fel medan appen är i bakgrunden försvinner inte).
+- **Skrivskydd, stängt som standard:** är hushållets `schemaVersion` nyare än appen vägras
+  skrivningar med `DataError.UpdateRequired`; läsning fungerar. Är versionen för det aktiva
+  hushållet ännu okänd väntar skrivningen upp till 5 s och vägras sedan (`Offline`) hellre än
+  att en äldre app skriver över nyare data (`writeBlocker` i `data/common/HouseholdScope.kt`).
+  Versionen är knuten till hushålls-ID:t, så en gammal version gäller aldrig ett nytt hushåll.
+- **Ordning:** `sortForList` – på dokument-ID och sedan `sortOrder`, likadant i riktig och fejkad samling.
 - **Läsning:** `readDocument` kör `SchemaMigrator` före `decode`. `Timestamp` ↔ `Instant`
   översätts i `data/firestore/FirestoreValues.kt`, rekursivt; `:core` ser aldrig Firebase-typer.
 - **Fel:** `firestoreError` mappar `FirebaseFirestoreException` → `DataError` en gång, via
@@ -74,8 +80,10 @@ felmappning, ingen codec-logik.
 
 ### Aktivt hushåll
 `HouseholdSession` (`data/household/`, implementerar `HouseholdScope`): hushålls-ID:t sparas i
-DataStore (`SettingsStore`), `schemaVersion` läses direkt ur hushållsdokumentet
-(`HouseholdVersionSource`).
+DataStore (`SettingsStore`, som ger standardvärden om filen inte går att läsa),
+`schemaVersion` läses direkt ur hushållsdokumentet (`HouseholdVersionSource`; vid fel
+emitteras inget, så skrivspärren förblir stängd). `select(id)` återvänder först när
+sessionen visar det nya hushållet, så nästa skrivning hamnar rätt.
 
 ### DI
 `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), eftersom `FirebaseFirestore`
@@ -110,6 +118,7 @@ bara får förekomma där. Den ger `FirebaseFirestore` med `PersistentCacheSetti
 | Codec-rundtur och tolerans | `core/src/test/.../schema/` (hjälparna i skill `testing-strategy`) |
 | `CollectionContract` (i `app/src/sharedTest`) mot `FakeCollection` | `FakeCollectionContractTest`, JVM, varje PR när `app/` ändras |
 | `CollectionContract` mot riktig `FirestoreCollection` + Firebase-emulatorn (firestore + auth, rules aktiva) | `FirestoreCollectionContractTest` i `app/src/androidTest` (instrumenttest: på begäran och i release) |
+| Offline först och hushållets version mot riktig Firestore | `FirestoreOfflineTest` i `app/src/androidTest` (`disableNetwork` → skrivning lyckas, syns lokalt, synkas efter `enableNetwork`) |
 | Rules-test | `tools/db/test/rules.test.mjs` |
 | `Paths` = `collections.mjs` = rules | `tools/db/test/collections.test.mjs` |
 

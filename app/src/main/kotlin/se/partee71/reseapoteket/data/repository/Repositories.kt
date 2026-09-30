@@ -40,6 +40,10 @@ interface PackingRepository {
     /** Packlistan för en resa. */
     fun forTrip(tripId: String): EntityCollection<PackingItem>
 
-    /** Ersätter resans packlista med [items] i en atomär skrivning; rader som inte finns kvar tas bort. */
+    /**
+     * Ersätter resans packlista med [items]; rader som inte finns kvar tas bort. Atomärt upp
+     * till 500 rader. Läser listan först, så en rad som en annan enhet lägger till i samma
+     * ögonblick kan tas bort – används bara när användaren själv räknar om listan.
+     */
     suspend fun replacePackingItems(tripId: String, items: List<PackingItem>): Result<Unit>
 }

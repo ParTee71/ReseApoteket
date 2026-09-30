@@ -86,8 +86,8 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
 | Aktivt hushåll | `HouseholdSession` i `data/household/` (`HouseholdScope`) |
-| Synkläge | `SyncStatus` (`syncing`, `writeErrors`) i `data/common/` |
-| Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument` i `data/common/DocumentRules.kt` – används av både `FirestoreCollection` och `FakeCollection` |
+| Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/` |
+| Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument`, `sortForList` i `data/common/DocumentRules.kt` och `writeBlocker` i `HouseholdScope.kt` – används av både `FirestoreCollection` och `FakeCollection` |
 | Inställningar | `SettingsStore` (DataStore) |
 | Test-fakes och hjälpare | se skill `testing-strategy` |
 | `tools/db`-logik | `tools/db/lib/` (admin, collections, walk, serialize, cli) |

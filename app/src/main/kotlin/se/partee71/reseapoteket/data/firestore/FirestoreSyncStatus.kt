@@ -3,12 +3,9 @@ package se.partee71.reseapoteket.data.firestore
 import com.google.android.gms.tasks.Task
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -25,17 +22,21 @@ import se.partee71.reseapoteket.di.ApplicationScope
 @Singleton
 class FirestoreSyncStatus @Inject constructor(@ApplicationScope scope: CoroutineScope) : SyncStatus {
     private val pending = MutableStateFlow(0)
-    private val errors = MutableSharedFlow<DataError>(extraBufferCapacity = 8, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val error = MutableStateFlow<DataError?>(null)
 
     override val syncing: StateFlow<Boolean> = pending.map { it > 0 }.stateIn(scope, SharingStarted.Eagerly, false)
-    override val writeErrors: SharedFlow<DataError> = errors.asSharedFlow()
+    override val lastWriteError: StateFlow<DataError?> = error.asStateFlow()
 
-    /** Följer [task] tills servern svarat; ett fel rapporteras via [writeErrors]. */
+    override fun clearWriteError() {
+        error.value = null
+    }
+
+    /** Följer [task] tills servern svarat; ett fel sparas i [lastWriteError]. */
     fun track(task: Task<*>) {
         pending.update { it + 1 }
         task.addOnCompleteListener {
             pending.update { count -> count - 1 }
-            it.exception?.let { error -> errors.tryEmit(firestoreError(error)) }
+            it.exception?.let { failure -> error.value = firestoreError(failure) }
         }
     }
 }

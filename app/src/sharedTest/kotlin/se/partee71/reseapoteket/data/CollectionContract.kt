@@ -46,6 +46,9 @@ abstract class CollectionContract {
 
         /** Hushållets data får ett nyare format än appen. */
         fun makeHouseholdNewerThanApp()
+
+        /** Inget hushåll är aktivt. */
+        fun clearHousehold()
     }
 
     protected abstract fun createEnvironment(): Environment
@@ -176,6 +179,32 @@ abstract class CollectionContract {
         assertEquals(DataError.UpdateRequired, persons.batch(listOf(Person("b"))).dataError())
         assertEquals("Anna", env.readRaw(personsPath, "a")?.get("name"))
         assertTrue(Schema.isNewerThanApp(Schema.CURRENT_VERSION + 1))
+    }
+
+    @Test
+    fun setArchived_skapar_inget_dokument_som_inte_finns() = contract {
+        persons.setArchived("borta", true)
+        assertNull(env.readRaw(personsPath, "borta"))
+    }
+
+    @Test
+    fun batch_over_500_skrivningar_delas_och_allt_skrivs() = contract {
+        val many = List(501) { Person("p%03d".format(it), "Person $it") }
+        persons.batch(many).getOrThrow()
+        assertEquals(501, persons.observe().awaitMatching { it.size == 501 }.size)
+    }
+
+    @Test
+    fun lika_sortOrder_sorteras_pa_id() = contract {
+        persons.batch(listOf(Person("c"), Person("a"), Person("b"))).getOrThrow()
+        assertEquals(listOf("a", "b", "c"), persons.observe().awaitMatching { it.size == 3 }.map { it.id })
+    }
+
+    @Test
+    fun utan_aktivt_hushall_ger_skrivning_NoHousehold_och_lasning_inget() = contract {
+        env.clearHousehold()
+        assertEquals(DataError.NoHousehold, persons.upsert(Person("a", "Anna")).dataError())
+        assertEquals(DataError.NoHousehold, persons.get("a").dataError())
     }
 
     @Test

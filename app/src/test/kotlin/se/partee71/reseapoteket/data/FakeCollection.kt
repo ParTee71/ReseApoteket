@@ -10,15 +10,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
 import se.partee71.reseapoteket.core.model.Identified
-import se.partee71.reseapoteket.core.model.Sortable
 import se.partee71.reseapoteket.core.schema.Doc
 import se.partee71.reseapoteket.core.schema.DocCodec
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.EntityCollection
 import se.partee71.reseapoteket.data.common.HouseholdScope
+import se.partee71.reseapoteket.data.common.currentVersion
 import se.partee71.reseapoteket.data.common.prepareForWrite
 import se.partee71.reseapoteket.data.common.readDocument
+import se.partee71.reseapoteket.data.common.sortForList
 import se.partee71.reseapoteket.data.common.suspendRunCatching
+import se.partee71.reseapoteket.data.common.writeBlocker
 import se.partee71.reseapoteket.data.firestore.CollectionTable
 
 /**
@@ -72,11 +74,7 @@ class FakeCollection<T : Identified>(
 
     override fun observe(): Flow<List<T>> = scope.householdId.flatMapLatest { hid ->
         val p = pathOrNull(hid) ?: return@flatMapLatest emptyFlow()
-        store.collection(p).map { docs ->
-            val items = docs.map { (id, doc) -> decode(id, doc) }
-            @Suppress("UNCHECKED_CAST")
-            if (items.firstOrNull() is Sortable) items.sortedWith(Sortable.ORDER as Comparator<T>) else items
-        }
+        store.collection(p).map { docs -> sortForList(docs.map { (id, doc) -> decode(id, doc) }) }
     }
 
     override fun observe(id: String): Flow<T?> = scope.householdId.flatMapLatest { hid ->
@@ -92,8 +90,11 @@ class FakeCollection<T : Identified>(
 
     override suspend fun delete(id: String) = write { store.delete(path(), id) }
 
-    override suspend fun setArchived(id: String, archived: Boolean) =
-        write { store.set(path(), id, mapOf("archived" to archived), merge = true) }
+    /** Som Firestores `update`: ett dokument som inte finns skapas inte. */
+    override suspend fun setArchived(id: String, archived: Boolean) = write {
+        val p = path()
+        if (store.read(p, id) != null) store.set(p, id, mapOf("archived" to archived), merge = true)
+    }
 
     override suspend fun batch(upserts: List<T>, deletes: List<String>) = write {
         val p = path()
@@ -105,15 +106,15 @@ class FakeCollection<T : Identified>(
 
     private fun encode(item: T) = prepareForWrite(codec.encode(item), clock.now())
 
-    private fun decode(id: String, doc: Doc) = readDocument(codec, name, scope.schemaVersion.value, id, doc)
+    private fun decode(id: String, doc: Doc) = readDocument(codec, name, scope.currentVersion(), id, doc)
 
     private fun path(): String = path(scope.householdId.value)
 
     private fun pathOrNull(hid: String?) = runCatching { path(hid) }.getOrNull()
 
-    private suspend fun <R> run(block: () -> R): Result<R> = suspendRunCatching({ DataError.Unknown }) { block() }
+    private suspend fun <R> run(block: suspend () -> R): Result<R> = suspendRunCatching({ DataError.Unknown }) { block() }
 
-    private suspend fun write(block: () -> Unit): Result<Unit> = run {
+    private suspend fun write(block: suspend () -> Unit): Result<Unit> = run {
         scope.writeBlocker()?.let { throw it }
         block()
     }

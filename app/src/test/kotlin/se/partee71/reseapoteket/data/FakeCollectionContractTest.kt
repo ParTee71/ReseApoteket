@@ -18,8 +18,10 @@ class FakeCollectionContractTest : CollectionContract() {
 
         override suspend fun readRaw(path: String, id: String) = factory.store.read(path, id)
 
-        override fun makeHouseholdNewerThanApp() {
-            scope.schemaVersion.value = Schema.CURRENT_VERSION + 1
+        override fun makeHouseholdNewerThanApp() = scope.setVersion(Schema.CURRENT_VERSION + 1)
+
+        override fun clearHousehold() {
+            scope.householdId.value = null
         }
     }
 }
