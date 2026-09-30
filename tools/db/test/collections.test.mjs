@@ -2,13 +2,8 @@
 // En samling som saknas här backas aldrig upp. Behöver ingen emulator.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { COLLECTIONS } from '../lib/collections.mjs';
-
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const read = (rel) => readFileSync(path.join(repoRoot, rel), 'utf8');
+import { readRepoFile as read } from './helpers/repo.mjs';
 const pathsKt = read('app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/Paths.kt');
 
 /** Platshållare ({hid}, $personId …) jämförs bara till sin position. */
