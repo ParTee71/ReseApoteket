@@ -87,8 +87,8 @@ chatten (skill [`data-privacy-security`](.claude/skills/data-privacy-security/SK
    lägg innehållet som GitHub-secret `GOOGLE_SERVICES_JSON` (release-bygget skriver filen).
    Utan filen bygger appen ändå, men inloggning fungerar inte.
 3. **Service accounts** (Google Cloud Console → IAM → Service accounts):
-   - `reseapoteket-tools` med rollen **Cloud Datastore User** → nyckeln base64-kodad som
-     GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (veckobackupen, #17).
+   - `reseapoteket-backup` med rollen **Cloud Datastore Viewer** (backupen läser bara) →
+     nyckeln base64-kodad som GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (veckobackupen).
    - en läsnyckel med rollen **Cloud Datastore Viewer** → miljövariabeln
      `FIREBASE_SERVICE_ACCOUNT` i Claude-miljön (se ovan).
 4. **Security rules:** `firestore.rules` deployas manuellt och medvetet – aldrig från CI –
@@ -105,4 +105,31 @@ npm ci --prefix tools/db
 npx --prefix tools/db firebase emulators:exec --only firestore --project demo-reseapoteket "npm --prefix tools/db test"
 ```
 
-*Funktioner, byggkommandon, backup och versionshistorik fylls på i #19.*
+## Backup och återställning
+
+`backup.yml` exporterar all data varje måndag 03:00 UTC (och på begäran: Actions → Backup →
+Run workflow), krypterar den med gpg och sparar `backup.json.gpg` som artifact i 90 dagar.
+
+**Inställning (en gång):** skapa en lång lösenfras och lägg den som GitHub-secret
+`BACKUP_PASSPHRASE` **och** i din lösenordshanterare – utan den går backupen inte att öppna.
+`FIREBASE_SERVICE_ACCOUNT` enligt Firebase-setup ovan.
+
+**Återställning** (från din dator eller en Claude-session med skrivnyckel):
+1. Ladda ner artifact `backup-<nr>` från körningen och packa upp `backup.json.gpg`.
+2. Dekryptera till den git-ignorerade katalogen `tools/db/` – lösenfrasen skriver du själv,
+   aldrig i chatten:
+   ```bash
+   gpg --decrypt --output tools/db/backup.json backup.json.gpg
+   ```
+   gpg kontrollerar integriteten: en trasig eller ändrad fil ger fel i stället för fel data.
+3. Kontrollera och skriv:
+   ```bash
+   node tools/db/import.mjs --in tools/db/backup.json --dry-run
+   node tools/db/import.mjs --in tools/db/backup.json
+   ```
+   Ett enda hushåll: lägg till `--household <hid>`. Importen vägrar filer från en nyare
+   `schemaVersion` än verktyget.
+   Kör när appen inte används: importen skriver över dokument som ändrats under tiden.
+4. Radera `tools/db/backup.json`.
+
+*Funktioner, byggkommandon och versionshistorik fylls på i #19.*
