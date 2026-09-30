@@ -1,0 +1,152 @@
+# Release (skill release). Grindar: alla tester, cpdCheck och dokumentkontroller (CI),
+# instrumenttester och lint + minifierat bygge (Kvalitet). Sedan signerat bygge och
+# GitHub Release. Taggen skapas här – en agentsession kan inte pusha taggar.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version utan v, t.ex. 0.2.0 – måste vara samma som versionName i app/build.gradle.kts'
+        required: true
+        type: string
+      publish_release:
+        description: 'Skapa taggen v<version_name> och publicera en GitHub Release'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/android.yml
+
+  instrumented:
+    uses: ./.github/workflows/instrumented.yml
+
+  quality:
+    uses: ./.github/workflows/quality.yml
+    with:
+      open_issue: false
+
+  release:
+    name: release
+    needs: [ci, instrumented, quality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # skapa taggen och GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version och tagg
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version_name }}
+          PUBLISH: ${{ inputs.publish_release }}
+        run: |
+          set -euo pipefail
+          # Release bara från master: dispatch på master, eller en tagg på en commit i master.
+          git fetch --no-tags --quiet origin master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::Commiten $GITHUB_SHA ligger inte på master – release görs bara från master (skill release)."
+            exit 1
+          fi
+          in_build="$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | cut -d'"' -f2)"
+          if [ "$EVENT" = "push" ]; then
+            version="${REF_NAME#v}"; publish=true
+          else
+            version="$INPUT_VERSION"; publish="$PUBLISH"
+          fi
+          if [ "$version" != "$in_build" ]; then
+            echo "::error::Versionen $version skiljer sig från versionName $in_build i app/build.gradle.kts – gör release-commiten först (skill release)."
+            exit 1
+          fi
+          tag="v$version"
+          if [ "$EVENT" != "push" ] && [ "$publish" = "true" ] && gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" > /dev/null 2>&1; then
+            echo "::error::Taggen $tag finns redan – välj en ny version."
+            exit 1
+          fi
+          {
+            echo "tag=$tag"
+            echo "publish=$publish"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-android
+
+      - name: Hemligheter till filer
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in GOOGLE_SERVICES_JSON SIGNING_KEYSTORE_BASE64 SIGNING_STORE_PASSWORD SIGNING_KEY_ALIAS SIGNING_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret $name saknas – krävs för en release."
+              exit 1
+            fi
+          done
+          printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > app/reseapoteket.jks
+          # Äldre PKCS12-format, som AGP:s signering läser utan problem.
+          keytool -importkeystore -noprompt \
+            -srckeystore app/reseapoteket.jks -srcstorepass "$SIGNING_STORE_PASSWORD" \
+            -destkeystore app/reseapoteket-legacy.jks -deststorepass "$SIGNING_STORE_PASSWORD" \
+            -deststoretype pkcs12 -J-Dkeystore.pkcs12.legacy > /dev/null
+          mv app/reseapoteket-legacy.jks app/reseapoteket.jks
+
+      - name: Signerat release-bygge
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: ./gradlew :app:assembleRelease
+
+      # Byggfilen signerar bara när alla uppgifter finns – publicera aldrig en osignerad APK.
+      - name: Kontrollera signaturen
+        run: |
+          set -euo pipefail
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n1)apksigner"
+          for apk in app/build/outputs/apk/release/*.apk; do
+            case "$apk" in *unsigned*) echo "::error::$apk är osignerad"; exit 1 ;; esac
+            "$apksigner" verify "$apk"
+          done
+
+      - name: APK som artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reseapoteket-${{ steps.version.outputs.tag }}
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      - name: GitHub Release
+        if: steps.version.outputs.publish == 'true'
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2 – pinnad: körs med contents: write
+        with:
+          name: ReseApoteket ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: app/build/outputs/apk/release/*.apk
+
+      - name: Ta bort hemligheter
+        if: always()
+        run: rm -f app/reseapoteket.jks app/google-services.json

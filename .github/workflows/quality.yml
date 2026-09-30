@@ -1,0 +1,45 @@
+# Dyra kontroller som hålls utanför PR-flödet (skill ci-budget): lint och minifierat
+# release-bygge. Veckovis, på begäran och som grind i release.yml.
+name: Kvalitet
+
+on:
+  schedule:
+    - cron: '17 4 * * 1' # måndagar 04:17 UTC
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      open_issue:
+        description: Öppna issue vid fel (av när release.yml anropar – där syns felet direkt).
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-android
+
+      - name: Lint och minifierat release-bygge
+        run: ./gradlew --configuration-cache --continue :app:lintDebug :app:assembleRelease
+
+      - name: Lintrapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint
+          path: app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+
+      # Schemalagda körningar ser ingen – då blir ett fel ett issue.
+      - name: Issue vid fel
+        if: failure() && (github.event_name == 'schedule' || inputs.open_issue)
+        uses: ./.github/actions/open-issue-on-failure
+        with:
+          title: 'Kvalitet: lint eller release-bygge fallerar'

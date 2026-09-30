@@ -1,0 +1,43 @@
+# Instrumenttester på Android-emulator – aldrig per PR (skill ci-budget). Körs på begäran,
+# t.ex. före merge när data/firestore/ ändrats, och som grind i release.yml.
+name: Instrumenttester
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  instrumented:
+    name: instrumented
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-android
+
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Instrumenttester (API 35, samma som targetSdk)
+        uses: reactivecircus/android-emulator-runner@e93c997dcab69054e999e3924af3d21c4a736e13 # v2.9.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -no-boot-anim -no-snapshot -camera-back none -gpu swiftshader_indirect
+          script: ./gradlew --configuration-cache :app:connectedDebugAndroidTest
+
+      - name: Testrapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumenttester
+          path: app/build/reports/androidTests/connected/
+          if-no-files-found: ignore

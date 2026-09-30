@@ -17,9 +17,9 @@ resten med `dorny/paths-filter`.
 <!-- ci-table:start -->
 | Filter | Sökvägar | Körs |
 |---|---|---|
-| `core` | `core/**` | `:core:test` + `:app:testDebugUnitTest` + `verifyRoborazziDebug` + `cpdCheck` |
+| `core` | `core/**` | `:core:test` + allt i raden `app` (appen beror på `:core`) |
 | `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:compileDebugAndroidTestKotlin` |
-| `tools` | `firestore.rules`, `firestore.indexes.json`, `tools/db/**` | rules- och rundturstester (Node) mot Firebase-emulatorn |
+| `tools` | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `tools/db/**` | rules- och rundturstester (Node) mot Firebase-emulatorn |
 | `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan |
 | – | allt annat (`*.md`, `.claude/**`) | bara `changes` med dokumentkontroller |
 <!-- ci-table:end -->
@@ -37,10 +37,21 @@ resten med `dorny/paths-filter`.
 - **Hoppade jobb rapporterar ingen status.** Därför är jobbet `ci-ok`
   (`needs: [changes, gradle, rules]`, `if: always()`) det enda obligatoriska statuskravet.
 
+- **`gradle`** kör en enda Gradle-körning: `cpdCheck` plus `:core:test` och/eller app-uppgifterna
+  enligt filtren, med `--configuration-cache --continue`. Testrapporter laddas alltid upp;
+  Roborazzi-diffar och CPD-rapporten vid fel, länkade i jobbsammanfattningen.
+- **`rules`** hoppar över (med en notis) så länge `tools/db/package.json` eller `firebase.json`
+  saknas (#15, #17).
+- **`release.yml`** anropar `android.yml`, `instrumented.yml` och `quality.yml`
+  (`workflow_call`) som grindar – samma jobb, ingen kopia.
+
 ### Dokumentdrift
 `.github/scripts/check-ci-table.mjs` läser tabellen mellan `ci-table`-markeringarna och
 filtren i `android.yml` och fäller `changes` om de skiljer sig. Ändra alltid båda i samma
-PR. Ny modul = ny rad här **och** nytt filter.
+PR. Ny modul = ny rad här **och** nytt filter. `.github/scripts/check-links.mjs` kontrollerar
+relativa länkar och nämnda skills/agenter i `CLAUDE.md`, `README.md`, `ARKITEKTUR.md`,
+`KRAVLISTA.md` och `.claude/**`, och att tabellerna i `CLAUDE.md` listar exakt de skills och
+agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt`.
 
 ## Inte i PR-flödet (utan uttryckligt beslut)
 
@@ -56,9 +67,10 @@ PR. Ny modul = ny rad här **och** nytt filter.
 
 - `gradle/actions/setup-gradle`: cache skrivs från `master`, läses i PR.
 - `org.gradle.configuration-cache=true`, `org.gradle.parallel=true`, `--configuration-cache`.
-- `concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }`.
+- `concurrency: { group: ci-${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: <bara för PR> }`
+  – en ny push avbryter PR:ens förra körning, men `master`-baslinjen och release-grindarna avbryts aldrig.
 - Robolectric-SDK-jar och Firebase-emulatorn cachas.
-- Gemensamma steg i composite actions (`.github/actions/setup-android`,
+- Gemensamma steg i composite actions (`.github/actions/setup-android`, `doc-checks`,
   `open-issue-on-failure`) – en ändring, alla flöden.
 - `:core` utan Android-beroenden kompilerar och testar på sekunder.
 
