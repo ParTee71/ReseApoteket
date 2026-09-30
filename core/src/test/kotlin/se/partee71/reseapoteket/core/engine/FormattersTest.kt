@@ -49,6 +49,14 @@ class FormattersTest {
         assertEquals("1 tub per 7 dagar", QuantityRuleFormatter.format(QuantityRule.PerDays(1, 7), ItemUnit.TUB))
         assertEquals("2 tuber", QuantityRuleFormatter.format(QuantityRule.Fixed(2), ItemUnit.TUB))
         assertEquals("kan inte visas – uppdatera appen", QuantityRuleFormatter.format(QuantityRule.Unknown(), ItemUnit.ST))
+        assertEquals("1 tub per dag", QuantityRuleFormatter.format(QuantityRule.PerDays(1, 1), ItemUnit.TUB))
+        assertEquals("1 kapsel inga veckodagar valda", DoseScheduleFormatter.format(DoseSchedule.Weekdays(emptySet(), 1), ItemUnit.KAPSEL))
+    }
+
+    @Test
+    fun `period i singular och med marginal`() {
+        assertEquals("1 dag", ReasonFormatter.period(trip.copy(days = 1), HouseholdSettings(0)))
+        assertEquals("(1 + 2) dagar", ReasonFormatter.period(trip.copy(days = 1), margin2))
     }
 
     private fun reason(schedule: DoseSchedule, unit: ItemUnit = ItemUnit.TABLETT, packageSize: Int? = null, t: Trip = trip, s: HouseholdSettings = margin2) =
@@ -64,9 +72,9 @@ class FormattersTest {
         )
         assertEquals("1 dos var 3:e dag under (7 + 2) dagar = 3 doser", reason(DoseSchedule.IntervalDays(3, 1), ItemUnit.DOS))
         assertEquals("vid behov: 10 tabletter", reason(DoseSchedule.AsNeeded(10)))
-        assertEquals(ReasonFormatter.AS_NEEDED_MISSING, reason(DoseSchedule.AsNeeded(0)))
-        assertEquals(ReasonFormatter.CANNOT_CALCULATE, reason(DoseSchedule.Unknown()))
-        assertEquals(ReasonFormatter.NO_START_DATE, reason(DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY), 1), t = trip.copy(startDate = null)))
+        assertEquals(Texts.AS_NEEDED_MISSING, reason(DoseSchedule.AsNeeded(0)))
+        assertEquals(Texts.CANNOT_CALCULATE, reason(DoseSchedule.Unknown()))
+        assertEquals(Texts.NO_START_DATE, reason(DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY), 1), t = trip.copy(startDate = null)))
     }
 
     private fun familyReason(rule: QuantityRule, unit: ItemUnit = ItemUnit.TUB, travellers: Int = 4, t: Trip = trip.copy(days = 10)) =
@@ -77,7 +85,8 @@ class FormattersTest {
         assertEquals("fast antal: 1 st", familyReason(QuantityRule.Fixed(1), ItemUnit.ST))
         assertEquals("1 tub × 4 resenärer = 4 tuber", familyReason(QuantityRule.PerTraveller(1)))
         assertEquals("1 tub × 1 resenär = 1 tub", familyReason(QuantityRule.PerTraveller(1), travellers = 1))
+        assertEquals("1 × 4 resenärer = 4 st", familyReason(QuantityRule.PerTraveller(1), ItemUnit.ST))
         assertEquals("1 tub per 7 dagar under (10 + 2) dagar = 2 tuber", familyReason(QuantityRule.PerDays(1, 7)))
-        assertEquals(ReasonFormatter.CANNOT_CALCULATE, familyReason(QuantityRule.Unknown()))
+        assertEquals(Texts.CANNOT_CALCULATE, familyReason(QuantityRule.Unknown()))
     }
 }

@@ -54,7 +54,7 @@ object PackingEngine {
     }
 
     /** Antal dagar i resan (med marginal) vars veckodag ingår; `null` utan startdatum. */
-    internal fun weekdayCount(schedule: DoseSchedule.Weekdays, trip: Trip, effectiveDays: Int): Int? {
+    private fun weekdayCount(schedule: DoseSchedule.Weekdays, trip: Trip, effectiveDays: Int): Int? {
         val start = trip.startDate ?: return null
         return (0 until effectiveDays).count { start.plus(DatePeriod(days = it)).dayOfWeek in schedule.days }
     }
@@ -131,35 +131,36 @@ object PackingEngine {
         reason = line.reason,
     ) to line
 
-    /** Förklaringen på en avprickad rad som inte längre finns i förslaget. */
-    const val NO_LONGER_SUGGESTED = "Inte längre i förslaget"
-
     /**
      * "Räkna om" (RES-4): matchar på (`sourceType`, `sourceId`, `personId`). En omatchad rad
-     * får nytt förslag; en manuellt ändrad mängd, `checked`, `checkedAt` och `hidden` behålls.
-     * Rader som försvunnit ur förslaget tas bort om de inte är avprickade; avprickade behålls och
-     * märks [NO_LONGER_SUGGESTED]. Egna (`MANUAL`) rader rörs aldrig.
+     * får nytt förslag; en manuellt ändrad mängd (med sina förpackningar), `checked`, `checkedAt`
+     * och `hidden` behålls. Rader som försvunnit ur förslaget – och dubbletter av samma nyckel –
+     * tas bort om de inte är avprickade; avprickade behålls och får förklaringen
+     * [Texts.NO_LONGER_SUGGESTED]. Egna (`MANUAL`) rader rörs aldrig. Resultatet har entydig
+     * ordning: förslagets rader, sedan kvarvarande avprickade, sedan egna rader.
      */
     fun merge(existing: List<PackingItem>, suggestion: PackingSuggestion): List<PackingItem> {
         fun key(item: PackingItem) = Triple(item.sourceType, item.sourceId, item.personId)
-        val byKey = existing.filter { it.sourceType != PackingSource.MANUAL }.associateBy(::key)
-        val suggestedKeys = suggestion.items.map(::key).toSet()
+        val (manual, generated) = existing.partition { it.sourceType == PackingSource.MANUAL }
+        val byKey = generated.groupBy(::key)
+        val used = mutableSetOf<String>()
         val updated = suggestion.items.map { suggested ->
-            val old = byKey[key(suggested)] ?: return@map suggested
+            val old = byKey[key(suggested)]?.first() ?: return@map suggested
+            used += old.id
             val manuallyChanged = old.quantity != old.suggestedQuantity
             suggested.copy(
                 id = old.id,
                 quantity = if (manuallyChanged) old.quantity else suggested.quantity,
+                // Förpackningarna hör till mängden: en manuell mängd behåller radens egna.
+                packages = if (manuallyChanged) old.packages else suggested.packages,
                 checked = old.checked,
                 checkedAt = old.checkedAt,
                 hidden = old.hidden,
             )
         }
-        val keptChecked = existing
-            .filter { it.sourceType != PackingSource.MANUAL && key(it) !in suggestedKeys && it.checked }
-            .map { it.copy(reason = NO_LONGER_SUGGESTED) }
-        val manual = existing.filter { it.sourceType == PackingSource.MANUAL }
-        return updated + keptChecked + manual
+        val keptChecked = generated.filter { it.id !in used && it.checked }.map { it.copy(reason = Texts.NO_LONGER_SUGGESTED) }
+        return (updated + keptChecked + manual.sortedWith(Sortable.ORDER))
+            .mapIndexed { index, item -> item.copy(sortOrder = index) }
     }
 
     /** Namn sorteras i svensk ordning: … x, y, z, å, ä, ö – inte på teckenkod. */

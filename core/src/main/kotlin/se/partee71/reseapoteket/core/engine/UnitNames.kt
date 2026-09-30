@@ -42,6 +42,12 @@ object UnitNames {
 
     fun days(count: Int): String = "$count ${days.of(count)}"
 
+    /** "per dag", "per 7 dagar". */
+    fun perDays(count: Int): String = if (count == 1) "per dag" else "per ${days(count)}"
+
+    /** Mängd i en regel: "1 tub", men bara "1" för styck – "1 per resenär" läses bättre än "1 st per resenär". */
+    fun amount(count: Int, unit: ItemUnit): String = if (unit == ItemUnit.ST) "$count" else quantity(count, unit)
+
     fun travellers(count: Int): String = "$count ${travellers.of(count)}"
 
     /** Svenska ordningstal: 1:a, 2:a, 3:e … 11:e, 12:e … 21:a, 22:a. */

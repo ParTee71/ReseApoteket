@@ -3,7 +3,6 @@ package se.partee71.reseapoteket.core.engine
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.HouseholdSettings
-import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.Trip
@@ -11,12 +10,10 @@ import se.partee71.reseapoteket.core.model.Trip
 /**
  * Förklaringen till en mängd (BER-10), t.ex.
  * "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10".
- * Samma text i packlistan och i förhandsvisningarna; räknar aldrig själv – mängden skickas in.
+ * Samma text i packlistan och i förhandsvisningarna. Räknar aldrig själv: mängden kommer från
+ * [PackingEngine] (`null` = kan inte räknas ut), och regeltexter från [QuantityRuleFormatter].
  */
 object ReasonFormatter {
-    const val CANNOT_CALCULATE = "kan inte beräknas – uppdatera appen"
-    const val NO_START_DATE = "startdatum saknas – kan inte beräknas"
-    const val AS_NEEDED_MISSING = "vid behov – ange hur många som ska med"
 
     /** "(7 + 2) dagar", eller "7 dagar" utan marginal. */
     fun period(trip: Trip, settings: HouseholdSettings): String =
@@ -24,14 +21,13 @@ object ReasonFormatter {
 
     fun regimen(regimen: Regimen, trip: Trip, settings: HouseholdSettings, quantity: Int?, packages: Int?): String {
         val unit = regimen.unit
-        val schedule = regimen.schedule
-        val total = quantity?.let { " = ${UnitNames.quantity(it, unit)}" }.orEmpty()
-        val base = when (schedule) {
+        val total = " = ${UnitNames.quantity(quantity ?: 0, unit)}"
+        val base = when (val schedule = regimen.schedule) {
             is DoseSchedule.Daily ->
                 "${schedule.dosesPerDay} × ${UnitNames.quantity(schedule.unitsPerDose, unit)}/dag × ${period(trip, settings)}$total"
             is DoseSchedule.Weekdays -> {
-                val matching = PackingEngine.weekdayCount(schedule, trip, PackingEngine.effectiveDays(trip, settings))
-                    ?: return NO_START_DATE
+                if (quantity == null) return Texts.NO_START_DATE
+                val matching = if (schedule.unitsPerDose > 0) quantity / schedule.unitsPerDose else 0
                 "${UnitNames.quantity(schedule.unitsPerDose, unit)} × ${UnitNames.days(matching)} " +
                     "(${DoseScheduleFormatter.days(schedule.days)}) under ${period(trip, settings)}$total"
             }
@@ -39,24 +35,20 @@ object ReasonFormatter {
                 "${UnitNames.quantity(schedule.unitsPerDose, unit)} ${DoseScheduleFormatter.every(schedule.intervalDays)} " +
                     "under ${period(trip, settings)}$total"
             is DoseSchedule.AsNeeded ->
-                if (schedule.quantity > 0) "vid behov: ${UnitNames.quantity(schedule.quantity, unit)}" else AS_NEEDED_MISSING
-            is DoseSchedule.Unknown -> return CANNOT_CALCULATE
+                if (schedule.quantity > 0) "vid behov: ${UnitNames.quantity(schedule.quantity, unit)}" else Texts.AS_NEEDED_MISSING
+            is DoseSchedule.Unknown -> return Texts.CANNOT_CALCULATE
         }
         val size = regimen.packageSize
         return if (packages != null && size != null) "$base → ${UnitNames.packages(packages, unit)} à $size" else base
     }
 
     fun family(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings, quantity: Int?): String {
-        val unit = item.unit
-        val total = quantity?.let { UnitNames.quantity(it, unit) }.orEmpty()
+        val total = UnitNames.quantity(quantity ?: 0, item.unit)
         return when (val rule = item.rule) {
             is QuantityRule.Fixed -> "fast antal: $total"
-            is QuantityRule.PerTraveller -> "${amount(rule.quantity, unit)} × ${UnitNames.travellers(travellers)} = $total"
-            is QuantityRule.PerDays ->
-                "${amount(rule.quantity, unit)} per ${UnitNames.days(rule.perDays)} under ${period(trip, settings)} = $total"
-            is QuantityRule.Unknown -> CANNOT_CALCULATE
+            is QuantityRule.PerTraveller -> "${UnitNames.amount(rule.quantity, item.unit)} × ${UnitNames.travellers(travellers)} = $total"
+            is QuantityRule.PerDays -> "${QuantityRuleFormatter.format(rule, item.unit)} under ${period(trip, settings)} = $total"
+            is QuantityRule.Unknown -> Texts.CANNOT_CALCULATE
         }
     }
-
-    private fun amount(quantity: Int, unit: ItemUnit) = UnitNames.quantity(quantity, unit)
 }

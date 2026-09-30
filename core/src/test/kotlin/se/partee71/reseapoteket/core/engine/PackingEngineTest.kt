@@ -159,6 +159,7 @@ class PackingEngineTest {
         )
     }
 
+    /** Svensk ordning via java.text.Collator – kräver JDK:ns svenska lokaldata (finns i vanliga JDK). */
     @Test
     fun `namn sorteras i svensk ordning - å, ä, ö sist`() {
         val names = listOf("Ölkorv", "Äppelcider", "Åkomma", "Zink", "abc").map { Regimen(it, name = it, schedule = DoseSchedule.Daily()) }
@@ -220,7 +221,81 @@ class PackingEngineTest {
         )
         val merged = PackingEngine.merge(existing, PackingSuggestion(emptyList(), emptyList()))
         assertEquals(listOf("packad", "egen"), merged.map { it.id })
-        assertEquals(PackingEngine.NO_LONGER_SUGGESTED, merged.first().reason)
-        assertEquals(manual, merged.last())
+        assertEquals(Texts.NO_LONGER_SUGGESTED, merged.first().reason)
+        assertEquals(manual.copy(sortOrder = 1), merged.last())
+    }
+
+    @Test
+    fun `merge - samma recept hos två personer och familjerader matchas var för sig`() {
+        val existing = listOf(
+            row("a", PackingSource.REGIMEN, "alvedon", "anna", suggested = 10, quantity = 5),
+            row("e", PackingSource.REGIMEN, "alvedon", "erik", suggested = 10).copy(checked = true),
+            row("f", PackingSource.FAMILY_ITEM, "sol", null, suggested = 1, quantity = 3),
+        )
+        val suggestion = PackingSuggestion(
+            listOf(
+                row("regimen-anna-alvedon", PackingSource.REGIMEN, "alvedon", "anna", suggested = 12),
+                row("regimen-erik-alvedon", PackingSource.REGIMEN, "alvedon", "erik", suggested = 12),
+                row("family-sol", PackingSource.FAMILY_ITEM, "sol", null, suggested = 2),
+            ),
+            emptyList(),
+        )
+        val merged = PackingEngine.merge(existing, suggestion)
+        assertEquals(listOf("a" to 5, "e" to 12, "f" to 3), merged.map { it.id to it.quantity })
+        assertEquals(listOf(false, true, false), merged.map { it.checked })
+    }
+
+    @Test
+    fun `merge - entydig ordning, dolt behålls på avprickad rad och dubbletter tappas inte tyst`() {
+        val existing = listOf(
+            row("egen-2", PackingSource.MANUAL, null, null, suggested = 0).copy(sortOrder = 9),
+            row("egen-1", PackingSource.MANUAL, null, null, suggested = 0).copy(sortOrder = 3),
+            row("gammal", PackingSource.REGIMEN, "borta", "anna", suggested = 1).copy(checked = true, hidden = true, sortOrder = 0),
+            row("dubblett-1", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9),
+            row("dubblett-2", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9).copy(checked = true),
+        )
+        val suggestion = PackingSuggestion(listOf(row("regimen-anna-levaxin", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9)), emptyList())
+        val merged = PackingEngine.merge(existing, suggestion)
+        assertEquals(listOf("dubblett-1", "gammal", "dubblett-2", "egen-1", "egen-2"), merged.map { it.id })
+        assertEquals(listOf(0, 1, 2, 3, 4), merged.map { it.sortOrder })
+        assertTrue(merged[1].hidden)
+    }
+
+    @Test
+    fun `merge - manuellt ändrad mängd behåller sina förpackningar, annars följer de förslaget`() {
+        val existing = listOf(
+            row("m", PackingSource.REGIMEN, "a", "anna", suggested = 9, quantity = 25).copy(packages = 3),
+            row("f", PackingSource.REGIMEN, "b", "anna", suggested = 9).copy(packages = 1),
+        )
+        val suggestion = PackingSuggestion(
+            listOf(
+                row("regimen-anna-a", PackingSource.REGIMEN, "a", "anna", suggested = 11).copy(packages = 2),
+                row("regimen-anna-b", PackingSource.REGIMEN, "b", "anna", suggested = 11).copy(packages = 2),
+            ),
+            emptyList(),
+        )
+        assertEquals(listOf(3, 2), PackingEngine.merge(existing, suggestion).map { it.packages })
+    }
+
+    @Test
+    fun `förslagets rader har enhet, förpackningar och förklaring, och veckodagar utan startdatum varnar`() {
+        val levaxin = Regimen("lev", name = "Levaxin", strength = "50 µg", unit = ItemUnit.TABLETT, packageSize = 10, schedule = DoseSchedule.Daily(2, 1))
+        val weekly = Regimen("w", name = "Veckotablett", schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY), 1))
+        val suggestion = PackingEngine.suggest(trip(7, start = null), listOf(anna), mapOf("anna" to listOf(levaxin, weekly)), emptyList(), margin2)
+        val item = suggestion.items.first()
+        assertEquals(Triple(ItemUnit.TABLETT, 2, "Levaxin 50 µg"), Triple(item.unit, item.packages, item.name))
+        assertEquals("2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10", item.reason)
+        assertEquals(listOf("Veckotablett"), suggestion.warnings)
+    }
+
+    @Test
+    fun `skydd mot noll och negativa värden`() {
+        assertEquals(0, PackingEngine.effectiveDays(trip(-5), noMargin))
+        assertEquals(9, PackingEngine.regimenQuantity(DoseSchedule.IntervalDays(0, 1), trip(7), margin2))
+        assertEquals(9, PackingEngine.familyQuantity(QuantityRule.PerDays(1, 0), 1, trip(7), margin2))
+        assertEquals(0, PackingEngine.familyQuantity(QuantityRule.PerDays(1, 7), 1, trip(0), noMargin))
+        val monday = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY), 1)
+        assertEquals(0, PackingEngine.regimenQuantity(monday, trip(0, LocalDate(2026, 12, 21)), noMargin))
+        assertEquals(1, PackingEngine.regimenQuantity(monday, trip(1, LocalDate(2026, 12, 21)), noMargin))
     }
 }

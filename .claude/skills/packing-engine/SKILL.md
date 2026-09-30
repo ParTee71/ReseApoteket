@@ -90,12 +90,18 @@ används av alla tre formatterarna.
 För varje förslagsrad matchas befintlig rad på (`sourceType`, `sourceId`, `personId`):
 - **Finns, mängden inte manuellt ändrad** (`quantity == suggestedQuantity`) → ny
   `suggestedQuantity` och `quantity`.
-- **Finns, manuellt ändrad** → ny `suggestedQuantity`, `quantity` behålls.
+- **Finns, manuellt ändrad** → ny `suggestedQuantity`; `quantity` och radens `packages`
+  behålls (förpackningarna hör till mängden – den som ändrar mängden räknar om dem).
 - **`checked`, `checkedAt`, `hidden`** behålls alltid.
 - **Ny i förslaget** → läggs till.
 - **Saknas i förslaget** (t.ex. resenär borttagen) → tas bort om inte avprickad; avprickad
   rad behålls och får förklaringen "Inte längre i förslaget" (`NO_LONGER_SUGGESTED`).
 - **`MANUAL`-rader** rörs aldrig.
+- **Dubbletter** av samma nyckel: den första matchas, övriga behandlas som försvunna.
+- Resultatet får entydig `sortOrder`: förslagets rader, sedan kvarvarande avprickade, sedan
+  egna rader (i sin tidigare ordning).
+- Texterna ("Inte längre i förslaget", "kan inte beräknas – uppdatera appen" m.fl.) finns
+  en gång, i `Texts`.
 
 ## Kantfall som ALLTID ska ha test (`core/src/test/.../engine/`)
 
