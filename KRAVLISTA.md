@@ -3,7 +3,7 @@
 > Räknar ut hur mycket av familjens mediciner, kosttillskott och apoteksvaror som ska
 > packas inför en resa, och låter familjen pricka av det som plockats fram.
 >
-> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inga funktioner än.
+> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning och hushåll finns, övriga funktioner kommer.
 
 Så här används listan: skill [`requirements-kravlista`](.claude/skills/requirements-kravlista/SKILL.md).
 Krav märkta *(planerad)* är beslutade men inte byggda; markeringen tas bort i PR:en som
@@ -18,7 +18,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ÖV-1 | Appen ska räkna fram ett **packförslag** av mediciner, kosttillskott och familjeartiklar utifrån resans längd i dagar och vilka som åker med. *(planerad)* |
 | ÖV-2 | Appen ska ha en **packlista** där framplockade saker prickas av. *(planerad)* |
 | ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå. *(planerad)* |
-| ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. *(planerad)* |
+| ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. |
 | ÖV-5 | Appen ska fungera **offline**: allt läses från den lokala Firestore-cachen och ändringar sparas direkt och synkas när nätet kommer tillbaka. |
 | ÖV-6 | Hela gränssnittet ska vara på **svenska**. *(planerad)* |
 
@@ -30,10 +30,10 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | TP-1 | Enbart Android. minSdk, targetSdk och compileSdk anges i `app/build.gradle.kts` och i ARKITEKTUR.md → "Byggkonfiguration". |
 | TP-2 | Gränssnitt i **Jetpack Compose** med **Material 3 Expressive** (API:er och versioner i ARKITEKTUR.md → "Verifierade API:er"). |
-| TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. *(planerad, #16, #20 – Hilt finns sedan #11)* |
+| TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. *(planerad, #20 – Hilt sedan #11, första ViewModel i #16)* |
 | TP-4 | Två moduler: **`:core`** (ren Kotlin/JVM: modeller, codecs, beräkning) och **`:app`**. |
 | TP-5 | Data lagras i **Cloud Firestore** med offline-cache (100 MB); enhetens inställningar i **DataStore**. |
-| TP-6 | Inloggning via **Firebase Auth + Credential Manager**. *(planerad, #16)* |
+| TP-6 | Inloggning via **Firebase Auth + Credential Manager**. |
 | TP-7 | Navigering med **Navigation 3**. *(planerad, #20)* |
 | TP-8 | Backup och databasåtkomst från utvecklingssessioner via Node-verktyget **`tools/db`**: `stats`, `query` och `get` läser (med en läsnyckel, inget sparas på disk), `export`, `import` och `migrate` för backup och schemaändringar. |
 
@@ -51,11 +51,21 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 ## 4. Konto
 
-*Fylls i av #16.*
+| ID | Krav |
+|----|------|
+| AUTH-1 | Appen visar inloggningen ("Logga in med Google") tills användaren loggat in med sitt Google-konto; utloggad visas inget annat innehåll. |
+| AUTH-2 | En avbruten inloggning – kontoväljaren stängd – är inget fel och visar inget meddelande. |
+| AUTH-3 | Medan inloggningen och valet av hushåll pågår visar knappen "Loggar in …" och kan inte tryckas; ett fel visas som meddelande ovanför knappen (NFR-5). |
+| AUTH-4 | Utloggning rensar den sparade inloggningen, Firebase-sessionen och det valda hushållet på enheten; är ingen inloggad rensas ett kvarglömt hushållsval alltid, så att nästa konto aldrig hamnar i ett annat kontos hushåll. *(planerad, #27 – knappen i Inställningar; stödet och rensningen finns sedan #16)* |
 
 ## 5. Hushåll
 
-*Fylls i av #16.*
+| ID | Krav |
+|----|------|
+| HUS-1 | Efter inloggning väljs ett hushåll där användaren är medlem; finns flera väljs det äldsta. Frågan går mot servern, så att en tom cache aldrig tolkas som "inget hushåll". |
+| HUS-2 | Har användaren inget hushåll skapas "Mitt hushåll" med användaren som enda medlem, 2 marginaldagar och appens `schemaVersion`; det väljs först när servern tagit emot det. Utan nät skapas inget; felet visas och knappen försöker igen utan ny inloggning. |
+| HUS-3 | Är hushållet sparat med en nyare `schemaVersion` än appen förstår visas bara "Uppdatera appen" med en knapp till senaste versionen (BCK-5). Appen visas inte förrän hushållets version är känd. |
+| HUS-4 | Det valda hushållet sparas på enheten; nästa start går direkt in, även utan nät. |
 
 ## 6. Personer
 
@@ -111,7 +121,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | BCK-2 | En backup tas automatiskt varje vecka (`backup.yml`, måndag 03:00 UTC), krypteras med gpg (AES-256, integritetskontroll) och sparas i 90 dagar som artifact i det privata repot; klartexten lämnar aldrig jobbet. En misslyckad backup öppnar ett issue. |
 | BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit: skrivningar slås ihop med det lagrade dokumentet, och ett fält som användaren tömt försvinner ändå. |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. |
-| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering. Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. *(planerad, #20 – texten "Uppdatera appen" visas i UI:t; spärren och migreringen finns sedan #15)* |
+| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering (HUS-3). Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. |
 | BCK-6 | Återställning: backupen dekrypteras till `tools/db/`, `import --dry-run` visar antal dokument per samling, och importen skriver sedan dokumenten exakt som i filen; med `--replace` tas dokument som tillkommit efter backupen bort, så att hushållet blir exakt som i backupen (README → Backup och återställning). |
 | BCK-7 | Import kontrollerar hela filen innan något skrivs och vägrar hushåll vars `schemaVersion` är nyare än verktyget förstår, trasiga värden och sökvägar utanför de kända samlingarna. |
 | BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Felmeddelanden visar sökväg, aldrig innehåll. |
@@ -144,7 +154,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-13 | Skärmdumpar (ljust och mörkt) jämförs mot incheckade referensbilder i varje PR som rör appen; en oväntad skillnad fäller PR:en och diffbilden sparas (skill `testing-strategy`). |
 | NFR-14 | Kopierad kod fäller bygget (`cpdCheck`, skill `shared-ui-components`). |
 | NFR-15 | Dokumentationen kontrolleras i varje PR: CI-tabellen mot filtren, relativa länkar, nämnda skills och agenter, och hooktestet. |
-| NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet: allt ligger under `households/{hid}`, ett hushåll har alltid minst en medlem vars lista inte kan ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal. Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas manuellt. |
+| NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet (en användare kan lista just de hushåll där den själv är medlem): allt ligger under `households/{hid}`, ett hushåll har alltid minst en medlem vars lista inte kan ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal. Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas manuellt. |
 
 ---
 

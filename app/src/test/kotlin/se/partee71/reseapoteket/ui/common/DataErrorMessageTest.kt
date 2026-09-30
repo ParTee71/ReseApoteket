@@ -13,7 +13,7 @@ class DataErrorMessageTest {
 
     private val all = listOf(
         DataError.Offline, DataError.PermissionDenied, DataError.Cancelled,
-        DataError.UpdateRequired, DataError.NoHousehold, DataError.Unknown,
+        DataError.UpdateRequired, DataError.SignInRejected, DataError.NoHousehold, DataError.Unknown,
     )
 
     @Test

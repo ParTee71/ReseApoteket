@@ -143,19 +143,20 @@ ReseApoteket/
 │       ├── data/
 │       │   ├── common/           DataError, suspendRunCatching, EntityCollection, CollectionFactory,
 │       │   │                     HouseholdScope, SyncStatus, läs- och skrivregler (DocumentRules)
-│       │   ├── auth/             AuthRepository (Credential Manager + Firebase Auth)
+│       │   ├── auth/             AuthRepository → GoogleAuthRepository (Credential Manager + Firebase Auth), authError
 │       │   ├── firestore/        FirestoreCollection<T>, CollectionTable, Paths, FirestoreSyncStatus,
-│       │   │                     Timestamp ↔ Instant, felmappning, FirestoreModule (Hilt)
-│       │   ├── household/        HouseholdSession (aktivt hushåll och dess schemaVersion)
+│       │   │                     Timestamp ↔ Instant, felmappning, FirestoreHouseholdDirectory, FirestoreModule (Hilt)
+│       │   ├── household/        HouseholdSession (aktivt hushåll och dess schemaVersion), HouseholdDirectory
 │       │   ├── repository/       tunna fasader per domän
 │       │   └── datastore/        SettingsStore
+│       ├── domain/               use cases som spänner över flera repositories (EnsureHouseholdUseCase)
 │       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
 │       ├── navigation/           Navigation 3: nycklar, back stack, Transitions
 │       └── ui/
 │           ├── theme/            Expressive-tema, AppColors, AppTypography, AppShapes, Spacing
 │           ├── components/       delade komponenter och skärmramar, ComponentGallery
 │           ├── common/           ListUiState, EditorState, Validator, DataError.toMessage()
-│           ├── auth/             inloggning
+│           ├── auth/             AuthViewModel (vad appen visar), SignInScreen, UpdateRequiredScreen
 │           └── persons/ regimens/ familyitems/ trips/ packing/ settings/
 ├── tools/db/                     Node: query, get, stats, export, import, migrate + lib/ + tester
 ├── firestore.rules               security rules
@@ -186,7 +187,9 @@ Session:    Claude → tools/db query/get/stats (service account, läsroll) → 
 - Skrivningar görs med merge och codecens fullständiga fältlista, så att fält från en nyare
   appversion aldrig raderas av en äldre (skill `data-safety-backup`).
 - Listskärmar använder `EntityListScreen` + `asListUiState()`, formulär `EntityEditScreen` + `EditorState`.
-- Aktivt hushåll finns i `HouseholdSession` och sätts efter inloggning.
+- Aktivt hushåll finns i `HouseholdSession` och sätts efter inloggning av
+  `EnsureHouseholdUseCase` (fråga mot servern via `HouseholdDirectory`, annars nytt hushåll).
+  `AuthViewModel` avgör vad `AppRoot` visar: inloggning, "Uppdatera appen" eller appen.
 
 ---
 
@@ -308,9 +311,11 @@ Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten)
 (`STARTED`-rader, så att ett test som hänger syns som sista rad utan resultat). Med två moduler räcker det;
 `build-logic/` införs om fler moduler kommer. Modulfilerna innehåller bara det som är unikt.
 
-**`default_web_client_id` utan `google-services.json`:** saknas filen (PR-bygge, session)
-läggs `app/src/authStub/res` till i debug-källorna och ger en stubbsträng, så att
-inloggningskoden kompilerar; inloggning misslyckas då vid körning. Finns filen appliceras
+**Firebase-konfiguration utan `google-services.json`:** saknas filen (PR-bygge, CI-emulatorn,
+session) läggs `app/src/authStub/res` till i debug-källorna. Den ger `default_web_client_id`
+och en Firebase-konfiguration för projektet `demo-reseapoteket`, så att inloggningskoden
+kompilerar och appen startar (standardappen skapas av `FirebaseInitProvider`) utan att kunna
+nå den riktiga databasen; inloggning misslyckas då vid körning. Finns filen appliceras
 `google-services`-pluginen i stället och stubben används inte.
 
 **`cpdCheck`** (rotprojektet, kopplad till `check`): PMD CPD för Kotlin över `core/src`,

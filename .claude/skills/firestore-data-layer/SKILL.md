@@ -59,7 +59,7 @@ fälthjälparna; toleranta mot saknade och okända fält.
   översätts i `data/firestore/FirestoreValues.kt`, rekursivt; `:core` ser aldrig Firebase-typer.
 - **Fel:** `firestoreError` mappar `FirebaseFirestoreException` → `DataError` en gång, via
   `suspendRunCatching`. `DataError` (`Offline`, `PermissionDenied`, `Cancelled`,
-  `UpdateRequired`, `NoHousehold`, `Unknown`) används även av `AuthRepository`. UI visar
+  `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) används även av `AuthRepository`. UI visar
   texten via `DataError.toMessage()`.
 - **`FakeCollection`** (test) använder samma `prepareForWrite`/`readDocument` och emulerar
   Firestores merge (djup för nästlade maps, heltal som `Long`). `CollectionContract` i
@@ -84,11 +84,14 @@ DataStore (`SettingsStore`, som ger standardvärden om filen inte går att läsa
 `schemaVersion` läses direkt ur hushållsdokumentet (`HouseholdVersionSource`; vid fel
 emitteras inget, så skrivspärren förblir stängd). `select(id)` återvänder först när
 sessionen visar det nya hushållet, så nästa skrivning hamnar rätt.
+`selection` är det sparade valet som flöde och emitterar först när DataStore lästs.
+Hushållen en användare är medlem i hämtas med `HouseholdDirectory` (fråga
+`memberUids array-contains uid` mot servern) – används av `EnsureHouseholdUseCase` vid inloggning.
 
 ### DI
 `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), eftersom `FirebaseFirestore`
 bara får förekomma där. Den ger `FirebaseFirestore` med `PersistentCacheSettings` och binder
-`CollectionFactory`, `SyncStatus` och `HouseholdVersionSource`. Övriga moduler i `di/`
+`CollectionFactory`, `SyncStatus`, `HouseholdVersionSource` och `HouseholdDirectory`. Övriga moduler i `di/`
 (`AppModule`: app-scope, klocka, DataStore; `RepositoryModule`).
 
 ## Offline
@@ -99,7 +102,9 @@ bara får förekomma där. Den ger `FirebaseFirestore` med `PersistentCacheSetti
 
 ## Security rules
 
-- Allt under `households/{hid}` kräver `request.auth.uid in memberUids`.
+- Allt under `households/{hid}` kräver `request.auth.uid in memberUids`. Hushållsdokumentet
+  läses via `resource.data.memberUids` (inte `get()`), så att inloggningens fråga
+  `memberUids array-contains <egen uid>` godkänns; en fråga utan villkoret nekas.
 - Hushåll får skapas av den som står i `memberUids`; `memberUids` får inte tömmas och
   ändras inte från appen förrän delning byggs (FUT-2); hushåll raderas inte från appen.
 - Hushålls-ID:n slumpas på klienten (`newId()`), så att ingen kan förhandsregistrera ett

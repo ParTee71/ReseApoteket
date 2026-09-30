@@ -16,11 +16,13 @@ import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.data.common.CollectionFactory
 import se.partee71.reseapoteket.data.common.EntityCollection
+import se.partee71.reseapoteket.data.household.HouseholdDirectory
 import se.partee71.reseapoteket.data.household.HouseholdSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultHouseholdRepository @Inject constructor(
     collections: CollectionFactory,
+    private val directory: HouseholdDirectory,
     private val session: HouseholdSession,
     private val clock: Clock,
 ) : HouseholdRepository {
@@ -32,7 +34,8 @@ class DefaultHouseholdRepository @Inject constructor(
     override suspend fun create(name: String, ownerUid: String): Result<String> {
         // Slumpat ID – rules förutsätter att ingen kan gissa ett hushålls-ID (NFR-16).
         val household = Household(households.newId(), name, listOf(ownerUid), createdAt = clock.now())
-        return households.upsert(household)
+        // Via servern, inte offline först: hushållet ska finnas innan det väljs (HUS-2).
+        return directory.create(household)
             .onSuccess { session.select(household.id) }
             .map { household.id }
     }
