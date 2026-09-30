@@ -311,9 +311,11 @@ Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten)
 (`STARTED`-rader, så att ett test som hänger syns som sista rad utan resultat). Med två moduler räcker det;
 `build-logic/` införs om fler moduler kommer. Modulfilerna innehåller bara det som är unikt.
 
-**`default_web_client_id` utan `google-services.json`:** saknas filen (PR-bygge, session)
-läggs `app/src/authStub/res` till i debug-källorna och ger en stubbsträng, så att
-inloggningskoden kompilerar; inloggning misslyckas då vid körning. Finns filen appliceras
+**Firebase-konfiguration utan `google-services.json`:** saknas filen (PR-bygge, CI-emulatorn,
+session) läggs `app/src/authStub/res` till i debug-källorna. Den ger `default_web_client_id`
+och en Firebase-konfiguration för projektet `demo-reseapoteket`, så att inloggningskoden
+kompilerar och appen startar (standardappen skapas av `FirebaseInitProvider`) utan att kunna
+nå den riktiga databasen; inloggning misslyckas då vid körning. Finns filen appliceras
 `google-services`-pluginen i stället och stubben används inte.
 
 **`cpdCheck`** (rotprojektet, kopplad till `check`): PMD CPD för Kotlin över `core/src`,

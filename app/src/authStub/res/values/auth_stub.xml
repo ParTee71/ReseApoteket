@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Läggs till i debug bara när app/google-services.json saknas (PR-bygge, Claude-session): gör att
-         inloggningskoden kompilerar. Inloggning misslyckas då vid körning. När filen finns
-         genererar google-services-pluginen det riktiga värdet i stället. -->
+    <!-- Läggs till i debug bara när app/google-services.json saknas (PR-bygge, CI-emulatorn,
+         Claude-session). Ger det google-services-pluginen annars genererar: inloggningskoden
+         kompilerar, och FirebaseInitProvider skapar en standardapp så att appen startar.
+         Projekt-ID:t är ett demo-ID – en stubbad app når aldrig den riktiga databasen (BCK-4).
+         Inloggning misslyckas vid körning. När filen finns används de riktiga värdena. -->
     <string name="default_web_client_id" translatable="false">stub-saknar-google-services-json</string>
+    <string name="google_app_id" translatable="false">1:1:android:1</string>
+    <string name="google_api_key" translatable="false">stub-saknar-google-services-json</string>
+    <string name="project_id" translatable="false">demo-reseapoteket</string>
+    <string name="gcm_defaultSenderId" translatable="false">1</string>
 </resources>

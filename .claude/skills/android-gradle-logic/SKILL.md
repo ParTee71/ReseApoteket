@@ -57,5 +57,5 @@ Java 17 (no toolchain), Kotlin compiler flags, test timeout and test logging are
 - [ ] `:core` has no Android/Firebase dependency
 - [ ] Shared build settings exist once; module files only contain what is unique to the module
 - [ ] `google-services` plugin applied only in `app/build.gradle.kts`; `google-services.json` is git-ignored and written from a secret in CI
-- [ ] Builds without the secret still compile: when `app/google-services.json` is missing (PR builds from forks, sessions), a debug-only stub resource provides `default_web_client_id` (`app/src/authStub/res`, added to the debug source set only when the JSON is missing), so auth code compiles; sign-in simply fails at runtime there
+- [ ] Builds without the secret still compile: when `app/google-services.json` is missing (PR builds from forks, sessions), a debug-only stub resource provides `default_web_client_id` and a Firebase config for the demo project `demo-reseapoteket` (`app/src/authStub/res`, added to the debug source set only when the JSON is missing), so auth code compiles and the app starts (the default FirebaseApp exists, e.g. for `AppLaunchTest`); sign-in simply fails at runtime there
 - [ ] New dependency or plugin: build-time impact stated in the PR (skill `ci-budget`)

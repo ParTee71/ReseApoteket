@@ -10,7 +10,8 @@ plugins {
 }
 
 // google-services.json är hemlig och git-ignorerad. Saknas den (PR-bygge, session) byggs
-// appen ändå: debug får default_web_client_id från src/authStub (se android.sourceSets).
+// appen ändå: debug får stubbad Firebase-konfiguration (demo-projekt) från src/authStub
+// (se android.sourceSets), så att appen kompilerar och startar – inloggning fungerar inte där.
 private val hasGoogleServices = file("google-services.json").exists()
 if (hasGoogleServices) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
