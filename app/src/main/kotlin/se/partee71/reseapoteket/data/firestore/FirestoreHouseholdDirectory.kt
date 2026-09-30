@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.data.firestore
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -23,18 +24,22 @@ class FirestoreHouseholdDirectory @Inject constructor(
 
     override suspend fun householdsOf(uid: String): Result<List<Household>> = suspendRunCatching(::firestoreError) {
         db.collection(Paths.HOUSEHOLDS).whereArrayContains(MEMBER_UIDS, uid).get(Source.SERVER).await()
-            .documents.map { doc ->
+            .documents.mapNotNull { doc ->
                 val raw = fromFirestore(doc.data.orEmpty())
-                // Varje hushåll läses i sitt eget format – det finns inget aktivt hushåll än.
-                readDocument(HouseholdCodec, Paths.HOUSEHOLDS, (raw["schemaVersion"] as? Number)?.toInt(), doc.id, raw)
+                // Varje hushåll läses i sitt eget format – det finns inget aktivt hushåll än. Ett
+                // hushåll som inte går att läsa hoppas över i stället för att stänga ute användaren.
+                runCatching { readDocument(HouseholdCodec, Paths.HOUSEHOLDS, (raw["schemaVersion"] as? Number)?.toInt(), doc.id, raw) }
+                    .getOrNull()
             }
     }
 
     override suspend fun create(household: Household): Result<Unit> = suspendRunCatching(::firestoreError) {
         val data = toFirestore(prepareForWrite(HouseholdCodec.encode(household), clock.now()))
         // Tasken blir klar när servern svarat; utan svar i tid räknas det som offline. Skrivningen
-        // ligger kvar i cachen och kan nå servern senare – då hittas hushållet vid nästa försök.
-        withTimeoutOrNull(CREATE_TIMEOUT) { db.document(Paths.household(household.id)).set(data).await() }
+        // ligger kvar i cachen och kan nå servern senare – nästa försök skriver samma hushåll
+        // (DefaultHouseholdRepository återanvänder det), så det blir aldrig två. Merge som alla
+        // skrivningar (BCK-3).
+        withTimeoutOrNull(CREATE_TIMEOUT) { db.document(Paths.household(household.id)).set(data, SetOptions.merge()).await() }
             ?: throw DataError.Offline
     }
 
