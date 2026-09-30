@@ -189,16 +189,59 @@ Session:    Claude → tools/db query/get/stats (service account, läsroll) → 
 
 ## Datamodell
 
-*Fylls i av #14.* Planerad struktur (se #14 för fält):
+Version 1 (`Schema.CURRENT_VERSION = 1`), byggd i #14. Modellerna ligger i
+`core/.../model/`, codecs och fälthjälpare i `core/.../schema/`. Regler för ändringar:
+skill `data-safety-backup`. Medvetet platt: inget separat medicinregister – varje recept bär
+sin medicins uppgifter.
 
 ```
 households/{hid}
+  name, memberUids: [uid], marginDays = 2, schemaVersion = 1, createdAt
 households/{hid}/persons/{pid}
+  name, emoji, colorHex, sortOrder, archived
 households/{hid}/persons/{pid}/regimens/{rid}
+  kind: MEDICINE|SUPPLEMENT, name, form: TABLET|CAPSULE|LIQUID|INHALER|DROPS|PATCH|OTHER,
+  strength ("500 mg"), unit, packageSize?,
+  schedule: { type: DAILY|WEEKDAYS|INTERVAL|AS_NEEDED,
+              dosesPerDay?, unitsPerDose?, weekdays?: [1..7], intervalDays?, asNeededQuantity? },
+  notes, active, sortOrder, archived
 households/{hid}/familyItems/{fid}
+  name, category: CREAM|PLASTER|TOOL|OTHER, unit,
+  rule: { type: FIXED|PER_TRAVELLER|PER_DAYS, quantity, perDays? },
+  notes, active, sortOrder, archived
 households/{hid}/trips/{tid}
+  name, startDate (yyyy-MM-dd), days, travellerIds: [pid], status: PLANNING|PACKED|DONE,
+  createdAt, updatedAt, archived
 households/{hid}/trips/{tid}/packingItems/{iid}
+  section: MEDICINE|SUPPLEMENT|FAMILY, personId?, sourceType: REGIMEN|FAMILY_ITEM|MANUAL,
+  sourceId?, name, unit, suggestedQuantity, quantity, packages?, reason,
+  checked, checkedAt?, hidden, sortOrder
 ```
+
+`unit` är `TABLETT|KAPSEL|ML|DOS|PUFF|ST|TUB` överallt (`ItemUnit`).
+
+| Modell | Codec | Egenskaper |
+|---|---|---|
+| `Household` (+ `settings: HouseholdSettings`) | `HouseholdCodec` | `Identified` |
+| `Person` | `PersonCodec` | `Identified`, `Sortable`, `Archivable` |
+| `Regimen` (+ `DoseSchedule`) | `RegimenCodec`, `DoseScheduleCodec` | `Identified`, `Sortable`, `Archivable` |
+| `FamilyItem` (+ `QuantityRule`) | `FamilyItemCodec`, `QuantityRuleCodec` | `Identified`, `Sortable`, `Archivable` |
+| `Trip` | `TripCodec` | `Identified`, `Archivable` |
+| `PackingItem` | `PackingItemCodec` | `Identified`, `Sortable` |
+
+**Lagring och tolerans**
+- Dokument-ID:t är `id` och lagras inte som fält. Hushålls-ID:n slumpas på klienten.
+- Datum utan tid lagras som ISO-sträng; `createdAt`, `updatedAt` och `checkedAt` som
+  Firestore-`Timestamp`, som `:app` översätter till `kotlin.time.Instant` i `FirestoreCollection`.
+- Veckodagar lagras som ISO-nummer (1 = måndag … 7 = söndag), sorterade.
+- Alla fält har default. Modellens defaults är precis vad ett tomt dokument betyder –
+  därför är `schedule`/`rule` som default `Unknown`: en saknad dosering ger aldrig en gissad mängd.
+- `encode` skriver alla kända fält, även `null`; nästlade objekt skriver alla varianters fält.
+- En okänd `schedule`/`rule`-typ – eller ett värde som inte ens är ett objekt – blir
+  `Unknown(raw)` och skrivs tillbaka oförändrat.
+- Ett hushåll utan `schemaVersion` har det första formatet (`Schema.FIRST_VERSION`).
+- Ett okänt enum-värde tolkas som default. Därför kräver **ett nytt enum-värde eller en ny
+  variant en höjd `schemaVersion`** – då skriver äldre appar ingenting (skill `data-safety-backup`).
 
 ---
 

@@ -91,7 +91,17 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 ## 14. Datamodell
 
-*Fylls i av #14 med serien DAT-1… Strukturen står i ARKITEKTUR.md → "Datamodell".*
+Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det som ska gälla.
+
+| ID | Krav |
+|----|------|
+| DAT-1 | All data ligger under ett hushåll: `households/{hid}` med samlingarna `persons`, `persons/{pid}/regimens`, `familyItems`, `trips` och `trips/{tid}/packingItems`. |
+| DAT-2 | Recept och kosttillskott är samma modell (`Regimen`, `kind`) och hör till en person; medicinens uppgifter ligger på receptet (inget separat register). |
+| DAT-3 | En dosering är dagligen, vissa veckodagar, var n:e dag eller vid behov; en familjeartikels mängdregel är fast, per resenär eller per n dagar. |
+| DAT-4 | Personer, recept, familjeartiklar och resor kan arkiveras och återställas på samma sätt (`archived`). |
+| DAT-5 | Varje fält har ett standardvärde: ett äldre eller ofullständigt dokument kan alltid läsas, och okända fält ignoreras. |
+| DAT-6 | En dosering eller mängdregel av okänd typ visas som "kan inte visas – uppdatera appen", ger aldrig en gissad mängd och skrivs tillbaka oförändrad. |
+| DAT-7 | Datum utan tid lagras som `yyyy-MM-dd`; tidpunkter som Firestore-tidsstämplar. |
 
 ## 15. Backup och export
 
@@ -101,6 +111,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | BCK-2 | En backup ska tas automatiskt varje vecka, krypteras och sparas i 90 dagar. *(planerad, #17)* |
 | BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit. *(planerad, #15)* |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. *(planerad, #17)* |
+| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering. Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. *(planerad, #15 – migreringen och versionen finns sedan #14)* |
 
 ---
 
