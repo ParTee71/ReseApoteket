@@ -18,7 +18,9 @@ object DoseScheduleFormatter {
 
     fun format(schedule: DoseSchedule, unit: ItemUnit): String = when (schedule) {
         is DoseSchedule.Daily -> "${UnitNames.quantity(schedule.unitsPerDose, unit)} ${timesPerDay(schedule.dosesPerDay)}"
-        is DoseSchedule.Weekdays -> "${UnitNames.quantity(schedule.unitsPerDose, unit)} ${days(schedule.days)}"
+        is DoseSchedule.Weekdays ->
+            if (schedule.days.isEmpty()) "${UnitNames.quantity(schedule.unitsPerDose, unit)} – ${Texts.NO_WEEKDAYS}"
+            else "${UnitNames.quantity(schedule.unitsPerDose, unit)} ${days(schedule.days)}"
         is DoseSchedule.IntervalDays -> "${UnitNames.quantity(schedule.unitsPerDose, unit)} ${every(schedule.intervalDays)}"
         is DoseSchedule.AsNeeded ->
             if (schedule.quantity > 0) "vid behov: ta med ${schedule.quantity}" else "vid behov"

@@ -136,7 +136,7 @@ ReseApoteket/
 ├── core/                         ren Kotlin/JVM – inga Android- eller Firebase-beroenden
 │   └── se.partee71.reseapoteket.core
 │       ├── model/                Person, Regimen, DoseSchedule, FamilyItem, QuantityRule, Trip, PackingItem …
-│       ├── engine/               PackingEngine, ReasonFormatter, DoseScheduleFormatter, QuantityRuleFormatter
+│       ├── engine/               PackingEngine, ReasonFormatter, DoseScheduleFormatter, QuantityRuleFormatter, UnitNames, Texts
 │       └── schema/               DocCodec + fälthjälpare, codecs per modell, Schema, SchemaMigrator
 ├── app/                          Android-appen
 │   └── se.partee71.reseapoteket

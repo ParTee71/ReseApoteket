@@ -298,4 +298,45 @@ class PackingEngineTest {
         assertEquals(0, PackingEngine.regimenQuantity(monday, trip(0, LocalDate(2026, 12, 21)), noMargin))
         assertEquals(1, PackingEngine.regimenQuantity(monday, trip(1, LocalDate(2026, 12, 21)), noMargin))
     }
+
+    @Test
+    fun `orimliga värden från databasen ger en begränsad mängd, aldrig överlopp eller häng`() {
+        val huge = trip(Int.MAX_VALUE, LocalDate(2026, 1, 1))
+        val max = HouseholdSettings(marginDays = Int.MAX_VALUE)
+        assertEquals(2 * PackingEngine.MAX_DAYS, PackingEngine.effectiveDays(huge, max))
+        assertEquals(PackingEngine.MAX_QUANTITY, PackingEngine.regimenQuantity(DoseSchedule.Daily(Int.MAX_VALUE, Int.MAX_VALUE), huge, max))
+        // 732 dagar från torsdag 1 jan 2026: första måndagen är dag 4, sedan var 7:e dag → 104 måndagar.
+        assertEquals(104, PackingEngine.regimenQuantity(DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY), 1), huge, max))
+        assertEquals(1, PackingEngine.familyQuantity(QuantityRule.PerDays(1, Int.MAX_VALUE), 1, trip(7), margin2))
+        assertEquals(0, PackingEngine.regimenQuantity(DoseSchedule.Daily(-2, 1), trip(7), margin2))
+        assertEquals(0, PackingEngine.regimenQuantity(DoseSchedule.AsNeeded(-5), trip(7), margin2))
+        assertEquals(0, PackingEngine.familyQuantity(QuantityRule.PerTraveller(3), -1, trip(7), margin2))
+        val line = PackingEngine.regimenLine(Regimen("r", packageSize = 0, schedule = DoseSchedule.Daily(1, 1)), trip(7), margin2)
+        assertNull(line.packages, "förpackningsstorlek 0 ger inga förpackningar")
+    }
+
+    @Test
+    fun `ordningen är densamma oavsett ordningen in – även när sortOrder är lika`() {
+        val bo = Person("bo", "Bo", sortOrder = 0)
+        val al = Person("al", "Al", sortOrder = 0)
+        val t = trip(7, travellers = listOf("bo", "al"))
+        val regimens = mapOf(
+            "bo" to listOf(Regimen("r2", name = "Alvedon", strength = "500 mg"), Regimen("r1", name = "Alvedon", strength = "250 mg")),
+            "al" to listOf(Regimen("r3", name = "Levaxin")),
+        )
+        val items = listOf(FamilyItem("f2", "Plåster"), FamilyItem("f1", "Plåster"))
+        val first = PackingEngine.suggest(t, listOf(bo, al), regimens, items, margin2).items
+        val second = PackingEngine.suggest(t, listOf(al, bo), regimens.mapValues { it.value.reversed() }, items.reversed(), margin2).items
+        assertEquals(first, second)
+        assertEquals(listOf("al", "bo", "bo"), first.filter { it.personId != null }.map { it.personId })
+        assertEquals(listOf("r1", "r2"), first.filter { it.personId == "bo" }.map { it.sourceId })
+        assertEquals(listOf("f1", "f2"), first.filter { it.section == PackingSection.FAMILY }.map { it.sourceId })
+    }
+
+    @Test
+    fun `räkna om två gånger ger samma lista`() {
+        val suggestion = PackingEngine.suggest(trip(7), listOf(anna, erik), mapOf("anna" to listOf(Regimen("lev", name = "Levaxin", schedule = DoseSchedule.Daily(1, 1)))), emptyList(), margin2)
+        val once = PackingEngine.merge(emptyList(), suggestion)
+        assertEquals(once, PackingEngine.merge(once, suggestion))
+    }
 }

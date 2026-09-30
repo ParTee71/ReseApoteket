@@ -34,16 +34,13 @@ object UnitNames {
     /** "1 tablett", "18 tabletter". */
     fun quantity(count: Int, unit: ItemUnit): String = "$count ${units.getValue(unit).of(count)}"
 
-    /** Enhetens namn utan antal, böjt efter [count]. */
-    fun unit(unit: ItemUnit, count: Int = 1): String = units.getValue(unit).of(count)
-
     /** "2 kartor". */
     fun packages(count: Int, unit: ItemUnit): String = "$count ${(packages[unit] ?: defaultPackage).of(count)}"
 
     fun days(count: Int): String = "$count ${days.of(count)}"
 
     /** "per dag", "per 7 dagar". */
-    fun perDays(count: Int): String = if (count == 1) "per dag" else "per ${days(count)}"
+    fun perDays(count: Int): String = if (count <= 1) "per dag" else "per ${days(count)}"
 
     /** Mängd i en regel: "1 tub", men bara "1" för styck – "1 per resenär" läses bättre än "1 st per resenär". */
     fun amount(count: Int, unit: ItemUnit): String = if (unit == ItemUnit.ST) "$count" else quantity(count, unit)

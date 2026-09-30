@@ -30,33 +30,43 @@ data class PackingSuggestion(val items: List<PackingItem>, val warnings: List<St
  */
 object PackingEngine {
 
-    /** BER-1. Aldrig negativt. */
-    fun effectiveDays(trip: Trip, settings: HouseholdSettings): Int = (trip.days + settings.marginDays).coerceAtLeast(0)
+    /** Längsta resa och marginal som räknas – skydd mot orimliga värden från databasen (BCK-5). */
+    const val MAX_DAYS = 366
+
+    /** Största mängd på en rad; allt över det är ett datafel, inte en packning. */
+    const val MAX_QUANTITY = 99_999
+
+    /** BER-1. Aldrig negativt; dagar och marginal begränsas till [MAX_DAYS] var. */
+    fun effectiveDays(trip: Trip, settings: HouseholdSettings): Int =
+        trip.days.coerceIn(0, MAX_DAYS) + settings.marginDays.coerceIn(0, MAX_DAYS)
 
     /** BER-2–4. `null` = kan inte räknas ut (okänd dosering, veckodagar utan startdatum). */
     fun regimenQuantity(schedule: DoseSchedule, trip: Trip, settings: HouseholdSettings): Int? {
         val days = effectiveDays(trip, settings)
         return when (schedule) {
-            is DoseSchedule.Daily -> schedule.dosesPerDay * schedule.unitsPerDose * days
-            is DoseSchedule.Weekdays -> weekdayCount(schedule, trip, days)?.let { it * schedule.unitsPerDose }
-            is DoseSchedule.IntervalDays -> ceilDiv(days, schedule.intervalDays.coerceAtLeast(1)) * schedule.unitsPerDose
-            is DoseSchedule.AsNeeded -> schedule.quantity
+            is DoseSchedule.Daily -> product(schedule.dosesPerDay, schedule.unitsPerDose, days)
+            is DoseSchedule.Weekdays -> weekdayCount(schedule, trip, settings)?.let { product(it, schedule.unitsPerDose) }
+            is DoseSchedule.IntervalDays -> product(ceilDiv(days, schedule.intervalDays), schedule.unitsPerDose)
+            is DoseSchedule.AsNeeded -> product(schedule.quantity)
             is DoseSchedule.Unknown -> null
         }
     }
 
     /** BER-5–7. `null` = okänd regel. */
     fun familyQuantity(rule: QuantityRule, travellers: Int, trip: Trip, settings: HouseholdSettings): Int? = when (rule) {
-        is QuantityRule.Fixed -> rule.quantity
-        is QuantityRule.PerTraveller -> rule.quantity * travellers
-        is QuantityRule.PerDays -> ceilDiv(effectiveDays(trip, settings), rule.perDays.coerceAtLeast(1)) * rule.quantity
+        is QuantityRule.Fixed -> product(rule.quantity)
+        is QuantityRule.PerTraveller -> product(rule.quantity, travellers)
+        is QuantityRule.PerDays -> product(ceilDiv(effectiveDays(trip, settings), rule.perDays), rule.quantity)
         is QuantityRule.Unknown -> null
     }
 
-    /** Antal dagar i resan (med marginal) vars veckodag ingår; `null` utan startdatum. */
-    private fun weekdayCount(schedule: DoseSchedule.Weekdays, trip: Trip, effectiveDays: Int): Int? {
+    /**
+     * BER-3: antal dagar i resan (med marginal) vars veckodag ingår; `null` utan startdatum.
+     * Den enda räkningen av veckodagar – förklaringen (`ReasonFormatter`) använder den också.
+     */
+    fun weekdayCount(schedule: DoseSchedule.Weekdays, trip: Trip, settings: HouseholdSettings): Int? {
         val start = trip.startDate ?: return null
-        return (0 until effectiveDays).count { start.plus(DatePeriod(days = it)).dayOfWeek in schedule.days }
+        return (0 until effectiveDays(trip, settings)).count { start.plus(DatePeriod(days = it)).dayOfWeek in schedule.days }
     }
 
     /** Mängd, förpackningar och förklaring för ett recept eller kosttillskott – också förhandsvisningen. */
@@ -87,16 +97,17 @@ object PackingEngine {
         familyItems: List<FamilyItem>,
         settings: HouseholdSettings,
     ): PackingSuggestion {
-        val travellers = persons.filter { it.id in trip.travellerIds && !it.archived }.sortedWith(Sortable.ORDER)
+        val travellers = persons.filter { it.id in trip.travellerIds && !it.archived }
+            .sortedWith(bySortOrder<Person>().thenBy(swedish) { it.name }.thenBy { it.id })
         val regimenRows = travellers.flatMap { person ->
             regimensByPerson[person.id].orEmpty()
                 .filter { it.active && !it.archived }
-                .sortedWith(compareBy(swedish) { it.name })
+                .sortedWith(compareBy<Regimen, String>(swedish) { it.name }.thenBy(swedish) { it.strength }.thenBy { it.id })
                 .map { regimen -> regimenItem(person, regimen, regimenLine(regimen, trip, settings)) }
         }
         val familyRows = familyItems
             .filter { it.active && !it.archived }
-            .sortedWith(compareBy<FamilyItem> { it.sortOrder }.thenBy(swedish) { it.name })
+            .sortedWith(bySortOrder<FamilyItem>().thenBy(swedish) { it.name }.thenBy { it.id })
             .map { item -> familyItem(item, familyLine(item, travellers.size, trip, settings)) }
         // sortedBy är stabil: person- och namnordningen ovan behålls inom varje sektion.
         val rows = (regimenRows + familyRows).sortedBy { (item, _) -> item.section.ordinal }
@@ -168,5 +179,13 @@ object PackingEngine {
         Comparator { a, b -> collator.compare(a, b) }
     }
 
-    private fun ceilDiv(a: Int, b: Int): Int = if (a <= 0) 0 else (a + b - 1) / b
+    /** [Sortable.ORDER] för en konkret typ, så att den kan kedjas med namn och ID. */
+    private fun <T : Sortable> bySortOrder(): Comparator<T> = Comparator { a, b -> Sortable.ORDER.compare(a, b) }
+
+    /** Uppåt avrundad division utan överlopp; en nämnare under 1 räknas som 1. */
+    internal fun ceilDiv(a: Int, b: Int): Int = if (a <= 0) 0 else (a - 1) / b.coerceAtLeast(1) + 1
+
+    /** Produkt av antal, där negativa räknas som 0 och resultatet begränsas till [MAX_QUANTITY]. */
+    private fun product(vararg factors: Int): Int =
+        factors.fold(1L) { acc, factor -> (acc * factor.coerceAtLeast(0)).coerceAtMost(MAX_QUANTITY.toLong()) }.toInt()
 }

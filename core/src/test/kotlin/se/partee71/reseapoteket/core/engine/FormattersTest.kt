@@ -41,6 +41,7 @@ class FormattersTest {
         assertEquals("vid behov: ta med 10", DoseScheduleFormatter.format(DoseSchedule.AsNeeded(10), ItemUnit.TABLETT))
         assertEquals("vid behov", DoseScheduleFormatter.format(DoseSchedule.AsNeeded(0), ItemUnit.TABLETT))
         assertEquals("kan inte visas – uppdatera appen", DoseScheduleFormatter.format(DoseSchedule.Unknown(), ItemUnit.TABLETT))
+        assertEquals("1 kapsel – inga veckodagar valda", DoseScheduleFormatter.format(DoseSchedule.Weekdays(emptySet(), 1), ItemUnit.KAPSEL))
     }
 
     @Test
@@ -50,7 +51,6 @@ class FormattersTest {
         assertEquals("2 tuber", QuantityRuleFormatter.format(QuantityRule.Fixed(2), ItemUnit.TUB))
         assertEquals("kan inte visas – uppdatera appen", QuantityRuleFormatter.format(QuantityRule.Unknown(), ItemUnit.ST))
         assertEquals("1 tub per dag", QuantityRuleFormatter.format(QuantityRule.PerDays(1, 1), ItemUnit.TUB))
-        assertEquals("1 kapsel inga veckodagar valda", DoseScheduleFormatter.format(DoseSchedule.Weekdays(emptySet(), 1), ItemUnit.KAPSEL))
     }
 
     @Test
@@ -75,6 +75,36 @@ class FormattersTest {
         assertEquals(Texts.AS_NEEDED_MISSING, reason(DoseSchedule.AsNeeded(0)))
         assertEquals(Texts.CANNOT_CALCULATE, reason(DoseSchedule.Unknown()))
         assertEquals(Texts.NO_START_DATE, reason(DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY), 1), t = trip.copy(startDate = null)))
+    }
+
+    @Test
+    fun `veckodagsförklaringen räknar dagar, inte mängd genom antal per dos`() {
+        assertEquals(
+            "2 kapslar × 4 dagar (mån, ons, fre) under (7 + 2) dagar = 8 kapslar",
+            reason(DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 2), ItemUnit.KAPSEL),
+        )
+        assertEquals(
+            "1 kapsel × 0 dagar (inga veckodagar valda) under (7 + 2) dagar = 0 kapslar",
+            reason(DoseSchedule.Weekdays(emptySet(), 1), ItemUnit.KAPSEL),
+        )
+    }
+
+    @Test
+    fun `förhandsvisningens texter`() {
+        val line = PackingEngine.regimenLine(Regimen("r", unit = ItemUnit.TABLETT, packageSize = 10, schedule = DoseSchedule.Daily(2, 1)), trip, margin2)
+        assertEquals("18 tabletter · 2 kartor", ReasonFormatter.amount(line, ItemUnit.TABLETT))
+        assertEquals("1 tub", ReasonFormatter.amount(PackingLine(1, null, ""), ItemUnit.TUB))
+        assertEquals("För en 7-dagarsresa", ReasonFormatter.tripContext(7))
+        assertEquals("För 4 resenärer i 10 dagar", ReasonFormatter.familyContext(4, 10))
+        assertEquals("För 1 resenär i 1 dag", ReasonFormatter.familyContext(1, 1))
+    }
+
+    @Test
+    fun `varje enhet har namn och förpackning`() {
+        for (unit in ItemUnit.entries) {
+            assertEquals(true, UnitNames.quantity(2, unit).startsWith("2 "), unit.name)
+            assertEquals(true, UnitNames.packages(1, unit).startsWith("1 "), unit.name)
+        }
     }
 
     private fun familyReason(rule: QuantityRule, unit: ItemUnit = ItemUnit.TUB, travellers: Int = 4, t: Trip = trip.copy(days = 10)) =

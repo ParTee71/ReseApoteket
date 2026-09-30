@@ -24,7 +24,7 @@ Tabellen visar det motorn använder. Fullständiga fält och lagring: `ARKITEKTU
 | `DoseSchedule` | sealed: `Daily(dosesPerDay, unitsPerDose)`, `Weekdays(days: Set<DayOfWeek>, unitsPerDose)`, `IntervalDays(intervalDays, unitsPerDose)`, `AsNeeded(quantity)`, `Unknown` |
 | `FamilyItem` | namn, kategori, `unit`, `rule`, `active`, `archived` |
 | `QuantityRule` | sealed: `Fixed(quantity)`, `PerTraveller(quantity)`, `PerDays(quantity, perDays)`, `Unknown` |
-| `Trip` | `startDate: LocalDate`, `days`, `travellerIds` |
+| `Trip` | `startDate: LocalDate?` (saknas → `Weekdays` ger varning), `days`, `travellerIds` |
 | `HouseholdSettings` | `marginDays` (default 2) |
 | `PackingItem` | sektion, `personId?`, `sourceType` (`REGIMEN`/`FAMILY_ITEM`/`MANUAL`), `sourceId?`, namn, `unit`, `suggestedQuantity`, `quantity`, `packages?`, `reason`, `checked`, `checkedAt?`, `hidden` |
 
@@ -103,6 +103,25 @@ För varje förslagsrad matchas befintlig rad på (`sourceType`, `sourceId`, `pe
 - Texterna ("Inte längre i förslaget", "kan inte beräknas – uppdatera appen" m.fl.) finns
   en gång, i `Texts`.
 
+## Skydd mot trasiga data
+
+Värden kommer från Firestore och kan vara orimliga (äldre eller nyare app, BCK-5). Motorn
+litar inte på dem:
+- `days` och `marginDays` räknas som 0–`MAX_DAYS` (366) var; negativa antal som 0.
+- Varje mängd räknas i `Long` och begränsas till `MAX_QUANTITY` (99 999) – inget överlopp.
+- Intervall och `perDays` under 1 räknas som 1; `packageSize` 0 ger inga förpackningar.
+- Sorteringen är deterministisk: `sortOrder`, sedan svenskt namn (och styrka), sedan ID – samma
+  lista oavsett i vilken ordning data kommer.
+- `weekdayCount` är den enda räkningen av veckodagar; förklaringen använder den i stället för
+  att räkna baklänges ur mängden.
+- `PackingSuggestion.warnings` innehåller läkemedelsnamn (hälsodata) – logga dem aldrig.
+
+## Förhandsvisningens texter
+
+`ReasonFormatter.amount(line, unit)` ("18 tabletter · 2 kartor"), `tripContext(days)`
+("För en 7-dagarsresa") och `familyContext(travellers, days)` ("För 4 resenärer i 10 dagar")
+är texterna i `PackingPreview` och packlistan – ingen skärm formulerar dem själv.
+
 ## Kantfall som ALLTID ska ha test (`core/src/test/.../engine/`)
 
 - 0 dagar och 1 dag.
@@ -115,7 +134,9 @@ För varje förslagsrad matchas befintlig rad på (`sourceType`, `sourceId`, `pe
 - Inaktiv och arkiverad regimen/familjeartikel ignoreras.
 - `packageSize` som inte går jämnt upp → avrundning uppåt.
 - `merge` bevarar manuellt ändrad mängd, `checked`, `hidden` och `MANUAL`-rader.
-- `ReasonFormatter`-text för varje schematyp och regel.
+- `ReasonFormatter`-text för varje schematyp och regel, `Weekdays` med `unitsPerDose` > 1.
+- Orimliga värden (se *Skydd mot trasiga data*), lika `sortOrder`, `merge` två gånger.
+- Varje `ItemUnit` har namn och förpackning.
 
 ## Anti-mönster
 
