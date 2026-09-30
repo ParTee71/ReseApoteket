@@ -79,10 +79,16 @@ Hilt-modulen `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), ef
 ## Security rules
 
 - Allt under `households/{hid}` kräver `request.auth.uid in memberUids`.
-- Hushåll får skapas av den som står i `memberUids`; `memberUids` får inte tömmas;
-  hushåll raderas inte från appen.
+- Hushåll får skapas av den som står i `memberUids`; `memberUids` får inte tömmas och
+  ändras inte från appen förrän delning byggs (FUT-2); hushåll raderas inte från appen.
+- Hushålls-ID:n slumpas på klienten (`newId()`), så att ingen kan förhandsregistrera ett
+  förutsägbart ID. `schemaVersion` skrivs som heltal – annars nekar reglerna.
 - Ny samling = ny regel + rules-test i samma PR.
-- Deploy sker manuellt (`npx firebase deploy --only firestore:rules`), aldrig från CI i en PR.
+- Deploy sker manuellt (`npx --prefix tools/db firebase deploy --only firestore:rules`, README → Firebase-setup), aldrig från CI i en PR.
+- **Fallgrop:** i `rules_version = '2'` matchar `{document=**}` även noll segment. Under
+  `households/{hid}` används därför `match /{collection}/{document=**}` – annars gäller
+  underreglerna också hushållsdokumentet och kringgår create/update/delete-reglerna.
+  Rules-testet "hushåll kan inte raderas" fångar det.
 
 ## Tester
 

@@ -39,3 +39,6 @@ build/
 *.iml
 .DS_Store
 captures/
+
+# Firebase-emulatorns loggar
+*-debug.log

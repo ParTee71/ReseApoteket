@@ -14,9 +14,10 @@ echo '{"async": true, "asyncTimeout": 300000}'
 cd "$(dirname "$0")/../.."
 
 # tools/db: installera beroenden om verktyget finns och inte redan är installerat.
-# --ignore-scripts: inga livscykelskript från beroenden körs i sessionen.
+# --omit=dev: bara verktygens egna beroenden – testverktygen (firebase-tools m.fl.) behövs
+# bara i CI. --ignore-scripts: inga livscykelskript från beroenden körs i sessionen.
 if [ -f tools/db/package-lock.json ] && [ ! -d tools/db/node_modules ]; then
-  npm ci --prefix tools/db --ignore-scripts --silent --no-audit --no-fund || echo "tools/db: npm ci misslyckades"
+  npm ci --prefix tools/db --omit=dev --ignore-scripts --silent --no-audit --no-fund || echo "tools/db: npm ci misslyckades"
 fi
 
 # Databasåtkomst: visa bara om nyckeln finns, aldrig dess innehåll (skill db-access).

@@ -31,7 +31,7 @@ resten med `dorny/paths-filter`.
 - **Gradle build cache** (`org.gradle.caching=true` + `gradle/actions/setup-gradle`) gör
   att oförändrade testtasks blir `FROM-CACHE`/`UP-TO-DATE` även inom en modul. Det kräver
   deterministiska tester (regel 2).
-- **Firebase-emulatorn är inte Android-emulatorn.** Den kräver Java och `firebase-tools`,
+- **Firebase-emulatorn är inte Android-emulatorn.** Den kräver Java 21 och `firebase-tools`,
   tar ca 1–2 minuter med cache och körs bara i jobbet `rules` (filter `tools`). Android-emulatorn körs aldrig per PR.
 - **Node ≥ 22** pinnas i alla jobb som kör `node --test` (globmönster kräver Node 21+).
 - **Hoppade jobb rapporterar ingen status.** Därför är jobbet `ci-ok`
