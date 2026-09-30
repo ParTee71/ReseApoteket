@@ -72,6 +72,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true // VERSION_NAME i Inställningar, DEBUG för komponentgalleriet
     }
 
     testOptions {

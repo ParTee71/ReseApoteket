@@ -3,7 +3,7 @@
 > Räknar ut hur mycket av familjens mediciner, kosttillskott och apoteksvaror som ska
 > packas inför en resa, och låter familjen pricka av det som plockats fram.
 >
-> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning, hushåll, backup och databasåtkomst finns; funktionerna för resor och packning kommer i #20–#27.
+> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning, hushåll, backup, databasåtkomst, navigering med fyra flikar, tema och komponentkatalog finns; funktionerna för resor och packning kommer i #21–#27.
 
 Så här används listan: skill [`requirements-kravlista`](.claude/skills/requirements-kravlista/SKILL.md).
 Krav märkta *(planerad)* är beslutade men inte byggda; markeringen tas bort i PR:en som
@@ -20,7 +20,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå. *(planerad)* |
 | ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. |
 | ÖV-5 | Appen ska fungera **offline**: allt läses från den lokala Firestore-cachen och ändringar sparas direkt och synkas när nätet kommer tillbaka. |
-| ÖV-6 | Hela gränssnittet ska vara på **svenska**. *(planerad, #20 – det som finns, inloggningen, är på svenska sedan #16)* |
+| ÖV-6 | Hela gränssnittet ska vara på **svenska**. |
 
 ---
 
@@ -30,11 +30,11 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | TP-1 | Enbart Android. minSdk, targetSdk och compileSdk anges i `app/build.gradle.kts` och i ARKITEKTUR.md → "Byggkonfiguration". |
 | TP-2 | Gränssnitt i **Jetpack Compose** med **Material 3 Expressive** (API:er och versioner i ARKITEKTUR.md → "Verifierade API:er"). |
-| TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. *(planerad, #20 – Hilt sedan #11, första ViewModel i #16)* |
+| TP-3 | **MVVM** med `StateFlow<UiState>` och sealed events, **Hilt** för DI. |
 | TP-4 | Två moduler: **`:core`** (ren Kotlin/JVM: modeller, codecs, beräkning) och **`:app`**. |
 | TP-5 | Data lagras i **Cloud Firestore** med offline-cache (100 MB); enhetens inställningar i **DataStore**. |
 | TP-6 | Inloggning via **Firebase Auth + Credential Manager**. |
-| TP-7 | Navigering med **Navigation 3**. *(planerad, #20)* |
+| TP-7 | Navigering med **Navigation 3**. |
 | TP-8 | Backup och databasåtkomst från utvecklingssessioner via Node-verktyget **`tools/db`**: `stats`, `query` och `get` läser (med en läsnyckel, inget sparas på disk), `export`, `import` och `migrate` för backup och schemaändringar. |
 
 ---
@@ -43,9 +43,9 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| NAV-1 | Toppnivå med fyra flikar – **Resor**, **Personer**, **Familjeartiklar**, **Inställningar** – i en flytande verktygsrad. *(planerad, #20)* |
-| NAV-2 | Underskärmar döljer verktygsraden; fliktillstånd bevaras vid byte. *(planerad, #20)* |
-| NAV-3 | Alla skärmbyten använder samma rörelse. *(planerad, #20)* |
+| NAV-1 | Toppnivå med fyra flikar – **Resor**, **Personer**, **Familjeartiklar**, **Inställningar** – i en flytande verktygsrad. Appen startar på Resor. |
+| NAV-2 | Underskärmar döljer verktygsraden; fliktillstånd bevaras vid byte. Tillbaka i en annan fliks rot går till Resor; tillbaka i Resor lämnar appen. |
+| NAV-3 | Alla skärmbyten använder samma rörelse. |
 
 ---
 
@@ -106,7 +106,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. Appen startar på Resor. *(planerad, #20, #25)* |
+| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. Appen startar på Resor. *(planerad, #25 – fliken med namn och antal dagar sedan #20)* |
 | RES-2 | En resa har namn ("Vart/vad?", förval "Resa <datum>"), antal dagar 1–60, startdatum (förval i morgon) och resenärer ("Vem åker med?", alla aktiva personer förvalda); minst en resenär krävs. *(planerad, #25)* |
 | RES-3 | En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan (BER) och öppnar den. *(planerad, #25)* |
 | RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd och en avprickning behålls, egna rader rörs inte. *(planerad, #25)* |
@@ -142,12 +142,12 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 
 | ID | Krav |
 |----|------|
-| SET-1 | Tema **ljust**, **mörkt** eller **system**, sparat på enheten; ingen dynamisk färg. *(planerad, #20, #27)* |
+| SET-1 | Tema **ljust**, **mörkt** eller **system**, sparat på enheten; ingen dynamisk färg. |
 | SET-2 | Hushållets namn och **marginaldagar** 0–7 (förval 2) med förklaringen "Extra dagar som läggs på varje resa, ifall något krånglar". *(planerad, #27)* |
 | SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten. *(planerad, #27)* |
 | SET-4 | Kontot visar Google-kontots namn och e-post; **"Logga ut"** kräver bekräftelse (NFR-4) och leder till inloggningen (AUTH-4). *(planerad, #27)* |
 | SET-5 | **Data & backup:** text om synk och veckobackup, `schemaVersion` och appversion; **"Exportera som JSON"** delar hushållets data i samma format som `tools/db export` (BCK-6), bara efter uttrycklig handling. *(planerad, #27)* |
-| SET-6 | **Om:** version och länk till repot; i debug-byggen öppnar "Komponenter" komponentgalleriet. *(planerad, #20, #27)* |
+| SET-6 | **Om:** version och länk till repot; i debug-byggen öppnar "Komponenter" komponentgalleriet. *(planerad, #27 – version och "Komponenter" sedan #20)* |
 
 ## 14. Datamodell
 
@@ -184,22 +184,22 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 | ID | Krav |
 |----|------|
-| NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp, fel med "Försök igen" och innehåll på samma sätt överallt. *(planerad, #20)* |
-| NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas efter första försöket; bakåt med osparade ändringar frågar "Släng ändringar?"; sparfel visas som meddelande. *(planerad, #20)* |
-| NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder. *(planerad, #20)* |
-| NFR-4 | **Permanent radering** kräver alltid bekräftelse. *(planerad, #20)* |
-| NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt; varje fel från datalagret har en egen text. *(planerad, #20 – texterna och mappningen finns sedan #15)* |
-| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad, #20 – synkläget finns sedan #15)* |
+| NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp, fel med "Försök igen" och innehåll på samma sätt överallt. |
+| NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas efter första försöket; bakåt med osparade ändringar frågar "Släng ändringar?"; sparfel visas som meddelande. |
+| NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder; samma åtgärd finns för TalkBack. |
+| NFR-4 | **Permanent radering** kräver alltid bekräftelse. |
+| NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt; varje fel från datalagret har en egen text. |
+| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad – synkläget finns sedan #15)* |
 
 ### Kvalitet, integritet och tester
 
 | ID | Krav |
 |----|------|
-| NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). *(planerad, #20 – kontrollerna finns sedan #11, de första delade komponenterna sedan #16)* |
+| NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). |
 | NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). *(planerad, #27 – användarens egen export; Androids backup och enhetsöverföring avstängda sedan #11, krypterad backup sedan #17)* |
 | NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). |
 | NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats; `master` kör alltid allt. Emulator, lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
-| NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`). *(planerad, #20)* |
+| NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`, `ThemeContrastTest`). |
 | NFR-12 | Release-bygget är minifierat; det byggs veckovis och före varje release (`quality.yml`). |
 | NFR-13 | Skärmdumpar (ljust och mörkt) jämförs mot incheckade referensbilder i varje PR som rör appen; en oväntad skillnad fäller PR:en och diffbilden sparas (skill `testing-strategy`). |
 | NFR-14 | Kopierad kod fäller bygget (`cpdCheck`, skill `shared-ui-components`). |
