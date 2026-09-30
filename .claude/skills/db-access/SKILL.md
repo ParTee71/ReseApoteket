@@ -34,8 +34,8 @@ node tools/db/get.mjs households/<hid>/trips/<tid>        # ett dokument (full s
 node tools/db/get.mjs trips/<tid>                         # samma, relativt aktivt hushåll
 ```
 
-`--where` kan anges flera gånger (likhet); `true`, `false`, `null` och tal tolkas som
-sådana. Tidsstämplar visas som `{ "__ts": "…Z" }`. Okända samlingar och sökvägar vägras.
+`--where` kan anges flera gånger (likhet); `true`, `false`, `null` och decimaltal tolkas
+som sådana, text inom citattecken (`fält="007"`) förblir text. Tidsstämplar visas som `{ "__ts": "…Z" }`. Okända samlingar och sökvägar vägras.
 
 Alla har `--help`. Finns bara ett hushåll väljs det automatiskt; annars `--household <hid>`.
 

@@ -30,6 +30,31 @@ test('--where filtrerar på likhet med tolkade värden, --limit begränsar', asy
   assert.throws(() => parseWhere('utanlikhetstecken'), /fält=värde/);
 });
 
+test('--where tolkar bara strikta decimaltal som tal; citattecken tvingar text', () => {
+  assert.equal(parseWhere('n=-12').value, -12);
+  assert.equal(parseWhere('n=0.5').value, 0.5);
+  assert.equal(parseWhere('n=007').value, 7);
+  assert.equal(parseWhere('n="007"').value, '007');
+  assert.equal(parseWhere('n= ').value, ' ');
+  assert.equal(parseWhere('n=1e3').value, '1e3');
+  assert.equal(parseWhere('n=0x10').value, '0x10');
+  assert.equal(parseWhere('n="true"').value, 'true');
+});
+
+test('ett datafält som heter id skriver inte över dokument-ID:t', async () => {
+  const db = database();
+  await seed(db, [{ path: 'households/hushall-test/familyItems/riktigt-id', data: { id: 'falskt', name: 'X' } }]);
+  const row = (await queryCollection(db, 'familyItems', { where: [parseWhere('name=X')] }))[0];
+  assert.equal(row.id, 'riktigt-id');
+  assert.equal(Object.keys(row)[0], 'id');
+});
+
+test('--household som inte finns, eller som inte matchar en full sökväg, ger fel', async () => {
+  const db = database();
+  await assert.rejects(queryCollection(db, 'persons', { household: 'finns-inte' }), /Hushållet finns-inte finns inte/);
+  await assert.rejects(getDocument(db, 'households/hushall-test/persons/anna', { household: 'annat' }), /annat hushåll/);
+});
+
 test('flera hushåll kräver --household; households listar alla', async () => {
   const db = database();
   await seed(db, [other]);

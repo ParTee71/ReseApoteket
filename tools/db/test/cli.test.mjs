@@ -45,3 +45,21 @@ test('fel ger en rad på svenska och exitkod 1; --help fungerar', () => {
   assert.match(node('import.mjs', ['--help']).stdout, /Användning: node tools\/db\/import.mjs/);
   assert.equal(node('migrate.mjs', ['--okänd']).status, 1);
 });
+
+test('printTable: kolumner från alla rader, avkortade celler markeras och radbrytningar syns', async () => {
+  const { printTable } = await import('../lib/cli.mjs');
+  const lines = [];
+  const log = console.log;
+  console.log = (line) => lines.push(line);
+  try {
+    printTable([{ id: 'a', name: 'x'.repeat(60) }, { id: 'b', notes: 'rad ett\nrad två' }]);
+    printTable([]);
+  } finally {
+    console.log = log;
+  }
+  assert.match(lines[0], /^id\s+name\s+notes$/);
+  assert.ok(lines[2].includes(`${'x'.repeat(39)}…`));
+  assert.ok(lines[3].includes('rad ett ⏎ rad två'));
+  assert.equal(lines[4], '(2 dokument)');
+  assert.equal(lines[5], '(inga dokument)');
+});

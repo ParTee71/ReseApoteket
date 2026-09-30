@@ -3,14 +3,17 @@
 import { summarize } from './backup.mjs';
 import { versionOf } from './schema.mjs';
 import { toJson } from './serialize.mjs';
-import { collectionOf, householdIds, walkHousehold } from './walk.mjs';
+import { collectionOf, householdExists, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';
 
 /**
  * Hushållet att läsa i: [household] om angivet, annars det enda som finns. Flera hushåll utan
  * val ger ett fel som listar ID:na (slumpade, ingen persondata).
  */
 export async function resolveHousehold(db, household) {
-  if (household) return household;
+  if (household) {
+    if (!(await householdExists(db, household))) throw new Error(`Hushållet ${household} finns inte`);
+    return household;
+  }
   const ids = await householdIds(db);
   if (ids.length === 1) return ids[0];
   if (ids.length === 0) throw new Error('Inga hushåll finns (eller nyckeln ser inga)');
@@ -20,17 +23,26 @@ export async function resolveHousehold(db, household) {
 /** Relativ sökväg (`persons`, `persons/<pid>/regimens`) → full sökväg under hushållet. */
 async function absolute(db, relative, household) {
   const clean = relative.replace(/^\/+|\/+$/g, '');
-  if (clean === 'households' || clean.startsWith('households/')) return clean;
+  if (clean === 'households') return clean;
+  if (clean.startsWith('households/')) {
+    if (household && householdOf(clean) !== household) throw new Error(`Sökvägen hör till ett annat hushåll än --household ${household}`);
+    return clean;
+  }
   return `households/${await resolveHousehold(db, household)}/${clean}`;
 }
 
-/** `fält=värde`; true/false/null och tal tolkas som sådana, allt annat är text. */
+/**
+ * `fält=värde`; true/false/null och decimaltal (`-12`, `0.5`) tolkas som sådana, allt annat är
+ * text. Text som ser ut som något annat skrivs inom citattecken: `fält="007"`.
+ */
 export function parseWhere(expression) {
   const at = expression.indexOf('=');
   if (at < 1) throw new Error(`--where ska vara fält=värde: ${expression}`);
   const raw = expression.slice(at + 1);
-  const value = raw === 'true' ? true : raw === 'false' ? false : raw === 'null' ? null
-    : raw !== '' && Number.isFinite(Number(raw)) ? Number(raw) : raw;
+  const quoted = /^"(.*)"$/.exec(raw);
+  const value = quoted ? quoted[1]
+    : raw === 'true' ? true : raw === 'false' ? false : raw === 'null' ? null
+    : /^-?\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
   return { field: expression.slice(0, at), value };
 }
 
@@ -45,7 +57,10 @@ export async function queryCollection(db, collection, { household, where = [], l
   return snap.docs.map((doc) => {
     const data = toJson(doc.data());
     const picked = fields ? Object.fromEntries(fields.filter((f) => f in data).map((f) => [f, data[f]])) : data;
-    return { id: doc.id, ...picked };
+    // Dokument-ID:t först och alltid – ett datafält som heter "id" skriver inte över det.
+    const row = { id: doc.id, ...picked };
+    row.id = doc.id;
+    return row;
   });
 }
 
@@ -66,7 +81,7 @@ export async function householdStats(db, { household } = {}) {
     const documents = [];
     let schemaVersion = null;
     for await (const doc of walkHousehold(db, id)) {
-      if (doc.path === `households/${id}`) schemaVersion = versionOf(doc.data);
+      if (isHouseholdDoc(doc.path)) schemaVersion = versionOf(doc.data);
       documents.push(doc);
     }
     if (household && documents.length === 0) throw new Error(`Hushållet ${id} finns inte`);

@@ -36,6 +36,8 @@ export function printSummary(title, counts) {
   for (const [name, count] of Object.entries(counts)) console.log(`  ${name}: ${count}`);
 }
 
+const MAX_CELL = 40;
+
 /** Rader som en enkel tabell: en kolumn per fält, värden som kompakt JSON utom text. */
 export function printTable(rows) {
   if (rows.length === 0) {
@@ -43,9 +45,12 @@ export function printTable(rows) {
     return;
   }
   const columns = [...new Set(rows.flatMap((r) => Object.keys(r)))];
-  const cell = (v) => (v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v));
-  const widths = columns.map((c) => Math.min(40, Math.max(c.length, ...rows.map((r) => cell(r[c]).length))));
-  const line = (values) => values.map((v, i) => String(v).slice(0, widths[i]).padEnd(widths[i])).join('  ').trimEnd();
+  const text = (v) => (v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v)).replace(/\s*\n\s*/g, ' ⏎ ');
+  const widths = columns.map((c) => Math.min(MAX_CELL, Math.max(c.length, ...rows.map((r) => text(r[c]).length))));
+  // En avkortad cell slutar med "…", så att ett värde aldrig ser komplett ut när det inte är det.
+  const fit = (v, width) => (v.length > width ? `${v.slice(0, width - 1)}…` : v.padEnd(width));
+  const line = (values) => values.map((v, i) => fit(String(v), widths[i])).join('  ').trimEnd();
+  const cell = text;
   console.log(line(columns));
   console.log(line(widths.map((w) => '-'.repeat(w))));
   for (const row of rows) console.log(line(columns.map((c) => cell(row[c]))));

@@ -1,12 +1,10 @@
 // Export och import – logiken bakom export.mjs, import.mjs och veckobackupen (BCK-1–3, 6–8).
 import { CURRENT_VERSION, versionOf } from './schema.mjs';
 import { fromJson, toJson } from './serialize.mjs';
-import { collectionOf, householdIds, householdOf, walkHousehold } from './walk.mjs';
+import { collectionOf, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';
 
 /** Firestores gräns för antal skrivningar i en batch. */
 export const MAX_BATCH = 500;
-
-const isHouseholdDoc = (path) => path.split('/').length === 2;
 
 /** Kör [convert] och lägger till dokumentets sökväg i ett fel – aldrig värdet. */
 function withPath(path, convert) {
