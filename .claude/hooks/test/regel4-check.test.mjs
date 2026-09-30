@@ -6,13 +6,14 @@ import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, readFileSync } fro
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scopesFor, parsePatterns, findViolations, findRepoRoot } from '../regel4-check.mjs';
+import { scopesFor, parsePatterns, parseSections, findViolations, findRepoRoot } from '../regel4-check.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
 const hook = path.join(repoRoot, '.claude/hooks/regel4-check.mjs');
 const patternsRel = 'app/src/test/resources/ui-forbidden.txt';
 const allowRel = 'app/src/test/resources/ui-allowlist.txt';
+const examplesRel = 'app/src/test/resources/ui-forbidden-examples.txt';
 const pkg = 'app/src/main/kotlin/se/partee71/reseapoteket';
 
 const readPatterns = () => readFileSync(path.join(repoRoot, patternsRel), 'utf8');
@@ -67,34 +68,22 @@ test('släpper igenom samma rad i ui/components', () => {
   assert.equal(r.stderr, '');
 });
 
-test('delade komponenter och tillåtna primitiver släpps i feature-kod', () => {
+/** Delade exempel – samma fil körs av UiConsistencyTest, så hook och bygge tolkar lika. */
+const readExamples = () => parseSections(readFileSync(path.join(repoRoot, examplesRel), 'utf8'));
+
+test('delade exempel: tillåtna rader släpps i feature-kod', () => {
   const scopes = parsePatterns(readPatterns());
-  const ok = [
-    'ApotekCard { }', 'AppButton(onClick = {})', 'AppIconButton(onClick = {})', 'AddSplitButton()',
-    'AppTextField(value = "")', 'AppTopBar(title = "")', 'AppFilterChip(selected = true)',
-    'PersonChip()', 'AppSnackbarHost(state)', 'UndoSnackbar()', 'CheckRow(checked = true)',
-    'SwitchRow(checked = true)', 'AppSegmentedChoice()', 'AppMenu()', 'DateField(value)',
-    'AppDivider()', 'ChipRow { }', 'InfoPill()', 'AppFloatingToolbar()', 'QuantityStepper()',
-    'Text("Hej", style = AppTypography.itemTitle)', 'Icon(Icons.Rounded.Luggage, null)',
-    'Spacer(Modifier.height(Spacing.l))', 'Modifier.padding(Spacing.m)',
-    'import androidx.compose.material3.Card', '// Card(modifier) i en kommentar',
-  ];
+  const ok = readExamples().ok;
+  assert.ok(ok.length >= 20);
   for (const line of ok) {
     assert.deepEqual(findViolations(`${pkg}/ui/trips/TripRow.kt`, line, scopes, []), [], line);
   }
 });
 
-test('hittar hårdkodat utseende, råa M3-komponenter och egna ramelement', () => {
+test('delade exempel: hårdkodat utseende, råa M3-komponenter och egna ramelement stoppas', () => {
   const scopes = parsePatterns(readPatterns());
-  const bad = [
-    'val c = Color(0xFFC8502F)', 'tint = Color.Red', 'shape = RoundedCornerShape(12.dp)',
-    'Text("x", fontSize = 14.sp)', 'lineHeight = 20.sp', 'Modifier.height(48.dp)',
-    'Modifier.width(120.dp)', 'Modifier.padding(16.dp)', 'Modifier.padding(horizontal = 16.dp)',
-    'LazyColumn { }', 'LazyRow { }', 'Scaffold(topBar = {})', 'AlertDialog(onDismissRequest = {})',
-    'SwipeToDismissBox(state) { }', 'FloatingActionButton(onClick = {})', 'Switch(checked = true)',
-    'SingleChoiceSegmentedButtonRow { }', 'DropdownMenu(expanded = true)', 'DatePicker(state)',
-    'HorizontalDivider()', 'Surface(color = x)', 'Badge { }', 'NavigationBar { }',
-  ];
+  const bad = readExamples().stopp;
+  assert.ok(bad.length >= 20);
   for (const line of bad) {
     assert.ok(findViolations(`${pkg}/ui/packing/PackingScreen.kt`, line, scopes, []).length > 0, line);
   }
@@ -114,17 +103,13 @@ test('allowlist-rad släpper igenom just den filen och symbolen', () => {
   assert.equal(runHook(dir, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard)).status, 0);
 });
 
-test('scope per sökväg', () => {
-  assert.deepEqual(scopesFor('README.md'), []);
-  assert.deepEqual(scopesFor(`${pkg}/ui/persons/notes.md`), []);
-  assert.deepEqual(scopesFor('app/src/test/kotlin/X.kt'), []);
-  assert.deepEqual(scopesFor(`${pkg}/data/firestore/FirestoreCollection.kt`), []);
-  assert.deepEqual(scopesFor(`${pkg}/ui/theme/Theme.kt`), ['firestore']);
-  assert.deepEqual(scopesFor(`${pkg}/ui/common/EditorState.kt`), ['firestore']);
-  assert.deepEqual(scopesFor(`${pkg}/ui/components/screens/EntityListScreen.kt`), ['firestore']);
-  assert.deepEqual(scopesFor(`${pkg}/ui/persons/PersonsScreen.kt`), ['feature', 'firestore']);
-  assert.deepEqual(scopesFor(`${pkg}/ui/AppRoot.kt`), ['feature', 'firestore']);
-  assert.deepEqual(scopesFor(`${pkg}/di/AppModule.kt`), ['firestore']);
+test('delade exempel: scope per sökväg', () => {
+  const cases = readExamples().scope;
+  assert.ok(cases.length >= 10);
+  for (const line of cases) {
+    const [file, expected = ''] = line.split('\t');
+    assert.deepEqual(scopesFor(file), expected ? expected.split(',') : [], file);
+  }
 });
 
 test('filer utanför repo, utan mönsterfil eller av annan typ ignoreras', () => {

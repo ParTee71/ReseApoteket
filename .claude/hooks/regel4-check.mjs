@@ -22,23 +22,30 @@ function readInput() {
   }
 }
 
-/** Tolkar ui-forbidden.txt till { feature: [...], firestore: [...] }. */
-export function parsePatterns(text) {
-  const scopes = {};
+/** Tolkar en sektionerad fil (`[namn]` följt av rader; tomma rader och `#`-rader hoppas över). */
+export function parseSections(text) {
+  const sections = {};
   let current = null;
   for (const line of text.split(/\r?\n/)) {
     if (!line.trim() || line.startsWith('#')) continue;
     const section = line.match(/^\[(\w+)\]\s*$/);
-    if (section) {
-      current = section[1];
-      scopes[current] = [];
-      continue;
-    }
-    if (!current) continue;
-    const [pattern, replacement = ''] = line.split('\t');
-    scopes[current].push({ source: pattern, regex: new RegExp(pattern), replacement });
+    if (section) sections[(current = section[1])] = [];
+    else if (current) sections[current].push(line);
   }
-  return scopes;
+  return sections;
+}
+
+/** Tolkar ui-forbidden.txt till { feature: [...], firestore: [...] }. */
+export function parsePatterns(text) {
+  return Object.fromEntries(
+    Object.entries(parseSections(text)).map(([scope, lines]) => [
+      scope,
+      lines.map((line) => {
+        const [pattern, replacement = ''] = line.split('\t');
+        return { source: pattern, regex: new RegExp(pattern), replacement };
+      }),
+    ]),
+  );
 }
 
 /** Tolkar ui-allowlist.txt till [{ file, symbol }]. */
