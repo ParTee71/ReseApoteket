@@ -1,10 +1,14 @@
-# Exempel på hur ui-forbidden.txt ska tolkas – körs av BÅDE hooktestet
+# Exempel på hur ui-forbidden.txt och ui-allowlist.txt ska tolkas – körs av BÅDE hooktestet
 # (.claude/hooks/test/regel4-check.test.mjs) och UiConsistencyTest, så att hooken och
-# bygget alltid tolkar mönsterfilen likadant. Lägg till ett exempel här när ett mönster ändras.
+# bygget alltid tolkar filerna likadant. Lägg till ett exempel här när ett mönster ändras.
+# Allt körs med tom allowlist utom sektionen allowlist.
 #
-# [ok]    = rader som är tillåtna i feature-kod
-# [stopp] = rader som ska stoppas i feature-kod
-# [scope] = <sökväg><TAB><scope, kommaseparerade; tomt = inga>
+# ok            = rader som är tillåtna i feature-kod (app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt)
+# stopp         = rader som ska stoppas i feature-kod
+# komponent-ok  = rader som är tillåtna i en delad komponent (app/src/main/kotlin/se/partee71/reseapoteket/ui/components/X.kt)
+# scope         = <sökväg><TAB><scope, kommaseparerade; tomt = inga>
+# allowlist     = <allowlist-rad><TAB><kodrad i TripRow.kt><TAB><ok|stopp>
+# allowlist-fel = allowlist-rader som ska avvisas (saknar symbol eller motivering)
 
 [ok]
 ApotekCard { }
@@ -28,6 +32,7 @@ InfoPill()
 AppFloatingToolbar()
 QuantityStepper()
 Text("Hej", style = AppTypography.itemTitle)
+color = MaterialTheme.colorScheme.onBackground
 Icon(Icons.Rounded.Luggage, null)
 Spacer(Modifier.height(Spacing.l))
 Modifier.padding(Spacing.m)
@@ -42,6 +47,7 @@ tint = Color.Red
 shape = RoundedCornerShape(12.dp)
 Text("x", fontSize = 14.sp)
 lineHeight = 20.sp
+style = MaterialTheme.typography.titleLarge
 Modifier.height(48.dp)
 Modifier.width(120.dp)
 Modifier.padding(16.dp)
@@ -61,16 +67,35 @@ HorizontalDivider()
 Surface(color = x)
 Badge { }
 NavigationBar { }
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
+[komponent-ok]
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+Card(modifier = modifier) { content() }
+style = MaterialTheme.typography.titleLarge
 
 [scope]
 README.md	
 app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/notes.md	
 app/src/test/kotlin/X.kt	
-app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/FirestoreCollection.kt	
+app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/FirestoreCollection.kt	expressive
 app/src/main/kotlin/se/partee71/reseapoteket/ui/theme/Theme.kt	firestore
-app/src/main/kotlin/se/partee71/reseapoteket/ui/common/EditorState.kt	firestore
+app/src/main/kotlin/se/partee71/reseapoteket/ui/common/EditorState.kt	firestore,expressive
 app/src/main/kotlin/se/partee71/reseapoteket/ui/components/screens/EntityListScreen.kt	firestore
-app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonsScreen.kt	feature,firestore
-app/src/main/kotlin/se/partee71/reseapoteket/ui/AppRoot.kt	feature,firestore
-app/src/main/kotlin/se/partee71/reseapoteket/di/AppModule.kt	firestore
-app/src/main/kotlin/se/partee71/reseapoteket/data/repository/PersonRepository.kt	firestore
+app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonsScreen.kt	feature,firestore,expressive
+app/src/main/kotlin/se/partee71/reseapoteket/ui/AppRoot.kt	feature,firestore,expressive
+app/src/main/kotlin/se/partee71/reseapoteket/di/AppModule.kt	firestore,expressive
+app/src/main/kotlin/se/partee71/reseapoteket/data/repository/PersonRepository.kt	firestore,expressive
+
+[allowlist]
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Card( – test	Card(modifier) { }	ok
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Card( – test	Card(colors = CardDefaults.cardColors(Color.Red)) { }	stopp
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Card( – test	Button(onClick = {})	stopp
+app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonRow.kt:Card( – annan fil	Card(modifier) { }	stopp
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Color.Red – test	tint = Color.Red	ok
+
+[allowlist-fel]
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt – saknar symbol
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Card(
+app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Card( – 

@@ -22,7 +22,7 @@ object Regel4 {
         var current: MutableList<String>? = null
         for (line in text.lines()) {
             if (line.isBlank() || line.startsWith("#")) continue
-            val section = Regex("""^\[(\w+)]\s*$""").find(line)
+            val section = Regex("""^\[([\w-]+)]\s*$""").find(line)
             if (section != null) {
                 current = mutableListOf<String>().also { sections[section.groupValues[1]] = it }
             } else {
@@ -40,16 +40,31 @@ object Regel4 {
             }
         }
 
+    /** Format per rad: `<sökväg>:<symbol> – <motivering>`. En rad utan symbol eller motivering är ett fel. */
     fun parseAllowlist(text: String): List<Allowed> =
-        text.lines()
-            .filter { it.isNotBlank() && !it.startsWith("#") }
-            .map { line ->
-                val location = line.split(Regex("""\s+[–-]\s+"""))[0]
-                val idx = location.lastIndexOf(':')
-                Allowed(location.substring(0, idx).trim(), location.substring(idx + 1).trim())
+        text.lines().mapIndexedNotNull { i, line ->
+            if (line.isBlank() || line.startsWith("#")) return@mapIndexedNotNull null
+            val parts = line.split(Regex("""\s+[–-]\s+"""))
+            val location = parts[0]
+            val idx = location.lastIndexOf(':')
+            val file = if (idx > 0) location.substring(0, idx).trim() else ""
+            val symbol = if (idx > 0) location.substring(idx + 1).trim() else ""
+            require(file.isNotEmpty() && symbol.isNotEmpty() && parts.drop(1).joinToString("").isNotBlank()) {
+                "ui-allowlist.txt rad ${i + 1}: ogiltig rad, formatet är \"<sökväg>:<symbol> – <motivering>\""
             }
+            Allowed(file, symbol)
+        }
 
-    /** `feature`: ui-paket utom components/theme/common (även filer direkt i ui/). `firestore`: allt utom data/firestore/. */
+    /** Ett undantag gäller bara träffar vars matchade text och symbolen överlappar – inte hela raden. */
+    fun isAllowed(allowlist: List<Allowed>, file: String, match: String): Boolean {
+        val m = match.trim()
+        return allowlist.any { it.file == file && (m.contains(it.symbol) || it.symbol.contains(m)) }
+    }
+
+    /**
+     * `feature`: ui-paket utom components/theme/common (även filer direkt i ui/).
+     * `firestore`: allt utom data/firestore/. `expressive`: allt utom ui/theme/ och ui/components/.
+     */
     fun scopesFor(relPath: String): List<String> {
         val p = relPath.replace('\\', '/')
         if (!p.startsWith("app/src/main/") || !p.endsWith(".kt")) return emptyList()
@@ -60,6 +75,7 @@ object Regel4 {
             if (sub !in setOf("components", "theme", "common")) scopes += "feature"
         }
         if (!p.contains("/data/firestore/")) scopes += "firestore"
+        if (!Regex("""/ui/(theme|components)/""").containsMatchIn(p)) scopes += "expressive"
         return scopes
     }
 
@@ -80,8 +96,7 @@ object Regel4 {
             active.flatMap { scope ->
                 patterns.getValue(scope).mapNotNull { rule ->
                     val match = rule.regex.find(line) ?: return@mapNotNull null
-                    val allowed = allowlist.any { it.file == normalized && line.contains(it.symbol) }
-                    if (allowed) null else Hit(i + 1, match.value, rule.replacement, scope)
+                    if (isAllowed(allowlist, normalized, match.value)) null else Hit(i + 1, match.value, rule.replacement, scope)
                 }
             }
         }

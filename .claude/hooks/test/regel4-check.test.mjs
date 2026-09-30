@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, readFileSync } fro
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scopesFor, parsePatterns, parseSections, findViolations, findRepoRoot } from '../regel4-check.mjs';
+import { scopesFor, parsePatterns, parseSections, parseAllowlist, findViolations, findRepoRoot } from '../regel4-check.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
@@ -71,21 +71,42 @@ test('släpper igenom samma rad i ui/components', () => {
 /** Delade exempel – samma fil körs av UiConsistencyTest, så hook och bygge tolkar lika. */
 const readExamples = () => parseSections(readFileSync(path.join(repoRoot, examplesRel), 'utf8'));
 
+const featureFile = `${pkg}/ui/trips/TripRow.kt`;
+const componentFile = `${pkg}/ui/components/X.kt`;
+
 test('delade exempel: tillåtna rader släpps i feature-kod', () => {
   const scopes = parsePatterns(readPatterns());
   const ok = readExamples().ok;
   assert.ok(ok.length >= 20);
-  for (const line of ok) {
-    assert.deepEqual(findViolations(`${pkg}/ui/trips/TripRow.kt`, line, scopes, []), [], line);
-  }
+  for (const line of ok) assert.deepEqual(findViolations(featureFile, line, scopes, []), [], line);
 });
 
-test('delade exempel: hårdkodat utseende, råa M3-komponenter och egna ramelement stoppas', () => {
+test('delade exempel: hårdkodat utseende, råa M3-komponenter, egna ramelement och Expressive-opt-in stoppas', () => {
   const scopes = parsePatterns(readPatterns());
   const bad = readExamples().stopp;
   assert.ok(bad.length >= 20);
-  for (const line of bad) {
-    assert.ok(findViolations(`${pkg}/ui/packing/PackingScreen.kt`, line, scopes, []).length > 0, line);
+  for (const line of bad) assert.ok(findViolations(featureFile, line, scopes, []).length > 0, line);
+});
+
+test('delade exempel: delade komponenter får använda M3 och Expressive', () => {
+  const scopes = parsePatterns(readPatterns());
+  for (const line of readExamples()['komponent-ok']) {
+    assert.deepEqual(findViolations(componentFile, line, scopes, []), [], line);
+  }
+});
+
+test('delade exempel: ett undantag gäller bara sin fil och sin symbol', () => {
+  const scopes = parsePatterns(readPatterns());
+  for (const example of readExamples().allowlist) {
+    const [allowLine, code, expected] = example.split('\t');
+    const hits = findViolations(featureFile, code, scopes, parseAllowlist(allowLine));
+    assert.equal(hits.length === 0 ? 'ok' : 'stopp', expected, example);
+  }
+});
+
+test('delade exempel: allowlist-rad utan symbol eller motivering avvisas', () => {
+  for (const line of readExamples()['allowlist-fel']) {
+    assert.throws(() => parseAllowlist(line), /ui-allowlist\.txt rad 1/, line);
   }
 });
 
@@ -98,9 +119,16 @@ test('Firestore-typer stoppas överallt utom i data/firestore – även i di/ oc
   assert.equal(runHook(dir, writeKt(dir, `${pkg}/data/firestore/FirestoreModule.kt`, src), 'Edit').status, 0);
 });
 
-test('allowlist-rad släpper igenom just den filen och symbolen', () => {
+test('allowlist-rad släpper igenom just den filen och symbolen via hooken', () => {
   const { dir } = makeProject(`# test\n${pkg}/ui/persons/PersonRow.kt:Card( – test\n`);
   assert.equal(runHook(dir, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard)).status, 0);
+});
+
+test('trasig allowlist stoppar hooken med radnummer', () => {
+  const { dir } = makeProject(`# test\n${pkg}/ui/persons/PersonRow.kt – saknar symbol\n`);
+  const r = runHook(dir, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard));
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /ui-allowlist\.txt rad 2/);
 });
 
 test('delade exempel: scope per sökväg', () => {
@@ -124,12 +152,12 @@ test('tom eller trasig indata ger exit 0', () => {
   assert.equal(spawnSync('node', [hook], { input: 'inte json', encoding: 'utf8' }).status, 0);
 });
 
-test('mönsterfilen har båda scopen, giltiga regexar och en ersättning per rad', () => {
+test('mönsterfilen har alla scope, giltiga regexar och en ersättning per rad', () => {
   const scopes = parsePatterns(readPatterns());
-  assert.deepEqual(Object.keys(scopes).sort(), ['feature', 'firestore']);
+  assert.deepEqual(Object.keys(scopes).sort(), ['expressive', 'feature', 'firestore']);
   assert.ok(scopes.feature.length >= 30);
   assert.ok(scopes.firestore.length >= 3);
-  for (const rule of [...scopes.feature, ...scopes.firestore]) assert.ok(rule.replacement, rule.source);
+  for (const rule of Object.values(scopes).flat()) assert.ok(rule.replacement, rule.source);
 });
 
 test('hook-kommandona i settings.json hittar skripten både i repot och från en föräldrakatalog', () => {

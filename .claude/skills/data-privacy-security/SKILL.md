@@ -33,6 +33,9 @@ GitHub Actions-loggar.
   upp okrypterad data som artifact, i en issue eller i en PR.
 - Appens "Exportera som JSON" sker bara på uttrycklig användarhandling via dela-intent.
 - Inga andra exportvägar, ingen extern lagring, inga `READ/WRITE_EXTERNAL_STORAGE`.
+- Androids egen backup och enhetsöverföring är avstängda: `android:allowBackup="false"` och
+  `res/xml/data_extraction_rules.xml` som undantar alla domäner (testas av `PrivacyManifestTest`).
+  En ny telefon hämtar datan från Firestore efter inloggning.
 
 - Dekrypterade backuper och exporter läggs bara i `tools/db/` (git-ignorerad) och raderas
   efter användning. `.gitignore` fångar dessutom `backup*.json` och `export*.json` överallt.

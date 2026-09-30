@@ -6,6 +6,7 @@ import java.io.File
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -17,13 +18,18 @@ class UiConsistencyTest {
 
     private val repoRoot = File("").absoluteFile.let { if (it.name == "app") it.parentFile else it }
     private val patterns = Regel4.parsePatterns(Regel4.readResource("ui-forbidden.txt"))
-    private val allowlist = Regel4.parseAllowlist(Regel4.readResource("ui-allowlist.txt"))
+
+    // Lat, så att en trasig rad ger ett tydligt fel i testet i stället för i klassens konstruktor.
+    private val allowlist by lazy { Regel4.parseAllowlist(Regel4.readResource("ui-allowlist.txt")) }
     private val examples = Regel4.parseSections(Regel4.readResource("ui-forbidden-examples.txt"))
     private val production = Konsist.scopeFromProduction(moduleName = "app", sourceSetName = "main")
 
+    private val featureFile = "app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt"
+    private val componentFile = "app/src/main/kotlin/se/partee71/reseapoteket/ui/components/X.kt"
+
     @Test
-    fun `mönsterfilen har båda scopen och en ersättning per mönster`() {
-        assertEquals(setOf("feature", "firestore"), patterns.keys)
+    fun `mönsterfilen har alla scope och en ersättning per mönster`() {
+        assertEquals(setOf("feature", "firestore", "expressive"), patterns.keys)
         patterns.values.flatten().forEach { assertTrue(it.replacement.isNotBlank(), it.regex.pattern) }
     }
 
@@ -43,15 +49,23 @@ class UiConsistencyTest {
         }
     }
 
+    // De delade exemplen körs med tom allowlist utom sektionen "allowlist" – precis som i hooktestet.
+
     @Test
-    fun `delade exempel tolkas likadant som i hooken`() {
-        val featureFile = "app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt"
+    fun `delade exempel - tillåtna och förbjudna rader tolkas likadant som i hooken`() {
         examples.getValue("ok").forEach { line ->
-            assertEquals(emptyList(), Regel4.findViolations(featureFile, line, patterns, allowlist), line)
+            assertEquals(emptyList(), Regel4.findViolations(featureFile, line, patterns, emptyList()), line)
         }
         examples.getValue("stopp").forEach { line ->
             assertTrue(Regel4.findViolations(featureFile, line, patterns, emptyList()).isNotEmpty(), line)
         }
+        examples.getValue("komponent-ok").forEach { line ->
+            assertEquals(emptyList(), Regel4.findViolations(componentFile, line, patterns, emptyList()), line)
+        }
+    }
+
+    @Test
+    fun `delade exempel - scope per sökväg`() {
         examples.getValue("scope").forEach { line ->
             val parts = line.split("\t")
             val expected = parts.getOrElse(1) { "" }.split(",").filter { it.isNotEmpty() }
@@ -60,11 +74,20 @@ class UiConsistencyTest {
     }
 
     @Test
-    fun `allowlist-rad släpper igenom just den filen och symbolen`() {
-        val file = "app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonRow.kt"
-        val allowed = Regel4.parseAllowlist("$file:Card( – test")
-        assertEquals(emptyList(), Regel4.findViolations(file, "Card(modifier) { }", patterns, allowed))
-        assertTrue(Regel4.findViolations(file, "Button(onClick = {})", patterns, allowed).isNotEmpty())
+    fun `delade exempel - ett undantag gäller bara sin fil och sin symbol`() {
+        examples.getValue("allowlist").forEach { example ->
+            val (allowLine, code, expected) = example.split("\t")
+            val hits = Regel4.findViolations(featureFile, code, patterns, Regel4.parseAllowlist(allowLine))
+            assertEquals(expected, if (hits.isEmpty()) "ok" else "stopp", example)
+        }
+    }
+
+    @Test
+    fun `delade exempel - allowlist-rad utan symbol eller motivering avvisas`() {
+        examples.getValue("allowlist-fel").forEach { line ->
+            val error = assertFailsWith<IllegalArgumentException>(line) { Regel4.parseAllowlist(line) }
+            assertTrue(error.message.orEmpty().startsWith("ui-allowlist.txt rad 1"), error.message)
+        }
     }
 
     @Test
@@ -79,22 +102,40 @@ class UiConsistencyTest {
 
     @Test
     fun `komponenttabellen i shared-ui-components stämmer med ui-components`() {
-        val inCode = production.functions()
-            .filter { it.resideInPackage("..ui.components..") && it.hasPublicOrDefaultModifier }
-            .filter { it.hasAnnotationWithName("Composable") }
-            .map { it.name }
-            .toSet()
-        assumeTrue(
-            "Dokumentdrift: hoppar över – ui.components saknar publika composables (aktiveras i #20)".also {
-                if (inCode.isEmpty()) println(it)
-            },
-            inCode.isNotEmpty(),
-        )
+        val inCode = publicComponents("Dokumentdrift")
         val inTable = documentedComponents()
         val missingInTable = inCode - inTable
         val missingInCode = inTable - inCode
         assertTrue(missingInTable.isEmpty(), "Lägg till raden i shared-ui-components: $missingInTable")
         assertTrue(missingInCode.isEmpty(), "Ta bort raden i shared-ui-components eller bygg komponenten: $missingInCode")
+    }
+
+    @Test
+    fun `varje publik komponent har skärmdump ljust och mörkt och plats i ComponentGallery`() {
+        val components = publicComponents("Skärmdump/galleri") - "ComponentGallery"
+        val screenshots = File(repoRoot, "app/src/test/screenshots").list().orEmpty().toSet()
+        val gallery = production.files.firstOrNull { it.name == "ComponentGallery" }?.text.orEmpty()
+        val problems = components.flatMap { name ->
+            listOfNotNull(
+                "$name saknar skärmdump ${name}_*_light.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_light.png") } },
+                "$name saknar skärmdump ${name}_*_dark.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_dark.png") } },
+                "$name saknas i ComponentGallery".takeIf { !gallery.contains("$name(") },
+            )
+        }
+        assertTrue(problems.isEmpty(), problems.joinToString("\n"))
+    }
+
+    /** Publika composables i `ui.components`; hoppar över testet (med orsak i loggen) så länge det inte finns några. */
+    private fun publicComponents(check: String): Set<String> {
+        val names = production.functions()
+            .filter { it.resideInPackage("..ui.components..") && it.hasPublicOrDefaultModifier }
+            .filter { it.hasAnnotationWithName("Composable") }
+            .map { it.name }
+            .toSet()
+        val reason = "$check: hoppar över – ui.components saknar publika composables (aktiveras i #20)"
+        if (names.isEmpty()) println(reason)
+        assumeTrue(reason, names.isNotEmpty())
+        return names
     }
 
     /** Komponentnamnen i kolumn två i tabellerna "Utseende" och "Beteende". */

@@ -39,10 +39,11 @@ subprojects {
         }
     }
     tasks.withType<Test>().configureEach {
-        // Ett test som hänger ska falla med namn, inte äta upp hela jobbets tid.
-        timeout.set(Duration.ofMinutes(10))
+        // Ett test som hänger får inte äta upp PR-budgeten (~8 min, skill ci-budget): tasken
+        // avbryts efter 4 min, och den sista STARTED-raden utan resultat i loggen namnger testet.
+        timeout.set(Duration.ofMinutes(4))
         testLogging {
-            events("skipped", "failed")
+            events("started", "skipped", "failed")
             exceptionFormat = TestExceptionFormat.FULL
         }
     }
