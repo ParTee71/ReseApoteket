@@ -10,7 +10,7 @@ You are a senior Android engineer. Apply the following guidelines to all Android
 ## Architecture
 
 - Use clean architecture with repository pattern for data persistence.
-- Ask the user whether they prefer MVVM or MVI. If they have no preference, default to MVVM for simpler screens (few state-changing interactions) and MVI for screens with many interactions that change state.
+- **MVVM** with `StateFlow<UiState>` and sealed events (decided in ADR-001, `ARKITEKTUR.md`) – do not ask or switch to MVI.
 - Use Compose for all new UI. For legacy interop use `AndroidView` / `ComposeView`.
 - Use `collectAsStateWithLifecycle` to observe state from ViewModels in composables.
 - Use `StateFlow` / `State` to manage UI state.
@@ -77,7 +77,7 @@ For one-shot UI effects from a ViewModel (snack messages, navigation triggers, h
 ## Async & Concurrency
 
 - Use Kotlin Coroutines and Flow for all async work. No `LiveData` in new code.
-- `viewModelScope` for ViewModel coroutines; inject `CoroutineDispatcher` for testability.
+- `viewModelScope` for ViewModel coroutines. Inject a `CoroutineDispatcher` only where the code itself picks a dispatcher for blocking work; Firestore and DataStore are already main-safe (skill `kotlin-coroutines`). ViewModel tests use the shared `MainDispatcherRule`.
 - Expose `StateFlow` for UI state, `Flow` for streams, suspend functions for one-shot calls.
 - Defer to `kotlin-coroutines` and `kotlin-flows` skills for operator-level details.
 
@@ -87,14 +87,11 @@ For one-shot UI effects from a ViewModel (snack messages, navigation triggers, h
 - This project targets Java 17 (same as CI). Shared build settings live in one place (skill `android-gradle-logic`).
 - Keep ProGuard/R8 rules updated when adding libraries.
 
-## Package Structure (this project: `:core` + `:app`)
+## Package Structure
 
-- `core/` (`se.partee71.reseapoteket.core`): `model`, `engine`, `schema` – pure Kotlin, no Android.
-- `app/.../data/`: `auth`, `firestore` (`FirestoreCollection`, `Paths`), `repository` (thin facades), `datastore`.
-- `app/.../navigation/`: Navigation 3 keys, back stack, `Transitions`.
-- `app/.../ui/theme/`, `ui/components/`, `ui/common/`: the only places that define look and shared behaviour.
-- `app/.../ui/<feature>/`: ViewModel + screen wiring shared frames/components.
-- `app/.../di/`: Hilt modules.
+`:core` (pure Kotlin/JVM) + `:app`. The package tree is defined **only** in `ARKITEKTUR.md`
+→ "Moduler och paket"; read it there. Key rule: look and shared behaviour live only in
+`ui/theme`, `ui/components` and `ui/common`; Firestore only in `data/firestore`.
 
 ## Data Flow
 
@@ -113,9 +110,9 @@ Compose → ViewModel → Repository → Data sources
 
 **Error propagation by layer:**
 
-1. **Data sources** — throw platform/library exceptions (`IOException`, `FirebaseFirestoreException`).
-2. **Repositories** — catch platform exceptions and remap to domain error types. Never let raw data-layer exceptions leak past this boundary.
-3. **ViewModels** — handle `Result<T>` and map to UI state.
+1. **Platform APIs** (Firestore, Credential Manager, Firebase Auth) throw their own exceptions.
+2. **The single access point maps them once** to `DataError` via `suspendRunCatching` (both in `data/common/`): `FirestoreCollection` for all Firestore access, `AuthRepository` for sign-in. Repositories built on `FirestoreCollection` do **not** catch or remap again – they pass `Result<T>` through.
+3. **ViewModels** handle `Result<T>` and put the `DataError` in UI state; screens show it with `DataError.toMessage()`. `DataError.Cancelled` is silent.
 
 ## Navigation
 
@@ -137,7 +134,7 @@ Compose → ViewModel → Repository → Data sources
 - **State exposure**: `private val _state = MutableStateFlow(...)`, `val state = _state.asStateFlow()`; `_state.update { it.copy(...) }`.
 - **Shared frames (rule 4)**: list screens use `EntityListScreen` + `asListUiState()`, edit screens use `EntityEditScreen` + `EditorState<T>`. Never hand-roll these.
 - **Auth**: `AuthRepository` wraps Firebase Auth + Credential Manager — never call Firebase directly from UI.
-- **Data**: repositories are thin facades over `FirestoreCollection<T>`; errors are mapped to `DataError` there, shown via `DataError.toMessage()`.
+- **Data**: repositories are thin facades over `FirestoreCollection<T>`, which maps errors to `DataError` once (via `suspendRunCatching` in `data/common/`); repositories pass `Result<T>` through and ViewModels show it with `DataError.toMessage()`.
 - **Backup**: `tools/db` export/import, weekly encrypted run in GitHub Actions — no backup code in the app.
 - **Tests**: JVM first (JUnit, Turbine, Robolectric, Roborazzi); fakes built on `FakeCollection<T>`.
 

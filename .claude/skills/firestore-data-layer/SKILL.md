@@ -14,17 +14,10 @@ Datakedjan och schemaregler står i skill `data-safety-backup`.
 
 ## Dokumentstruktur
 
-```
-households/{hid}                              name, memberUids, marginDays, schemaVersion, createdAt
-households/{hid}/persons/{pid}                Person
-households/{hid}/persons/{pid}/regimens/{rid} Regimen (recept och kosttillskott, kind)
-households/{hid}/familyItems/{fid}            FamilyItem
-households/{hid}/trips/{tid}                  Trip
-households/{hid}/trips/{tid}/packingItems/{iid} PackingItem
-```
-
-Fullständiga fält: `ARKITEKTUR.md` → "Datamodell" (#14). Sökvägarna finns i `Paths` och
-speglas i `tools/db/lib/collections.mjs` – ett test håller dem lika.
+Fem samlingar under `households/{hid}`: `persons`, `persons/{pid}/regimens`,
+`familyItems`, `trips` och `trips/{tid}/packingItems`. Struktur och fält står **bara** i
+`ARKITEKTUR.md` → "Datamodell" (fylls i av #14). Sökvägarna finns i `Paths` och speglas i
+`tools/db/lib/collections.mjs` – ett test håller dem lika.
 
 ## Lager
 
@@ -52,16 +45,17 @@ Byggs enbart av fälthjälparna (`map.string`, `map.int`, `map.enum`, `map.local
 | `observe(): Flow<List<T>>` | `snapshots()` → `codec.decode`; sorterat via `Sortable` om tillämpligt |
 | `observe(id): Flow<T?>` | ett dokument |
 | `get(id): Result<T?>` | engångsläsning |
-| `upsert(item): Result<Unit>` | `set` med codec; `updatedAt` sätts här |
+| `upsert(item): Result<Unit>` | `set(…, SetOptions.merge())` med codecens fullständiga fältlista; okända fält från nyare appversioner bevaras (skill `data-safety-backup`); `updatedAt` sätts här |
 | `delete(id): Result<Unit>` | permanent radering |
 | `setArchived(id, archived): Result<Unit>` | för `Archivable` |
 | `batch { … }: Result<Unit>` | flera skrivningar atomärt, delas i bitar om 500 |
 | `newId(): String` | klientgenererat ID – fungerar offline |
 | `syncing: Flow<Boolean>` | `hasPendingWrites` → appens enda "synkas…"-indikator |
 
-- Alla skrivningar går via `suspendRunCatching` och mappar
-  `FirebaseFirestoreException` → `DataError` (`Offline`, `PermissionDenied`, `Unknown`)
-  **här, en gång**. UI visar texten via `DataError.toMessage()`.
+- Alla skrivningar går via `suspendRunCatching` (i `data/common/`) och mappar
+  `FirebaseFirestoreException` → `DataError` **här, en gång**. `DataError` (`Offline`,
+  `PermissionDenied`, `Cancelled`, `Unknown`) ligger i `data/common/` och används även av
+  `AuthRepository`. UI visar texten via `DataError.toMessage()`.
 - Läser aktivt hushåll från `HouseholdSession`; utan hushåll emitteras inget.
 - `Timestamp` ↔ `Instant` översätts här; `:core` ser aldrig Firebase-typer.
 
@@ -71,8 +65,10 @@ Interface + implementation som bara delegerar och uttrycker domänfrågor, t.ex.
 `FirebaseFirestore`, ingen felmappning, ingen codec-logik.
 
 ### DI
-`FirebaseFirestore` via Hilt med `PersistentCacheSettings` (100 MB). `CollectionFactory`
-skapar alla `FirestoreCollection`-instanser – sökvägar på ett ställe.
+Hilt-modulen `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), eftersom
+`FirebaseFirestore` bara får förekomma där. Den ger `FirebaseFirestore` med
+`PersistentCacheSettings` (100 MB). `CollectionFactory` skapar alla
+`FirestoreCollection`-instanser – sökvägar på ett ställe. Övriga Hilt-moduler ligger i `di/`.
 
 ## Offline
 
@@ -93,12 +89,14 @@ skapar alla `FirestoreCollection`-instanser – sökvägar på ett ställe.
 | Test | Var |
 |---|---|
 | Codec-rundtur och tolerans | `core/src/test/.../schema/` (hjälparna i skill `testing-strategy`) |
-| `CollectionContract` mot `FakeCollection` | `app/src/test/.../data/` (JVM, varje PR) |
-| `CollectionContract` mot riktig `FirestoreCollection` + emulator | `tools`-filtret i CI |
+| `CollectionContract` mot `FakeCollection` | `app/src/test/.../data/` (JVM, varje PR när `app/` ändras) |
+| `CollectionContract` mot riktig `FirestoreCollection` + Firebase-emulatorn | `app/src/androidTest/.../data/` (instrumenttest: på begäran och i release) |
 | Rules-test | `tools/db/test/rules.test.mjs` |
 | `Paths` = `collections.mjs` = rules | `tools/db/test/collections.test.mjs` |
 
 Repository-tester: bygg repositoryt med `FakeCollection` och testa bara domänfrågorna.
+`FakeCollection` emulerar `upsert` med merge (okända fält bevaras, `null` tömmer), så att
+JVM-testerna i varje PR fångar samma sak som instrumenttestet mot riktig Firestore.
 
 ## Kostnad (Spark-planen)
 
@@ -108,8 +106,8 @@ Repository-tester: bygg repositoryt med `FakeCollection` och testa bara domänfr
 
 ## Anti-mönster
 
-- `FirebaseFirestore`, `CollectionReference` eller `DocumentReference` utanför `data/firestore/`
-  (fälls av `UiConsistencyTest` och hooken `regel4-check`).
+- `FirebaseFirestore`, `CollectionReference` eller `DocumentReference` utanför `data/firestore/`,
+  även i `di/` (fälls av `UiConsistencyTest` och hooken `regel4-check`).
 - Egen felmappning eller egen `try/catch` runt Firestore i ett repository.
 - Egen parsning av en `Map` i stället för en codec.
 - En `Fake*Repository` med egen in-memory-logik i stället för `FakeCollection`.

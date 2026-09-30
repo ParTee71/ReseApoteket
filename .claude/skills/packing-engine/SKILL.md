@@ -15,6 +15,9 @@ och testet i samma PR (skill `requirements-kravlista`).
 
 ## Modeller (i `core/.../model/`)
 
+Tabellen visar det motorn använder. Fullständiga fält och lagring: `ARKITEKTUR.md` →
+"Datamodell" (enda källan).
+
 | Modell | Innehåll |
 |---|---|
 | `Regimen` | `kind` (`MEDICINE`/`SUPPLEMENT`), namn, form, styrka, `unit`, `packageSize?`, `schedule`, `active`, `archived` |
@@ -23,7 +26,7 @@ och testet i samma PR (skill `requirements-kravlista`).
 | `QuantityRule` | sealed: `Fixed(quantity)`, `PerTraveller(quantity)`, `PerDays(quantity, perDays)`, `Unknown` |
 | `Trip` | `startDate: LocalDate`, `days`, `travellerIds` |
 | `HouseholdSettings` | `marginDays` (default 2) |
-| `PackingItem` | sektion, `personId?`, `sourceType` (`REGIMEN`/`FAMILY_ITEM`/`MANUAL`), `sourceId?`, namn, `unit`, `suggestedQuantity`, `quantity`, `packages?`, `reason`, `checked`, `hidden` |
+| `PackingItem` | sektion, `personId?`, `sourceType` (`REGIMEN`/`FAMILY_ITEM`/`MANUAL`), `sourceId?`, namn, `unit`, `suggestedQuantity`, `quantity`, `packages?`, `reason`, `checked`, `checkedAt?`, `hidden` |
 
 ## API
 

@@ -38,8 +38,8 @@ Alla har `--help`. Finns bara ett hushåll väljs det automatiskt; annars `--hou
 ## Skrivande kommandon (kräver uttrycklig begäran och bekräftelse)
 
 ```bash
-node tools/db/import.mjs --in backup.json --dry-run       # visa vad som skulle skrivas
-node tools/db/import.mjs --in backup.json                 # skriv
+node tools/db/import.mjs --in tools/db/backup.json --dry-run   # visa vad som skulle skrivas
+node tools/db/import.mjs --in tools/db/backup.json             # skriv
 node tools/db/migrate.mjs --to <N>                        # schemamigrering
 ```
 
@@ -58,7 +58,9 @@ node tools/db/migrate.mjs --to <N>                        # schemamigrering
 ## Återställning från veckobackup
 
 1. Ladda ner senaste artifact från körningen av `backup.yml` i GitHub Actions.
-2. `openssl enc -d -aes-256-cbc -pbkdf2 -in backup.json.enc -out backup.json` (lösenfras
-   från användarens lösenordshanterare – be inte om den i chatten; användaren kör steget).
-3. `node tools/db/import.mjs --in backup.json --dry-run`, visa, och kör sedan utan `--dry-run`
-   efter bekräftelse.
+2. `gpg --decrypt --output tools/db/backup.json backup.json.gpg` – alltid **till
+   `tools/db/`**, som är git-ignorerad (lösenfras från användarens lösenordshanterare – be
+   inte om den i chatten; användaren kör steget). gpg kontrollerar integriteten: en
+   manipulerad eller trasig fil ger fel i stället för felaktig data.
+3. `node tools/db/import.mjs --in tools/db/backup.json --dry-run`, visa, och kör sedan utan
+   `--dry-run` efter bekräftelse. Radera `tools/db/backup.json` efteråt.

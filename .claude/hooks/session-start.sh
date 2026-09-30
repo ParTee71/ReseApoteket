@@ -9,11 +9,14 @@ fi
 
 echo '{"async": true, "asyncTimeout": 300000}'
 
-cd "${CLAUDE_PROJECT_DIR:-.}"
+# Repots rot utifrån skriptets plats – fungerar även när sessionens projektrot är en
+# föräldrakatalog med flera repon.
+cd "$(dirname "$0")/../.."
 
 # tools/db: installera beroenden om verktyget finns och inte redan är installerat.
+# --ignore-scripts: inga livscykelskript från beroenden körs i sessionen.
 if [ -f tools/db/package-lock.json ] && [ ! -d tools/db/node_modules ]; then
-  npm ci --prefix tools/db --silent --no-audit --no-fund || echo "tools/db: npm ci misslyckades"
+  npm ci --prefix tools/db --ignore-scripts --silent --no-audit --no-fund || echo "tools/db: npm ci misslyckades"
 fi
 
 # Databasåtkomst: visa bara om nyckeln finns, aldrig dess innehåll (skill db-access).
@@ -22,6 +25,3 @@ if [ -n "${FIREBASE_SERVICE_ACCOUNT:-}" ]; then
 else
   echo "FIREBASE_SERVICE_ACCOUNT: saknas (databasåtkomst från sessionen är avstängd)"
 fi
-
-# Valfritt: kortfattad utdata med "caveman" (används i Dagboken). Avkommentera för att slå på.
-# npx -y github:JuliusBrussee/caveman -- --only claude --non-interactive || true

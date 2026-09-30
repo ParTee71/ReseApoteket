@@ -27,7 +27,7 @@ UI (SignInScreen)
 - **`CredentialManager`** — created from `ApplicationContext` at repository construction time
 - **`GetSignInWithGoogleOption`** — use this (not `GetGoogleIdOption`) — opens full-page Google account picker
 - **`AuthViewModel`** (`ui/auth/`) — sign-in state; `SettingsViewModel` only handles sign-out
-- **`R.string.default_web_client_id`** — auto-generated from `google-services.json` by `google-services` plugin. Requires `client_type: 3` in `google-services.json`.
+- **`R.string.default_web_client_id`** — auto-generated from `google-services.json` by `google-services` plugin. Requires `client_type: 3` in `google-services.json`. When the file is missing (CI without the secret, sessions), a debug-only stub resource provides the string so the code compiles (skill `android-gradle-logic`).
 
 ## `AuthRepository` API
 
@@ -69,10 +69,10 @@ private fun signIn(activityContext: Context) {
         result
             .onSuccess { ensureHousehold() }
             .onFailure { e ->
-                // GetCredentialCancellationException = user dismissed picker → silent
-                if (e !is GetCredentialCancellationException) {
-                    _state.update { it.copy(error = DataError.from(e)) } // shown via DataError.toMessage()
-                }
+                // AuthRepository has already mapped the exception to DataError (once, via
+                // suspendRunCatching in data/common). Cancelled = user dismissed the picker → silent.
+                val error = e as? DataError ?: DataError.Unknown
+                if (error != DataError.Cancelled) _state.update { it.copy(error = error) }
             }
     }
 }
@@ -143,12 +143,15 @@ Always use `GetSignInWithGoogleOption` for first-time sign-in flows.
 
 ## Error Categories
 
-| Exception | Meaning | Handle |
-|---|---|---|
-| `GetCredentialCancellationException` | User dismissed picker | Silent — no error shown (not an error) |
-| `GetCredentialException` | No Google accounts on device, API not available | Show error |
-| `FirebaseAuthException` | Firebase rejected the token | Show error; log only the exception class, never email/uid (skill `data-privacy-security`) |
-| Generic `Exception` | Network issue, other | Show error |
+`AuthRepository` maps every exception to `DataError` once, with `suspendRunCatching` (in
+`data/common/`), exactly like `FirestoreCollection` does for data:
+
+| Exception | Meaning | `DataError` | Handle |
+|---|---|---|---|
+| `GetCredentialCancellationException` | User dismissed picker | `Cancelled` | Silent — not an error |
+| `GetCredentialException` | No Google accounts on device, API not available | `Unknown` | Show error |
+| `FirebaseAuthException` | Firebase rejected the token | `PermissionDenied` | Show error; log only the exception class, never email/uid (skill `data-privacy-security`) |
+| `FirebaseNetworkException`, `IOException` | No network | `Offline` | Show error |
 
 ## Dependencies (added in the Gradle skeleton, #11)
 

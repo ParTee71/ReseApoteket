@@ -19,17 +19,21 @@ resten med `dorny/paths-filter`.
 |---|---|---|
 | `core` | `core/**` | `:core:test` + `:app:testDebugUnitTest` + `verifyRoborazziDebug` + `cpdCheck` |
 | `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:compileDebugAndroidTestKotlin` |
-| `tools` | `firestore.rules`, `firestore.indexes.json`, `tools/db/**`, `app/src/main/**/data/firestore/**` | rules-, rundturs- och kontraktstester mot Firestore-emulatorn |
+| `tools` | `firestore.rules`, `firestore.indexes.json`, `tools/db/**` | rules- och rundturstester (Node) mot Firebase-emulatorn |
 | `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan |
 | – | allt annat (`*.md`, `.claude/**`) | bara `changes` med dokumentkontroller |
 <!-- ci-table:end -->
 
-- **Dokumentkontrollerna körs alltid** i `changes`: `node --test '.github/scripts/*.test.mjs' '.claude/hooks/test/*.test.mjs'`
-  (denna tabell mot filtren, länkar och skill-/agentnamn, hooktestet).
+- **Dokumentkontrollerna körs alltid** i `changes` (denna tabell mot filtren, länkar och
+  skill-/agentnamn, hooktestet), som två kommandon – samma form som de förhandsgodkända:
+  `node --test '.github/scripts/*.test.mjs'` och `node --test '.claude/hooks/test/*.test.mjs'`.
 - **`push` till `master`** sätter alla filter till sant – baslinje och cache-uppvärmning.
 - **Gradle build cache** (`org.gradle.caching=true` + `gradle/actions/setup-gradle`) gör
   att oförändrade testtasks blir `FROM-CACHE`/`UP-TO-DATE` även inom en modul. Det kräver
   deterministiska tester (regel 2).
+- **Firebase-emulatorn är inte Android-emulatorn.** Den kräver Java och `firebase-tools`,
+  tar ca 1–2 minuter med cache och körs bara i jobbet `rules` (filter `tools`). Android-emulatorn körs aldrig per PR.
+- **Node ≥ 22** pinnas i alla jobb som kör `node --test` (globmönster kräver Node 21+).
 - **Hoppade jobb rapporterar ingen status.** Därför är jobbet `ci-ok`
   (`needs: [changes, gradle, rules]`, `if: always()`) det enda obligatoriska statuskravet.
 
@@ -42,7 +46,7 @@ PR. Ny modul = ny rad här **och** nytt filter.
 
 | Steg | Var det körs i stället |
 |---|---|
-| Instrumenttester på emulator | `instrumented.yml`: `workflow_dispatch` och release |
+| Instrumenttester på Android-emulator (inkl. `CollectionContract` mot riktig `FirestoreCollection`) | `instrumented.yml`: `workflow_dispatch` och release; körs på begäran före merge när `data/firestore/` ändrats |
 | `lintDebug` | `quality.yml`: veckovis och release |
 | `assembleRelease` (minifierat) | `quality.yml`: veckovis och release |
 | Matrisbyggen, flera API-nivåer | inte alls i dag |

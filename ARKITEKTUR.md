@@ -42,7 +42,7 @@ Room, DataStore, Firebase Auth, backup till Google Drive, emulatortester i CI).
 | Moduler | `:app` | `:core` (JVM) + `:app` | `:core` (JVM) + `:app` |
 | UI | Material 3 | Material 3 | **Material 3 Expressive** |
 | Navigation | Navigation Compose 2 | Navigation Compose 2 | **Navigation 3** |
-| UI-tester | Emulator på varje PR | Robolectric i JVM | Robolectric + **Roborazzi-skärmdumpar** i JVM |
+| UI-tester | Android-emulator på varje PR | Robolectric i JVM | Robolectric + **Roborazzi-skärmdumpar** i JVM |
 | Databas från sessionen | Nej | Ja | Ja |
 | CI per PR | ~50 min | < 8 min | < 8 min |
 | Risk | Låg | Låg | Medel (nyare API:er) |
@@ -78,7 +78,7 @@ Firebase-beroenden och testas med JUnit på sekunder, även i en session utan An
 
 **3. JVM-först-tester med skärmdumpar.**
 Compose-UI testas med Robolectric i `testDebugUnitTest`. Roborazzi tar skärmdumpar av
-varje delad komponent och skärm; referensbilder checkas in och diffas i PR:en. Emulatorn
+varje delad komponent och skärm; referensbilder checkas in och diffas i PR:en. Android-emulatorn
 körs bara på begäran och i release-flödet.
 
 **4. Material 3 Expressive.**
@@ -96,13 +96,15 @@ release när skelettet byggs används senaste release candidate, och det noteras
 
 **6. Backup med `tools/db` i GitHub Actions.**
 Ett Node-verktyg med `firebase-admin` exporterar Firestore till JSON varje vecka; filen
-krypteras med `BACKUP_PASSPHRASE` och sparas som artifact i 90 dagar. Återställning sker
+krypteras med gpg (AES-256 med integritetskontroll) och `BACKUP_PASSPHRASE` och sparas som
+artifact i 90 dagar i det privata repot. Återställning sker
 med `import.mjs`. Samma verktyg ger sessionen läsåtkomst.
 *Övervägt:* Firestores schemalagda backups kräver Blaze-planen (betalkort) – kan bytas till senare.
 
 **7. CI-budget.**
 Tester körs bara när koden de testar ändrats; lint, minifierat release-bygge och
-emulator körs veckovis och vid release. Mål under 8 minuter per PR.
+Android-emulatorn körs veckovis, på begäran och vid release. Firebase-emulatorn körs i PR
+bara när rules eller `tools/db` ändrats. Mål under 8 minuter per PR.
 
 **8. Enhetligt och utan dubbelkod, maskinkontrollerat.**
 En komponent per elementtyp, en ram per interaktionsmönster, en byggsten per sorts
@@ -139,11 +141,12 @@ ReseApoteket/
 ├── app/                          Android-appen
 │   └── se.partee71.reseapoteket
 │       ├── data/
+│       │   ├── common/           DataError, suspendRunCatching – felmappning en gång
 │       │   ├── auth/             AuthRepository (Credential Manager + Firebase Auth)
-│       │   ├── firestore/        FirestoreCollection<T>, Paths, CollectionFactory, suspendRunCatching
+│       │   ├── firestore/        FirestoreCollection<T>, Paths, CollectionFactory, FirestoreModule (Hilt)
 │       │   ├── repository/       tunna fasader per domän
 │       │   └── datastore/        SettingsStore
-│       ├── di/                   Hilt-moduler
+│       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
 │       ├── navigation/           Navigation 3: nycklar, back stack, Transitions
 │       └── ui/
 │           ├── theme/            Expressive-tema, AppColors, AppTypography, AppShapes, Spacing
@@ -174,7 +177,11 @@ Backup:     Firestore → tools/db export (Actions, veckovis) → krypterad arti
 Session:    Claude → tools/db query/get/stats (service account, läsroll) → Firestore
 ```
 
-- Fel mappas till `DataError` i `FirestoreCollection`, en gång, och visas via `DataError.toMessage()`.
+- Fel mappas till `DataError` en gång, med `suspendRunCatching` i `data/common/` – av
+  `FirestoreCollection` för data och `AuthRepository` för inloggning – och visas via
+  `DataError.toMessage()`.
+- Skrivningar görs med merge och codecens fullständiga fältlista, så att fält från en nyare
+  appversion aldrig raderas av en äldre (skill `data-safety-backup`).
 - Listskärmar använder `EntityListScreen` + `asListUiState()`, formulär `EntityEditScreen` + `EditorState`.
 - Aktivt hushåll finns i `HouseholdSession` och sätts efter inloggning.
 
@@ -221,5 +228,6 @@ inget API som inte står här – lägg till det i samma PR som det börjar anv�
 
 ## Byggkonfiguration
 
-*Fylls i av #11:* versioner av AGP, Kotlin och Compose BOM, var den gemensamma
-byggkonfigurationen bor, `cpdCheck`-tröskel och uppmätt byggtid.
+*Fylls i av #11:* minSdk, targetSdk och compileSdk; versioner av AGP, Kotlin och Compose
+BOM; Java 17; var den gemensamma byggkonfigurationen bor; hur `default_web_client_id` fås
+utan `google-services.json`; `cpdCheck`-tröskel; uppmätt byggtid.

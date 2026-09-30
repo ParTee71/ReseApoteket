@@ -208,8 +208,8 @@ class LatestNewsViewModel(private val getLatestNews: GetLatestNewsUseCase) : Vie
   blockerar inte; lägg ingen `withContext(Dispatchers.IO)` runt dem. `FirestoreCollection`
   är enda stället som anropar Firestore och därmed enda stället där felhantering och
   `CancellationException` behöver hanteras rätt.
-- **`suspendRunCatching`** finns en gång, i `data/firestore/`, och används av
-  `FirestoreCollection` för att bygga `Result<T>` + `DataError`. Skriv inte en egen variant
+- **`suspendRunCatching`** finns en gång, i `data/common/`, och används av
+  `FirestoreCollection` och `AuthRepository` för att bygga `Result<T>` + `DataError`. Skriv inte en egen variant
   i en feature.
 - **`:core` är ren och synkron.** `PackingEngine`, codecs och formatterare är vanliga
   funktioner utan coroutines och utan dispatcher – det gör dem triviala att testa.

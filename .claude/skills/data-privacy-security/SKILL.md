@@ -27,15 +27,21 @@ GitHub Actions-loggar.
 - Appen **kräver inloggning**; ingen data läses eller skrivs utan `request.auth`.
 
 ### 3. Backup och export är krypterade och medvetna
-- Veckobackupen (`tools/db export` i GitHub Actions) krypteras med `BACKUP_PASSPHRASE`
+- Veckobackupen (`tools/db export` i GitHub Actions) krypteras med gpg (AES-256, med
+  integritetskontroll) och `BACKUP_PASSPHRASE`
   innan den laddas upp som artifact; klartextfilen raderas i samma jobb. Ladda aldrig
   upp okrypterad data som artifact, i en issue eller i en PR.
 - Appens "Exportera som JSON" sker bara på uttrycklig användarhandling via dela-intent.
 - Inga andra exportvägar, ingen extern lagring, inga `READ/WRITE_EXTERNAL_STORAGE`.
 
+- Dekrypterade backuper och exporter läggs bara i `tools/db/` (git-ignorerad) och raderas
+  efter användning. `.gitignore` fångar dessutom `backup*.json` och `export*.json` överallt.
+- **Tester rör aldrig den riktiga databasen** – bara Firebase-emulatorn med projekt-ID
+  `demo-reseapoteket` (skill `data-safety-backup`).
+
 ### 4. Hemligheter får aldrig checkas in eller klistras in
 - Git-ignorerade och aldrig i repot: `google-services.json`, `*.jks`/`*.keystore`,
-  `local.properties`, service-account-JSON, `tools/db/*.json`-exporter, `*.enc`.
+  `local.properties`, service-account-JSON, `tools/db/*.json`-exporter, `*.gpg`.
 - I CI kommer de från GitHub-secrets (`GOOGLE_SERVICES_JSON`, `FIREBASE_SERVICE_ACCOUNT`,
   `BACKUP_PASSPHRASE`, `SIGNING_*`).
 - I Claude-sessionen kommer `FIREBASE_SERVICE_ACCOUNT` från miljöns inställningar.

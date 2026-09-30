@@ -15,21 +15,21 @@ Krav: NFR-serien i KRAVLISTA.md.
 
 ## Nivåer (enda källan för denna tabell)
 
-| Nivå | Var | Verktyg | Körs i PR när |
+| Nivå | Var | Verktyg | CI-filter |
 |---|---|---|---|
-| Domän + codecs | `core/src/test` | JUnit4 + kotlin.test | `core/` ändrats |
-| Arkitektur/konsistens + dokumentdrift | `app/src/test` | Konsist (`UiConsistencyTest`) | `app/`, `core/` eller `shared-ui-components`-skillen ändrats |
-| Dubbelkod | `core/` + `app/src` | `cpdCheck` | `app/` eller `core/` ändrats |
-| Navigation | `app/src/test` | JUnit4 (back stack som lista) | `app/` eller `core/` ändrats |
-| ViewModel/Repository | `app/src/test` | JUnit4, MockK, Turbine, Fake-repositories | `app/` eller `core/` ändrats |
-| Compose-UI | `app/src/test` | Robolectric + `ui-test-junit4` | `app/` eller `core/` ändrats |
-| Skärmdump | `app/src/test` + `app/src/test/screenshots/` | Roborazzi | `app/` eller `core/` ändrats |
-| Security rules + rundtur + kontrakt | `tools/db/test` | `node --test`, `@firebase/rules-unit-testing`, emulator | `firestore.rules`, `tools/db/` eller `data/firestore/` ändrats |
-| Dokumentkontroller + hooktest | `.github/scripts/`, `.claude/hooks/test/` | `node --test` | alltid (sekunder) |
-| Instrument | `app/src/androidTest` | Emulator | på begäran och i release-flödet |
+| Domän + codecs | `core/src/test` | JUnit4 + kotlin.test | `core` |
+| Arkitektur/konsistens + dokumentdrift | `app/src/test` | Konsist (`UiConsistencyTest`) | `app` |
+| Dubbelkod | `core/` + `app/src` | `cpdCheck` | `core`, `app` |
+| Navigation | `app/src/test` | JUnit4 (back stack som lista) | `app` |
+| ViewModel/Repository | `app/src/test` | JUnit4, MockK, Turbine, `FakeCollection` | `app` |
+| Compose-UI | `app/src/test` | Robolectric + `ui-test-junit4` | `app` |
+| Skärmdump | `app/src/test` + `app/src/test/screenshots/` | Roborazzi | `app` |
+| Security rules + rundtur | `tools/db/test` | `node --test`, `@firebase/rules-unit-testing`, Firebase-emulatorn | `tools` |
+| Dokumentkontroller + hooktest | `.github/scripts/`, `.claude/hooks/test/` | `node --test` | alltid |
+| Instrument (inkl. `CollectionContract` mot riktig `FirestoreCollection`) | `app/src/androidTest` | Android-emulator + Firebase-emulatorn | inte i PR |
 
-Byggfiler eller CI-flöden ändrade → allt utom instrument. `master` kör alltid allt.
-Mekanismen står i skill `ci-budget`. **Selektiv körning ändrar inte kravet på att skriva
+Vilka sökvägar som sätter vilket filter, och vad som körs på `master`, står i skill
+`ci-budget` (enda källan). **Selektiv körning ändrar inte kravet på att skriva
 tester** – ett test som inte körs i en viss PR ska ändå finnas och vara grönt när dess
 kod ändras.
 
@@ -40,7 +40,7 @@ kod ändras.
 | `PackingEngine`, formatterare, validering | `:core`-test med kantfallen från skill `packing-engine` |
 | Modell/codec | `assertCodecRoundTrip` + tolerans-hjälparna (skill `data-safety-backup`) |
 | ViewModel | Initialt state, varje event → nytt state, fel-state; Turbine; `MainDispatcherRule` |
-| Repository | Mot `FakeCollection<T>`; `CollectionContract` om `FirestoreCollection` ändras |
+| Repository | Mot `FakeCollection<T>`; ändras `FirestoreCollection` → utöka `CollectionContract` och kör instrumenttesterna på begäran före merge |
 | Skärm som använder en ram | `runListScreenContract` / `runEditScreenContract` + bara det unika |
 | Delad komponent/ram | Robolectric-test, skärmdump ljust + mörkt, plats i `ComponentGallery` |
 | `firestore.rules` | Rules-test: medlem, icke-medlem, oautentiserad |
@@ -57,7 +57,7 @@ hjälparna och testar bara det som är unikt för funktionen:
 |---|---|---|
 | `FakeCollection<T>` | `app/src/test/.../data/` | egna in-memory-fakes per repository |
 | `CollectionContract` | `app/src/test/.../data/` | separata tester per repository-implementation |
-| `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields` | `core/src/test/.../schema/` | egna codec-asserts |
+| `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields`, `assertEncodesAllFields` | `core/src/test/.../schema/` | egna codec-asserts |
 | `MainDispatcherRule` | `app/src/test/.../testing/` | egen `Dispatchers.setMain` per test |
 | `runListScreenContract(screen, data)` | `app/src/test/.../ui/` | att testa tomt/fel/laddar/lägg till per skärm |
 | `runEditScreenContract(screen, valid, invalid)` | `app/src/test/.../ui/` | att testa spara-aktivering/släng-dialog/sparfel per skärm |
@@ -75,6 +75,19 @@ Behövs samma testuppställning på två ställen → gör en hjälpare innan de
 - **`:core` är synkron** – testa rena funktioner direkt, inga coroutines.
 - **Nytt konstruktorberoende på en ViewModel** → alla dess tester får beroendet.
 
+## Tester mot Firebase-emulatorn
+
+Tester i `tools/db/test/` och instrumenttester mot Firestore körs **endast mot emulatorn**,
+via den gemensamma testhjälparen som avbryter om `FIRESTORE_EMULATOR_HOST` saknas och
+använder projekt-ID:t `demo-reseapoteket`. En session med `FIREBASE_SERVICE_ACCOUNT` i
+miljön får aldrig köra dem utan emulator (skill `data-safety-backup`).
+
+## Dokumentdrift-kontrollen
+
+`UiConsistencyTest` jämför komponent- och ramtabellen i skill `shared-ui-components` med
+koden. Jämförelsen **aktiveras i #20**, när katalogen byggs; innan dess (inga publika
+composables i `ui.components`) hoppar testet över den och skriver det i testloggen.
+
 ## Skärmdumpar (Roborazzi)
 
 - Varje delad komponent och varje ramtillstånd: ljust + mörkt. `ComponentGallery` får en
@@ -91,8 +104,9 @@ Behövs samma testuppställning på två ställen → gör en hjälpare innan de
 ```bash
 ./gradlew :core:test                                  # om core/ ändrats
 ./gradlew :app:testDebugUnitTest :app:verifyRoborazziDebug cpdCheck   # om app/ eller core/ ändrats
-node --test 'tools/db/test/*.test.mjs'                           # om tools/db/ eller rules ändrats (kräver emulator)
-node --test '.github/scripts/*.test.mjs' '.claude/hooks/test/*.test.mjs'      # dokumentkontroller, alltid
+firebase emulators:exec --only firestore "node --test 'tools/db/test/*.test.mjs'"  # om tools/db/ eller rules ändrats – bara mot emulatorn
+node --test '.github/scripts/*.test.mjs'              # dokumentkontroller, alltid
+node --test '.claude/hooks/test/*.test.mjs'           # hooktest, alltid
 ```
 
 Från telefonen går Gradle normalt inte att köra: skriv testerna, pusha och låt Actions
