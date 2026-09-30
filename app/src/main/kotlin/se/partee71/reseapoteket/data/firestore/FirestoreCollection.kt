@@ -1,0 +1,128 @@
+package se.partee71.reseapoteket.data.firestore
+
+import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.WriteBatch
+import com.google.firebase.firestore.snapshots
+import kotlin.time.Clock
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
+import se.partee71.reseapoteket.core.model.Identified
+import se.partee71.reseapoteket.core.schema.DocCodec
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.EntityCollection
+import se.partee71.reseapoteket.data.common.HouseholdScope
+import se.partee71.reseapoteket.data.common.currentVersion
+import se.partee71.reseapoteket.data.common.prepareForWrite
+import se.partee71.reseapoteket.data.common.readDocument
+import se.partee71.reseapoteket.data.common.sortForList
+import se.partee71.reseapoteket.data.common.suspendRunCatching
+import se.partee71.reseapoteket.data.common.writeBlocker
+
+/**
+ * Den enda Firestore-koden för samlingar (skill firestore-data-layer). [path] ger samlingens
+ * sökväg för ett hushålls-ID, eller kastar [DataError.NoHousehold] om den kräver ett.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class FirestoreCollection<T : Identified>(
+    private val db: FirebaseFirestore,
+    private val scope: HouseholdScope,
+    private val sync: FirestoreSyncStatus,
+    private val clock: Clock,
+    private val codec: DocCodec<T>,
+    private val name: String,
+    private val path: (householdId: String?) -> String,
+) : EntityCollection<T> {
+
+    override fun observe(): Flow<List<T>> = scope.householdId.flatMapLatest { hid ->
+        val ref = refOrNull(hid) ?: return@flatMapLatest emptyFlow()
+        ref.snapshots().map { snapshot ->
+            sortForList(snapshot.documents.map { decode(it.id, it.data.orEmpty()) })
+        }
+    }.catch { throw firestoreError(it) }
+
+    override fun observe(id: String): Flow<T?> = scope.householdId.flatMapLatest { hid ->
+        val ref = refOrNull(hid) ?: return@flatMapLatest emptyFlow()
+        ref.document(id).snapshots().map { doc -> doc.data?.let { decode(doc.id, it) } }
+    }.catch { throw firestoreError(it) }
+
+    override suspend fun get(id: String): Result<T?> = suspendRunCatching(::firestoreError) {
+        val doc = ref().document(id).get().await()
+        doc.data?.let { decode(doc.id, it) }
+    }
+
+    override suspend fun getAll(): Result<List<T>> = suspendRunCatching(::firestoreError) {
+        ref().get().await().documents.map { decode(it.id, it.data.orEmpty()) }
+    }
+
+    override suspend fun upsert(item: T): Result<Unit> = write { ref ->
+        ref.document(item.id).set(encode(item), SetOptions.merge())
+    }
+
+    override suspend fun delete(id: String): Result<Unit> = write { ref -> ref.document(id).delete() }
+
+    /** `update`, inte `set`: ett dokument som raderats under tiden återuppstår inte som spöke. */
+    override suspend fun setArchived(id: String, archived: Boolean): Result<Unit> = write { ref ->
+        ref.document(id).update("archived", archived)
+    }
+
+    override suspend fun batch(upserts: List<T>, deletes: List<String>): Result<Unit> =
+        suspendRunCatching(::firestoreError) {
+            scope.writeBlocker()?.let { throw it }
+            val ref = ref()
+            // Atomärt inom varje bit om 500 skrivningar (Firestores gräns), inte över bitar.
+            val operations = upserts.map { BatchOp.Set(it.id, encode(it)) } + deletes.map { BatchOp.Delete(it) }
+            operations.chunked(MAX_BATCH).forEach { chunk ->
+                val batch = db.batch()
+                chunk.forEach { op -> op.applyTo(batch, ref) }
+                sync.track(batch.commit())
+            }
+        }
+
+    override fun newId(): String = db.collection(Paths.HOUSEHOLDS).document().id
+
+    private fun encode(item: T) = toFirestore(prepareForWrite(codec.encode(item), clock.now()))
+
+    private fun decode(id: String, data: Map<String, Any?>) =
+        readDocument(codec, name, scope.currentVersion(), id, fromFirestore(data))
+
+    /** Skrivningen läggs i cachen direkt; servern svarar senare (offline först). */
+    private suspend fun write(block: (CollectionReference) -> Task<*>): Result<Unit> =
+        suspendRunCatching(::firestoreError) {
+            scope.writeBlocker()?.let { throw it }
+            sync.track(block(ref()))
+        }
+
+    private fun ref(): CollectionReference = db.collection(path(scope.householdId.value))
+
+    private fun refOrNull(hid: String?): CollectionReference? =
+        runCatching { db.collection(path(hid)) }.getOrNull()
+
+    private sealed interface BatchOp {
+        fun applyTo(batch: WriteBatch, ref: CollectionReference)
+
+        data class Set(val id: String, val data: Map<String, Any?>) : BatchOp {
+            override fun applyTo(batch: WriteBatch, ref: CollectionReference) {
+                batch.set(ref.document(id), data, SetOptions.merge())
+            }
+        }
+
+        data class Delete(val id: String) : BatchOp {
+            override fun applyTo(batch: WriteBatch, ref: CollectionReference) {
+                batch.delete(ref.document(id))
+            }
+        }
+    }
+
+    companion object {
+        /** Firestores gräns för antal skrivningar i en batch. */
+        const val MAX_BATCH = 500
+    }
+}

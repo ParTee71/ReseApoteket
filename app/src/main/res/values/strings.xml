@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">ReseApoteket</string>
+
+    <!-- Felmeddelanden – enda stället (NFR-5, DataError.toMessage) -->
+    <string name="error_offline">Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.</string>
+    <string name="error_permission_denied">Du har inte behörighet till det här hushållet.</string>
+    <string name="error_cancelled">Åtgärden avbröts.</string>
+    <string name="error_update_required">Hushållets data är sparad med en nyare version av appen. Uppdatera appen för att kunna ändra.</string>
+    <string name="error_no_household">Inget hushåll är valt.</string>
+    <string name="error_unknown">Något gick fel. Försök igen.</string>
 </resources>

@@ -24,51 +24,72 @@ Fem samlingar under `households/{hid}`: `persons`, `persons/{pid}/regimens`,
 ```
 ViewModel
   → XRepository (interface, data/repository)          domänfrågor, inget Firestore
-    → FirestoreXRepository                            delegerar
-      → FirestoreCollection<X>(Paths.x(hid), XCodec)  enda Firestore-koden
-        → FirebaseFirestore (PersistentCacheSettings)
+    → EntityCollection<X> (data/common)               från CollectionFactory
+      → FirestoreCollection<X>                        enda Firestore-koden (data/firestore)
+        → FirebaseFirestore (PersistentCacheSettings, 100 MB)
 ```
 
 ### `DocCodec<T>` (`:core`)
-```kotlin
-interface DocCodec<T> {
-    fun encode(value: T): Map<String, Any?>
-    fun decode(id: String, map: Map<String, Any?>): T
-}
-```
-Byggs enbart av fälthjälparna (`map.string`, `map.int`, `map.enum`, `map.localDate`,
-`map.instant`, `map.nested`, `map.stringList`). Toleranta mot saknade och okända fält.
+Se skill `data-safety-backup` och `ARKITEKTUR.md` → "Datamodell". Byggs enbart av
+fälthjälparna; toleranta mot saknade och okända fält.
 
-### `FirestoreCollection<T>` (`data/firestore/`)
+### `EntityCollection<T>` (`data/common/`) – ett kontrakt, två implementationer
 | Medlem | Beteende |
 |---|---|
-| `observe(): Flow<List<T>>` | `snapshots()` → `codec.decode`; sorterat via `Sortable` om tillämpligt |
-| `observe(id): Flow<T?>` | ett dokument |
-| `get(id): Result<T?>` | engångsläsning |
-| `upsert(item): Result<Unit>` | `set(…, SetOptions.merge())` med codecens fullständiga fältlista; okända fält från nyare appversioner bevaras (skill `data-safety-backup`); `updatedAt` sätts här |
-| `delete(id): Result<Unit>` | permanent radering |
-| `setArchived(id, archived): Result<Unit>` | för `Archivable` |
-| `batch { … }: Result<Unit>` | flera skrivningar atomärt, delas i bitar om 500 |
-| `newId(): String` | klientgenererat ID – fungerar offline |
-| `syncing: Flow<Boolean>` | `hasPendingWrites` → appens enda "synkas…"-indikator |
+| `observe(): Flow<List<T>>` | från cachen, följer aktivt hushåll (inget hushåll → inget emitteras); sorterat på `sortOrder` för `Sortable` |
+| `observe(id): Flow<T?>` | ett dokument, `null` om det saknas |
+| `get(id)`, `getAll()` | engångsläsning som `Result` |
+| `upsert(item)` | `set(…, merge)` med codecens fullständiga fältlista; okända fält bevaras, `null` tömmer; `updatedAt` sätts, `createdAt` utan värde skrivs inte (`prepareForWrite`) |
+| `delete(id)` | permanent radering |
+| `setArchived(id, archived)` | ändrar bara `archived` via `update` – ett raderat dokument återuppstår inte |
+| `batch(upserts, deletes)` | i bitar om 500 – atomärt inom varje bit, inte över bitar |
+| `newId()` | slumpat klient-ID – fungerar offline |
 
-- Alla skrivningar går via `suspendRunCatching` (i `data/common/`) och mappar
-  `FirebaseFirestoreException` → `DataError` **här, en gång**. `DataError` (`Offline`,
-  `PermissionDenied`, `Cancelled`, `Unknown`) ligger i `data/common/` och används även av
-  `AuthRepository`. UI visar texten via `DataError.toMessage()`.
-- Läser aktivt hushåll från `HouseholdSession`; utan hushåll emitteras inget.
-- `Timestamp` ↔ `Instant` översätts här; `:core` ser aldrig Firebase-typer.
+- **Offline först:** en skrivning läggs i cachen och `Result` blir klart direkt – den väntar
+  aldrig på servern. Servern svarar senare; väntande skrivningar och sena fel syns i
+  `SyncStatus` (`syncing` → "synkas…", `lastWriteError` ligger kvar tills UI:t visat det och
+  anropat `clearWriteError()` – ett fel medan appen är i bakgrunden försvinner inte).
+- **Skrivskydd, stängt som standard:** är hushållets `schemaVersion` nyare än appen vägras
+  skrivningar med `DataError.UpdateRequired`; läsning fungerar. Är versionen för det aktiva
+  hushållet ännu okänd väntar skrivningen upp till 5 s och vägras sedan (`Offline`) hellre än
+  att en äldre app skriver över nyare data (`writeBlocker` i `data/common/HouseholdScope.kt`).
+  Versionen är knuten till hushålls-ID:t, så en gammal version gäller aldrig ett nytt hushåll.
+- **Ordning:** `sortForList` – på dokument-ID och sedan `sortOrder`, likadant i riktig och fejkad samling.
+- **Läsning:** `readDocument` kör `SchemaMigrator` före `decode`. `Timestamp` ↔ `Instant`
+  översätts i `data/firestore/FirestoreValues.kt`, rekursivt; `:core` ser aldrig Firebase-typer.
+- **Fel:** `firestoreError` mappar `FirebaseFirestoreException` → `DataError` en gång, via
+  `suspendRunCatching`. `DataError` (`Offline`, `PermissionDenied`, `Cancelled`,
+  `UpdateRequired`, `NoHousehold`, `Unknown`) används även av `AuthRepository`. UI visar
+  texten via `DataError.toMessage()`.
+- **`FakeCollection`** (test) använder samma `prepareForWrite`/`readDocument` och emulerar
+  Firestores merge (djup för nästlade maps, heltal som `Long`). `CollectionContract` i
+  `app/src/sharedTest` körs mot båda.
+
+### Samlingar och sökvägar
+`CollectionTable` (`data/firestore/`) är enda tabellen över samlingarnas namn, codecs och
+sökvägar (`Paths`). `FirestoreCollectionFactory` och testernas `FakeCollectionFactory` ärver
+den. `tools/db/lib/collections.mjs` speglar `Paths`; `tools/db/test/collections.test.mjs`
+jämför dem.
 
 ### Repositories (`data/repository/`)
-Interface + implementation som bara delegerar och uttrycker domänfrågor, t.ex.
-`regimensFor(personIds)`, `replacePackingItems(tripId, items)` (via `batch`). Ingen
-`FirebaseFirestore`, ingen felmappning, ingen codec-logik.
+Interface + `Default…Repository`. Enkla samlingar är bara delegering
+(`PersonRepository : EntityCollection<Person>`, `… by collections.persons()`); egen kod finns
+bara för domänfrågor: `HouseholdRepository.create`/`current`, `RegimenRepository.regimensFor`,
+`PackingRepository.replacePackingItems` (via `batch`). Ingen `FirebaseFirestore`, ingen
+felmappning, ingen codec-logik.
+
+### Aktivt hushåll
+`HouseholdSession` (`data/household/`, implementerar `HouseholdScope`): hushålls-ID:t sparas i
+DataStore (`SettingsStore`, som ger standardvärden om filen inte går att läsa),
+`schemaVersion` läses direkt ur hushållsdokumentet (`HouseholdVersionSource`; vid fel
+emitteras inget, så skrivspärren förblir stängd). `select(id)` återvänder först när
+sessionen visar det nya hushållet, så nästa skrivning hamnar rätt.
 
 ### DI
-Hilt-modulen `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), eftersom
-`FirebaseFirestore` bara får förekomma där. Den ger `FirebaseFirestore` med
-`PersistentCacheSettings` (100 MB). `CollectionFactory` skapar alla
-`FirestoreCollection`-instanser – sökvägar på ett ställe. Övriga Hilt-moduler ligger i `di/`.
+`FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), eftersom `FirebaseFirestore`
+bara får förekomma där. Den ger `FirebaseFirestore` med `PersistentCacheSettings` och binder
+`CollectionFactory`, `SyncStatus` och `HouseholdVersionSource`. Övriga moduler i `di/`
+(`AppModule`: app-scope, klocka, DataStore; `RepositoryModule`).
 
 ## Offline
 
@@ -95,8 +116,9 @@ Hilt-modulen `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), ef
 | Test | Var |
 |---|---|
 | Codec-rundtur och tolerans | `core/src/test/.../schema/` (hjälparna i skill `testing-strategy`) |
-| `CollectionContract` mot `FakeCollection` | `app/src/test/.../data/` (JVM, varje PR när `app/` ändras) |
-| `CollectionContract` mot riktig `FirestoreCollection` + Firebase-emulatorn | `app/src/androidTest/.../data/` (instrumenttest: på begäran och i release) |
+| `CollectionContract` (i `app/src/sharedTest`) mot `FakeCollection` | `FakeCollectionContractTest`, JVM, varje PR när `app/` ändras |
+| `CollectionContract` mot riktig `FirestoreCollection` + Firebase-emulatorn (firestore + auth, rules aktiva) | `FirestoreCollectionContractTest` i `app/src/androidTest` (instrumenttest: på begäran och i release) |
+| Offline först och hushållets version mot riktig Firestore | `FirestoreOfflineTest` i `app/src/androidTest` (`disableNetwork` → skrivning lyckas, syns lokalt, synkas efter `enableNetwork`) |
 | Rules-test | `tools/db/test/rules.test.mjs` |
 | `Paths` = `collections.mjs` = rules | `tools/db/test/collections.test.mjs` |
 

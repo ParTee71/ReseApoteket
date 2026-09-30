@@ -18,8 +18,8 @@ resten med `dorny/paths-filter`.
 | Filter | Sökvägar | Körs |
 |---|---|---|
 | `core` | `core/**` | `:core:test` + allt i raden `app` (appen beror på `:core`) |
-| `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:compileDebugAndroidTestKotlin` |
-| `tools` | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `tools/db/**` | rules- och rundturstester (Node) mot Firebase-emulatorn |
+| `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:assembleDebugAndroidTest` (kompilerar och dexar instrumenttesterna utan att köra dem) |
+| `tools` | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `tools/db/**`, `app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/Paths.kt` | rules- och rundturstester (Node) mot Firebase-emulatorn, och samlingslistan mot `Paths.kt` |
 | `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan |
 | – | allt annat (`*.md`, `.claude/**`) | bara `changes` med dokumentkontroller |
 <!-- ci-table:end -->

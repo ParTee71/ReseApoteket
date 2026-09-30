@@ -64,6 +64,9 @@ android {
 
     sourceSets {
         if (!hasGoogleServices) getByName("debug").res.directories += "src/authStub/res"
+        // Kontraktstester som körs både i JVM (mot fakes) och på enhet (mot Firebase-emulatorn).
+        getByName("test").kotlin.directories += "src/sharedTest/kotlin"
+        getByName("androidTest").kotlin.directories += "src/sharedTest/kotlin"
     }
 
     buildFeatures {
@@ -104,6 +107,14 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+    // I appen, inte bara androidTest: Firebase hittar sina komponenter via appens manifest,
+    // så auth-emulatorn i instrumenttesterna kräver det här. Används av inloggningen i #16.
+    implementation(libs.firebase.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.androidx.datastore.preferences)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.robolectric)
@@ -113,10 +124,14 @@ dependencies {
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.roborazzi.junit.rule)
     testImplementation(libs.konsist)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 
     constraints {
-        // AGP låser androidTest till appens versioner; androidx.test.ext:junit kräver 1.2.0.
-        implementation(libs.androidx.concurrent.futures)
+        // AGP låser androidTest till appens versioner. När ett testberoende kräver en nyare
+        // version än appen löser, höjs den här (skill android-gradle-logic).
+        implementation(libs.androidx.concurrent.futures) // androidx.test.ext:junit
+        implementation(libs.errorprone.annotations) // espresso via compose ui-test
     }
 
     // Instrumenttester: bara på begäran och i release (skill ci-budget); kompileras i PR.
@@ -124,4 +139,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.kotlin.test)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }

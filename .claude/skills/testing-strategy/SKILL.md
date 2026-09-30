@@ -55,8 +55,8 @@ hjälparna och testar bara det som är unikt för funktionen:
 
 | Hjälpare | Var | Ersätter |
 |---|---|---|
-| `FakeCollection<T>` | `app/src/test/.../data/` | egna in-memory-fakes per repository |
-| `CollectionContract` | `app/src/test/.../data/` | separata tester per repository-implementation |
+| `FakeCollection<T>`, `FakeCollectionFactory`, `FakeStore` | `app/src/test/.../data/` | egna in-memory-fakes per repository |
+| `CollectionContract`, `TestHouseholdScope`, `FixedClock` | `app/src/sharedTest/.../data/` (JVM mot fake, enhet mot Firebase-emulatorn) | separata tester per repository-implementation |
 | `assertCodecContract` (samlar `assertEveryFieldDiffersFromDefault`, `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields`, `assertEncodesAllFields`), `assertVariantCodecContract` | `core/src/test/.../schema/CodecAssertions.kt` | egna codec-asserts |
 | `MainDispatcherRule` | `app/src/test/.../testing/` | egen `Dispatchers.setMain` per test |
 | `runListScreenContract(screen, data)` | `app/src/test/.../ui/` | att testa tomt/fel/laddar/lägg till per skärm |
@@ -64,6 +64,11 @@ hjälparna och testar bara det som är unikt för funktionen:
 | `test/fixtures/household.json` | `tools/db/test/` | egna seeds per Nodetest |
 
 Behövs samma testuppställning på två ställen → gör en hjälpare innan det tredje.
+
+Tester som delas mellan JVM och enhet ligger i `app/src/sharedTest` (t.ex. `CollectionContract`).
+Där och i `app/src/androidTest` heter testmetoderna vanliga identifierare utan mellanslag
+(`upsert_syns_i_observe`) – D8 kan inte dexa metodnamn med mellanslag. JVM-tester får ha
+svenska meningar i backticks.
 `cpdCheck` täcker även testkällor.
 
 ## Projektmönster

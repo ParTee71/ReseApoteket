@@ -15,8 +15,40 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # Emulatorn behöver ~7 GB för sin datadisk; runnern har för lite kvar när Firebase-
+      # emulatorn också ligger på den. Ta bort förinstallerade verktyg vi aldrig använder.
+      - name: Frigör disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+            /usr/local/lib/android/sdk/ndk /usr/local/share/boost
+          df -h / | tail -n1
+
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-android
+
+      # Kontraktstestet för FirestoreCollection kör mot Firebase-emulatorerna (firestore + auth)
+      # på värddatorn – aldrig mot den riktiga databasen.
+      - name: Node 22 för Firebase-emulatorn
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/db/package-lock.json
+
+      - name: Java 21 (firebase-tools 15 kräver minst 21; bygger även appen)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: firebase-tools
+        run: npm ci --prefix tools/db --ignore-scripts
+
+      - name: Cache för Firebase-emulatorn
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('tools/db/package-lock.json') }}
 
       - name: KVM
         run: |
@@ -31,8 +63,9 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
+          disk-size: 4G
           emulator-options: -no-window -no-boot-anim -no-snapshot -camera-back none -gpu swiftshader_indirect
-          script: ./gradlew --configuration-cache :app:connectedDebugAndroidTest
+          script: npx --prefix tools/db firebase emulators:exec --only firestore,auth --project demo-reseapoteket "./gradlew --configuration-cache :app:connectedDebugAndroidTest"
 
       - name: Testrapport
         if: always()

@@ -19,6 +19,10 @@ source; this skill describes the rules, not the numbers.
   `ARKITEKTUR.md` → "Verifierade API:er") gets a comment in the catalog saying why.
 - AGP 9 has built-in Kotlin: `:app` does **not** apply `org.jetbrains.kotlin.android`. The
   Kotlin version comes from the `kotlin-jvm` plugin declared in the root `plugins {}`.
+- AGP aligns `androidTest` dependencies with the app's resolved versions. When a test
+  library needs a newer version than the app resolves ("Cannot find a version … strictly …"),
+  raise it in the `constraints {}` block in `app/build.gradle.kts` with a comment naming the
+  test library – never by disabling the alignment.
 - No JVM toolchain: Java 17 is set via `sourceCompatibility`/`targetCompatibility` and
   Kotlin's `jvmTarget`, so any newer JDK can build.
 - If more modules are ever added, move the shared configuration from the root

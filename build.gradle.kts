@@ -59,7 +59,7 @@ dependencies {
     add(cpdClasspath.name, libs.pmd.kotlin)
 }
 val cpdSources = fileTree(rootDir) {
-    include("core/src/**/*.kt", "app/src/main/**/*.kt", "app/src/test/**/*.kt")
+    include("core/src/**/*.kt", "app/src/main/**/*.kt", "app/src/test/**/*.kt", "app/src/sharedTest/**/*.kt", "app/src/androidTest/**/*.kt")
     exclude("**/*Preview.kt")
 }
 
