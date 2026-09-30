@@ -204,30 +204,79 @@ households/{hid}/trips/{tid}/packingItems/{iid}
 
 ## Verifierade API:er
 
-*Fylls i av #11.* Material 3 Expressive och Navigation 3 är nya; här står de artefakter,
-versioner och API-namn som faktiskt kompilerats i projektet. Skills länkar hit. Använd
-inget API som inte står här – lägg till det i samma PR som det börjar användas.
+Material 3 Expressive och Navigation 3 är nya; här står de artefakter, versioner och
+API-namn som faktiskt kompilerats och renderats i projektet. Beviset är
+`app/src/test/kotlin/se/partee71/reseapoteket/VerifiedApisTest.kt`, som anropar varje API
+nedan – faller det efter en versionsuppdatering har ett API bytt namn. Skills länkar hit.
+Använd inget API som inte står här – lägg till det här och i `VerifiedApisTest` i samma PR
+som det börjar användas.
+
+**Material 3 Expressive kräver alfaversion.** I den stabila `material3:1.4.0` (Compose BOM
+2026.09.00) är alla Expressive-API:er `internal`. Därför pinnas `material3` till
+`1.5.0-alpha29` i `libs.versions.toml` (övriga Compose-artefakter följer BOM:en). Byts till
+stabil när en stabil version med publika Expressive-API:er släpps. Alla Expressive-API:er
+kräver `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`, som bara får stå som
+`@file:OptIn` i `ui/theme` och `ui/components` (och i tester).
 
 | Behov | API (paket.Klass / funktion) | Artefakt:version | Stabil/experimentell | Verifierad |
 |---|---|---|---|---|
-| Expressive-tema | | | | |
-| Expressive-rörelse | | | | |
-| Vågig linjär progress | | | | |
-| Split-knapp | | | | |
-| Knappgrupp | | | | |
-| Flytande verktygsrad | | | | |
-| Laddningsindikator | | | | |
-| Flexibel toppbar | | | | |
-| Formmorf för kryss | | | | |
-| Navigation-nyckel | | | | |
-| Back stack | | | | |
-| Navigationsvisning | | | | |
-| ViewModel per nav-post | | | | |
+| Expressive-tema | `androidx.compose.material3.MaterialExpressiveTheme` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Expressive-rörelse | `androidx.compose.material3.MotionScheme.expressive()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Ljust Expressive-färgschema | `androidx.compose.material3.expressiveLightColorScheme()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Vågig linjär progress | `androidx.compose.material3.LinearWavyProgressIndicator(progress = { … })` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Split-knapp | `androidx.compose.material3.SplitButtonLayout` + `SplitButtonDefaults.LeadingButton` / `TrailingButton(checked, onCheckedChange)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Knappgrupp | `androidx.compose.material3.ButtonGroup(overflowIndicator) { clickableItem(…) }` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Flytande verktygsrad | `androidx.compose.material3.HorizontalFloatingToolbar(expanded)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Laddningsindikator | `androidx.compose.material3.LoadingIndicator()` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Flexibel toppbar | `androidx.compose.material3.LargeFlexibleTopAppBar(title)` | `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Formmorf för kryss | `androidx.graphics.shapes.Morph(start, end)` med `androidx.compose.material3.MaterialShapes` (t.ex. `Square` → `Cookie9Sided`) och `Morph.toPath(progress)` | `graphics-shapes:1.0.1` (via material3), `material3:1.5.0-alpha29` | experimentell | 2026-09-30 |
+| Navigation-nyckel | `androidx.navigation3.runtime.NavKey` + `@Serializable` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
+| Back stack | `androidx.navigation3.runtime.rememberNavBackStack(vararg NavKey)` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
+| Navigationsvisning | `androidx.navigation3.ui.NavDisplay(backStack, onBack, entryDecorators, entryProvider)` | `navigation3-ui:1.2.0` | stabil | 2026-09-30 |
+| Poster | `androidx.navigation3.runtime.entryProvider { entry<K> { … } }` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
+| Sparat tillstånd per post | `androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator()` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
+| ViewModel per nav-post | `androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator()` | `lifecycle-viewmodel-navigation3:2.11.0` | stabil | 2026-09-30 |
 
 ---
 
 ## Byggkonfiguration
 
-*Fylls i av #11:* minSdk, targetSdk och compileSdk; versioner av AGP, Kotlin och Compose
-BOM; Java 17; var den gemensamma byggkonfigurationen bor; hur `default_web_client_id` fås
-utan `google-services.json`; `cpdCheck`-tröskel; uppmätt byggtid.
+Beslutad och uppmätt i #11.
+
+| Vad | Värde | Kommentar |
+|---|---|---|
+| minSdk / targetSdk | 30 / 35 | `app/build.gradle.kts` |
+| compileSdk | **37** | Compose BOM 2026.09.00 (även stabila `material-ripple`/`foundation`) kräver 37 i AAR-metadata; issuets 36 räckte inte |
+| Gradle | 9.8.0 | wrapper |
+| AGP | 9.4.1 | inbyggt Kotlin-stöd och nya DSL:en – `org.jetbrains.kotlin.android` används inte |
+| Kotlin | 2.4.20 | versionen styrs av `kotlin-jvm`-pluginen i rotens `plugins {}` |
+| KSP / Hilt | 2.3.12 / 2.60.1 | KAPT används inte |
+| Compose BOM | 2026.09.00 | `material3` pinnad separat, se [Verifierade API:er](#verifierade-apier) |
+| Java | 17 | `sourceCompatibility`/`targetCompatibility` och Kotlins `jvmTarget`; ingen toolchain, så en nyare JDK (t.ex. 21) fungerar för att bygga |
+| Robolectric / Roborazzi / Konsist | 4.17 / 1.76.0 / 0.17.3 | Robolectric-SDK och skärmmått i `app/src/test/resources/robolectric.properties` |
+| PMD (CPD) | 7.28.0 | se `cpdCheck` nedan |
+
+**Gemensam byggkonfiguration** står på ett ställe: rotens `build.gradle.kts` (`subprojects {}`):
+Java 17, Kotlins `jvmTarget`, testtimeout (10 min) och testloggning. Med två moduler räcker det;
+`build-logic/` införs om fler moduler kommer. Modulfilerna innehåller bara det som är unikt.
+
+**`default_web_client_id` utan `google-services.json`:** saknas filen (PR-bygge, session)
+läggs `app/src/authStub/res` till i debug-källorna och ger en stubbsträng, så att
+inloggningskoden kompilerar; inloggning misslyckas då vid körning. Finns filen appliceras
+`google-services`-pluginen i stället och stubben används inte.
+
+**`cpdCheck`** (rotprojektet, kopplad till `check`): PMD CPD för Kotlin över `core/src`,
+`app/src/main` och `app/src/test`, utom `*Preview.kt`. Körs via PMD:s CLI (`JavaExec`),
+eftersom Gradle-pluginen `de.aaschmid.cpd` inte fungerar med Gradle 9. Tröskel **80 tokens**:
+skelettet ger inga träffar, och ett kopierat block på ~10 rader (t.ex. en funktion med en
+`when`/`map`-kedja) fångas. Rapport i `build/reports/cpd/cpd.txt` och i felmeddelandet.
+
+**Svenska testnamn** kräver UTF-8-locale för att Gradle ska kunna skriva testrapporten
+(`LANG=C.UTF-8`, som i GitHub Actions). Lokalt med annan locale: `export LC_ALL=C.UTF-8`.
+
+**Uppmätt byggtid** (session, 4 kärnor, kall build cache men varma beroenden):
+`./gradlew :core:test :app:testDebugUnitTest :app:verifyRoborazziDebug cpdCheck
+:app:compileDebugKotlin` tar **51 s**. Kontrollerna i regel 4 och 2 kostar tillsammans
+~15 s: `cpdCheck` ~3 s, `UiConsistencyTest` (Konsist) ~1 s, skärmdumpstestet ~1,5 s och
+första Robolectric-testet ~10 s (laddar Android-SDK:n en gång per körning) – under
+budgetens 1 minut.
