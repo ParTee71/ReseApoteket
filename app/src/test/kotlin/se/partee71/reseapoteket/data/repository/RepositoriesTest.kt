@@ -154,4 +154,29 @@ class RepositoriesTest {
         assertEquals(listOf("B2", "C"), repository.forTrip("t1").getAll().getOrThrow().map { it.name }.sorted())
         assertEquals(listOf("Annan resa"), repository.forTrip("t2").getAll().getOrThrow().map { it.name })
     }
+
+    @Test
+    fun `replacePackingItems med redan läst lista tar bort det som inte finns kvar i den`() = runTest {
+        val repository = DefaultPackingRepository(collections)
+        val existing = listOf(PackingItem("a", name = "A"), PackingItem("b", name = "B"))
+        repository.replacePackingItems("t1", existing).getOrThrow()
+
+        repository.replacePackingItems("t1", listOf(PackingItem("b", name = "B2")), existing).getOrThrow()
+
+        assertEquals(listOf("B2"), repository.forTrip("t1").getAll().getOrThrow().map { it.name })
+    }
+
+    @Test
+    fun `packingFor ger packlistorna per resa och följer ändringar`() = runTest {
+        val repository = DefaultPackingRepository(collections)
+        repository.forTrip("t1").upsert(PackingItem("a", name = "A")).getOrThrow()
+        repository.packingFor(listOf("t1", "t2", "t1")).test {
+            val first = awaitItem()
+            assertEquals(setOf("t1", "t2"), first.keys)
+            assertEquals(listOf("A"), first.getValue("t1").map { it.name })
+            repository.forTrip("t2").upsert(PackingItem("b", name = "B")).getOrThrow()
+            assertEquals(listOf("B"), awaitItem().getValue("t2").map { it.name })
+        }
+        assertEquals(emptyMap(), repository.packingFor(emptyList()).first())
+    }
 }

@@ -26,15 +26,24 @@ fun GroupLabel(text: String, modifier: Modifier = Modifier) {
 
 /**
  * Ett formulärfält som inte är ett textfält (val, väljare, dosering) med sin [GroupLabel] ovanför
- * och valfri [helper] under, i samma stil som hjälptexten under `AppTextField`.
+ * och valfri [helper] under, i samma stil som hjälptexten under `AppTextField`; [error] (från
+ * formulärets validering) ersätter hjälptexten.
  */
 @Composable
-fun LabeledGroup(label: String, modifier: Modifier = Modifier, helper: String? = null, content: @Composable ColumnScope.() -> Unit) {
+fun LabeledGroup(
+    label: String,
+    modifier: Modifier = Modifier,
+    helper: String? = null,
+    error: String? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         GroupLabel(label)
         content()
-        helper?.let {
-            Text(it, Modifier.padding(horizontal = Spacing.l), style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (error != null) {
+            FieldError(error, Modifier.padding(horizontal = Spacing.l))
+        } else if (helper != null) {
+            Text(helper, Modifier.padding(horizontal = Spacing.l), style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

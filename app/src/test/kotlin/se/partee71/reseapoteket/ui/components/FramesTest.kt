@@ -25,7 +25,9 @@ import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
 import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorState
+import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.runEditScreenContract
@@ -70,7 +72,7 @@ class FramesTest {
         var toggles = 0
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Familjeartiklar", ListUiState.Content(listOf("Solkräm")), empty, {}, key = { it }, archived = ArchivedToggle(false) { toggles++ }) { ItemRow(it) }
+                EntityListScreen("Familjeartiklar", ListUiState.Content(listOf("Solkräm")), empty, {}, key = { it }, archive = ListArchive { if (it == ArchiveEvent.ToggleArchived) toggles++ }) { ItemRow(it) }
             }
         }
         rule.onNodeWithContentDescription("Fler val").performClick()
@@ -115,6 +117,33 @@ class FramesTest {
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Arkivera").performClick()
         assertEquals(1, archived)
+    }
+
+    @Test
+    fun `EntityEditScreen - lyckad sparning går till onSaved, bakåt till onClose`() {
+        var saved = 0
+        var closed = 0
+        val effects = kotlinx.coroutines.flow.MutableSharedFlow<EditorEffect>(extraBufferCapacity = 1)
+        rule.setContent {
+            ReseApoteketTheme { EntityEditScreen("Ny resa", EditorUiState("Kreta"), effects, {}, { closed++ }, onSaved = { saved++ }) {} }
+        }
+        rule.runOnIdle { effects.tryEmit(EditorEffect.Done) }
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Tillbaka").performClick()
+        assertEquals(1 to 1, saved to closed)
+    }
+
+    @Test
+    fun `ConfirmDialog - nej-knappen och tryck utanför kan betyda olika saker`() {
+        var declined = 0
+        var dismissed = 0
+        rule.setContent {
+            ReseApoteketTheme {
+                ConfirmDialog("Räkna om packlistan?", "…", "Räkna om", {}, { dismissed++ }, dismissLabel = "Behåll listan", onDecline = { declined++ })
+            }
+        }
+        rule.onNodeWithText("Behåll listan").performClick()
+        assertEquals(1 to 0, declined to dismissed)
     }
 
     @Test

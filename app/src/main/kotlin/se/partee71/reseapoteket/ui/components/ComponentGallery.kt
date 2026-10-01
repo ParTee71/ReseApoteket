@@ -34,6 +34,7 @@ import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppTypography
@@ -113,6 +114,17 @@ private fun Rows() {
             leading = { PersonAvatar("🦊", AppColors.person(0)) },
             navigates = true,
             onClick = {},
+        )
+        AppDivider()
+        ItemRow(
+            "Gran Canaria",
+            subtitle = "fre 2 okt 2026 · 7 dagar",
+            trailing = { InfoPill("Planeras", tone = Tone.Blue) },
+            onClick = {},
+            navigates = true,
+            below = {
+                AvatarStack(listOf(StackedAvatar("🦊", AppColors.person(0), "Anna"), StackedAvatar("🐻", AppColors.person(1), "Erik")))
+            },
         )
         AppDivider()
         PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
@@ -248,9 +260,16 @@ private fun Frames(onBack: () -> Unit) {
             ),
             onAdd = {},
             key = { it },
-            undo = undo,
-            onUndo = { undo?.let { items = items + it.name }; undo = null },
-            onUndoDismissed = { undo = null },
+            archive = ListArchive(undo = undo) { event ->
+                when (event) {
+                    ArchiveEvent.Undo -> {
+                        undo?.let { items = items + it.name }
+                        undo = null
+                    }
+                    ArchiveEvent.UndoDismissed -> undo = null
+                    else -> Unit
+                }
+            },
         ) { item ->
             SwipeToHide(onHide = { items = items - item; undo = UndoRequest(item, item) }) { swipe ->
                 ItemRow(item, swipe, subtitle = "1 per resenär", navigates = true, onClick = {})

@@ -96,6 +96,24 @@ class PackingEngineTest {
         assertEquals(null, PackingEngine.regimenLine(levaxin.copy(packageSize = null), trip(7), margin2).packages)
     }
 
+    @Test
+    fun `sammanfattningen i reseformuläret räknar resenärer, saker och sektioner (RES-3)`() {
+        val anna = Person("anna", "Anna")
+        val lova = Person("lova", "Lova", archived = true)
+        val regimens = mapOf(
+            "anna" to listOf(
+                Regimen("r1", name = "Levaxin", schedule = DoseSchedule.Daily(1, 1)),
+                Regimen("r2", name = "Alvedon", schedule = DoseSchedule.AsNeeded(10)),
+                Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", schedule = DoseSchedule.Daily(1, 1)),
+            ),
+        )
+        val family = listOf(FamilyItem("f1", "Solkräm", rule = QuantityRule.Fixed(1)))
+        val preview = PackingEngine.tripPreview(trip(7, travellers = listOf("anna", "lova")), listOf(anna, lova), regimens, family, margin2)
+        assertEquals(PackingPreviewText("För 1 resenär i 7 dagar", "4 saker att packa", "2 recept · 1 kosttillskott · 1 familjeartikel"), preview)
+        val empty = PackingEngine.tripPreview(trip(3, travellers = emptyList()), emptyList(), emptyMap(), emptyList(), margin2)
+        assertEquals(PackingPreviewText("För 0 resenärer i 3 dagar", "0 saker att packa", null), empty)
+    }
+
     // ---- Urval och sortering ----
 
     private val anna = Person("anna", "Anna", sortOrder = 0)
@@ -338,5 +356,17 @@ class PackingEngineTest {
         val suggestion = PackingEngine.suggest(trip(7), listOf(anna, erik), mapOf("anna" to listOf(Regimen("lev", name = "Levaxin", schedule = DoseSchedule.Daily(1, 1)))), emptyList(), margin2)
         val once = PackingEngine.merge(emptyList(), suggestion)
         assertEquals(once, PackingEngine.merge(once, suggestion))
+    }
+
+    @Test
+    fun `packat räknar avprickade bland synliga rader – dolda räknas inte (RES-1, PAK-4)`() {
+        val items = listOf(
+            PackingItem("a", checked = true),
+            PackingItem("b"),
+            PackingItem("c", checked = true, hidden = true),
+            PackingItem("d", hidden = true),
+        )
+        assertEquals(PackingProgress(1, 2), PackingEngine.progress(items))
+        assertEquals(PackingProgress.NONE, PackingEngine.progress(emptyList()))
     }
 }

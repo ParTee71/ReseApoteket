@@ -11,43 +11,35 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.QuantityRuleFormatter
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.FamilyItemCategory
-import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.repository.FamilyItemRepository
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
+import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.components.ArchivedToggle
+import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EmptyExample
 import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ListGroup
 import se.partee71.reseapoteket.ui.components.PausableRow
 import se.partee71.reseapoteket.ui.components.SwipeToHide
-import se.partee71.reseapoteket.ui.components.UndoRequest
 import se.partee71.reseapoteket.ui.components.kindLabel
 import se.partee71.reseapoteket.ui.theme.Tone
 
 sealed interface FamilyItemsEvent {
     data class List(val event: ListEvent) : FamilyItemsEvent
-
-    /** Svep-arkivera, Ångra och "Visa arkiverade" (FAM-2) – samma som i alla listor. */
-    data class Archiving(val event: ArchiveEvent) : FamilyItemsEvent
 }
 
 @HiltViewModel
 class FamilyItemsViewModel @Inject constructor(items: FamilyItemRepository) : ViewModel() {
-    private val archive = ArchiveActions(viewModelScope, items::setArchived)
-    val showingArchived: StateFlow<Boolean> = archive.showingArchived
-    val undo: StateFlow<UndoRequest?> = archive.undo
-    val error: StateFlow<DataError?> = archive.error
+    /** Svep-arkivera, Ångra och "Visa arkiverade" (FAM-2) – samma som i alla listor. */
+    val archive = ArchiveActions(viewModelScope, items::setArchived)
 
     // Per kategori i fast ordning (FAM-1); inom kategorin aktiva först, sedan i sparad ordning.
     private val loader = ListLoader(archive.visible(items.observe()).map { list -> list.sortedBy { it.category.ordinal } }, viewModelScope)
@@ -56,7 +48,6 @@ class FamilyItemsViewModel @Inject constructor(items: FamilyItemRepository) : Vi
     fun onEvent(event: FamilyItemsEvent) {
         when (event) {
             is FamilyItemsEvent.List -> loader.onEvent(event.event)
-            is FamilyItemsEvent.Archiving -> archive.onEvent(event.event)
         }
     }
 }
@@ -70,10 +61,7 @@ fun FamilyItemsScreen(
     viewModel: FamilyItemsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val showingArchived by viewModel.showingArchived.collectAsStateWithLifecycle()
-    val undo by viewModel.undo.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
-    FamilyItemsContent(state, viewModel::onEvent, onAdd, onOpen, showingArchived = showingArchived, undo = undo, error = error, onAddExample = onAddExample)
+    FamilyItemsContent(state, viewModel::onEvent, onAdd, onOpen, archive = viewModel.archive.collectAsListArchive(), onAddExample = onAddExample)
 }
 
 @Composable
@@ -83,9 +71,7 @@ fun FamilyItemsContent(
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
-    showingArchived: Boolean = false,
-    undo: UndoRequest? = null,
-    error: DataError? = null,
+    archive: ListArchive = ListArchive(),
     onAddExample: (FamilyItemExample) -> Unit = {},
 ) {
     val examples = FamilyItemExample.entries.map { example -> EmptyExample(stringResource(example.label)) { onAddExample(example) } }
@@ -106,19 +92,10 @@ fun FamilyItemsContent(
         modifier = modifier,
         onRetry = { onEvent(FamilyItemsEvent.List(ListEvent.Retry)) },
         group = group,
-        archived = ArchivedToggle(showingArchived) { onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.ToggleArchived)) },
-        undo = undo,
-        onUndo = { onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.Undo)) },
-        onUndoDismissed = { onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.UndoDismissed)) },
-        error = error,
-        onErrorShown = { onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.ErrorShown)) },
+        archive = archive,
     ) { item ->
-        if (item.archived) {
-            FamilyItemRow(item, onOpen = { onOpen(item.id) })
-        } else {
-            SwipeToHide(onHide = { onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.Archive(item.id, item.name))) }) { swipe ->
-                FamilyItemRow(item, swipe, onOpen = { onOpen(item.id) })
-            }
+        SwipeToHide(onHide = { archive.archive(item.id, item.name) }, enabled = !item.archived) { swipe ->
+            FamilyItemRow(item, swipe, onOpen = { onOpen(item.id) })
         }
     }
 }

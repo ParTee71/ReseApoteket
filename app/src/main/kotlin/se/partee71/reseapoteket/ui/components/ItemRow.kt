@@ -36,6 +36,7 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * [tinted] den tonade bakgrunden och [accent] en färgad vänsterkant (personens färg).
  * [navigates] visar en pil längst till höger (efter [trailing]) – raden öppnar en annan skärm.
  * [inactive] tonar ner hela raden, för det som finns men inte räknas med (ett pausat recept).
+ * [below] står under titel och undertext över hela radens bredd (resenärer och packat på en resa).
  */
 @Composable
 fun ItemRow(
@@ -50,6 +51,7 @@ fun ItemRow(
     accent: Color? = null,
     navigates: Boolean = false,
     inactive: Boolean = false,
+    below: (@Composable () -> Unit)? = null,
 ) {
     val end: (@Composable () -> Unit)? = if (navigates) {
         {
@@ -69,6 +71,7 @@ fun ItemRow(
         tinted = tinted,
         done = done,
         accent = accent,
+        below = below,
     )
 }
 
@@ -84,10 +87,11 @@ internal fun ItemRowLayout(
     tinted: Boolean = false,
     done: Boolean = false,
     accent: Color? = null,
+    below: (@Composable () -> Unit)? = null,
 ) {
     val tint = AppColors.extended.rowTint
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    Row(
+    Column(
         modifier
             .fillMaxWidth()
             .heightIn(min = MIN_HEIGHT)
@@ -96,23 +100,25 @@ internal fun ItemRowLayout(
             .then(interaction)
             .then(if (accent != null) Modifier.drawBehind { drawAccent(accent) } else Modifier)
             .padding(horizontal = Spacing.m, vertical = Spacing.s),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically),
     ) {
-        leading?.invoke()
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            val decoration = if (done) TextDecoration.LineThrough else null
-            Text(
-                title,
-                style = AppTypography.itemTitle,
-                color = if (done) muted else MaterialTheme.colorScheme.onSurface,
-                textDecoration = decoration,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            subtitle?.let { Text(it, style = AppTypography.itemSubtitle, color = muted, textDecoration = decoration) }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            leading?.invoke()
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                val decoration = if (done) TextDecoration.LineThrough else null
+                Text(
+                    title,
+                    style = AppTypography.itemTitle,
+                    color = if (done) muted else MaterialTheme.colorScheme.onSurface,
+                    textDecoration = decoration,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                subtitle?.let { Text(it, style = AppTypography.itemSubtitle, color = muted, textDecoration = decoration) }
+            }
+            trailing?.invoke()
         }
-        trailing?.invoke()
+        below?.invoke()
     }
 }
 

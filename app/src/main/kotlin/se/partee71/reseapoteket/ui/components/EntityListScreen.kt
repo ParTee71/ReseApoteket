@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.Spacing
 import se.partee71.reseapoteket.ui.theme.Tone
@@ -50,15 +51,28 @@ data class EmptyExample(val label: String, val onClick: () -> Unit)
 /** En grupp i en grupperad lista: rubrik, valfri ikon och ton. */
 data class ListGroup(val title: String, @param:DrawableRes val icon: Int? = null, val tone: Tone = Tone.Primary)
 
-/** "Visa arkiverade" i listans meny, där arkivering finns. */
-data class ArchivedToggle(val showing: Boolean, val onToggle: () -> Unit)
+/**
+ * Arkivering i en lista (NFR-3), där den finns: "Visa arkiverade" i menyn ([showing]), Ångra
+ * efter svep ([undo]) och ett misslyckat arkivera/ångra som meddelande ([error]). Händelserna
+ * går till `ArchiveActions` i ViewModeln; `collectAsListArchive()` bygger den.
+ */
+data class ListArchive(
+    val showing: Boolean = false,
+    val undo: UndoRequest? = null,
+    val error: DataError? = null,
+    val onEvent: (ArchiveEvent) -> Unit = {},
+) {
+    /** Svep på en rad: arkivera den och erbjud Ångra. */
+    fun archive(id: String, name: String) = onEvent(ArchiveEvent.Archive(id, name))
+}
 
 /**
  * Den enda listskärmen (NFR-1, skill shared-ui-components). Samma fyra lägen överallt:
  * laddning → [AppLoading]; tomt → [EmptyState] med knapp; fel → feltillstånd med
  * "Försök igen"; innehåll → rader i kort, valfritt grupperade med [SectionHeader].
- * "Lägg till" står nere till höger ovanför verktygsraden; arkiverade rader ångras med
- * [UndoSnackbar]. Ett fel från en åtgärd i listan ([error]) visas som meddelande.
+ * "Lägg till" står nere till höger ovanför verktygsraden. Med [archive] finns "Visa arkiverade"
+ * i menyn, svepta rader ångras med [UndoSnackbar] och ett fel från arkiveringen visas som
+ * meddelande; raderna sveps med `SwipeToHide`.
  *
  * @param group grupp för en rad; grupperna visas i den ordning de först förekommer.
  */
@@ -73,27 +87,22 @@ fun <T> EntityListScreen(
     onRetry: () -> Unit = {},
     addMenu: List<AppMenuItem> = emptyList(),
     group: ((T) -> ListGroup)? = null,
-    archived: ArchivedToggle? = null,
-    undo: UndoRequest? = null,
-    onUndo: () -> Unit = {},
-    onUndoDismissed: () -> Unit = {},
-    error: DataError? = null,
-    onErrorShown: () -> Unit = {},
+    archive: ListArchive? = null,
     row: @Composable (T) -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
-    ErrorSnackbar(error, snackbar, onErrorShown)
+    ErrorSnackbar(archive?.error, snackbar) { archive?.onEvent(ArchiveEvent.ErrorShown) }
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val clearance = LocalBottomClearance.current
-    UndoSnackbar(undo, snackbar, onUndo, onUndoDismissed)
+    UndoSnackbar(archive?.undo, snackbar, { archive?.onEvent(ArchiveEvent.Undo) }, { archive?.onEvent(ArchiveEvent.UndoDismissed) })
     Scaffold(
         modifier = modifier.fillMaxSize().nestedScroll(scroll.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(title, scrollBehavior = scroll) {
-                archived?.let {
+                archive?.let {
                     val label = stringResource(if (it.showing) R.string.hide_archived else R.string.show_archived)
-                    AppMenu(listOf(AppMenuItem(label, it.onToggle, R.drawable.ic_unarchive)))
+                    AppMenu(listOf(AppMenuItem(label, { it.onEvent(ArchiveEvent.ToggleArchived) }, R.drawable.ic_unarchive)))
                 }
             }
         },

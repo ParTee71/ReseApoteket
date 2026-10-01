@@ -55,6 +55,16 @@ object ReasonFormatter {
     /** Sammanhanget i förhandsvisningen för en familjeartikel (FAM-3): "För 4 resenärer i 10 dagar". */
     fun familyContext(travellers: Int, days: Int): String = "För ${UnitNames.travellers(travellers)} i ${UnitNames.days(days)}"
 
+    /** Packförslaget i siffror (RES-3): "16 saker att packa". */
+    fun suggestionCount(suggestion: PackingSuggestion): String = "${UnitNames.things(suggestion.items.size)} att packa"
+
+    /** Vad förslaget består av, sektion för sektion (RES-3): "6 recept · 3 kosttillskott · 7 familjeartiklar"; `null` om det är tomt. */
+    fun suggestionParts(suggestion: PackingSuggestion): String? =
+        suggestion.items.groupingBy { it.section }.eachCount().toSortedMap()
+            .map { (section, count) -> UnitNames.section(count, section) }
+            .joinToString(" · ")
+            .ifEmpty { null }
+
     fun family(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings, quantity: Int?): String {
         val total = UnitNames.quantity(quantity ?: 0, item.unit)
         return when (val rule = item.rule) {

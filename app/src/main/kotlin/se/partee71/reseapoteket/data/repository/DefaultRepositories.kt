@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.Household
+import se.partee71.reseapoteket.core.model.Identified
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
@@ -87,23 +88,29 @@ class DefaultRegimenRepository @Inject constructor(private val collections: Coll
 
     override fun forPerson(personId: String) = collections.regimens(personId)
 
-    override fun regimensFor(personIds: List<String>): Flow<Map<String, List<Regimen>>> =
-        if (personIds.isEmpty()) {
-            flowOf(emptyMap())
-        } else {
-            combine(personIds.distinct().map { id -> forPerson(id).observe().map { id to it } }) { it.toMap() }
-        }
+    override fun regimensFor(personIds: List<String>): Flow<Map<String, List<Regimen>>> = observeEach(personIds, ::forPerson)
 }
 
 class DefaultPackingRepository @Inject constructor(private val collections: CollectionFactory) : PackingRepository {
 
     override fun forTrip(tripId: String) = collections.packingItems(tripId)
 
-    override suspend fun replacePackingItems(tripId: String, items: List<PackingItem>): Result<Unit> {
+    override fun packingFor(tripIds: List<String>): Flow<Map<String, List<PackingItem>>> = observeEach(tripIds, ::forTrip)
+
+    override suspend fun replacePackingItems(tripId: String, items: List<PackingItem>, existing: List<PackingItem>?): Result<Unit> {
         val collection = forTrip(tripId)
-        return collection.getAll().mapCatching { existing ->
+        val current = existing?.let { Result.success(it) } ?: collection.getAll()
+        return current.mapCatching { old ->
             val keep = items.map { it.id }.toSet()
-            collection.batch(upserts = items, deletes = existing.map { it.id }.filterNot { it in keep }).getOrThrow()
+            collection.batch(upserts = items, deletes = old.map { it.id }.filterNot { it in keep }).getOrThrow()
         }
     }
 }
+
+/** En samling per ID, sammanslagen till en karta per ID; tom lista ger en tom karta direkt. */
+private fun <T : Identified> observeEach(ids: List<String>, collection: (String) -> EntityCollection<T>): Flow<Map<String, List<T>>> =
+    if (ids.isEmpty()) {
+        flowOf(emptyMap())
+    } else {
+        combine(ids.distinct().map { id -> collection(id).observe().map { id to it } }) { it.toMap() }
+    }

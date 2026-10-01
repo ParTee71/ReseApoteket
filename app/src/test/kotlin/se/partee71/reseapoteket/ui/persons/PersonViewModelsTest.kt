@@ -63,16 +63,16 @@ class PersonViewModelsTest {
         persons.upsert(Person("erik", "Erik", sortOrder = 1))
         val vm = PersonsViewModel(persons, regimens)
         vm.state.test {
-            vm.onEvent(PersonsEvent.Archiving(ArchiveEvent.Archive("anna", "Anna")))
+            vm.archive.onEvent(ArchiveEvent.Archive("anna", "Anna"))
             assertEquals(listOf("Erik"), expectMostRecentItem().items().map { it.person.name })
-            assertEquals(UndoRequest("anna", "Anna"), vm.undo.value)
+            assertEquals(UndoRequest("anna", "Anna"), vm.archive.undo.value)
 
-            vm.onEvent(PersonsEvent.Archiving(ArchiveEvent.ToggleArchived))
-            assertTrue(vm.showingArchived.value)
+            vm.archive.onEvent(ArchiveEvent.ToggleArchived)
+            assertTrue(vm.archive.showingArchived.value)
             assertEquals(listOf("Erik", "Anna"), expectMostRecentItem().items().map { it.person.name })
 
-            vm.onEvent(PersonsEvent.Archiving(ArchiveEvent.Undo))
-            assertNull(vm.undo.value)
+            vm.archive.onEvent(ArchiveEvent.Undo)
+            assertNull(vm.archive.undo.value)
             assertFalse(expectMostRecentItem().items().first { it.person.id == "anna" }.person.archived)
         }
     }
@@ -158,11 +158,11 @@ class PersonViewModelsTest {
         val detail = PersonDetailViewModel("erik", persons, regimens)
         scope.setVersion(Schema.CURRENT_VERSION + 1) // nyare data än appen: skrivskyddat
 
-        list.onEvent(PersonsEvent.Archiving(ArchiveEvent.Archive("anna", "Anna")))
-        assertEquals(DataError.UpdateRequired, list.error.value)
-        assertNull(list.undo.value)
-        list.onEvent(PersonsEvent.Archiving(ArchiveEvent.ErrorShown))
-        assertNull(list.error.value)
+        list.archive.onEvent(ArchiveEvent.Archive("anna", "Anna"))
+        assertEquals(DataError.UpdateRequired, list.archive.error.value)
+        assertNull(list.archive.undo.value)
+        list.archive.onEvent(ArchiveEvent.ErrorShown)
+        assertNull(list.archive.error.value)
 
         detail.onEvent(PersonDetailEvent.SetArchived(true))
         assertEquals(DataError.UpdateRequired, detail.error.value)

@@ -126,6 +126,21 @@ class CatalogScreenshotTest {
         captureLightAndDark("PersonAvatar_stor") { Sheet { PersonAvatar("🦉", AppColors.person(3), size = AvatarSize.Large) } }
         captureLightAndDark("GroupLabel_over_kort") { Sheet { GroupLabel("Utseende"); ApotekCard { ItemRow("Tema") } } }
         captureLightAndDark("AppDivider_i_kort") { Sheet { ApotekCard { ItemRow("Anna"); AppDivider(); ItemRow("Erik") } } }
+        captureLightAndDark("AvatarStack_resenarer") {
+            Sheet {
+                AvatarStack(listOf("🦊", "🐻", "🐰", "🦉").mapIndexed { i, e -> StackedAvatar(e, AppColors.person(i), "Person $i") })
+                ApotekCard {
+                    ItemRow(
+                        "Gran Canaria",
+                        subtitle = "fre 2 okt 2026 · 7 dagar",
+                        trailing = { InfoPill("Planeras", tone = Tone.Blue) },
+                        navigates = true,
+                        onClick = {},
+                        below = { AvatarStack(listOf(StackedAvatar("🦊", AppColors.person(0), "Anna"), StackedAvatar("🐻", AppColors.person(1), "Erik"))) },
+                    )
+                }
+            }
+        }
         captureLightAndDark("PausableRow_aktiv_och_pausad") {
             Sheet {
                 ApotekCard {
