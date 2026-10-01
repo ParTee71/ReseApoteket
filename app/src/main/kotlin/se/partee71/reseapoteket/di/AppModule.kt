@@ -16,6 +16,7 @@ import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.datetime.TimeZone
 import se.partee71.reseapoteket.data.common.HouseholdScope
 import se.partee71.reseapoteket.data.datastore.settingsDataStore
 import se.partee71.reseapoteket.data.household.HouseholdSession
@@ -40,6 +41,10 @@ abstract class AppModule {
 
         @Provides
         fun clock(): Clock = Clock.System
+
+        /** Enhetens tidszon – "i dag" i förhandsvisningarna (REC-4). */
+        @Provides
+        fun timeZone(): TimeZone = TimeZone.currentSystemDefault()
 
         @Provides
         @Singleton

@@ -1,8 +1,6 @@
 package se.partee71.reseapoteket.ui.persons
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
-import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.nextSortOrder
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.EditorState
@@ -32,18 +30,17 @@ import se.partee71.reseapoteket.ui.components.AvatarSize
 import se.partee71.reseapoteket.ui.components.ColorSwatchPicker
 import se.partee71.reseapoteket.ui.components.EmojiPicker
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
-import se.partee71.reseapoteket.ui.components.GroupLabel
+import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PERSON_EMOJIS
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.Spacing
 
 /** PER-2: namnet är obligatoriskt; emoji och färg har alltid ett värde. */
 object PersonValidator : Validator<Person> {
     const val NAME = "name"
 
     override fun validate(value: Person): Map<String, Int> =
-        if (value.name.isBlank()) mapOf(NAME to R.string.person_name_required) else emptyMap()
+        if (value.name.isBlank()) mapOf(NAME to R.string.name_required) else emptyMap()
 }
 
 sealed interface PersonEditEvent {
@@ -99,11 +96,7 @@ class PersonEditViewModel @AssistedInject constructor(
 
     private fun load() {
         val id = personId ?: return
-        viewModelScope.launch {
-            persons.get(id)
-                .onSuccess { person -> if (person == null) editor.loadFailed(DataError.Unknown) else editor.load(person.withDefaults()) }
-                .onFailure { editor.loadFailed(it as? DataError ?: DataError.Unknown) }
-        }
+        viewModelScope.launch { editor.loadFrom({ persons.get(id) }) { it.withDefaults() } }
     }
 
     /**
@@ -118,7 +111,7 @@ class PersonEditViewModel @AssistedInject constructor(
     /** En ny person hamnar sist i listan. */
     private suspend fun write(person: Person): Result<Unit> {
         val toWrite = if (isNew) {
-            person.copy(name = person.name.trim(), sortOrder = persons.getAll().getOrNull()?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0)
+            person.copy(name = person.name.trim(), sortOrder = persons.nextSortOrder())
         } else {
             person.copy(name = person.name.trim())
         }
@@ -157,15 +150,13 @@ fun PersonEditContent(
         AppTextField(
             person.name,
             { onEvent(PersonEditEvent.Name(it)) },
-            stringResource(R.string.person_name),
+            stringResource(R.string.name),
             error = state.errorFor(PersonValidator.NAME)?.let { stringResource(it) },
         )
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            GroupLabel(stringResource(R.string.person_emoji))
+        LabeledGroup(stringResource(R.string.person_emoji)) {
             EmojiPicker(person.emoji, { onEvent(PersonEditEvent.Emoji(it)) })
         }
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            GroupLabel(stringResource(R.string.person_color))
+        LabeledGroup(stringResource(R.string.person_color)) {
             ColorSwatchPicker(person.colorHex, { onEvent(PersonEditEvent.PersonColor(it)) })
         }
     }

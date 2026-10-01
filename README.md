@@ -25,10 +25,11 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Databasåtkomst från en Claude-session, bara läsning (TP-8).
 - Fyra flikar – Resor, Personer, Familjeartiklar och Inställningar – i en flytande verktygsrad (NAV).
 - Designsystemet: Material 3 Expressive med egen palett och Nunito, ljust, mörkt eller system (SET-1).
+- Personer med recept: dosering, förhandsvisning av vad som ska packas och pausade recept (PER, REC).
 - Komponentkatalogen och ramarna för listor och redigering; i debug-bygget visar Inställningar → Komponenter alla delar.
 
 **Planerat:**
-- Personer med egna recept och kosttillskott (#21–#23).
+- Kosttillskott per person (#23).
 - Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster (#24).
 - Resor och packförslag som räknas ut från resans längd och vilka som åker med (#25).
 - Packlista med avprickning (#26) och inställningar (#27).

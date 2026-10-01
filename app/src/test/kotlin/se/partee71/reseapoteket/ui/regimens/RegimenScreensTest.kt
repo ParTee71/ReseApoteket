@@ -1,0 +1,122 @@
+package se.partee71.reseapoteket.ui.regimens
+
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import kotlin.test.assertEquals
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.engine.PackingEngine
+import se.partee71.reseapoteket.core.model.DoseSchedule
+import se.partee71.reseapoteket.core.model.HouseholdSettings
+import se.partee71.reseapoteket.core.model.ItemUnit
+import se.partee71.reseapoteket.core.model.MedicineForm
+import se.partee71.reseapoteket.core.model.Regimen
+import se.partee71.reseapoteket.core.model.RegimenKind
+import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.common.EditorState
+import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.runEditScreenContract
+import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+
+/** Receptformuläret (REC-1–5): ramens kontrakt och det som är unikt för recept. */
+@RunWith(RobolectricTestRunner::class)
+class RegimenScreensTest {
+
+    @get:Rule
+    val rule = createComposeRule()
+
+    private val config = checkNotNull(RegimenKindConfig.of(RegimenKind.MEDICINE).editor)
+    private val today = LocalDate(2026, 10, 1)
+    private val levaxin = Regimen(
+        "r1", RegimenKind.MEDICINE, "Levaxin", MedicineForm.TABLET, "50 µg", ItemUnit.TABLETT, 100,
+        DoseSchedule.Daily(1, 1), "På fastande mage",
+    )
+
+    private fun preview(regimen: Regimen) = PackingEngine.regimenPreview(regimen, HouseholdSettings(), today)
+
+    @Test
+    fun `redigeringen uppfyller formulärkontraktet`() {
+        val editor = EditorState(levaxin.copy(name = ""), RegimenValidator)
+        rule.runEditScreenContract(
+            editor = editor,
+            makeInvalid = { update(RegimenValidator.NAME) { it.copy(name = "x") }; update(RegimenValidator.NAME) { it.copy(name = "") } },
+            makeValid = { update(RegimenValidator.NAME) { it.copy(name = "Levaxin") } },
+            invalidMessage = "Ange ett namn",
+        ) { state, effects, onSave, onClose ->
+            RegimenEditContent(config, isNew = true, state, preview(state.value), effects, { event ->
+                if (event == RegimenEditEvent.Save) onSave()
+            }, onClose)
+        }
+    }
+
+    @Test
+    fun `form och enhet väljs var för sig (variant B)`() {
+        val events = mutableListOf<RegimenEditEvent>()
+        rule.setContent { ReseApoteketTheme { RegimenEditContent(config, false, EditorUiState(levaxin), preview(levaxin), emptyFlow(), { events += it }, {}) } }
+        rule.onNodeWithText("Flytande").performClick()
+        rule.onNodeWithText("ml").performScrollTo().performClick()
+        assertEquals(listOf(RegimenEditEvent.Form(MedicineForm.LIQUID), RegimenEditEvent.DoseUnit(ItemUnit.ML)), events)
+    }
+
+    @Test
+    fun `förhandsvisningen och doseringsfelet syns i formuläret (REC-2, REC-4)`() {
+        val weekdays = levaxin.copy(schedule = DoseSchedule.Weekdays(emptySet(), 1))
+        val state = EditorUiState(weekdays, errors = mapOf(RegimenValidator.SCHEDULE to R.string.regimen_days_required))
+        rule.setContent { ReseApoteketTheme { RegimenEditContent(config, false, state, preview(levaxin), emptyFlow(), {}, {}) } }
+        rule.onNodeWithText("Välj minst en veckodag").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("För en 7-dagarsresa").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("9 tabletter · 1 karta").assertIsDisplayed()
+    }
+
+    @Test
+    fun `radering frågar först och nämner det lagrade receptet (REC-5)`() {
+        val events = mutableListOf<RegimenEditEvent>()
+        // Namnfältet är ändrat men inte sparat: dialogen nämner det lagrade namnet.
+        rule.setContent {
+            ReseApoteketTheme {
+                RegimenEditContent(config, false, EditorUiState(levaxin.copy(name = "")), preview(levaxin), emptyFlow(), { events += it }, {}, storedName = "Levaxin 50 µg")
+            }
+        }
+        rule.onNodeWithText("Redigera recept").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Fler val").performClick()
+        rule.onNodeWithText("Radera").performClick()
+        rule.onNodeWithText("Radera Levaxin 50 µg?").assertIsDisplayed()
+        rule.onNodeWithText("Receptet tas bort för gott. Det går inte att ångra.").assertIsDisplayed()
+        assertEquals(emptyList(), events, "inget raderas innan det bekräftats")
+    }
+
+    @Test
+    fun `ett nytt recept kan inte raderas`() {
+        rule.setContent { ReseApoteketTheme { RegimenEditContent(config, true, EditorUiState(levaxin), preview(levaxin), emptyFlow(), {}, {}) } }
+        rule.onNodeWithText("Nytt recept").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Fler val").assertDoesNotExist()
+    }
+
+    // Hög skärm, så att hela formuläret med förhandsvisningen syns i bilden.
+    @Test
+    @Config(qualifiers = "w390dp-h1500dp-xxhdpi")
+    fun `skärmdumpar i alla fyra doseringslägen`() {
+        fun capture(name: String, regimen: Regimen) =
+            captureLightAndDark("RegimenEditScreen_$name") {
+                RegimenEditContent(config, false, EditorUiState(regimen, isDirty = true), preview(regimen), emptyFlow(), {}, {}, storedName = "Levaxin 50 µg")
+            }
+        capture("dagligen", levaxin)
+        capture(
+            "veckodagar",
+            levaxin.copy(name = "Enalapril", strength = "10 mg", notes = "", schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 1)),
+        )
+        capture("intervall", levaxin.copy(name = "Alendronat", strength = "70 mg", packageSize = 4, notes = "", schedule = DoseSchedule.IntervalDays(7, 1)))
+        capture("vid_behov", levaxin.copy(name = "Alvedon", strength = "500 mg", packageSize = 20, notes = "Vid feber eller värk", schedule = DoseSchedule.AsNeeded(20)))
+    }
+}

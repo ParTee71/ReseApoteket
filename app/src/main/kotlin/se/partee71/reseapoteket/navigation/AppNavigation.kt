@@ -18,6 +18,9 @@ import se.partee71.reseapoteket.ui.persons.PersonEditScreen
 import se.partee71.reseapoteket.ui.persons.PersonEditViewModel
 import se.partee71.reseapoteket.ui.persons.PersonsScreen
 import se.partee71.reseapoteket.ui.placeholder.ComingSoonScreen
+import se.partee71.reseapoteket.ui.regimens.RegimenEditScreen
+import se.partee71.reseapoteket.ui.regimens.RegimenEditViewModel
+import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
 import se.partee71.reseapoteket.ui.settings.SettingsScreen
 import se.partee71.reseapoteket.ui.trips.TripsScreen
 
@@ -73,6 +76,19 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onClose = { backStack.popIfTop(key) },
                 viewModel = hiltViewModel<PersonEditViewModel, PersonEditViewModel.Factory> { it.create(key.personId) },
             )
+        }
+        entry<RegimenEditKey> { key ->
+            val close = { backStack.popIfTop(key) }
+            val editor = RegimenKindConfig.of(key.kind).editor
+            if (editor == null) {
+                ComingSoonScreen(onBack = close)
+            } else {
+                RegimenEditScreen(
+                    editor,
+                    onClose = close,
+                    viewModel = hiltViewModel<RegimenEditViewModel, RegimenEditViewModel.Factory> { it.create(key.personId, key.kind, key.regimenId) },
+                )
+            }
         }
         entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }
     }

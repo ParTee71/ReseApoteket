@@ -43,6 +43,7 @@ class PersonScreensTest {
             Regimen("r1", RegimenKind.MEDICINE, "Levaxin", strength = "50 µg", schedule = DoseSchedule.Daily(1, 1)),
             Regimen("r2", RegimenKind.MEDICINE, "Enalapril", strength = "10 mg", schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 1)),
             Regimen("r3", RegimenKind.MEDICINE, "Alvedon", strength = "500 mg", schedule = DoseSchedule.AsNeeded(20)),
+            Regimen("r4", RegimenKind.MEDICINE, "Hydrokortison", strength = "1 %", unit = ItemUnit.TUB, schedule = DoseSchedule.AsNeeded(1), active = false),
         ),
         supplements = listOf(Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", strength = "10 µg", unit = ItemUnit.KAPSEL, schedule = DoseSchedule.Daily(1, 1))),
     )
@@ -101,13 +102,23 @@ class PersonScreensTest {
             }
         }
         rule.onNodeWithText("Anna").assertIsDisplayed()
-        rule.onNodeWithText("3 recept · 1 kosttillskott").assertIsDisplayed()
+        rule.onNodeWithText("4 recept · 1 kosttillskott").assertIsDisplayed()
         rule.onNodeWithText("Levaxin 50 µg").performClick()
         rule.onNodeWithText("Lägg till kosttillskott").performClick()
         rule.onNodeWithContentDescription("Redigera").performClick()
         assertEquals(listOf("r1"), opened)
         assertEquals(listOf(RegimenKind.SUPPLEMENT), added)
         assertEquals(1, edits)
+    }
+
+    @Test
+    fun `receptraderna visar doseringstyp, och ett pausat recept säger att det inte räknas (REC-3, REC-5)`() {
+        rule.setContent { ReseApoteketTheme { PersonDetailContent(DetailUiState.Content(detail), {}, {}, {}, {}, {}) } }
+        rule.onNodeWithText("1 tablett mån, ons, fre").assertIsDisplayed()
+        rule.onNodeWithText("Veckodagar").assertIsDisplayed()
+        rule.onNodeWithText("Vid behov").assertIsDisplayed()
+        rule.onNodeWithText("Pausat").assertIsDisplayed()
+        rule.onNodeWithText("Pausat – räknas inte med").assertIsDisplayed()
     }
 
     @Test
