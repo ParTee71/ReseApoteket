@@ -91,6 +91,27 @@
     <string name="trips_empty_title">Inga resor än</string>
     <string name="trips_empty_message">Lägg till en resa så räknar appen ut vad ni ska packa.</string>
     <string name="trips_add">Ny resa</string>
+
+    <!-- Resor (RES-1–4) -->
+    <string name="trip_edit">Redigera resa</string>
+    <string name="trip_create">Skapa packlista</string>
+    <string name="trip_where">Vart?</string>
+    <string name="trip_where_helper">Visas överst i packlistan</string>
+    <string name="trip_default_name">Resa %s</string>
+    <string name="trip_start">Startdatum</string>
+    <string name="trip_days_label">Hur många dagar?</string>
+    <string name="trip_days_unit">dagar</string>
+    <string name="trip_travellers">Vem åker med?</string>
+    <string name="trip_travellers_required">Välj minst en som åker med</string>
+    <string name="trip_days_range">Mellan 1 och 60 dagar</string>
+    <string name="trip_date_days_format">%1$s · %2$s</string>
+    <string name="trip_status_planning">Planeras</string>
+    <string name="trip_status_packed">Packad</string>
+    <string name="trip_status_done">Klar</string>
+    <string name="trip_recount_title">Räkna om packlistan?</string>
+    <string name="trip_recount_message">Dagar, startdatum eller resenärer har ändrats. Föreslagna mängder räknas om; avprickat och egna rader behålls.</string>
+    <string name="trip_recount_keep">Behåll listan</string>
+    <string name="trip_recount_confirm">Räkna om</string>
     <string name="persons_empty_title">Inga personer än</string>
     <string name="persons_empty_message">Lägg till dem som brukar resa, med sina mediciner och kosttillskott.</string>
     <string name="persons_add">Lägg till person</string>

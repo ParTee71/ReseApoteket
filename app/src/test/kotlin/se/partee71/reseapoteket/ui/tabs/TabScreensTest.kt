@@ -17,7 +17,9 @@ import se.partee71.reseapoteket.ui.persons.PersonListItem
 import se.partee71.reseapoteket.ui.persons.PersonsContent
 import se.partee71.reseapoteket.ui.persons.PersonsEvent
 import se.partee71.reseapoteket.ui.runListScreenContract
+import se.partee71.reseapoteket.ui.trips.TripListItem
 import se.partee71.reseapoteket.ui.trips.TripsContent
+import se.partee71.reseapoteket.ui.trips.TripsEvent
 
 /** Flikarna Resor, Personer och Familjeartiklar är listskärmar på `EntityListScreen` (NAV-1, NFR-1). */
 @RunWith(RobolectricTestRunner::class)
@@ -28,14 +30,14 @@ class TabScreensTest {
 
     @Test
     fun `Resor uppfyller listkontraktet`() =
-        rule.runListScreenContract(Trip("t1", "Kreta", days = 7), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
-            TripsContent(state, { if (it == ListEvent.Retry) onRetry() }, onAdd, {})
+        rule.runListScreenContract(TripListItem(Trip("t1", "Kreta", days = 7)), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
+            TripsContent(state, { if (it == TripsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
         }
 
     @Test
     fun `Personer uppfyller listkontraktet`() =
         rule.runListScreenContract(PersonListItem(Person("p1", "Anna", "🦊", "#D97757")), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
-            PersonsContent(state, showingArchived = false, undo = null, { if (it == PersonsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
+            PersonsContent(state, { if (it == PersonsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
         }
 
     @Test
@@ -56,7 +58,7 @@ class TabScreensTest {
                         PersonListItem(Person("p3", "Lova", "🐰", "#7A9A3C")),
                     ),
                 ),
-                showingArchived = false, undo = null, {}, {}, {},
+                {}, {}, {},
             )
         }
         captureLightAndDark("FamilyItemsScreen_tom") { FamilyItemsContent(ListUiState.Empty, {}, {}, {}) }

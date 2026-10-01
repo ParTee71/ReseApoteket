@@ -25,6 +25,8 @@ import se.partee71.reseapoteket.ui.regimens.RegimenEditScreen
 import se.partee71.reseapoteket.ui.regimens.RegimenEditViewModel
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
 import se.partee71.reseapoteket.ui.settings.SettingsScreen
+import se.partee71.reseapoteket.ui.trips.TripEditScreen
+import se.partee71.reseapoteket.ui.trips.TripEditViewModel
 import se.partee71.reseapoteket.ui.trips.TripsScreen
 
 /** Appens innehåll efter inloggning: fyra flikar med egna back stackar. */
@@ -47,7 +49,8 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey) -> NavEntry<AppKey> =
     entryProvider(fallback = { key -> NavEntry(key) { ComingSoonScreen(onBack = { backStack.popIfTop(key) }) } }) {
         entry<TripsKey> {
-            TripsScreen(onAdd = { backStack.push(TripEditKey()) }, onOpen = { backStack.push(PackingListKey(it)) }, viewModel = hiltViewModel(tabOwner))
+            // Tills packlistan finns (#26) öppnar en resa sitt formulär (RES-1).
+            TripsScreen(onAdd = { backStack.push(TripEditKey()) }, onOpen = { backStack.push(TripEditKey(it)) }, viewModel = hiltViewModel(tabOwner))
         }
         entry<PersonsKey> {
             PersonsScreen(onAdd = { backStack.push(PersonEditKey()) }, onOpen = { backStack.push(PersonDetailKey(it)) }, viewModel = hiltViewModel(tabOwner))
@@ -93,6 +96,17 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
             FamilyItemEditScreen(
                 onClose = { backStack.popIfTop(key) },
                 viewModel = hiltViewModel<FamilyItemEditViewModel, FamilyItemEditViewModel.Factory> { it.create(key.itemId, key.example, exampleName) },
+            )
+        }
+        entry<TripEditKey> { key ->
+            TripEditScreen(
+                onClose = { backStack.popIfTop(key) },
+                // En ny resa öppnar sin packlista i stället för att gå tillbaka (RES-3).
+                onCreated = { id ->
+                    backStack.popIfTop(key)
+                    backStack.push(PackingListKey(id))
+                },
+                viewModel = hiltViewModel<TripEditViewModel, TripEditViewModel.Factory> { it.create(key.tripId) },
             )
         }
         entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }

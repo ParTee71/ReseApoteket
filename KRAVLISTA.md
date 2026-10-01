@@ -15,7 +15,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| ÖV-1 | Appen ska räkna fram ett **packförslag** av mediciner, kosttillskott och familjeartiklar utifrån resans längd i dagar och vilka som åker med. *(planerad)* |
+| ÖV-1 | Appen ska räkna fram ett **packförslag** av mediciner, kosttillskott och familjeartiklar utifrån resans längd i dagar och vilka som åker med. |
 | ÖV-2 | Appen ska ha en **packlista** där framplockade saker prickas av. *(planerad)* |
 | ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå. *(planerad)* |
 | ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. |
@@ -74,7 +74,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott som inte är arkiverade ("3 recept · 1 kosttillskott", annars "Inga recept eller kosttillskott än"); lista, tomt tillstånd och fel enligt NFR-1. "Visa arkiverade" i menyn visar arkiverade personer sist, märkta "Arkiverad". |
 | PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista på 40 och en av åtta personfärger, valda direkt i formuläret med en förhandsvisning av avataren; en ny person börjar med första emojin och färgen och hamnar sist i listan. Skapas och redigeras enligt NFR-2. |
-| PER-3 | En person arkiveras med svep och kan ångras (NFR-3), eller arkiveras och återställs från persondetaljens meny. En arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(resorna planerade, #24–#26)* |
+| PER-3 | En person arkiveras med svep och kan ångras (NFR-3), eller arkiveras och återställs från persondetaljens meny. En arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(packlistan planerad, #26)* |
 | PER-4 | Persondetaljen visar personens avatar, namn och antal överst, och personens **Recept** och **Kosttillskott** i var sin sektion med antal, dosering per rad och "Lägg till" (NFR-1). Arkiverade recept och kosttillskott visas inte. |
 
 ## 7. Recept
@@ -85,7 +85,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1; stegarna går inte under det. Felet visas när typens fält ändrats eller vid sparförsök, inte direkt vid byte av typ. En dosering av okänd typ (från en nyare app) visas som meddelande och bevaras (BCK-5). |
 | REC-3 | Doseringen visas i klartext, samma text i lista (utom för pausade, REC-5), redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån, ons, fre", "1 dos var 3:e dag", "vid behov: ta med 10". I persondetaljen visas dessutom doseringstypen som etikett. |
 | REC-4 | Under doseringen visas vad som skulle packas för en 7-dagarsresa som börjar i dag, med hushållets marginaldagar (BER), t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor" och förklaringen (BER-10). Går mängden inte att räkna ut visas skälet i stället för en mängd. |
-| REC-5 | Inaktiva (pausade) recept visas nedtonade med etiketten "Pausat" och undertexten "Pausat – räknas inte med" i stället för doseringen, och räknas inte med i packförslaget (BER-9). Ett recept raderas permanent via menyn med bekräftelse (NFR-4). *(packförslaget planerat, #25)* |
+| REC-5 | Inaktiva (pausade) recept visas nedtonade med etiketten "Pausat" och undertexten "Pausat – räknas inte med" i stället för doseringen, och räknas inte med i packförslaget (BER-9). Ett recept raderas permanent via menyn med bekräftelse (NFR-4). |
 
 ## 8. Kosttillskott
 
@@ -108,27 +108,27 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. *(planerad, #25 – fliken med namn och antal dagar sedan #20)* |
-| RES-2 | En resa har namn ("Vart/vad?", förval "Resa <datum>"), antal dagar 1–60, startdatum (förval i morgon) och resenärer ("Vem åker med?", alla aktiva personer förvalda); minst en resenär krävs. *(planerad, #25)* |
-| RES-3 | En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan (BER) och öppnar den. *(planerad, #25)* |
-| RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd (med sina förpackningar) och en avprickning behålls, egna rader rörs inte; en avprickad rad som inte längre finns i förslaget behålls med förklaringen "Inte längre i förslaget". *(planerad, #25)* |
+| RES-1 | Fliken **Resor** listar resor med senaste start först: namn, startdatum och antal dagar, status (**Planeras**, **Packad**, **Klar** – en klar resa nedtonad), resenärernas avatarer och packat ("9 / 16", dolda rader räknas inte). En resa arkiveras med svep och Ångra (NFR-3) eller från formulärets meny; "Visa arkiverade" visar dem sist. Tryck öppnar resans formulär. *(packlistan, #26, öppnas i stället och resan ändras därifrån)* |
+| RES-2 | En resa har namn ("Vart?"; lämnas det tomt blir det "Resa <datum>", t.ex. "Resa 2 okt"), startdatum (förval i morgon), antal dagar 1–60 (förval 7) och resenärer ("Vem åker med?", alla personer som inte är arkiverade förvalda); minst en resenär krävs. Skapas och redigeras enligt NFR-2. |
+| RES-3 | Under resenärerna visas vad packlistan blir, t.ex. "För 4 resenärer i 7 dagar: 16 saker att packa – 6 recept · 3 kosttillskott · 7 familjeartiklar" (BER). En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan och öppnar den. *(packlistan planerad, #26)* |
+| RES-4 | Ändras dagar, startdatum eller resenärer frågar Spara **"Räkna om packlistan?"**: **"Räkna om"** sparar och räknar om – föreslagna rader får nya förslag, en ändrad mängd (med sina förpackningar) och en avprickning behålls, egna rader rörs inte; en avprickad rad som inte längre finns i förslaget behålls med förklaringen "Inte längre i förslaget". **"Behåll listan"** sparar resan utan att röra packlistan; tryck utanför sparar ingenting. |
 
 ## 11. Beräkning
 
-Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-engine/SKILL.md). Beräkningen finns i `:core`; kraven bockas av när resan och packlistan byggs (#25, #26).
+Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-engine/SKILL.md). Beräkningen finns i `:core` och används av resan (RES-3, RES-4) och förhandsvisningarna.
 
 | ID | Krav |
 |----|------|
-| BER-1 | `effectiveDays = trip.days + settings.marginDays`; negativa värden räknas som 0 och vart och ett begränsas till 366 dagar, och en mängd till 99 999 (skydd mot trasiga data). *(planerad, #25)* |
-| BER-2 | Dagligen: `dosesPerDay × unitsPerDose × effectiveDays`. *(planerad, #25)* |
-| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`; utan startdatum 0 + varning ("startdatum saknas – kan inte beräknas"). *(planerad, #25)* |
-| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose` (intervall under 1 räknas som 1); vid behov: `quantity`, och utan angiven mängd 0 + varning ("vid behov – ange hur många som ska med"); okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). *(planerad, #25)* |
-| BER-5 | Fast antal: `quantity`. *(planerad, #25)* |
-| BER-6 | Per resenär: `quantity × antal resenärer`. *(planerad, #25)* |
-| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity` (`perDays` under 1 räknas som 1). *(planerad, #25)* |
-| BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. *(planerad, #25)* |
-| BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. *(planerad, #25)* |
-| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10"; dagarna visas som de räknas (BER-1), så att förklaringen aldrig motsäger mängden. *(planerad, #25)* |
+| BER-1 | `effectiveDays = trip.days + settings.marginDays`; negativa värden räknas som 0 och vart och ett begränsas till 366 dagar, och en mängd till 99 999 (skydd mot trasiga data). |
+| BER-2 | Dagligen: `dosesPerDay × unitsPerDose × effectiveDays`. |
+| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`; utan startdatum 0 + varning ("startdatum saknas – kan inte beräknas"). |
+| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose` (intervall under 1 räknas som 1); vid behov: `quantity`, och utan angiven mängd 0 + varning ("vid behov – ange hur många som ska med"); okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). |
+| BER-5 | Fast antal: `quantity`. |
+| BER-6 | Per resenär: `quantity × antal resenärer`. |
+| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity` (`perDays` under 1 räknas som 1). |
+| BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. |
+| BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. |
+| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10"; dagarna visas som de räknas (BER-1), så att förklaringen aldrig motsäger mängden. |
 
 ## 12. Packlista
 

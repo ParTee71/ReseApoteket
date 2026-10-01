@@ -10,6 +10,7 @@ import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.repository.DefaultFamilyItemRepository
+import se.partee71.reseapoteket.data.repository.DefaultPackingRepository
 import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.data.repository.DefaultTripRepository
@@ -40,7 +41,7 @@ class TabViewModelsTest {
 
     @Test
     fun `Resor och Familjeartiklar är tomma utan dokument`() = runTest {
-        TripsViewModel(DefaultTripRepository(collections)).state.test { assertEquals(ListUiState.Empty, expectMostRecentItem()) }
+        TripsViewModel(DefaultTripRepository(collections), DefaultPersonRepository(collections), DefaultPackingRepository(collections)).state.test { assertEquals(ListUiState.Empty, expectMostRecentItem()) }
         FamilyItemsViewModel(DefaultFamilyItemRepository(collections)).state.test { assertEquals(ListUiState.Empty, expectMostRecentItem()) }
     }
 
@@ -48,8 +49,8 @@ class TabViewModelsTest {
     fun `Resor och Familjeartiklar visar sina dokument`() = runTest {
         DefaultTripRepository(collections).upsert(Trip("t1", "Kreta"))
         DefaultFamilyItemRepository(collections).upsert(FamilyItem("f1", "Solkräm"))
-        TripsViewModel(DefaultTripRepository(collections)).state.test {
-            assertEquals(listOf("Kreta"), (expectMostRecentItem() as ListUiState.Content).items.map { it.name })
+        TripsViewModel(DefaultTripRepository(collections), DefaultPersonRepository(collections), DefaultPackingRepository(collections)).state.test {
+            assertEquals(listOf("Kreta"), (expectMostRecentItem() as ListUiState.Content).items.map { it.trip.name })
         }
         FamilyItemsViewModel(DefaultFamilyItemRepository(collections)).state.test {
             assertEquals(listOf("Solkräm"), (expectMostRecentItem() as ListUiState.Content).items.map { it.name })
