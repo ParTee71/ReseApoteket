@@ -62,10 +62,11 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| HUS-1 | Efter inloggning väljs ett hushåll där användaren är medlem; finns flera väljs det äldsta. Frågan går mot servern, så att en tom cache aldrig tolkas som "inget hushåll". |
-| HUS-2 | Har användaren inget hushåll skapas "Mitt hushåll" med användaren som enda medlem, 2 marginaldagar och appens `schemaVersion`; det väljs först när servern tagit emot det. Utan nät skapas inget; felet visas och knappen försöker igen utan ny inloggning. |
+| HUS-1 | Efter inloggning väljs ett hushåll där användaren är medlem; finns flera väljs det äldsta. Frågan går mot servern, så att en tom cache aldrig tolkas som "inget hushåll". Byts konto medan valet pågår avbryts det, så att det nya kontot aldrig får det förras hushåll eller fel. |
+| HUS-2 | Har användaren inget hushåll skapas "Mitt hushåll" med användaren som enda medlem, 2 marginaldagar och appens `schemaVersion`; det väljs först när servern tagit emot det. Utan svar från servern väljs inget; felet visas och knappen försöker igen utan ny inloggning – med samma hushåll, även efter en omstart, så att det aldrig blir två. |
 | HUS-3 | Är hushållet sparat med en nyare `schemaVersion` än appen förstår visas bara "Uppdatera appen" med en knapp till senaste versionen (BCK-5). Appen visas inte förrän hushållets version är känd. |
-| HUS-4 | Det valda hushållet sparas på enheten; nästa start går direkt in, även utan nät. |
+| HUS-4 | Det valda hushållet sparas på enheten; nästa start går direkt in, även utan nät. En oläsbar eller trasig inställningsfil ger standardvärden i stället för att låsa appen. |
+| HUS-5 | Går det valda hushållet inte att läsa – användaren är inte längre medlem eller hushållet är raderat – väljs det bort och hushållet väljs på nytt enligt HUS-1 och HUS-2; appen fastnar aldrig i laddning. Skrivningar under tiden nekas med behörighetsfel. |
 
 ## 6. Personer
 

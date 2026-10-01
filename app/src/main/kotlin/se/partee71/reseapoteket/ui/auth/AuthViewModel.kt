@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,6 +54,7 @@ class AuthViewModel @Inject constructor(
     private val ensuring = MutableStateFlow(false)
     private val error = MutableStateFlow<DataError?>(null)
     private var ensureJob: Job? = null
+    private var ensuringUid: String? = null
 
     private val gate = combine(auth.authState, session.selection, session.schemaVersion, ::gateOf)
 
@@ -63,7 +65,10 @@ class AuthViewModel @Inject constructor(
 
     init {
         // Utloggad (även om sessionen försvunnit utifrån) = inget valt hushåll, så att nästa
-        // användare på enheten aldrig hamnar i den förras hushåll.
+        // användare på enheten aldrig hamnar i den förras hushåll – och ett pågående val avbryts.
+        viewModelScope.launch {
+            auth.authState.filter { it == null }.collect { ensureJob?.cancel() }
+        }
         viewModelScope.launch {
             combine(auth.authState, session.selection) { user, householdId -> user == null && householdId != null }
                 .filter { it }
@@ -102,14 +107,29 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Väljer hushåll åt [user]. Ett pågående val för en annan användare avbryts, så att den nya
+     * användaren aldrig får den förras hushåll eller fel.
+     */
     private fun ensure(user: AuthUser) {
-        if (ensureJob?.isActive == true) return
-        ensureJob = viewModelScope.launch {
+        if (ensureJob?.isActive == true && ensuringUid == user.uid) return
+        ensureJob?.cancel()
+        ensuringUid = user.uid
+        // Startas först när jobbet är sparat, så att jämförelsen i finally alltid gäller rätt jobb.
+        val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
             ensuring.value = true
             error.value = null
-            ensureHousehold(user.uid).dataError()?.let { error.value = it }
-            ensuring.value = false
+            try {
+                ensureHousehold(user.uid).dataError()
+                    ?.takeIf { this@AuthViewModel.user.value?.uid == user.uid }
+                    ?.let { error.value = it }
+            } finally {
+                // Ett avbrutet jobb lämnar flaggan åt det som ersatte det.
+                if (ensureJob == coroutineContext[Job]) ensuring.value = false
+            }
         }
+        ensureJob = job
+        job.start()
     }
 
     private companion object {

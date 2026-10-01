@@ -19,6 +19,9 @@ interface HouseholdRepository {
     /** Skapar ett hushåll med [ownerUid] som enda medlem – bekräftat av servern – och gör det aktivt; ger dess ID. */
     suspend fun create(name: String, ownerUid: String): Result<String>
 
+    /** Gör ett befintligt hushåll aktivt (HUS-1); ett obekräftat skapande behövs då inte längre och glöms. */
+    suspend fun select(householdId: String)
+
     suspend fun update(household: Household): Result<Unit>
 }
 

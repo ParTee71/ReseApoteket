@@ -3,6 +3,8 @@ package se.partee71.reseapoteket.data.common
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import se.partee71.reseapoteket.core.schema.Schema
@@ -16,6 +18,12 @@ interface HouseholdScope {
 
     /** Aktivt hushålls version; `null` eller ett annat hushålls version så länge den inte är känd. */
     val schemaVersion: StateFlow<HouseholdVersion?>
+
+    /**
+     * Hushållet vars dokument senast inte gick att läsa (användaren är inte medlem, eller det är
+     * raderat), annars `null`. Ett sådant hushåll väljs bort (HUS-5).
+     */
+    val unreadable: StateFlow<String?>
 }
 
 /** Den kända versionen för det aktiva hushållet, annars `null`. */
@@ -25,22 +33,33 @@ fun HouseholdScope.currentVersion(): Int? =
 /**
  * Varför en skrivning inte får göras, eller `null` om den får (BCK-5). **Stängd som
  * standard:** så länge det aktiva hushållets version är okänd väntar skrivningen en stund på
- * den, och vägras sedan hellre än att en äldre app skriver över nyare data.
+ * den, och vägras sedan hellre än att en äldre app skriver över nyare data. Ett hushåll som
+ * inte går att läsa ger [DataError.PermissionDenied] (HUS-5).
  */
 suspend fun HouseholdScope.writeBlocker(): DataError? {
     val id = householdId.value ?: return null // samlingar som kräver hushåll kastar NoHousehold själva
-    val version = withTimeoutOrNull(VERSION_WAIT) {
-        schemaVersion.first { it?.householdId == id }
+    val verdict = withTimeoutOrNull(VERSION_WAIT) {
+        combine(schemaVersion, unreadable) { version, denied ->
+            when {
+                denied == id -> Verdict(DataError.PermissionDenied)
+                version?.householdId == id ->
+                    Verdict(DataError.UpdateRequired.takeIf { Schema.isNewerThanApp(version.version) })
+                else -> null
+            }
+        }.filterNotNull().first()
     } ?: return DataError.Offline
-    return if (Schema.isNewerThanApp(version.version)) DataError.UpdateRequired else null
+    return verdict.blocker
 }
+
+private class Verdict(val blocker: DataError?)
 
 /** Hur länge en skrivning väntar på hushållets version (från cachen tar det millisekunder). */
 private val VERSION_WAIT = 5.seconds
 
 /**
  * Hushållets `schemaVersion` som flöde, läst direkt ur hushållsdokumentet. Ett dokument utan
- * fältet har [Schema.FIRST_VERSION]; vid fel emitteras ingenting (skrivningar förblir spärrade).
+ * fältet har [Schema.FIRST_VERSION]. Går dokumentet inte att läsa (inte medlem, raderat) avslutas
+ * flödet med [DataError.PermissionDenied]; andra fel försöker källan själv igen.
  */
 fun interface HouseholdVersionSource {
     fun schemaVersion(householdId: String): Flow<Int>

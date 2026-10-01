@@ -70,6 +70,18 @@ class DocumentRulesTest {
     }
 
     @Test
+    fun `ett hushåll som inte går att läsa nekar skrivning i stället för att vänta ut den (HUS-5)`() = runTest {
+        val scope = TestHouseholdScope(version = null)
+        var result: DataError? = null
+        val job = launch { result = scope.writeBlocker() }
+        advanceTimeBy(1_000)
+        scope.unreadable.value = "hushall-1"
+        job.join()
+        assertEquals(DataError.PermissionDenied, result)
+        assertEquals(1_000L, testScheduler.currentTime, "nekandet väntar inte ut tidsgränsen")
+    }
+
+    @Test
     fun `en version från förra hushållet gäller inte det nya`() = runTest {
         val scope = TestHouseholdScope(householdId = "gammalt", version = Schema.CURRENT_VERSION)
         scope.householdId.value = "nytt"

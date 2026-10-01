@@ -2,7 +2,6 @@ package se.partee71.reseapoteket.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import dagger.Binds
@@ -18,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import se.partee71.reseapoteket.data.common.HouseholdScope
+import se.partee71.reseapoteket.data.datastore.settingsDataStore
 import se.partee71.reseapoteket.data.household.HouseholdSession
 
 /** Scope som lever lika länge som appen – för delade StateFlows. */
@@ -44,6 +44,6 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun preferences(@ApplicationContext context: Context): DataStore<Preferences> =
-            PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("settings") }
+            settingsDataStore { context.preferencesDataStoreFile("settings") }
     }
 }

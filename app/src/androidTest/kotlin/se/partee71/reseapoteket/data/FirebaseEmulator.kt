@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.data.firestore.FirestoreCollectionFactory
+import se.partee71.reseapoteket.data.firestore.FirestoreHouseholdVersions
 import se.partee71.reseapoteket.data.firestore.FirestoreSyncStatus
 import se.partee71.reseapoteket.data.firestore.Paths
 
@@ -52,6 +53,8 @@ object FirebaseEmulator {
 
     fun collections(scope: TestHouseholdScope, clock: FixedClock = FixedClock()) =
         Collections(FirestoreCollectionFactory(db, scope, sync(), clock), clock)
+
+    fun versions() = FirestoreHouseholdVersions(db)
 
     fun sync() = FirestoreSyncStatus(CoroutineScope(Dispatchers.Default))
 
