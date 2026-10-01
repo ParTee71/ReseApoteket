@@ -35,7 +35,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | TP-5 | Data lagras i **Cloud Firestore** med offline-cache (100 MB); enhetens inställningar i **DataStore**. |
 | TP-6 | Inloggning via **Firebase Auth + Credential Manager**. |
 | TP-7 | Navigering med **Navigation 3**. *(planerad, #20)* |
-| TP-8 | Backup och databasåtkomst från utvecklingssessioner via Node-verktyget **`tools/db`**. *(planerad, #18 – läsverktygen; export, import och migrering finns sedan #17)* |
+| TP-8 | Backup och databasåtkomst från utvecklingssessioner via Node-verktyget **`tools/db`**: `stats`, `query` och `get` läser (med en läsnyckel, inget sparas på disk), `export`, `import` och `migrate` för backup och schemaändringar. |
 
 ---
 

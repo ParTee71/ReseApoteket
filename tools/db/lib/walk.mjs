@@ -1,5 +1,5 @@
-// Går igenom ett hushåll enligt collections.mjs – används av export och migrate (och stats
-// och query i #18). En samling som inte står i listan – under ett hushåll eller i roten –
+// Går igenom ett hushåll enligt collections.mjs – används av export, migrate och stats.
+// En samling som inte står i listan – under ett hushåll eller i roten –
 // stoppar genomgången: den skulle annars aldrig backas upp.
 import { COLLECTIONS } from './collections.mjs';
 
@@ -65,3 +65,12 @@ export function collectionOf(docPath) {
 
 /** Hushållets ID för en dokumentsökväg. */
 export const householdOf = (docPath) => segments(docPath)[1];
+
+/** Om sökvägen är ett hushållsdokument (`households/<hid>`). */
+export const isHouseholdDoc = (docPath) => segments(docPath).length === 2;
+
+/** Om hushållet finns: eget dokument eller åtminstone undersamlingar. */
+export async function householdExists(db, householdId) {
+  const ref = db.doc(`${ROOT}/${householdId}`);
+  return (await ref.get()).exists || (await ref.listCollections()).length > 0;
+}
