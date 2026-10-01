@@ -1,5 +1,8 @@
 package se.partee71.reseapoteket.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,4 +22,13 @@ fun GroupLabel(text: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier.padding(horizontal = Spacing.s).semantics { heading() },
     )
+}
+
+/** Ett formulärfält som inte är ett textfält (val, väljare, dosering) med sin [GroupLabel] ovanför. */
+@Composable
+fun LabeledGroup(label: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        GroupLabel(label)
+        content()
+    }
 }

@@ -100,7 +100,7 @@ class PersonViewModelsTest {
         assertEquals(AppColors.PERSON_HEX.first(), vm.state.value.value.colorHex)
         vm.onEvent(PersonEditEvent.Name("   "))
         assertFalse(vm.state.value.canSave)
-        assertEquals(R.string.person_name_required, vm.state.value.errorFor(PersonValidator.NAME))
+        assertEquals(R.string.name_required, vm.state.value.errorFor(PersonValidator.NAME))
     }
 
     @Test

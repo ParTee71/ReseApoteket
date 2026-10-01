@@ -81,11 +81,11 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| REC-1 | Ett recept har namn (obligatoriskt), form, styrka, enhet, förpackningsstorlek (valfri), dosering, anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. *(planerad, #22)* |
-| REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1. *(planerad, #22)* |
-| REC-3 | Doseringen visas i klartext, samma text i lista, redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån, ons, fre", "1 dos var 3:e dag", "vid behov: ta med 10". *(planerad, #22)* |
-| REC-4 | Under doseringen visas vad som skulle packas, t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor", med hushållets marginaldagar (BER). *(planerad, #22)* |
-| REC-5 | Inaktiva recept visas nedtonade och räknas inte med i packförslaget. Ett recept raderas permanent via menyn med bekräftelse (NFR-4). *(planerad, #22)* |
+| REC-1 | Ett recept har namn (obligatoriskt), styrka, form, enhet, förpackningsstorlek (valfri), dosering, anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. Form och enhet väljs var för sig. Ett nytt recept börjar som en tablett om dagen och hamnar sist. Radering frågar om receptets sparade namn. |
+| REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1; stegarna går inte under det. Felet visas när typens fält ändrats eller vid sparförsök, inte direkt vid byte av typ. En dosering av okänd typ (från en nyare app) visas som meddelande och bevaras (BCK-5). |
+| REC-3 | Doseringen visas i klartext, samma text i lista (utom för pausade, REC-5), redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån, ons, fre", "1 dos var 3:e dag", "vid behov: ta med 10". I persondetaljen visas dessutom doseringstypen som etikett. |
+| REC-4 | Under doseringen visas vad som skulle packas för en 7-dagarsresa som börjar i dag, med hushållets marginaldagar (BER), t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor" och förklaringen (BER-10). Går mängden inte att räkna ut visas skälet i stället för en mängd. |
+| REC-5 | Inaktiva (pausade) recept visas nedtonade med etiketten "Pausat" och undertexten "Pausat – räknas inte med" i stället för doseringen, och räknas inte med i packförslaget (BER-9). Ett recept raderas permanent via menyn med bekräftelse (NFR-4). *(packförslaget planerat, #25)* |
 
 ## 8. Kosttillskott
 

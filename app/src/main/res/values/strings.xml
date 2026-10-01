@@ -34,6 +34,9 @@
     <string name="restore">Återställ</string>
     <string name="edit">Redigera</string>
     <string name="delete">Radera</string>
+    <string name="delete_title_format">Radera %s?</string>
+    <string name="name">Namn</string>
+    <string name="name_required">Ange ett namn</string>
     <string name="undo">Ångra</string>
     <string name="archived_format">%s arkiverad</string>
     <string name="retry">Försök igen</string>
@@ -95,8 +98,6 @@
     <!-- Personer (PER-1–4) -->
     <string name="person_new">Ny person</string>
     <string name="person_edit">Redigera person</string>
-    <string name="person_name">Namn</string>
-    <string name="person_name_required">Ange ett namn</string>
     <string name="person_emoji">Emoji</string>
     <string name="person_color">Färg</string>
     <string name="person_color_format">Färg: %s</string>
@@ -126,6 +127,35 @@
     <string name="person_supplements_none">Inga kosttillskott</string>
     <string name="person_medicines_add">Lägg till recept</string>
     <string name="person_supplements_add">Lägg till kosttillskott</string>
+
+    <!-- Recept (REC-1–5) -->
+    <string name="regimen_medicine_new">Nytt recept</string>
+    <string name="regimen_medicine_edit">Redigera recept</string>
+    <string name="regimen_medicine_delete_message">Receptet tas bort för gott. Det går inte att ångra.</string>
+    <string name="regimen_strength">Styrka</string>
+    <string name="regimen_strength_helper">Till exempel 50 µg eller 10 mg</string>
+    <string name="regimen_form">Form</string>
+    <string name="regimen_unit">Enhet</string>
+    <string name="regimen_schedule">Dosering</string>
+    <string name="regimen_package_size">Förpackning</string>
+    <string name="regimen_package_size_helper">Antal per karta eller flaska – valfritt, ger antal förpackningar</string>
+    <string name="regimen_package_size_invalid">Ange minst 1, eller lämna tomt</string>
+    <string name="regimen_notes">Anteckning</string>
+    <string name="regimen_active">Aktivt</string>
+    <string name="regimen_active_note">Räknas med i packförslaget</string>
+    <string name="regimen_paused">Pausat</string>
+    <string name="regimen_paused_note">Pausat – räknas inte med</string>
+    <string name="regimen_doses_required">Minst en dos per dag</string>
+    <string name="regimen_days_required">Välj minst en veckodag</string>
+    <string name="regimen_interval_min">Minst 2 dagar mellan doserna – annars Dagligen</string>
+    <string name="regimen_as_needed_required">Ange hur många som ska med</string>
+    <string name="form_tablet">Tablett</string>
+    <string name="form_capsule">Kapsel</string>
+    <string name="form_liquid">Flytande</string>
+    <string name="form_inhaler">Inhalator</string>
+    <string name="form_drops">Droppar</string>
+    <string name="form_patch">Plåster</string>
+    <string name="form_other">Annat</string>
     <string name="family_items_empty_title">Inga familjeartiklar än</string>
     <string name="family_items_empty_message">Solkräm, plåster, febertermometer – saker hela familjen delar.</string>
     <plurals name="trip_days">

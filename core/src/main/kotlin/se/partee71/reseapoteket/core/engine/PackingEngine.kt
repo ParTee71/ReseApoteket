@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.core.engine
 import java.text.Collator
 import java.util.Locale
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.FamilyItem
@@ -20,6 +21,13 @@ import se.partee71.reseapoteket.core.model.displayName
 
 /** En uträknad mängd: antal enheter, förpackningar och förklaringen (BER-10). */
 data class PackingLine(val quantity: Int, val packages: Int?, val reason: String, val warning: Boolean = false)
+
+/**
+ * Förhandsvisningen i ett formulär: sammanhang ("För en 7-dagarsresa"), mängd och förklaring.
+ * Går mängden inte att räkna ut står förklaringen ("vid behov – ange hur många …") i stället för
+ * mängden och [reason] är `null` – aldrig "0 tabletter" som om det vore en riktig mängd.
+ */
+data class PackingPreviewText(val context: String, val quantity: String, val reason: String?)
 
 /** Förslaget för en resa; [warnings] är namnen på rader som inte kunde räknas ut. */
 data class PackingSuggestion(val items: List<PackingItem>, val warnings: List<String>)
@@ -82,6 +90,23 @@ object PackingEngine {
         val total = quantity ?: 0
         val packages = regimen.packageSize?.takeIf { it > 0 && total > 0 }?.let { ceilDiv(total, it) }
         return PackingLine(total, packages, ReasonFormatter.regimen(regimen, trip, settings, quantity, packages), missing)
+    }
+
+    /** Resans längd i förhandsvisningen för recept och kosttillskott (REC-4). */
+    const val PREVIEW_DAYS = 7
+
+    /**
+     * Förhandsvisningen i formuläret för ett recept eller kosttillskott (REC-4): en resa på
+     * [PREVIEW_DAYS] dagar som börjar [today] (veckodagar räknas från den), med hushållets marginal.
+     */
+    fun regimenPreview(regimen: Regimen, settings: HouseholdSettings, today: LocalDate): PackingPreviewText {
+        val line = regimenLine(regimen, Trip(id = "", startDate = today, days = PREVIEW_DAYS), settings)
+        val context = ReasonFormatter.tripContext(PREVIEW_DAYS)
+        return if (line.warning) {
+            PackingPreviewText(context, line.reason, null)
+        } else {
+            PackingPreviewText(context, ReasonFormatter.amount(line, regimen.unit), line.reason)
+        }
     }
 
     /** Mängd och förklaring för en familjeartikel – också förhandsvisningen. */

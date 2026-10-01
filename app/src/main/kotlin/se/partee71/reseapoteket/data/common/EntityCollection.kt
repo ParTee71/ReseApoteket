@@ -2,6 +2,7 @@ package se.partee71.reseapoteket.data.common
 
 import kotlinx.coroutines.flow.Flow
 import se.partee71.reseapoteket.core.model.Identified
+import se.partee71.reseapoteket.core.model.Sortable
 
 /**
  * En samling dokument av en modell – samma kontrakt för riktig Firestore
@@ -35,3 +36,10 @@ interface EntityCollection<T : Identified> {
     /** Klientgenererat, slumpat ID – fungerar offline. */
     fun newId(): String
 }
+
+/**
+ * `sortOrder` för något nytt, så att det hamnar sist i listan – en gång för alla formulär.
+ * Går listan inte att läsa hamnar det först (0) i stället för att sparandet stoppas.
+ */
+suspend fun <T> EntityCollection<T>.nextSortOrder(): Int where T : Identified, T : Sortable =
+    getAll().getOrNull()?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0

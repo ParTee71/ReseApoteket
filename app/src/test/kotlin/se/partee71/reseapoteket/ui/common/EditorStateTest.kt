@@ -106,6 +106,22 @@ class EditorStateTest {
     }
 
     @Test
+    fun `loadFrom laddar det lagrade, och ett saknat eller oläsbart värde blir läsfel`() = runTest {
+        val editor = EditorState(Form(), validator, loading = true)
+        editor.loadFrom({ Result.success(Form("Solkräm")) }) { it.copy(note = "förval") }
+        assertEquals(Form("Solkräm", "förval"), editor.state.value.value)
+        assertFalse(editor.state.value.loading)
+
+        val missing = EditorState(Form(), validator, loading = true)
+        missing.loadFrom({ Result.success(null) })
+        assertEquals(DataError.Unknown, missing.state.value.loadError)
+
+        val offline = EditorState(Form(), validator, loading = true)
+        offline.loadFrom({ Result.failure(DataError.Offline) })
+        assertEquals(DataError.Offline, offline.state.value.loadError)
+    }
+
+    @Test
     fun `run för arkivera och radera ger Done eller Failed`() = runTest {
         val editor = editor(Form("Solkräm"))
         editor.effects.test {

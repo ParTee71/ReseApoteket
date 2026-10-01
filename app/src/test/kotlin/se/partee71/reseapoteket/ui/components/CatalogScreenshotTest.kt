@@ -126,6 +126,22 @@ class CatalogScreenshotTest {
         captureLightAndDark("PersonAvatar_stor") { Sheet { PersonAvatar("🦉", AppColors.person(3), size = AvatarSize.Large) } }
         captureLightAndDark("GroupLabel_over_kort") { Sheet { GroupLabel("Utseende"); ApotekCard { ItemRow("Tema") } } }
         captureLightAndDark("AppDivider_i_kort") { Sheet { ApotekCard { ItemRow("Anna"); AppDivider(); ItemRow("Erik") } } }
+        captureLightAndDark("ItemRow_pill_och_pausad") {
+            Sheet {
+                ApotekCard {
+                    ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", trailing = { InfoPill("Dagligen", tone = Tone.Blue) }, navigates = true, onClick = {})
+                    AppDivider()
+                    ItemRow(
+                        "Hydrokortison 1 %",
+                        subtitle = "Pausat – räknas inte med",
+                        trailing = { InfoPill("Pausat", tone = Tone.Blue) },
+                        navigates = true,
+                        onClick = {},
+                        inactive = true,
+                    )
+                }
+            }
+        }
     }
 
     @Test
@@ -166,6 +182,9 @@ class CatalogScreenshotTest {
                 ChipRow(wrap = false) { listOf("Anna" to "🦊", "Erik" to "🐻", "Lova" to "🐰", "Ture" to "🦉").forEachIndexed { i, (n, e) -> PersonChip(n, e, AppColors.person(i), i < 2, {}) } }
             }
         }
+        captureLightAndDark("LabeledGroup_form") {
+            Sheet { LabeledGroup("Form") { ChipRow { listOf("Tablett", "Kapsel", "Flytande").forEachIndexed { i, c -> AppFilterChip(c, i == 0, {}) } } } }
+        }
         captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}) } }
         captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX[3], {}) } }
         captureLightAndDark("AppSegmentedChoice_tema") { Sheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), 2, {}) } }
@@ -182,6 +201,9 @@ class CatalogScreenshotTest {
         captureLightAndDark("DoseScheduleRow_dagligen") { Sheet { DoseScheduleRow(DoseSchedule.Daily(2, 1), {}, tablets) } }
         captureLightAndDark("DoseScheduleRow_veckodagar") {
             Sheet { DoseScheduleRow(DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.THURSDAY), 2), {}, tablets) }
+        }
+        captureLightAndDark("DoseScheduleRow_fel") {
+            Sheet { DoseScheduleRow(DoseSchedule.Weekdays(emptySet(), 1), {}, tablets, error = "Välj minst en veckodag") }
         }
         captureLightAndDark("DoseScheduleRow_intervall_och_vid_behov") {
             Sheet {

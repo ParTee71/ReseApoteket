@@ -1,6 +1,5 @@
 package se.partee71.reseapoteket.ui.persons
 
-import androidx.annotation.DrawableRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,11 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.core.engine.DoseScheduleFormatter
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
-import se.partee71.reseapoteket.core.model.displayName
 import se.partee71.reseapoteket.core.model.listed
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.dataError
@@ -40,12 +37,12 @@ import se.partee71.reseapoteket.ui.components.AvatarSize
 import se.partee71.reseapoteket.ui.components.ButtonVariant
 import se.partee71.reseapoteket.ui.components.DetailHeader
 import se.partee71.reseapoteket.ui.components.EntityDetailScreen
-import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.components.SectionHeader
+import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
+import se.partee71.reseapoteket.ui.regimens.RegimenRow
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Tone
 
 /** En person med sina recept och kosttillskott, utan arkiverade (PER-4). */
 data class PersonDetail(val person: Person, val medicines: List<Regimen>, val supplements: List<Regimen>)
@@ -142,55 +139,23 @@ fun PersonDetailContent(
         onErrorShown = { onEvent(PersonDetailEvent.ErrorShown) },
         leading = { PersonAvatar(it.person.emoji, AppColors.person(it.person.colorHex), size = AvatarSize.Large) },
     ) { detail ->
-        RegimenSection(
-            title = stringResource(R.string.person_medicines_title),
-            icon = R.drawable.ic_medication,
-            tone = Tone.Primary,
-            regimens = detail.medicines,
-            none = stringResource(R.string.person_medicines_none),
-            addLabel = stringResource(R.string.person_medicines_add),
-            onAdd = { onAddRegimen(RegimenKind.MEDICINE) },
-            onOpen = onOpenRegimen,
-        )
-        RegimenSection(
-            title = stringResource(R.string.person_supplements_title),
-            icon = R.drawable.ic_eco,
-            tone = Tone.Green,
-            regimens = detail.supplements,
-            none = stringResource(R.string.person_supplements_none),
-            addLabel = stringResource(R.string.person_supplements_add),
-            onAdd = { onAddRegimen(RegimenKind.SUPPLEMENT) },
-            onOpen = onOpenRegimen,
-        )
+        RegimenSection(RegimenKindConfig.of(RegimenKind.MEDICINE), detail.medicines, { onAddRegimen(RegimenKind.MEDICINE) }, onOpenRegimen)
+        RegimenSection(RegimenKindConfig.of(RegimenKind.SUPPLEMENT), detail.supplements, { onAddRegimen(RegimenKind.SUPPLEMENT) }, onOpenRegimen)
     }
 }
 
-/** Recept eller kosttillskott i ett kort: rubrik med antal, raderna och "Lägg till" (PER-4). */
+/** Recept eller kosttillskott i ett kort: rubrik med antal, raderna och "Lägg till" (PER-4, REC-3, REC-5). */
 @Composable
-private fun RegimenSection(
-    title: String,
-    @DrawableRes icon: Int,
-    tone: Tone,
-    regimens: List<Regimen>,
-    none: String,
-    addLabel: String,
-    onAdd: () -> Unit,
-    onOpen: (Regimen) -> Unit,
-) {
+private fun RegimenSection(config: RegimenKindConfig, regimens: List<Regimen>, onAdd: () -> Unit, onOpen: (Regimen) -> Unit) {
     ApotekCard {
-        SectionHeader(title, icon = icon, count = regimens.size.toString(), tone = tone)
+        SectionHeader(stringResource(config.title), icon = config.icon, count = regimens.size.toString(), tone = config.tone)
         if (regimens.isEmpty()) {
-            Text(none, style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(config.none), style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         regimens.forEachIndexed { index, regimen ->
             if (index > 0) AppDivider()
-            ItemRow(
-                title = regimen.displayName,
-                subtitle = DoseScheduleFormatter.format(regimen.schedule, regimen.unit),
-                onClick = { onOpen(regimen) },
-                navigates = true,
-            )
+            RegimenRow(regimen, onClick = { onOpen(regimen) })
         }
-        AppButton(addLabel, onAdd, variant = ButtonVariant.Text, icon = R.drawable.ic_add)
+        AppButton(stringResource(config.add), onAdd, variant = ButtonVariant.Text, icon = R.drawable.ic_add)
     }
 }

@@ -115,6 +115,15 @@ private fun Rows() {
             onClick = {},
         )
         AppDivider()
+        ItemRow(
+            "Hydrokortison 1 %",
+            subtitle = "Pausat – räknas inte med",
+            trailing = { InfoPill("Pausat", tone = Tone.Blue) },
+            onClick = {},
+            navigates = true,
+            inactive = true,
+        )
+        AppDivider()
         CheckRow("Enalapril 10 mg", packed, { packed = it }, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
         CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
         AppDivider()
@@ -144,9 +153,11 @@ private fun Fields() {
     AppTextField(name, { name = it }, "Namn", helper = "Visas i packlistan")
     AppTextField("", {}, "Namn", error = "Ange ett namn")
     DateField("Startdatum", date, { date = it })
-    ChipRow {
-        listOf("Tablett", "Kapsel", "Flytande", "Inhalator").forEachIndexed { i, label ->
-            AppFilterChip(label, selected = form == i, onClick = { form = i })
+    LabeledGroup("Form") {
+        ChipRow {
+            listOf("Tablett", "Kapsel", "Flytande", "Inhalator").forEachIndexed { i, label ->
+                AppFilterChip(label, selected = form == i, onClick = { form = i })
+            }
         }
     }
     ChipRow(wrap = false) {
@@ -158,7 +169,12 @@ private fun Fields() {
     }
     AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), theme, { theme = it })
     QuantityStepper(count, { count = it }, "dagar")
-    DoseScheduleRow(schedule, { schedule = it }, unitName = { if (it == 1) "tablett" else "tabletter" })
+    DoseScheduleRow(
+        schedule,
+        { schedule = it },
+        unitName = { if (it == 1) "tablett" else "tabletter" },
+        error = "Välj minst en veckodag".takeIf { (schedule as? DoseSchedule.Weekdays)?.days?.isEmpty() == true },
+    )
     PackingPreview("För en 7-dagarsresa", "18 tabletter · 2 kartor", reason = "2 × 1 tablett/dag × (7 + 2) dagar")
     QuantityRuleRow(rule, { rule = it }, unitName = { if (it == 1) "tub" else "tuber" })
     var emoji by remember { mutableStateOf("🦉") }

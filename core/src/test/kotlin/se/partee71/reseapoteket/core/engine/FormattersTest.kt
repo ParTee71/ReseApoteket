@@ -26,6 +26,8 @@ class FormattersTest {
         assertEquals("0 tuber", UnitNames.quantity(0, ItemUnit.TUB))
         assertEquals("1 karta", UnitNames.packages(1, ItemUnit.TABLETT))
         assertEquals("2 flaskor", UnitNames.packages(2, ItemUnit.ML))
+        assertEquals("kapsel", UnitNames.name(1, ItemUnit.KAPSEL))
+        assertEquals("puffar", UnitNames.name(4, ItemUnit.PUFF))
         assertEquals(listOf("1:a", "2:a", "3:e", "11:e", "12:e", "21:a", "22:a", "23:e"), listOf(1, 2, 3, 11, 12, 21, 22, 23).map(UnitNames::ordinal))
     }
 
@@ -105,6 +107,25 @@ class FormattersTest {
         assertEquals("För en 7-dagarsresa", ReasonFormatter.tripContext(7))
         assertEquals("För 4 resenärer i 10 dagar", ReasonFormatter.familyContext(4, 10))
         assertEquals("För 1 resenär i 1 dag", ReasonFormatter.familyContext(1, 1))
+    }
+
+    @Test
+    fun `förhandsvisningen i receptformuläret räknar en 7-dagarsresa som börjar i dag (REC-4)`() {
+        val levaxin = Regimen("r", unit = ItemUnit.TABLETT, packageSize = 10, schedule = DoseSchedule.Daily(2, 1))
+        val thursday = LocalDate(2026, 10, 1)
+        assertEquals(
+            PackingPreviewText("För en 7-dagarsresa", "18 tabletter · 2 kartor", "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10"),
+            PackingEngine.regimenPreview(levaxin, margin2, thursday),
+        )
+        // Tor 1/10 + 9 dagar: fre 2, mån 5, ons 7, fre 9.
+        val weekdays = levaxin.copy(packageSize = null, schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 1))
+        assertEquals("4 tabletter", PackingEngine.regimenPreview(weekdays, margin2, thursday).quantity)
+        // Kan mängden inte räknas ut står förklaringen i stället för "0 tabletter".
+        assertEquals(
+            PackingPreviewText("För en 7-dagarsresa", Texts.AS_NEEDED_MISSING, null),
+            PackingEngine.regimenPreview(levaxin.copy(schedule = DoseSchedule.AsNeeded(0)), margin2, thursday),
+        )
+        assertEquals(Texts.CANNOT_CALCULATE, PackingEngine.regimenPreview(levaxin.copy(schedule = DoseSchedule.Unknown()), margin2, thursday).quantity)
     }
 
     @Test
