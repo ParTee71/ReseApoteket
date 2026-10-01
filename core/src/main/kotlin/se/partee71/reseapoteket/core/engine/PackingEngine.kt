@@ -37,8 +37,13 @@ object PackingEngine {
     const val MAX_QUANTITY = 99_999
 
     /** BER-1. Aldrig negativt; dagar och marginal begränsas till [MAX_DAYS] var. */
-    fun effectiveDays(trip: Trip, settings: HouseholdSettings): Int =
-        trip.days.coerceIn(0, MAX_DAYS) + settings.marginDays.coerceIn(0, MAX_DAYS)
+    fun effectiveDays(trip: Trip, settings: HouseholdSettings): Int = tripDays(trip) + marginDays(settings)
+
+    /** Resans dagar som de räknas (BER-1) – samma värde i mängden och i förklaringen. */
+    fun tripDays(trip: Trip): Int = trip.days.coerceIn(0, MAX_DAYS)
+
+    /** Marginaldagarna som de räknas (BER-1). */
+    fun marginDays(settings: HouseholdSettings): Int = settings.marginDays.coerceIn(0, MAX_DAYS)
 
     /** BER-2–4. `null` = kan inte räknas ut (okänd dosering, veckodagar utan startdatum). */
     fun regimenQuantity(schedule: DoseSchedule, trip: Trip, settings: HouseholdSettings): Int? {

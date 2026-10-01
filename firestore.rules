@@ -2,7 +2,7 @@ rules_version = '2';
 
 // Security rules för ReseApoteket (skill firestore-data-layer, data-privacy-security).
 // All data ligger under households/{hid} och är bara åtkomlig för hushållets medlemmar.
-// Ny samling = ny regel (om den behöver avvika) + rules-test i samma PR.
+// Ny samling = ny match-regel med validering + rules-test i samma PR (annars nekas den).
 // Deploy sker manuellt: npx firebase deploy --only firestore:rules (README → Firebase-setup).
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -16,12 +16,75 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/households/$(hid)).data.memberUids;
     }
 
-    // Ett hushåll har alltid minst en medlem och en schemaVersion som heltal (codecen i :core
-    // skriver den som Int/Long).
+    // Högsta schemaVersion som finns – speglar Schema.CURRENT_VERSION (test/schema.test.mjs håller
+    // dem lika). Höjs formatet deployas rules med den nya versionen före appen (skill release).
+    function maxSchemaVersion() {
+      return 1;
+    }
+
+    // Fälttyper. Bara fält som skrivningen ändrar kontrolleras (vid create: alla) – ett värde som
+    // redan ligger lagrat med fel typ (t.ex. en okänd dosering som codecen skriver tillbaka
+    // oförändrad, DAT-6) får inte göra dokumentet omöjligt att spara. Saknat fält eller null är
+    // tillåtet (codecen har ett standardvärde, DAT-5) och okända fält får finnas (nyare appar).
+    function written() {
+      return resource == null ? request.resource.data.keys() : request.resource.data.diff(resource.data).affectedKeys();
+    }
+    function unchecked(d, k) { return !(k in written()) || d.get(k, null) == null; }
+    function optInt(d, k) { return unchecked(d, k) || d[k] is int; }
+    function optString(d, k) { return unchecked(d, k) || d[k] is string; }
+    function optBool(d, k) { return unchecked(d, k) || d[k] is bool; }
+    function optMap(d, k) { return unchecked(d, k) || d[k] is map; }
+    function optList(d, k) { return unchecked(d, k) || d[k] is list; }
+    function optTime(d, k) { return unchecked(d, k) || d[k] is timestamp; }
+
+    // Den lagrade versionen; saknas den eller är den inget heltal gäller den första (BCK-5).
+    function storedVersion() {
+      return resource.data.get('schemaVersion', 1) is int ? resource.data.get('schemaVersion', 1) : 1;
+    }
+
+    // name, sortOrder och archived finns på alla listobjekt (DAT-4).
+    function validListItem(d) {
+      return optString(d, 'name') && optInt(d, 'sortOrder') && optBool(d, 'archived');
+    }
+
+    // Ett hushåll har alltid minst en medlem och en schemaVersion som är ett heltal från 1 (BCK-5).
     function validHousehold(data) {
       return data.memberUids is list
         && data.memberUids.size() > 0
-        && data.schemaVersion is int;
+        && data.schemaVersion is int
+        && data.schemaVersion >= 1
+        && optString(data, 'name')
+        && optInt(data, 'marginDays')
+        && optTime(data, 'createdAt');
+    }
+
+    function validPerson(d) {
+      return validListItem(d) && optString(d, 'emoji') && optString(d, 'colorHex');
+    }
+
+    function validRegimen(d) {
+      return validListItem(d)
+        && optString(d, 'kind') && optString(d, 'form') && optString(d, 'strength') && optString(d, 'unit')
+        && optInt(d, 'packageSize') && optMap(d, 'schedule') && optString(d, 'notes') && optBool(d, 'active');
+    }
+
+    function validFamilyItem(d) {
+      return validListItem(d)
+        && optString(d, 'category') && optString(d, 'unit') && optMap(d, 'rule')
+        && optString(d, 'notes') && optBool(d, 'active');
+    }
+
+    function validTrip(d) {
+      return validListItem(d)
+        && optString(d, 'startDate') && optInt(d, 'days') && optList(d, 'travellerIds') && optString(d, 'status')
+        && optTime(d, 'createdAt') && optTime(d, 'updatedAt');
+    }
+
+    function validPackingItem(d) {
+      return validListItem(d)
+        && optString(d, 'section') && optString(d, 'personId') && optString(d, 'sourceType') && optString(d, 'sourceId')
+        && optString(d, 'unit') && optInt(d, 'suggestedQuantity') && optInt(d, 'quantity') && optInt(d, 'packages')
+        && optString(d, 'reason') && optBool(d, 'checked') && optTime(d, 'checkedAt') && optBool(d, 'hidden');
     }
 
     match /households/{hid} {
@@ -34,16 +97,43 @@ service cloud.firestore {
         && request.resource.data.memberUids == [request.auth.uid]
         && validHousehold(request.resource.data);
       // memberUids ändras inte från appen förrän delning av hushåll byggs (FUT-2) – annars
-      // kunde en medlem stänga ute de andra.
+      // kunde en medlem stänga ute de andra. schemaVersion står kvar eller höjs av en migrering
+      // till högst den högsta som finns – aldrig sänkt (en äldre app får inte låtsas att nyare
+      // data är i dess format) och aldrig uppskruvad så att alla medlemmar låses ute (BCK-5).
+      // Vid create räcker golvet: skaparen är enda medlem och kan bara låsa ute sig själv.
       allow update: if isMember(hid)
         && validHousehold(request.resource.data)
-        && request.resource.data.memberUids == resource.data.memberUids;
+        && request.resource.data.memberUids == resource.data.memberUids
+        && (request.resource.data.schemaVersion == storedVersion()
+          || (request.resource.data.schemaVersion > storedVersion()
+            && request.resource.data.schemaVersion <= maxSchemaVersion()));
       allow delete: if false; // hushåll raderas aldrig från appen
 
-      // Minst ett segment: {document=**} skulle i rules_version 2 även matcha hushålls-
-      // dokumentet självt och kringgå create/update/delete-reglerna ovan.
-      match /{collection}/{document=**} {
-        allow read, write: if isMember(hid);
+      // Bara samlingarna i DAT-1 (samma lista som tools/db/lib/collections.mjs): en okänd samling
+      // skulle stoppa backupen (BCK-8), så den kan inte skapas från en klient.
+      match /persons/{pid} {
+        allow read, delete: if isMember(hid);
+        allow create, update: if isMember(hid) && validPerson(request.resource.data);
+
+        match /regimens/{rid} {
+          allow read, delete: if isMember(hid);
+          allow create, update: if isMember(hid) && validRegimen(request.resource.data);
+        }
+      }
+
+      match /familyItems/{fid} {
+        allow read, delete: if isMember(hid);
+        allow create, update: if isMember(hid) && validFamilyItem(request.resource.data);
+      }
+
+      match /trips/{tid} {
+        allow read, delete: if isMember(hid);
+        allow create, update: if isMember(hid) && validTrip(request.resource.data);
+
+        match /packingItems/{iid} {
+          allow read, delete: if isMember(hid);
+          allow create, update: if isMember(hid) && validPackingItem(request.resource.data);
+        }
       }
     }
   }

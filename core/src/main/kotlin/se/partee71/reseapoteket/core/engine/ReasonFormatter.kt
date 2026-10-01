@@ -16,9 +16,12 @@ import se.partee71.reseapoteket.core.model.Trip
  */
 object ReasonFormatter {
 
-    /** "(7 + 2) dagar", eller "7 dagar" utan marginal. */
-    fun period(trip: Trip, settings: HouseholdSettings): String =
-        if (settings.marginDays > 0) "(${trip.days} + ${settings.marginDays}) dagar" else UnitNames.days(trip.days)
+    /** "(7 + 2) dagar", eller "7 dagar" utan marginal – med dagarna som motorn räknar dem (BER-1). */
+    fun period(trip: Trip, settings: HouseholdSettings): String {
+        val days = PackingEngine.tripDays(trip)
+        val margin = PackingEngine.marginDays(settings)
+        return if (margin > 0) "($days + $margin) dagar" else UnitNames.days(days)
+    }
 
     fun regimen(regimen: Regimen, trip: Trip, settings: HouseholdSettings, quantity: Int?, packages: Int?): String {
         val unit = regimen.unit

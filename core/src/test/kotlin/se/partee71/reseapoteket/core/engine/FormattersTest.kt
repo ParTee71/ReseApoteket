@@ -59,6 +59,14 @@ class FormattersTest {
         assertEquals("(1 + 2) dagar", ReasonFormatter.period(trip.copy(days = 1), margin2))
     }
 
+    @Test
+    fun `förklaringen visar dagarna som motorn räknar dem (BER-1, BER-10)`() {
+        assertEquals("(366 + 2) dagar", ReasonFormatter.period(trip.copy(days = 400), margin2))
+        assertEquals("(0 + 2) dagar", ReasonFormatter.period(trip.copy(days = -3), margin2))
+        assertEquals("7 dagar", ReasonFormatter.period(trip, HouseholdSettings(-1)))
+        assertEquals("1 × 1 tablett/dag × (0 + 2) dagar = 2 tabletter", reason(DoseSchedule.Daily(1, 1), t = trip.copy(days = -3)))
+    }
+
     private fun reason(schedule: DoseSchedule, unit: ItemUnit = ItemUnit.TABLETT, packageSize: Int? = null, t: Trip = trip, s: HouseholdSettings = margin2) =
         PackingEngine.regimenLine(Regimen("r", unit = unit, packageSize = packageSize, schedule = schedule), t, s).reason
 

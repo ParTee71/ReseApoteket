@@ -14,4 +14,10 @@ object Schema {
 
     /** Nyare data än appen förstår: läs, men skriv ingenting och be om uppdatering. */
     fun isNewerThanApp(version: Int): Boolean = version > CURRENT_VERSION
+
+    /**
+     * Versionen ur hushållets råa `schemaVersion`. Saknas den, eller är den under
+     * [FIRST_VERSION] (ett trasigt värde som 0), gäller det första formatet (BCK-5).
+     */
+    fun versionOf(raw: Any?): Int = (raw as? Number)?.toIntClamped()?.coerceAtLeast(FIRST_VERSION) ?: FIRST_VERSION
 }

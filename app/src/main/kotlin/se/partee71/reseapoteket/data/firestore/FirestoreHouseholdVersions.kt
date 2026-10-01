@@ -16,7 +16,8 @@ import se.partee71.reseapoteket.data.common.retryWithBackoff
 
 /**
  * Läser `schemaVersion` direkt ur hushållsdokumentet (utan codec – används av sessionen).
- * Ett dokument som saknas i cachen (utan nät) eller saknar fältet får [Schema.FIRST_VERSION].
+ * Ett dokument som saknas i cachen (utan nät), saknar fältet eller har ett värde under det
+ * första formatet får [Schema.FIRST_VERSION] (Schema.versionOf).
  * Nekar servern läsningen (inte medlem, eller dokumentet saknas – rules läser `resource.data`)
  * avslutas flödet med [DataError.PermissionDenied] så att sessionen väljer bort hushållet
  * (HUS-5). Bara `PERMISSION_DENIED` räknas: ett tillfälligt `UNAUTHENTICATED` (token som
@@ -25,7 +26,7 @@ import se.partee71.reseapoteket.data.common.retryWithBackoff
 class FirestoreHouseholdVersions @Inject constructor(private val db: FirebaseFirestore) : HouseholdVersionSource {
     override fun schemaVersion(householdId: String): Flow<Int> =
         db.document(Paths.household(householdId)).snapshots()
-            .map { doc -> (doc.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION }
+            .map { doc -> Schema.versionOf(doc.get("schemaVersion")) }
             .catch { error ->
                 throw if (error is FirebaseFirestoreException && error.code == Code.PERMISSION_DENIED) DataError.PermissionDenied else error
             }

@@ -25,7 +25,8 @@ object SchemaMigrator {
         require(!Schema.isNewerThanApp(from)) {
             "schemaVersion $from är nyare än appens ${Schema.CURRENT_VERSION} – kan inte migreras bakåt"
         }
-        return (from until Schema.CURRENT_VERSION).fold(doc) { current, version ->
+        // En version under den första (trasigt värde) är det första formatet.
+        return (from.coerceAtLeast(Schema.FIRST_VERSION) until Schema.CURRENT_VERSION).fold(doc) { current, version ->
             val step = checkNotNull(steps[version]) { "Migreringssteg saknas för version $version" }
             step.migrate(collection, current)
         }

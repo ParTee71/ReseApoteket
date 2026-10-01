@@ -37,6 +37,14 @@ class FieldsTest {
     }
 
     @Test
+    fun `tal utanför Int begränsas i stället för att slå runt`() {
+        val big = mapOf("över" to 4_294_967_301L, "under" to -4_294_967_301L, "dagar" to listOf(4_294_967_297L))
+        assertEquals(Int.MAX_VALUE, big.int("över"))
+        assertEquals(Int.MIN_VALUE, big.int("under"))
+        assertEquals(emptySet<DayOfWeek>(), big.weekdays("dagar"), "slår inte runt till måndag")
+    }
+
+    @Test
     fun `booleska värden`() {
         assertEquals(true, doc.bool("bool"))
         assertEquals(true, doc.bool("saknas", default = true))
