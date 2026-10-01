@@ -1,12 +1,10 @@
 // Export och import – logiken bakom export.mjs, import.mjs och veckobackupen (BCK-1–3, 6–8).
 import { CURRENT_VERSION, versionOf } from './schema.mjs';
 import { fromJson, toJson } from './serialize.mjs';
-import { collectionOf, householdIds, householdOf, walkHousehold } from './walk.mjs';
+import { collectionOf, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';
 
 /** Firestores gräns för antal skrivningar i en batch. */
 export const MAX_BATCH = 500;
-
-const isHouseholdDoc = (path) => path.split('/').length === 2;
 
 /** Kör [convert] och lägger till dokumentets sökväg i ett fel – aldrig värdet. */
 function withPath(path, convert) {
@@ -22,18 +20,33 @@ function withPath(path, convert) {
  * `schemaVersion` är den högsta bland hushållen (informativ – importen kontrollerar varje hushåll).
  */
 export async function exportData(db, { household, now = new Date() } = {}) {
-  const ids = household ? [household] : await householdIds(db);
   const documents = [];
   let schemaVersion = null;
-  for (const id of ids) {
-    const before = documents.length;
-    for await (const doc of walkHousehold(db, id)) {
-      if (isHouseholdDoc(doc.path)) schemaVersion = Math.max(schemaVersion ?? 0, versionOf(doc.data));
-      documents.push({ path: doc.path, data: withPath(doc.path, () => toJson(doc.data)) });
-    }
-    if (household && documents.length === before) throw new Error(`Hushållet ${id} finns inte`);
+  for (const read of await readHouseholds(db, { household })) {
+    if (read.schemaVersion !== null) schemaVersion = Math.max(schemaVersion ?? 0, read.schemaVersion);
+    for (const doc of read.documents) documents.push({ path: doc.path, data: withPath(doc.path, () => toJson(doc.data)) });
   }
   return { exportedAt: now.toISOString(), schemaVersion: schemaVersion ?? CURRENT_VERSION, documents };
+}
+
+/**
+ * Alla dokument och schemaVersion per hushåll ([household] eller alla) – den enda läsningen
+ * av hela hushåll, delad av export och `stats`. Ett angivet hushåll som inte finns ger fel.
+ */
+export async function readHouseholds(db, { household } = {}) {
+  const ids = household ? [household] : await householdIds(db);
+  const result = [];
+  for (const id of ids) {
+    const documents = [];
+    let schemaVersion = null;
+    for await (const doc of walkHousehold(db, id)) {
+      if (isHouseholdDoc(doc.path)) schemaVersion = versionOf(doc.data);
+      documents.push(doc);
+    }
+    if (household && documents.length === 0) throw new Error(`Hushållet ${id} finns inte`);
+    result.push({ household: id, schemaVersion, documents });
+  }
+  return result;
 }
 
 /**
