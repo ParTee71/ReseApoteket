@@ -1,6 +1,8 @@
 package se.partee71.reseapoteket.ui
 
 import android.content.Context
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -87,7 +89,9 @@ fun <T> ComposeContentTestRule.runEditScreenContract(
 ) {
     var saveResult: Result<Unit> = Result.failure(DataError.Offline)
     var closes = 0
+    var systemBack: OnBackPressedDispatcher? = null
     setContent {
+        systemBack = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         ReseApoteketTheme {
             val state by editor.state.collectAsState()
             val scope = rememberCoroutineScope()
@@ -108,6 +112,12 @@ fun <T> ComposeContentTestRule.runEditScreenContract(
     onNodeWithText(text(R.string.discard_title)).assertIsDisplayed()
     onNodeWithText(text(R.string.keep_editing)).performClick()
     assertEquals(0, closes, "Fortsätt redigera ska stanna kvar")
+
+    // Systemets bakåt (gest eller knapp) frågar på samma sätt som pilen.
+    runOnIdle { checkNotNull(systemBack).onBackPressed() }
+    onNodeWithText(text(R.string.discard_title)).assertIsDisplayed()
+    onNodeWithText(text(R.string.keep_editing)).performClick()
+    assertEquals(0, closes, "systemets bakåt med ändringar ska fråga först")
 
     saveButton.performClick()
     onNodeWithText(text(R.string.error_offline)).assertIsDisplayed()

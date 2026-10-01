@@ -132,6 +132,51 @@ class EditorStateTest {
     }
 
     @Test
+    fun `spara medan det lagrade värdet laddas eller inte gick att läsa skriver inget`() = runTest {
+        val editor = EditorState(Form(), validator, loading = true)
+        editor.update(NAME) { it.copy(name = "Platshållare") }
+        var writes = 0
+        editor.save { writes++; Result.success(Unit) }
+        assertTrue(editor.state.value.loading, "laddningen avbryts inte av ett sparförsök")
+        editor.loadFailed(DataError.Offline)
+        editor.save { writes++; Result.success(Unit) }
+        assertEquals(DataError.Offline, editor.state.value.loadError)
+        assertEquals(0, writes)
+    }
+
+    @Test
+    fun `text som skrivs medan sparningen pågår är osparad och stänger inte formuläret (NFR-2)`() = runTest {
+        val editor = editor()
+        editor.update(NAME) { it.copy(name = "Solkräm") }
+        val gate = CompletableDeferred<Unit>()
+        editor.effects.test {
+            val saving = launch { editor.save { gate.await(); Result.success(Unit) } }
+            testScheduler.runCurrent()
+            editor.update(NOTE) { it.copy(note = "SPF 50") }
+            gate.complete(Unit)
+            saving.join()
+
+            assertTrue(editor.state.value.isDirty, "anteckningen är inte sparad")
+            assertTrue(editor.state.value.canSave)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `arkivera eller radera stänger alltid, även om något ändrats under tiden`() = runTest {
+        val editor = editor(Form("Solkräm"))
+        val gate = CompletableDeferred<Unit>()
+        editor.effects.test {
+            val deleting = launch { editor.run { gate.await(); Result.success(Unit) } }
+            testScheduler.runCurrent()
+            editor.update(NOTE) { it.copy(note = "skrivet under raderingen") }
+            gate.complete(Unit)
+            deleting.join()
+            assertEquals(EditorEffect.Done, awaitItem())
+        }
+    }
+
+    @Test
     fun `ett läsfel avslutar laddningen och Försök igen laddar om`() {
         val editor = EditorState(Form(), validator, loading = true)
         editor.loadFailed(DataError.Offline)

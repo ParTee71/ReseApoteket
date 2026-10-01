@@ -42,9 +42,20 @@ class AppBackStack internal constructor(current: TopLevelKey, stacks: Map<TopLev
         if (tab == currentTab) stack(tab).removeRange(1, stack(tab).size) else currentTab = tab
     }
 
+    /** Öppnar [key]; ligger den redan överst (ett dubbeltryck under animationen) händer inget (NAV-2). */
     fun push(key: AppKey) {
         require(key !is TopLevelKey) { "Flikar väljs med select, inte push" }
-        stack(currentTab).add(key)
+        val stack = stack(currentTab)
+        if (stack.last() != key) stack.add(key)
+    }
+
+    /**
+     * Stänger [key] om den är den översta skärmen – det en skärm anropar när den stänger sig
+     * själv. Ett andra anrop (dubbeltryck, eller "klar" efter "släng ändringar") stänger då
+     * inte skärmen under (NAV-2).
+     */
+    fun popIfTop(key: AppKey) {
+        if (entries.last() == key) pop()
     }
 
     /** Går tillbaka ett steg; `false` om det inte finns något kvar (appen ska stängas). */

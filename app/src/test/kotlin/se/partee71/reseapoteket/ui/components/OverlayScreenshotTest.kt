@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -91,6 +94,44 @@ class OverlayScreenshotTest {
         rule.onNodeWithText("Solkräm arkiverad").assertExists()
         assertEquals(0, dismissed)
         rule.mainClock.advanceTimeBy(2 * FRAME)
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `UndoSnackbar - att lämna skärmen avslutar ångra, så att den inte visas igen (NFR-3)`() {
+        var dismissed = 0
+        var visible by mutableStateOf(true)
+        rule.setContent {
+            ReseApoteketTheme {
+                val host = remember { SnackbarHostState() }
+                if (visible) UndoSnackbar(UndoRequest("solkram", "Solkräm"), host, onUndo = {}, onDismissed = { dismissed++ })
+                AppSnackbarHost(host)
+            }
+        }
+        rule.onNodeWithText("Solkräm arkiverad").assertExists()
+        visible = false
+        rule.waitForIdle()
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun `UndoSnackbar - samma sak arkiverad igen efter Ångra avslutas också när skärmen lämnas`() {
+        var dismissed = 0
+        var request by mutableStateOf<UndoRequest?>(UndoRequest("solkram", "Solkräm"))
+        var visible by mutableStateOf(true)
+        rule.setContent {
+            ReseApoteketTheme {
+                val host = remember { SnackbarHostState() }
+                if (visible) UndoSnackbar(request, host, onUndo = { request = null }, onDismissed = { dismissed++; request = null })
+                AppSnackbarHost(host)
+            }
+        }
+        rule.onNodeWithText("Ångra").performClick()
+        rule.waitForIdle()
+        request = UndoRequest("solkram", "Solkräm")
+        rule.onNodeWithText("Solkräm arkiverad").assertExists()
+        visible = false
+        rule.waitForIdle()
         assertEquals(1, dismissed)
     }
 

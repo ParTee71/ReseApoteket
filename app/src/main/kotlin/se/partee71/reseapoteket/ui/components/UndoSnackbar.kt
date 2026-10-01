@@ -4,9 +4,13 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.withTimeoutOrNull
@@ -19,7 +23,9 @@ data class UndoRequest(val id: String, val name: String)
  * Den enda ångra-mekanismen: "%s arkiverad · Ångra" i [hostState] i 5 s – längre om
  * användaren valt längre tid för åtgärder i Androids tillgänglighetsinställningar. [onUndo]
  * vid tryck på Ångra, annars [onDismissed]. En ny [request] ersätter den som visas; den förra
- * förblir då dold. Visar ingenting själv – meddelandet syns i `AppSnackbarHost`.
+ * förblir då dold. Lämnar skärmen kompositionen (flikbyte, ny skärm, rotation) medan ångra
+ * erbjuds räknas det som [onDismissed] – annars visades samma meddelande igen när man kom
+ * tillbaka (NFR-3). Visar ingenting själv – meddelandet syns i `AppSnackbarHost`.
  */
 @Composable
 fun UndoSnackbar(request: UndoRequest?, hostState: SnackbarHostState, onUndo: () -> Unit, onDismissed: () -> Unit) {
@@ -28,13 +34,20 @@ fun UndoSnackbar(request: UndoRequest?, hostState: SnackbarHostState, onUndo: ()
     val undo by rememberUpdatedState(onUndo)
     val dismissed by rememberUpdatedState(onDismissed)
     val accessibility = LocalAccessibilityManager.current
+    val current by rememberUpdatedState(request)
+    var resolved by remember { mutableStateOf<UndoRequest?>(null) }
     LaunchedEffect(request) {
-        if (message == null) return@LaunchedEffect
+        resolved = null
+        if (request == null || message == null) return@LaunchedEffect
         val timeout = accessibility?.calculateRecommendedTimeoutMillis(UNDO_MILLIS, containsText = true, containsControls = true) ?: UNDO_MILLIS
         val result = withTimeoutOrNull(timeout) {
             hostState.showSnackbar(message, actionLabel = action, withDismissAction = false, duration = SnackbarDuration.Indefinite)
         }
+        resolved = request
         if (result == SnackbarResult.ActionPerformed) undo() else dismissed()
+    }
+    DisposableEffect(Unit) {
+        onDispose { current?.let { if (it != resolved) dismissed() } }
     }
 }
 

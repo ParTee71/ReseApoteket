@@ -31,10 +31,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
  * Vilken skärm varje nyckel visar. Nycklar utan egen skärm än visar "Kommer snart".
  * Flikarnas ViewModels hämtas från [tabOwner] (aktiviteten) i stället för navigationsposten,
  * så att en flik behåller sin lista när man byter flik (NAV-2); undersidornas ViewModels hör
- * till sin post och försvinner när den stängs.
+ * till sin post och försvinner när den stängs. En skärm stänger sig med `popIfTop(key)`, aldrig
+ * `pop()`, så att ett andra tryck inte stänger skärmen under.
  */
 fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey) -> NavEntry<AppKey> =
-    entryProvider(fallback = { key -> NavEntry(key) { ComingSoonScreen(onBack = { backStack.pop() }) } }) {
+    entryProvider(fallback = { key -> NavEntry(key) { ComingSoonScreen(onBack = { backStack.popIfTop(key) }) } }) {
         entry<TripsKey> {
             TripsScreen(onAdd = { backStack.push(TripEditKey()) }, onOpen = { backStack.push(PackingListKey(it)) }, viewModel = hiltViewModel(tabOwner))
         }
@@ -54,5 +55,5 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 viewModel = hiltViewModel(tabOwner),
             )
         }
-        entry<ComponentGalleryKey> { ComponentGallery(onBack = { backStack.pop() }) }
+        entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }
     }

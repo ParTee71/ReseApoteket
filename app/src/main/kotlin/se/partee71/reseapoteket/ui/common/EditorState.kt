@@ -91,24 +91,36 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
      * Lyckat → [EditorEffect.Done]; fel → [EditorEffect.Failed] och formuläret står kvar.
      */
     suspend fun save(write: suspend (T) -> Result<Unit>) {
-        if (_state.value.saving) return // ett dubbeltryck sparar inte två gånger
+        // Ett dubbeltryck sparar inte två gånger, och medan det lagrade värdet laddas (eller inte
+        // gick att läsa) finns inget att spara – platshållaren får aldrig skriva över det.
+        val now = _state.value
+        if (now.saving || now.loading || now.loadError != null) return
         attempted = true
         val current = compute(value, loading = false)
         _state.value = current
         if (!current.isValid) return
-        run { write(current.value) }
+        // Ändrades formuläret medan det sparades är ändringen inte sparad: formuläret står kvar
+        // som ändrat i stället för att stängas och tappa den (NFR-2).
+        perform(written = current.value, closeIfChanged = false) { write(current.value) }
     }
 
-    /** Kör en åtgärd som stänger formuläret (arkivera, radera) med samma fel- och klarhantering. */
-    suspend fun run(action: suspend () -> Result<Unit>) {
+    /**
+     * Kör en åtgärd som stänger formuläret (arkivera, radera) med samma fel- och klarhantering.
+     * Den stänger alltid: en ändring under tiden får inte kunna sparas tillbaka över det som
+     * arkiverats eller raderats.
+     */
+    suspend fun run(action: suspend () -> Result<Unit>) = perform(written = value, closeIfChanged = true, action)
+
+    private suspend fun perform(written: T, closeIfChanged: Boolean, action: suspend () -> Result<Unit>) {
         if (_state.value.saving) return
         _state.update { it.copy(saving = true) }
         val error = action().dataError()
         _state.update { it.copy(saving = false) }
         if (error == null) {
-            original = value
-            _state.update { compute(it.value, loading = false) }
-            _effects.send(EditorEffect.Done)
+            original = written
+            val after = compute(value, loading = false)
+            _state.value = after
+            if (closeIfChanged || !after.isDirty) _effects.send(EditorEffect.Done)
         } else {
             _effects.send(EditorEffect.Failed(error))
         }
