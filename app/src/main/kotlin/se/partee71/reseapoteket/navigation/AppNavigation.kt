@@ -78,17 +78,11 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
             )
         }
         entry<RegimenEditKey> { key ->
-            val close = { backStack.popIfTop(key) }
-            val editor = RegimenKindConfig.of(key.kind).editor
-            if (editor == null) {
-                ComingSoonScreen(onBack = close)
-            } else {
-                RegimenEditScreen(
-                    editor,
-                    onClose = close,
-                    viewModel = hiltViewModel<RegimenEditViewModel, RegimenEditViewModel.Factory> { it.create(key.personId, key.kind, key.regimenId) },
-                )
-            }
+            RegimenEditScreen(
+                RegimenKindConfig.of(key.kind).editor,
+                onClose = { backStack.popIfTop(key) },
+                viewModel = hiltViewModel<RegimenEditViewModel, RegimenEditViewModel.Factory> { it.create(key.personId, key.kind, key.regimenId) },
+            )
         }
         entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }
     }

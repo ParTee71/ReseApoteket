@@ -52,9 +52,13 @@ Kör v<ny>, eller en annan version?
 2. README "Versionshistorik": ny rad för `<ny>` med användarsynliga ändringar och `(#NN)`-referenser.
 3. Kontrollera att KRAVLISTA.md speglar det som släpps (inga kvarvarande `*(planerad)*` för
    byggda funktioner) och att TP-kraven matchar SDK-nivåerna i byggfilen.
-4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt – äldre appar visar
-   "Uppdatera appen" efter första skrivningen (skill `data-safety-backup`) – och be användaren
-   deploya `firestore.rules` med den nya `maxSchemaVersion()` **före** releasen.
+4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt (skill `data-safety-backup`)
+   och be användaren göra detta, i den här ordningen, **innan** release-bygget triggas (steg 5):
+   1. deploya `firestore.rules` med den nya `maxSchemaVersion()`;
+   2. stämpla hushållen: `node tools/db/migrate.mjs --to <N> --dry-run`, sedan utan `--dry-run`.
+   Äldre appar visar då "Uppdatera appen" (HUS-3) redan innan den nya appen kan skriva ett värde
+   som de skulle läsa fel och skriva tillbaka. Appen höjer aldrig versionen själv. Vänta med
+   steg 5 tills användaren bekräftat båda.
 
 ## Steg 4 – Release-commit på master
 

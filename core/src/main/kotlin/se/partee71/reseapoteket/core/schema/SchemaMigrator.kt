@@ -7,7 +7,7 @@ package se.partee71.reseapoteket.core.schema
  * - Varje steg ska vara **idempotent** (känna igen redan migrerad data), eftersom samma
  *   dokument kan passera flera gånger innan hushållet stämplats om.
  * - Hushållets `schemaVersion` höjs **bara** av en fullständig migrering av alla hushållets
- *   dokument (appen vid inloggning eller `tools/db/migrate.mjs`), aldrig av en vanlig
+ *   dokument med `tools/db/migrate.mjs` (appen höjer den aldrig själv), aldrig av en vanlig
  *   skrivning – `HouseholdCodec` skriver tillbaka den version den läste.
  * Varje steg speglas i `tools/db/migrate.mjs` och testas i `SchemaMigratorTest`.
  */
@@ -18,8 +18,11 @@ object SchemaMigrator {
         fun migrate(collection: String, doc: Doc): Doc
     }
 
-    /** Nyckel = versionen steget migrerar *från*. Tom tills formatet ändras första gången. */
-    internal val steps: Map<Int, Step> = emptyMap()
+    /** Nyckel = versionen steget migrerar *från*. */
+    internal val steps: Map<Int, Step> = mapOf(
+        // 1 → 2: bara ett nytt enum-värde (POWDER) – inga befintliga dokument ändras.
+        1 to Step { _, doc -> doc },
+    )
 
     fun migrate(from: Int, collection: String, doc: Doc): Doc {
         require(!Schema.isNewerThanApp(from)) {

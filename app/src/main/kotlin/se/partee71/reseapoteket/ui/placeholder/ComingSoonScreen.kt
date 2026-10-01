@@ -10,7 +10,7 @@ import se.partee71.reseapoteket.ui.components.AppTopBar
 import se.partee71.reseapoteket.ui.components.EmptyState
 import se.partee71.reseapoteket.ui.components.TopBarSize
 
-/** Undersidor som ännu inte är byggda (#23–#27). Försvinner när den sista är på plats. */
+/** Undersidor som ännu inte är byggda (#24–#27). Försvinner när den sista är på plats. */
 @Composable
 fun ComingSoonScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize()) {

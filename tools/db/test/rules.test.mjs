@@ -3,6 +3,7 @@ import { after, before, beforeEach, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { readFileSync } from 'node:fs';
 import { Timestamp, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { CURRENT_VERSION } from '../lib/schema.mjs';
 import { rulesTestEnvironment } from './helpers/emulator.mjs';
 
 const HID = 'hushall-1';
@@ -121,12 +122,15 @@ test('kända fält med fel typ nekas, men null, saknade och okända fält är ti
 test('schemaVersion är minst 1, kan inte sänkas och inte skruvas upp förbi den högsta (BCK-5)', async () => {
   await assertFails(setDoc(doc(db('cecilia'), 'households', 'h8'), { memberUids: ['cecilia'], schemaVersion: 0 }));
   await assertFails(updateDoc(doc(db('anna'), 'households', HID), { schemaVersion: 0 }));
-  await assertFails(updateDoc(doc(db('anna'), 'households', HID), { schemaVersion: 2 }), 'skulle låsa ute alla medlemmar');
+  const newer = CURRENT_VERSION + 1;
+  await assertFails(updateDoc(doc(db('anna'), 'households', HID), { schemaVersion: newer }), 'skulle låsa ute alla medlemmar');
   await assertSucceeds(updateDoc(doc(db('anna'), 'households', HID), { schemaVersion: 1, name: 'Samma version' }));
+  // En migrering stämplar hushållet med den högsta versionen som finns.
+  await assertSucceeds(updateDoc(doc(db('anna'), 'households', HID), { schemaVersion: CURRENT_VERSION }));
   // Skaparen är enda medlem; ett hushåll från en nyare app får stå kvar i sin version.
-  await assertSucceeds(setDoc(doc(db('cecilia'), 'households', 'h9'), { memberUids: ['cecilia'], schemaVersion: 2 }));
-  await assertSucceeds(updateDoc(doc(db('cecilia'), 'households', 'h9'), { name: 'Nyare', schemaVersion: 2 }));
-  await assertFails(updateDoc(doc(db('cecilia'), 'households', 'h9'), { schemaVersion: 1 }), 'sänkt');
+  await assertSucceeds(setDoc(doc(db('cecilia'), 'households', 'h9'), { memberUids: ['cecilia'], schemaVersion: newer }));
+  await assertSucceeds(updateDoc(doc(db('cecilia'), 'households', 'h9'), { name: 'Nyare', schemaVersion: newer }));
+  await assertFails(updateDoc(doc(db('cecilia'), 'households', 'h9'), { schemaVersion: CURRENT_VERSION }), 'sänkt');
 });
 
 test('ett lagrat värde med fel typ hindrar inte att andra fält sparas (DAT-6)', async () => {

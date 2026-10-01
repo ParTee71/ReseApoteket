@@ -91,9 +91,9 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| KOS-1 | Kosttillskott beter sig som recept (REC-1–5) med egen sektion **Kosttillskott**, grön sektionsfärg och "dos" i stället för "styrka". *(planerad, #23)* |
-| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. *(planerad, #23 – pulver saknas i `MedicineForm` och kräver ett nytt värde med högre `schemaVersion`, BCK-5)* |
-| KOS-3 | Ett nytt kosttillskott kan börja från snabbvalen **D-vitamin**, **Omega-3**, **Magnesium** och **Probiotika**, som fyller i namnet. *(planerad, #23)* |
+| KOS-1 | Kosttillskott beter sig som recept (REC-1–5) i samma formulär, med egen sektion **Kosttillskott** med grön färg och bladikon, rubrikerna "Nytt kosttillskott"/"Redigera kosttillskott" och fältet **Dos** i stället för **Styrka**. |
+| KOS-2 | Formerna är tablett, kapsel, pulver och droppar. Ett kosttillskott som sparats med en annan form visar den formen också. **Pulver** finns även för recept (REC-1) – samma former i hela appen; den kom med `schemaVersion` 2 (BCK-5, DAT-8). |
+| KOS-3 | Ett nytt kosttillskott kan börja från snabbvalen **D-vitamin**, **Omega-3**, **Magnesium** och **Probiotika**, som bara fyller i namnet. Snabbvalen visas inte när ett befintligt redigeras. |
 
 ## 9. Familjeartiklar
 
@@ -163,6 +163,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | DAT-5 | Varje fält har ett standardvärde: ett äldre eller ofullständigt dokument kan alltid läsas, och okända fält ignoreras. |
 | DAT-6 | En dosering eller mängdregel av okänd typ visas som "kan inte visas – uppdatera appen", ger aldrig en gissad mängd och skrivs tillbaka oförändrad. |
 | DAT-7 | Datum utan tid lagras som `yyyy-MM-dd`; tidpunkter som Firestore-tidsstämplar. |
+| DAT-8 | Formerna för recept och kosttillskott är tablett, kapsel, flytande, pulver, inhalator, droppar, plåster och annat. Pulver kom i `schemaVersion` 2; inga befintliga dokument ändras av migreringen från 1. |
 
 ## 15. Backup och export
 

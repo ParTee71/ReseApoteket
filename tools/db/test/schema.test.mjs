@@ -19,9 +19,10 @@ test('CURRENT_VERSION och FIRST_VERSION är desamma som i Schema.kt och rules', 
 });
 
 test('migreringsstegen speglar SchemaMigrator', () => {
-  const kotlinSteps = migratorKt.includes('steps: Map<Int, Step> = emptyMap()') ? [] : null;
-  assert.ok(kotlinSteps, 'SchemaMigrator har fått steg – spegla dem i lib/migrate.mjs och uppdatera testet');
-  assert.deepEqual(Object.keys(STEPS), kotlinSteps.map(String));
+  // Stegen i SchemaMigrator skrivs `<från> to Step { … }`.
+  const kotlinSteps = [...migratorKt.matchAll(/^\s*(\d+) to Step\b/gm)].map((m) => m[1]);
+  assert.deepEqual(Object.keys(STEPS), kotlinSteps);
+  for (let v = FIRST_VERSION; v < CURRENT_VERSION; v++) assert.ok(STEPS[v], `steg saknas för version ${v}`);
 });
 
 test('versionOf: saknad eller trasig version (under den första) är den första, som Schema.versionOf', () => {

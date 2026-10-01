@@ -1,5 +1,6 @@
 package se.partee71.reseapoteket.core.schema
 
+import kotlin.test.assertEquals
 import kotlin.time.Instant
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -52,6 +53,15 @@ class CodecsTest {
         ),
         Regimen("r1"),
     )
+
+    @Test
+    fun `varje form överlever rundturen, även POWDER från version 2`() {
+        for (form in MedicineForm.entries) {
+            val regimen = Regimen("r1", form = form)
+            assertEquals(regimen, RegimenCodec.decode("r1", RegimenCodec.encode(regimen)), form.name)
+        }
+        assertEquals("POWDER", RegimenCodec.encode(Regimen("r1", form = MedicineForm.POWDER))["form"])
+    }
 
     @Test
     fun `FamilyItemCodec`() = assertCodecContract(
