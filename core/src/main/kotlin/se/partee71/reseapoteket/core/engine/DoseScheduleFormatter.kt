@@ -27,6 +27,15 @@ object DoseScheduleFormatter {
         is DoseSchedule.Unknown -> Texts.UNKNOWN_TYPE
     }
 
+    /** Kort form för en pill i packlistan: "1/dag", "mån, ons", "var 7:e dag", "vid behov"; `null` för okänd. */
+    fun short(schedule: DoseSchedule): String? = when (schedule) {
+        is DoseSchedule.Daily -> "${schedule.dosesPerDay}/dag"
+        is DoseSchedule.Weekdays -> days(schedule.days)
+        is DoseSchedule.IntervalDays -> every(schedule.intervalDays)
+        is DoseSchedule.AsNeeded -> "vid behov"
+        is DoseSchedule.Unknown -> null
+    }
+
     private fun timesPerDay(doses: Int) = when (doses) {
         1 -> "dagligen"
         2 -> "morgon och kväll"

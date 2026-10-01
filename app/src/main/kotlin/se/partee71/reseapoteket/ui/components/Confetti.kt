@@ -6,7 +6,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -23,14 +25,17 @@ import se.partee71.reseapoteket.ui.theme.AppColors
 /**
  * Kort konfettiregn när allt är packat. Dekorativt och blockerar ingenting; ritas med
  * `Canvas`, utan bibliotek. Samma [seed] ger samma bitar (deterministiska skärmdumpar).
+ * [onFinished] anropas när regnet är över – så att det spelas en gång, inte vid nästa visning.
  */
 @Composable
-fun Confetti(modifier: Modifier = Modifier, play: Boolean = true, seed: Int = 7) {
+fun Confetti(modifier: Modifier = Modifier, play: Boolean = true, seed: Int = 7, onFinished: () -> Unit = {}) {
     val progress = remember { Animatable(0f) }
+    val finished by rememberUpdatedState(onFinished)
     LaunchedEffect(play) {
         if (play) {
             progress.snapTo(0f)
             progress.animateTo(1f, tween(DURATION_MS, easing = LinearEasing))
+            finished()
         }
     }
     val pieces = remember(seed) { pieces(seed) }

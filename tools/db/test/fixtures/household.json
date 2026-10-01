@@ -71,6 +71,14 @@
         "unit": "ST", "suggestedQuantity": 0, "quantity": 1, "packages": null, "reason": "",
         "checked": false, "checkedAt": null, "hidden": false, "sortOrder": 1
       }
+    },
+    {
+      "path": "households/hushall-test/trips/gran-canaria/packingItems/rad-3",
+      "data": {
+        "section": "FAMILY", "personId": null, "sourceType": "FAMILY_ITEM", "sourceId": "plaster", "name": "Plåster",
+        "unit": "ST", "suggestedQuantity": 1, "quantity": 1, "packages": null, "reason": "1 förpackning",
+        "checked": true, "checkedAt": { "__ts": "2026-09-29T08:30:00.000000000Z" }, "hidden": true, "sortOrder": 2
+      }
     }
   ]
 }

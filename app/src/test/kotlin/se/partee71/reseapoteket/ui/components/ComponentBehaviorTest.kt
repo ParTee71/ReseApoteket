@@ -27,6 +27,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -63,6 +64,34 @@ class ComponentBehaviorTest {
         assertTrue(checked)
         rule.onNodeWithText("Enalapril 10 mg")
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.ToggleableState, ToggleableState.On))
+    }
+
+    @Test
+    fun `med egen tryckåtgärd är krysset en egen knapp med namn och mängd`() {
+        var checked by mutableStateOf(false)
+        var opened = 0
+        show { CheckRow("Enalapril 10 mg", checked, { checked = it }, subtitle = "18 tabletter", onClick = { opened++ }, onClickLabel = "Ändra mängd") }
+        rule.onNodeWithText("Enalapril 10 mg").performClick()
+        assertEquals(1, opened)
+        assertFalse(checked)
+        rule.onNodeWithContentDescription("Enalapril 10 mg, 18 tabletter")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Checkbox))
+            .performClick()
+        assertTrue(checked)
+    }
+
+    @Test
+    fun `konfettin säger till när regnet är över`() {
+        var finished = 0
+        show { Confetti(onFinished = { finished++ }) }
+        rule.waitForIdle()
+        assertEquals(1, finished)
+    }
+
+    @Test
+    fun `allt packat visar Allt packat i stället för progressen (PAK-5)`() {
+        show { SuitcaseProgress(14, 14) }
+        rule.onNodeWithContentDescription("Allt packat! 🧳 Trevlig resa · 14 av 14").assertIsDisplayed()
     }
 
     @Test

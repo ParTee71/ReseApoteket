@@ -16,7 +16,10 @@ import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.Trip
+import se.partee71.reseapoteket.core.model.TripStatus
 import se.partee71.reseapoteket.core.schema.Doc
+import se.partee71.reseapoteket.core.schema.RegimenCodec
+import se.partee71.reseapoteket.core.schema.TripCodec
 import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.data.common.CollectionFactory
 import se.partee71.reseapoteket.data.common.DataError
@@ -101,6 +104,44 @@ abstract class CollectionContract {
         persons.delete("a").getOrThrow()
         persons.observe().awaitMatching { it.isEmpty() }
         assertNull(env.readRaw(personsPath, "a"))
+    }
+
+    @Test
+    fun update_skriver_bara_de_valda_falten_och_skapar_inget() = contract {
+        persons.upsert(Person("a", "Anna", "🦊")).getOrThrow()
+        // En annan enhet har bytt emoji; den här skriver bara namnet ur sin äldre kopia.
+        persons.upsert(Person("a", "Anna", "🐯")).getOrThrow()
+        persons.update(Person("a", "Anna Svensson", "🦊"), setOf("name")).getOrThrow()
+        val updated = persons.observe("a").awaitMatching { it?.name == "Anna Svensson" }
+        assertEquals("🐯", updated?.emoji)
+        persons.update(Person("borta", "Borta"), setOf("name"))
+        assertNull(env.readRaw(personsPath, "borta"))
+        assertTrue(persons.update(Person("a", "Anna"), setOf("finnsInte")).isFailure, "ett okänt fält är ett fel, inte en tyst no-op")
+    }
+
+    @Test
+    fun updateAll_skriver_bara_faltet_i_alla() = contract {
+        persons.upsert(Person("a", "Anna", "🦊")).getOrThrow()
+        persons.upsert(Person("b", "Bo", "🐻")).getOrThrow()
+        persons.updateAll(listOf(Person("a", "Annat", "🐯"), Person("b", "Annat", "🐯")), setOf("emoji")).getOrThrow()
+        val updated = persons.observe().awaitMatching { list -> list.all { it.emoji == "🐯" } }
+        assertEquals(listOf("Anna", "Bo"), updated.map { it.name })
+    }
+
+    @Test
+    fun update_ersatter_en_map_helt_och_skriver_alltid_updatedAt() = contract {
+        regimens.upsert(Regimen("r", name = "Levaxin", schedule = DoseSchedule.Daily(2, 1))).getOrThrow()
+        regimens.update(Regimen("r", name = "Annat namn", schedule = DoseSchedule.AsNeeded(10)), setOf("schedule")).getOrThrow()
+        val updated = regimens.observe("r").awaitMatching { it?.schedule is DoseSchedule.AsNeeded }!!
+        assertEquals("Levaxin", updated.name)
+        val raw = env.readRaw(Paths.regimens(env.householdId, "p1"), "r")!!
+        assertEquals(RegimenCodec.encode(updated)["schedule"].let { (it as Map<*, *>).keys }, (raw["schedule"] as Map<*, *>).keys, "inga kvarblivna nycklar från den gamla doseringen")
+
+        env.writeRaw(Paths.trips(env.householdId), "t", mapOf("name" to "Kreta"))
+        trips.update(Trip("t", "Annat namn", status = TripStatus.PACKED), setOf(TripCodec.STATUS)).getOrThrow()
+        val trip = trips.observe("t").awaitMatching { it?.status == TripStatus.PACKED }!!
+        assertEquals("Kreta", trip.name)
+        assertEquals(env.now, trip.updatedAt, "updatedAt skrivs alltid")
     }
 
     @Test

@@ -8,6 +8,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import se.partee71.reseapoteket.R
@@ -71,10 +73,10 @@ object AppTypography {
         @Composable @ReadOnlyComposable
         get() = MaterialTheme.typography.titleLarge
 
-    /** Titeln på en listrad. */
+    /** Titeln på en listrad; avstavas i stället för att brytas mitt i ordet i smala kolumner ("Feberter-mometer"). */
     val itemTitle: TextStyle
         @Composable @ReadOnlyComposable
-        get() = MaterialTheme.typography.titleMedium
+        get() = MaterialTheme.typography.titleMedium.copy(hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph)
 
     /** Undertext och fotnoter. */
     val itemSubtitle: TextStyle

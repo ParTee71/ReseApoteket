@@ -20,7 +20,8 @@ test('ett enda hushåll väljs automatiskt; relativa samlingar tolkas i det', as
 test('--where filtrerar på likhet med tolkade värden, --limit begränsar', async () => {
   const db = database();
   assert.deepEqual((await queryCollection(db, 'persons/anna/regimens', { where: [parseWhere('kind=SUPPLEMENT')] })).map((r) => r.id), ['d-vitamin']);
-  assert.deepEqual((await queryCollection(db, 'trips/gran-canaria/packingItems', { where: [parseWhere('checked=true')] })).map((r) => r.id), ['rad-1']);
+  assert.deepEqual((await queryCollection(db, 'trips/gran-canaria/packingItems', { where: [parseWhere('checked=true')] })).map((r) => r.id), ['rad-1', 'rad-3']);
+  assert.deepEqual((await queryCollection(db, 'trips/gran-canaria/packingItems', { where: [parseWhere('hidden=true')] })).map((r) => r.id), ['rad-3']);
   assert.deepEqual((await queryCollection(db, 'trips/gran-canaria/packingItems', { where: [parseWhere('quantity=9')] })).map((r) => r.id), ['rad-1']);
   assert.equal((await queryCollection(db, 'trips/gran-canaria/packingItems', { limit: 1 })).length, 1);
   assert.throws(() => parseWhere('utanlikhetstecken'), /fält=värde/);
@@ -80,7 +81,7 @@ test('stats visar schemaVersion och antal per samling, inget innehåll', async (
   assert.deepEqual(stats, {
     household: 'hushall-test',
     schemaVersion: 2,
-    counts: { households: 1, persons: 1, regimens: 3, familyItems: 1, trips: 1, packingItems: 2 },
+    counts: { households: 1, persons: 1, regimens: 3, familyItems: 1, trips: 1, packingItems: 3 },
   });
 });
 

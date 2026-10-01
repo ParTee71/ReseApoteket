@@ -127,7 +127,7 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 - [ ] **Enhetligt:** inga råa M3-komponenter, egna interaktionsmönster, hårdkodade stilvärden eller kopierad logik; `UiConsistencyTest` och `cpdCheck` gröna. (4)
 - [ ] **CI-budget:** inga nya dyra steg i PR-flödet; byggtidseffekt angiven vid nya beroenden. (5)
 - [ ] **GUI:** mockup godkänd och skärmdumpar bifogade i PR:en.
-- [ ] **Granskning:** agenten `granskare` har körts på diffen.
+- [ ] **Granskning:** agenten `granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **implement-issue**, steg 8).
 
 ---
 

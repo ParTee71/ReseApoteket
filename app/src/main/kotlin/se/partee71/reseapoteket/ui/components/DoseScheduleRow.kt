@@ -89,9 +89,9 @@ internal fun LabeledStepper(value: Int, onChange: (Int) -> Unit, label: String, 
     }
 }
 
-/** Ett valideringsfel under ett fält som inte är ett textfält – delas av [DoseScheduleRow] och [QuantityRuleRow]. */
+/** Ett valideringsfel under ett fält som inte är ett textfält – delas av [DoseScheduleRow] och [QuantityRuleRow] – eller ett sparfel i en panel. */
 @Composable
-internal fun FieldError(text: String, modifier: Modifier = Modifier) {
+fun FieldError(text: String, modifier: Modifier = Modifier) {
     Text(text, modifier.semantics { error(text) }, style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.error)
 }
 

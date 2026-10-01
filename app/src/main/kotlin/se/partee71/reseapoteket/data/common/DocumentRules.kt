@@ -25,6 +25,15 @@ fun prepareForWrite(encoded: Doc, now: Instant): Doc = buildMap {
     }
 }
 
+/**
+ * Fälten som en `update` skriver: [fields] och alltid `updatedAt`, som [prepareForWrite] satt –
+ * så att en ändring av några fält syns som ändrad precis som en `upsert`.
+ */
+fun fieldsForUpdate(prepared: Doc, fields: Set<String>): Doc {
+    require(prepared.keys.containsAll(fields)) { "Okända fält: ${fields - prepared.keys}" }
+    return prepared.filterKeys { it in fields || it == "updatedAt" }
+}
+
 /** Ett migreringssteg-anrop; i appen alltid [SchemaMigrator.migrate], i tester utbytbart. */
 typealias Migrate = (from: Int, collection: String, doc: Doc) -> Doc
 

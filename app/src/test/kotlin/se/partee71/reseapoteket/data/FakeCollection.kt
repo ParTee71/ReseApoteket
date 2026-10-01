@@ -16,6 +16,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.EntityCollection
 import se.partee71.reseapoteket.data.common.HouseholdScope
 import se.partee71.reseapoteket.data.common.currentVersion
+import se.partee71.reseapoteket.data.common.fieldsForUpdate
 import se.partee71.reseapoteket.data.common.prepareForWrite
 import se.partee71.reseapoteket.data.common.readDocument
 import se.partee71.reseapoteket.data.common.sortForList
@@ -35,6 +36,16 @@ class FakeStore {
         val stored = firestoreValues(doc)
         val merged = if (merge) deepMerge(collection[id].orEmpty(), stored) else stored
         all + (path to collection + (id to merged))
+    }
+
+    /**
+     * Som Firestores `update` i en batch: varje fält ersätts helt, även en map – inget slås ihop
+     * på djupet. Allt eller inget: finns ett dokument inte avvisar servern hela batchen.
+     */
+    fun patch(path: String, patches: Map<String, Doc>) = documents.update { all ->
+        val collection = all[path].orEmpty()
+        if (!collection.keys.containsAll(patches.keys)) return@update all
+        all + (path to collection + patches.mapValues { (id, fields) -> collection.getValue(id) + firestoreValues(fields) })
     }
 
     fun delete(path: String, id: String) = documents.update { all -> all + (path to all[path].orEmpty() - id) }
@@ -94,6 +105,10 @@ class FakeCollection<T : Identified>(
     override suspend fun setArchived(id: String, archived: Boolean) = write {
         val p = path()
         if (store.read(p, id) != null) store.set(p, id, mapOf("archived" to archived), merge = true)
+    }
+
+    override suspend fun updateAll(items: List<T>, fields: Set<String>) = write {
+        store.patch(path(), items.associate { it.id to fieldsForUpdate(encode(it), fields) })
     }
 
     override suspend fun batch(upserts: List<T>, deletes: List<String>) = write {

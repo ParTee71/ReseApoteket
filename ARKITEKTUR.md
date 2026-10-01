@@ -157,7 +157,7 @@ ReseApoteket/
 │           ├── components/       delade komponenter och skärmramar, ComponentGallery
 │           ├── common/           ListUiState, ListLoader, EditorState, Validator, DateFormat, DataError.toMessage()
 │           ├── auth/             AuthViewModel (vad appen visar), SignInScreen, UpdateRequiredScreen
-│           └── persons/ regimens/ familyitems/ trips/ packing/ settings/ placeholder/
+│           └── persons/ regimens/ familyitems/ trips/ packing/ settings/
 ├── tools/db/                     Node: query, get, stats, export, import, migrate + lib/ + tester
 ├── firestore.rules               security rules
 └── .github/workflows/            android.yml, instrumented.yml, quality.yml, release.yml, backup.yml

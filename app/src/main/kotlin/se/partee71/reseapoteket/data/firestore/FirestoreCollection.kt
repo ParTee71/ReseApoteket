@@ -20,6 +20,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.EntityCollection
 import se.partee71.reseapoteket.data.common.HouseholdScope
 import se.partee71.reseapoteket.data.common.currentVersion
+import se.partee71.reseapoteket.data.common.fieldsForUpdate
 import se.partee71.reseapoteket.data.common.prepareForWrite
 import se.partee71.reseapoteket.data.common.readDocument
 import se.partee71.reseapoteket.data.common.sortForList
@@ -73,13 +74,19 @@ class FirestoreCollection<T : Identified>(
         ref.document(id).update("archived", archived)
     }
 
+    /** `update`, inte `set`: bara [fields] (och `updatedAt`) ändras, och ett dokument som raderats återuppstår inte. */
+    override suspend fun updateAll(items: List<T>, fields: Set<String>): Result<Unit> =
+        commit { items.map { BatchOp.Update(it.id, fieldsForUpdate(encode(it), fields)) } }
+
     override suspend fun batch(upserts: List<T>, deletes: List<String>): Result<Unit> =
+        commit { upserts.map { BatchOp.Set(it.id, encode(it)) } + deletes.map { BatchOp.Delete(it) } }
+
+    /** Atomärt inom varje bit om 500 skrivningar (Firestores gräns), inte över bitar. */
+    private suspend fun commit(operations: () -> List<BatchOp>): Result<Unit> =
         suspendRunCatching(::firestoreError) {
             scope.writeBlocker()?.let { throw it }
             val ref = ref()
-            // Atomärt inom varje bit om 500 skrivningar (Firestores gräns), inte över bitar.
-            val operations = upserts.map { BatchOp.Set(it.id, encode(it)) } + deletes.map { BatchOp.Delete(it) }
-            operations.chunked(MAX_BATCH).forEach { chunk ->
+            operations().chunked(MAX_BATCH).forEach { chunk ->
                 val batch = db.batch()
                 chunk.forEach { op -> op.applyTo(batch, ref) }
                 sync.track(batch.commit())
@@ -111,6 +118,12 @@ class FirestoreCollection<T : Identified>(
         data class Set(val id: String, val data: Map<String, Any?>) : BatchOp {
             override fun applyTo(batch: WriteBatch, ref: CollectionReference) {
                 batch.set(ref.document(id), data, SetOptions.merge())
+            }
+        }
+
+        data class Update(val id: String, val data: Map<String, Any?>) : BatchOp {
+            override fun applyTo(batch: WriteBatch, ref: CollectionReference) {
+                batch.update(ref.document(id), data)
             }
         }
 

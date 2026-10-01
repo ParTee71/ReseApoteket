@@ -15,12 +15,13 @@ import se.partee71.reseapoteket.ui.components.ComponentGallery
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemEditScreen
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemEditViewModel
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsScreen
+import se.partee71.reseapoteket.ui.packing.PackingListScreen
+import se.partee71.reseapoteket.ui.packing.PackingListViewModel
 import se.partee71.reseapoteket.ui.persons.PersonDetailScreen
 import se.partee71.reseapoteket.ui.persons.PersonDetailViewModel
 import se.partee71.reseapoteket.ui.persons.PersonEditScreen
 import se.partee71.reseapoteket.ui.persons.PersonEditViewModel
 import se.partee71.reseapoteket.ui.persons.PersonsScreen
-import se.partee71.reseapoteket.ui.placeholder.ComingSoonScreen
 import se.partee71.reseapoteket.ui.regimens.RegimenEditScreen
 import se.partee71.reseapoteket.ui.regimens.RegimenEditViewModel
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
@@ -40,17 +41,17 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 }
 
 /**
- * Vilken skärm varje nyckel visar. Nycklar utan egen skärm än visar "Kommer snart".
+ * Vilken skärm varje nyckel visar – varje nyckel har en (`AppNavigationTest`).
  * Flikarnas ViewModels hämtas från [tabOwner] (aktiviteten) i stället för navigationsposten,
  * så att en flik behåller sin lista när man byter flik (NAV-2); undersidornas ViewModels hör
  * till sin post och försvinner när den stängs. En skärm stänger sig med `popIfTop(key)`, aldrig
  * `pop()`, så att ett andra tryck inte stänger skärmen under.
  */
 fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey) -> NavEntry<AppKey> =
-    entryProvider(fallback = { key -> NavEntry(key) { ComingSoonScreen(onBack = { backStack.popIfTop(key) }) } }) {
+    // Varje nyckel har sin skärm (AppKey är förseglad); en saknad är ett programfel.
+    entryProvider(fallback = { key -> error("Ingen skärm för $key") }) {
         entry<TripsKey> {
-            // Tills packlistan finns (#26) öppnar en resa sitt formulär (RES-1).
-            TripsScreen(onAdd = { backStack.push(TripEditKey()) }, onOpen = { backStack.push(TripEditKey(it)) }, viewModel = hiltViewModel(tabOwner))
+            TripsScreen(onAdd = { backStack.push(TripEditKey()) }, onOpen = { backStack.push(PackingListKey(it)) }, viewModel = hiltViewModel(tabOwner))
         }
         entry<PersonsKey> {
             PersonsScreen(onAdd = { backStack.push(PersonEditKey()) }, onOpen = { backStack.push(PersonDetailKey(it)) }, viewModel = hiltViewModel(tabOwner))
@@ -107,6 +108,14 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                     backStack.push(PackingListKey(id))
                 },
                 viewModel = hiltViewModel<TripEditViewModel, TripEditViewModel.Factory> { it.create(key.tripId) },
+            )
+        }
+        entry<PackingListKey> { key ->
+            PackingListScreen(
+                onBack = { backStack.popIfTop(key) },
+                // Resan ändras från packlistan (RES-1).
+                onEditTrip = { backStack.push(TripEditKey(key.tripId)) },
+                viewModel = hiltViewModel<PackingListViewModel, PackingListViewModel.Factory> { it.create(key.tripId) },
             )
         }
         entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }

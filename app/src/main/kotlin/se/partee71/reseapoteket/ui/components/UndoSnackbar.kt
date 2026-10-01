@@ -1,5 +1,6 @@
 package se.partee71.reseapoteket.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -16,11 +17,14 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.withTimeoutOrNull
 import se.partee71.reseapoteket.R
 
-/** Något som just dolts och kan ångras; [id] skiljer två döljningar av samma namn åt. */
-data class UndoRequest(val id: String, val name: String)
+/**
+ * Något som just dolts och kan ångras; [id] skiljer två döljningar av samma namn åt. [format] är
+ * meddelandet ("%s arkiverad", i packlistan "%s dold").
+ */
+data class UndoRequest(val id: String, val name: String, @param:StringRes val format: Int = R.string.archived_format)
 
 /**
- * Den enda ångra-mekanismen: "%s arkiverad · Ångra" i [hostState] i 5 s – längre om
+ * Den enda ångra-mekanismen: "%s arkiverad · Ångra" (eller [UndoRequest.format], t.ex. "%s dold") i [hostState] i 5 s – längre om
  * användaren valt längre tid för åtgärder i Androids tillgänglighetsinställningar. [onUndo]
  * vid tryck på Ångra, annars [onDismissed]. En ny [request] ersätter den som visas; den förra
  * förblir då dold. Lämnar skärmen kompositionen (flikbyte, ny skärm, rotation) medan ångra
@@ -29,7 +33,7 @@ data class UndoRequest(val id: String, val name: String)
  */
 @Composable
 fun UndoSnackbar(request: UndoRequest?, hostState: SnackbarHostState, onUndo: () -> Unit, onDismissed: () -> Unit) {
-    val message = request?.let { stringResource(R.string.archived_format, it.name) }
+    val message = request?.let { stringResource(it.format, it.name) }
     val action = stringResource(R.string.undo)
     val undo by rememberUpdatedState(onUndo)
     val dismissed by rememberUpdatedState(onDismissed)

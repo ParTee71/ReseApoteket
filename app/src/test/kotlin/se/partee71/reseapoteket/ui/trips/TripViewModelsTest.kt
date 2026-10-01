@@ -22,8 +22,9 @@ import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.Trip
-import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.core.model.TripStatus
+import se.partee71.reseapoteket.core.schema.Schema
+import se.partee71.reseapoteket.core.schema.TripCodec
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.TestHouseholdScope
@@ -131,6 +132,7 @@ class TripViewModelsTest {
         val levaxin = items("t1").single { it.name == "Levaxin" }
         packing.forTrip("t1").upsert(levaxin.copy(checked = true))
         packing.forTrip("t1").upsert(PackingItem("egen", name = "Laddare", sourceType = PackingSource.MANUAL))
+        trips.upsert(trips.get("t1").getOrThrow()!!.copy(status = TripStatus.PACKED))
 
         val vm = editor("t1")
         vm.onEvent(TripEditEvent.Days(10))
@@ -146,6 +148,7 @@ class TripViewModelsTest {
         assertEquals(12, recounted.suggestedQuantity, "1 × (10 + 2) dagar")
         assertTrue(after.any { it.name == "Laddare" }, "egna rader rörs inte")
         assertEquals(10, trips.get("t1").getOrThrow()!!.days)
+        assertEquals(TripStatus.PLANNING, trips.get("t1").getOrThrow()!!.status, "statusen följer den omräknade listan (PAK-5)")
     }
 
     @Test
@@ -154,13 +157,17 @@ class TripViewModelsTest {
         val before = items("t1")
         val vm = editor("t1")
         vm.onEvent(TripEditEvent.Traveller("erik"))
+        // Packlistan sätter status medan formuläret är öppet – formulärets äldre kopia skriver inte över den.
+        trips.update(Trip("t1", status = TripStatus.PACKED), setOf(TripCodec.STATUS))
         vm.effects.test {
             vm.onEvent(TripEditEvent.Save(""))
             vm.onEvent(TripEditEvent.Recount(false))
             assertEquals(EditorEffect.Done, awaitItem())
         }
         assertEquals(before, items("t1"))
-        assertEquals(listOf("anna", "erik"), trips.get("t1").getOrThrow()!!.travellerIds)
+        val saved = trips.get("t1").getOrThrow()!!
+        assertEquals(listOf("anna", "erik"), saved.travellerIds)
+        assertEquals(TripStatus.PACKED, saved.status)
     }
 
     @Test

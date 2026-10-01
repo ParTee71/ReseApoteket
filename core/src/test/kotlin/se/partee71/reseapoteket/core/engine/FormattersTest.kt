@@ -165,4 +165,13 @@ class FormattersTest {
         assertEquals("1 tub per 7 dagar under (10 + 2) dagar = 2 tuber", familyReason(QuantityRule.PerDays(1, 7)))
         assertEquals(Texts.CANNOT_CALCULATE, familyReason(QuantityRule.Unknown()))
     }
+
+    @Test
+    fun `kort dosering för packlistans pill`() {
+        assertEquals("1/dag", DoseScheduleFormatter.short(DoseSchedule.Daily(1, 2)))
+        assertEquals("mån, fre", DoseScheduleFormatter.short(DoseSchedule.Weekdays(setOf(DayOfWeek.FRIDAY, DayOfWeek.MONDAY))))
+        assertEquals("var 7:e dag", DoseScheduleFormatter.short(DoseSchedule.IntervalDays(7)))
+        assertEquals("vid behov", DoseScheduleFormatter.short(DoseSchedule.AsNeeded(10)))
+        assertEquals(null, DoseScheduleFormatter.short(DoseSchedule.Unknown("x")))
+    }
 }

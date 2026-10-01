@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppShapes
 import se.partee71.reseapoteket.ui.theme.AppTypography
@@ -33,7 +34,8 @@ import se.partee71.reseapoteket.ui.theme.Spacing
 
 /**
  * Packprogress: "9 av 14 packat" med vågig progress och resväska. [compact] ger bara vågen och
- * "4 / 10" – för en rad i en lista. Progressen fjädrar när den ändras.
+ * "4 / 10" – för en rad i en lista. Progressen fjädrar när den ändras. När allt är packat visar
+ * den stora varianten "Allt packat! 🧳" i grönt (PAK-5); lägg den då i ett grönt `ApotekCard`.
  */
 @Composable
 fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, compact: Boolean = false) {
@@ -54,6 +56,10 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
         }
         return
     }
+    if (PackingProgress(packed, total).isComplete) {
+        AllPacked(total, modifier)
+        return
+    }
     Row(
         modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
@@ -68,6 +74,27 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
         }
         val tone = AppColors.extended.primaryTone
         Box(Modifier.size(TILE).background(tone.container, AppShapes.row), contentAlignment = Alignment.Center) {
+            Icon(painterResource(R.drawable.ic_luggage), contentDescription = null, tint = tone.content, modifier = Modifier.size(ICON))
+        }
+    }
+}
+
+/** "Allt packat! 🧳 Trevlig resa" – samma plats och resväska, i grönt. */
+@Composable
+private fun AllPacked(total: Int, modifier: Modifier) {
+    val tone = AppColors.extended.greenTone
+    val title = stringResource(R.string.packed_all_title)
+    val message = stringResource(R.string.packed_all_message, total)
+    Row(
+        modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = "$title $message" },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Text(title, style = AppTypography.sectionTitle, color = tone.content)
+            Text(message, style = AppTypography.itemTitle, color = tone.content)
+        }
+        Box(Modifier.size(TILE).background(AppColors.extended.card, AppShapes.row), contentAlignment = Alignment.Center) {
             Icon(painterResource(R.drawable.ic_luggage), contentDescription = null, tint = tone.content, modifier = Modifier.size(ICON))
         }
     }
