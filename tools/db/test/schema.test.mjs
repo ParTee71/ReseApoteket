@@ -1,7 +1,7 @@
 // Schemaversionen finns på två ställen: Schema.kt i appen och lib/schema.mjs här. De ska vara lika.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CURRENT_VERSION, FIRST_VERSION } from '../lib/schema.mjs';
+import { CURRENT_VERSION, FIRST_VERSION, versionOf } from '../lib/schema.mjs';
 import { STEPS } from '../lib/migrate.mjs';
 import { readRepoFile } from './helpers/repo.mjs';
 
@@ -10,13 +10,25 @@ const schemaKt = readRepoFile(`${schemaDir}/Schema.kt`);
 const migratorKt = readRepoFile(`${schemaDir}/SchemaMigrator.kt`);
 const constant = (name) => Number(schemaKt.match(new RegExp(`const val ${name} = (\\d+)`))[1]);
 
-test('CURRENT_VERSION och FIRST_VERSION är desamma som i Schema.kt', () => {
+test('CURRENT_VERSION och FIRST_VERSION är desamma som i Schema.kt och rules', () => {
   assert.equal(CURRENT_VERSION, constant('CURRENT_VERSION'));
   assert.equal(FIRST_VERSION, constant('FIRST_VERSION'));
+  const rules = readRepoFile('firestore.rules');
+  const max = Number(rules.match(/function maxSchemaVersion\(\) \{\s*return (\d+);/)[1]);
+  assert.equal(max, CURRENT_VERSION, 'maxSchemaVersion() i firestore.rules');
 });
 
 test('migreringsstegen speglar SchemaMigrator', () => {
   const kotlinSteps = migratorKt.includes('steps: Map<Int, Step> = emptyMap()') ? [] : null;
   assert.ok(kotlinSteps, 'SchemaMigrator har fått steg – spegla dem i lib/migrate.mjs och uppdatera testet');
   assert.deepEqual(Object.keys(STEPS), kotlinSteps.map(String));
+});
+
+test('versionOf: saknad eller trasig version (under den första) är den första, som Schema.versionOf', () => {
+  assert.equal(versionOf({}), FIRST_VERSION);
+  assert.equal(versionOf({ schemaVersion: 0 }), FIRST_VERSION);
+  assert.equal(versionOf({ schemaVersion: -2 }), FIRST_VERSION);
+  assert.equal(versionOf({ schemaVersion: '1' }), FIRST_VERSION);
+  assert.equal(versionOf({ schemaVersion: CURRENT_VERSION + 1 }), CURRENT_VERSION + 1);
+  assert.ok(schemaKt.includes('coerceAtLeast(FIRST_VERSION)'), 'Schema.versionOf ska ha samma golv');
 });

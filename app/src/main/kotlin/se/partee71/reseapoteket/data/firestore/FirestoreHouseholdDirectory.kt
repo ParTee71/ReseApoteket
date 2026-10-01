@@ -10,6 +10,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.schema.HouseholdCodec
+import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.prepareForWrite
 import se.partee71.reseapoteket.data.common.readDocument
@@ -28,7 +29,7 @@ class FirestoreHouseholdDirectory @Inject constructor(
                 val raw = fromFirestore(doc.data.orEmpty())
                 // Varje hushåll läses i sitt eget format – det finns inget aktivt hushåll än. Ett
                 // hushåll som inte går att läsa hoppas över i stället för att stänga ute användaren.
-                runCatching { readDocument(HouseholdCodec, Paths.HOUSEHOLDS, (raw["schemaVersion"] as? Number)?.toInt(), doc.id, raw) }
+                runCatching { readDocument(HouseholdCodec, Paths.HOUSEHOLDS, Schema.versionOf(raw["schemaVersion"]), doc.id, raw) }
                     .getOrNull()
             }
     }

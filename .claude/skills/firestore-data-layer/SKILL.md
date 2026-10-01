@@ -109,12 +109,19 @@ bara får förekomma där. Den ger `FirebaseFirestore` med `PersistentCacheSetti
   ändras inte från appen förrän delning byggs (FUT-2); hushåll raderas inte från appen.
 - Hushålls-ID:n slumpas på klienten (`newId()`), så att ingen kan förhandsregistrera ett
   förutsägbart ID. `schemaVersion` skrivs som heltal – annars nekar reglerna.
-- Ny samling = ny regel + rules-test i samma PR.
+- Bara samlingarna i DAT-1 har regler; allt annat under hushållet nekas. Kända fält
+  typkontrolleras (`optInt`, `optString` …) – men bara de fält skrivningen ändrar, så att ett
+  redan lagrat felaktigt värde (t.ex. okänd dosering som skrivs tillbaka, DAT-6) inte låser
+  dokumentet. Saknat eller `null` är tillåtet, okända fält får finnas. `schemaVersion` är
+  minst 1 (saknad lagrad version räknas som 1), kan inte sänkas och höjs högst till
+  `maxSchemaVersion()`; vid create finns inget tak – skaparen är enda medlem och kan bara
+  låsa ute sig själv. Rules-testet "appens dokument i codecens form" skriver fixturen genom
+  klientens SDK och fångar drift mellan codecs och rules.
+- Ny samling = ny `match` med `valid…`-funktion + rules-test i samma PR.
 - Deploy sker manuellt (`npx --prefix tools/db firebase deploy --only firestore:rules`, README → Firebase-setup), aldrig från CI i en PR.
-- **Fallgrop:** i `rules_version = '2'` matchar `{document=**}` även noll segment. Under
-  `households/{hid}` används därför `match /{collection}/{document=**}` – annars gäller
-  underreglerna också hushållsdokumentet och kringgår create/update/delete-reglerna.
-  Rules-testet "hushåll kan inte raderas" fångar det.
+- **Fallgrop:** i `rules_version = '2'` matchar `{document=**}` även noll segment – det skulle
+  ge underreglerna makt över hushållsdokumentet. Använd uttryckliga `match /<samling>/{id}`,
+  aldrig jokertecken. Rules-testet "hushåll kan inte raderas" fångar det.
 
 ## Tester
 

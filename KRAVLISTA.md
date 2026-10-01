@@ -127,7 +127,7 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 | BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity` (`perDays` under 1 räknas som 1). *(planerad, #25)* |
 | BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. *(planerad, #25)* |
 | BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. *(planerad, #25)* |
-| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10". *(planerad, #25)* |
+| BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10"; dagarna visas som de räknas (BER-1), så att förklaringen aldrig motsäger mängden. *(planerad, #25)* |
 
 ## 12. Packlista
 
@@ -156,7 +156,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 | ID | Krav |
 |----|------|
-| DAT-1 | All data ligger under ett hushåll: `households/{hid}` med samlingarna `persons`, `persons/{pid}/regimens`, `familyItems`, `trips` och `trips/{tid}/packingItems`. |
+| DAT-1 | All data ligger under ett hushåll: `households/{hid}` med samlingarna `persons`, `persons/{pid}/regimens`, `familyItems`, `trips` och `trips/{tid}/packingItems` – inga andra samlingar kan skapas (NFR-16). |
 | DAT-2 | Recept och kosttillskott är samma modell (`Regimen`, `kind`) och hör till en person; medicinens uppgifter ligger på receptet (inget separat register). |
 | DAT-3 | En dosering är dagligen, vissa veckodagar, var n:e dag eller vid behov; en familjeartikels mängdregel är fast, per resenär eller per n dagar. |
 | DAT-4 | Personer, recept, familjeartiklar och resor kan arkiveras och återställas på samma sätt (`archived`). |
@@ -172,9 +172,9 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | BCK-2 | En backup tas automatiskt varje vecka (`backup.yml`, måndag 03:00 UTC), krypteras med gpg (AES-256, integritetskontroll) och sparas i 90 dagar som artifact i det privata repot; klartexten lämnar aldrig jobbet. En misslyckad schemalagd backup öppnar ett issue. |
 | BCK-3 | En äldre appversion ska aldrig kunna radera fält som en nyare version har skrivit: skrivningar slås ihop med det lagrade dokumentet, och ett fält som användaren tömt försvinner ändå. |
 | BCK-4 | Automatiska tester ska bara kunna köras mot Firebase-emulatorn (projekt-ID `demo-…`), aldrig mot den riktiga databasen. |
-| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering (HUS-3). Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. |
+| BCK-5 | Hushållets `schemaVersion` anger dataformatet. Äldre format migreras vid läsning; nyare format än appen förstår läses men skrivs aldrig, och appen ber om uppdatering (HUS-3). Ett nytt enum-värde eller en ny dosering/regeltyp höjer versionen. Versionen är minst 1 (ett lägre värde läses som 1), kan inte sänkas och höjs från appen högst till den högsta som finns. Ett tal utanför heltalsintervallet läses som gränsvärdet, aldrig som ett litet tal. |
 | BCK-6 | Återställning: backupen dekrypteras till `tools/db/`, `import --dry-run` visar antal dokument per samling, och importen skriver sedan dokumenten exakt som i filen; med `--replace` tas dokument som tillkommit efter backupen bort, så att hushållet blir exakt som i backupen (README → Backup och återställning). |
-| BCK-7 | Import kontrollerar hela filen innan något skrivs och vägrar hushåll vars `schemaVersion` är nyare än verktyget förstår, trasiga värden och sökvägar utanför de kända samlingarna. |
+| BCK-7 | Import kontrollerar hela filen innan något skrivs och vägrar hushåll vars `schemaVersion` är nyare än verktyget förstår, trasiga värden, sökvägar utanför de kända samlingarna, ogiltiga ID:n (tomma, `.`, `..`, `__…__`) och dubbletter. En migrering som inte klarar ett hushåll rapporterar det, migrerar de andra och avslutas med fel. |
 | BCK-8 | En samling som inte finns i samlingslistan (`tools/db/lib/collections.mjs`) – under ett hushåll eller i roten – stoppar exporten i stället för att tappas tyst, och värden som JSON inte kan bära exakt stoppar den i stället för att ändras. Undantag: JSON skiljer inte heltal från decimaltal, så ett decimaltal med heltalsvärde (t.ex. `2.0`) kommer tillbaka som heltal – appen läser båda likadant. En tom export ger fel. Felmeddelanden visar sökväg, aldrig innehåll. |
 
 ---
@@ -205,7 +205,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-13 | Skärmdumpar (ljust och mörkt) jämförs mot incheckade referensbilder i varje PR som rör appen; en oväntad skillnad fäller PR:en och diffbilden sparas (skill `testing-strategy`). |
 | NFR-14 | Kopierad kod fäller bygget (`cpdCheck`, skill `shared-ui-components`). |
 | NFR-15 | Dokumentationen kontrolleras i varje PR: CI-tabellen mot filtren, relativa länkar, nämnda skills och agenter, och hooktestet. |
-| NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet (en användare kan lista just de hushåll där den själv är medlem): allt ligger under `households/{hid}`, ett hushåll skapas med skaparen som enda medlem, har alltid minst en medlem och medlemslistan kan inte ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal. Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas manuellt. |
+| NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet (en användare kan lista just de hushåll där den själv är medlem): allt ligger under `households/{hid}`, ett hushåll skapas med skaparen som enda medlem, har alltid minst en medlem och medlemslistan kan inte ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal (BCK-5). Bara samlingarna i DAT-1 kan läsas och skrivas, och kända fält med fel typ nekas (saknade, tomma och okända fält är tillåtna, DAT-5). Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas manuellt. |
 
 ---
 

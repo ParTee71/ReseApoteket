@@ -63,6 +63,13 @@ export function collectionOf(docPath) {
   return match?.name ?? null;
 }
 
+/**
+ * Om varje segment i sökvägen är ett ID som Firestore godtar: inte tomt, inte `.`/`..`, inte
+ * reserverat `__…__` och högst 1500 byte. Kontrolleras innan en import skriver något.
+ */
+export const hasValidIds = (docPath) =>
+  segments(docPath).every((id) => id !== '' && id !== '.' && id !== '..' && !/^__.*__$/.test(id) && Buffer.byteLength(id) <= 1500);
+
 /** Hushållets ID för en dokumentsökväg. */
 export const householdOf = (docPath) => segments(docPath)[1];
 

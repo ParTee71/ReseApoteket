@@ -23,11 +23,15 @@ test('sökvägarna är desamma som i Paths.kt', () => {
   for (const c of COLLECTIONS) assert.ok(c.path.endsWith(c.name), `${c.path} ska sluta med ${c.name}`);
 });
 
-test('varje samling skyddas av security rules för hushållet', () => {
+test('varje samling har en egen regel under hushållet, och inget annat är öppet', () => {
   const rules = read('firestore.rules');
   assert.match(rules, /match \/households\/\{hid\} \{/);
-  assert.match(rules, /match \/\{collection\}\/\{document=\*\*\} \{\s*allow read, write: if isMember\(hid\);/);
+  // Ett jokertecken skulle släppa in samlingar som stoppar backupen (BCK-8).
+  assert.doesNotMatch(rules, /match \/\{\w+\}\//, 'ingen match på godtyckliga samlingar');
+  const matched = [...rules.matchAll(/match \/(\w+)\/\{\w+\}/g)].map((m) => m[1]).filter((name) => name !== 'databases');
   for (const c of COLLECTIONS.filter((c) => c.name !== 'households')) {
     assert.ok(c.path.startsWith('households/{hid}/'), `${c.path} ligger inte under ett hushåll`);
+    assert.ok(matched.includes(c.name), `${c.name} saknar regel i firestore.rules`);
   }
+  assert.deepEqual(matched.sort(), COLLECTIONS.map((c) => c.name).sort(), 'rules och collections.mjs har samma samlingar');
 });

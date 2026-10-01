@@ -22,6 +22,15 @@ test('import vägrar okända sökvägar och filer som inte är exporter', () => 
   assert.throws(() => prepareImport({ documents: [household] }, { household: 'annat' }), /finns inte i filen/);
 });
 
+test('import vägrar ogiltiga och dubbla ID:n innan något skrivs (BCK-7)', () => {
+  const doc = (path) => ({ path, data: {} });
+  for (const path of ['households//persons/x', 'households/./persons/x', 'households/h/persons/..', 'households/__x__', `households/${'å'.repeat(751)}`]) {
+    assert.throws(() => prepareImport({ documents: [household, doc(path)] }), /Ogiltigt ID/, path);
+  }
+  assert.throws(() => prepareImport({ documents: [household, household] }), /households\/h finns två gånger/);
+  assert.equal(prepareImport({ documents: [household, doc('households/h/persons/p_1-x')] }).length, 2);
+});
+
 test('tidsstämplar serialiseras med alla nio decimaler och tillbaka', () => {
   const ts = new Timestamp(1_790_000_000, 123_456_789);
   const json = toJson({ at: ts, list: [ts], n: 0.25, empty: null });

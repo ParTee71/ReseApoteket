@@ -25,7 +25,7 @@ object HouseholdCodec : DocCodec<Household> {
         memberUids = map.stringList("memberUids"),
         marginDays = map.int("marginDays", HouseholdSettings.DEFAULT_MARGIN_DAYS),
         // Saknad version = första formatet – aldrig "senaste", då skulle migrering hoppas över.
-        schemaVersion = map.int("schemaVersion", Schema.FIRST_VERSION),
+        schemaVersion = Schema.versionOf(map["schemaVersion"]),
         createdAt = map.instant("createdAt"),
     )
 }

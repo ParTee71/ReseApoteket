@@ -53,7 +53,8 @@ Kör v<ny>, eller en annan version?
 3. Kontrollera att KRAVLISTA.md speglar det som släpps (inga kvarvarande `*(planerad)*` för
    byggda funktioner) och att TP-kraven matchar SDK-nivåerna i byggfilen.
 4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt – äldre appar visar
-   "Uppdatera appen" efter första skrivningen (skill `data-safety-backup`).
+   "Uppdatera appen" efter första skrivningen (skill `data-safety-backup`) – och be användaren
+   deploya `firestore.rules` med den nya `maxSchemaVersion()` **före** releasen.
 
 ## Steg 4 – Release-commit på master
 

@@ -30,4 +30,16 @@ class SchemaMigratorTest {
             SchemaMigrator.migrate(Schema.CURRENT_VERSION + 1, "persons", doc)
         }
     }
+
+    @Test
+    fun `en trasig version under den första läses som det första formatet`() {
+        assertEquals(Schema.FIRST_VERSION, Schema.versionOf(0L))
+        assertEquals(Schema.FIRST_VERSION, Schema.versionOf(-3))
+        assertEquals(Schema.FIRST_VERSION, Schema.versionOf(null))
+        assertEquals(Schema.FIRST_VERSION, Schema.versionOf("1"))
+        assertEquals(Schema.CURRENT_VERSION, Schema.versionOf(Schema.CURRENT_VERSION.toLong()))
+        assertEquals(Int.MAX_VALUE, Schema.versionOf(Long.MAX_VALUE), "för stort är nyare än appen, inte ett litet tal")
+        assertEquals(doc, SchemaMigrator.migrate(0, "persons", doc))
+        assertEquals(Schema.FIRST_VERSION, HouseholdCodec.decode("h", mapOf("schemaVersion" to 0L)).schemaVersion)
+    }
 }

@@ -1,7 +1,7 @@
 // Export och import – logiken bakom export.mjs, import.mjs och veckobackupen (BCK-1–3, 6–8).
 import { CURRENT_VERSION, versionOf } from './schema.mjs';
 import { fromJson, toJson } from './serialize.mjs';
-import { collectionOf, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';
+import { collectionOf, hasValidIds, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';
 
 /** Firestores gräns för antal skrivningar i en batch. */
 export const MAX_BATCH = 500;
@@ -72,8 +72,8 @@ export function summarize(documents) {
 }
 
 /**
- * Kontrollerar och översätter hela filen innan något skrivs: format, kända sökvägar, varje
- * hushålls schemaVersion och varje dokuments värden. Ger `[{ path, data }]` redo att skrivas.
+ * Kontrollerar och översätter hela filen innan något skrivs: format, kända sökvägar med giltiga
+ * och unika ID:n, varje hushålls schemaVersion och varje dokuments värden. Ger `[{ path, data }]` redo att skrivas.
  */
 export function prepareImport(data, { household } = {}) {
   if (!data || !Array.isArray(data.documents)) throw new Error('Filen är inte en export från tools/db (documents saknas)');
@@ -81,8 +81,12 @@ export function prepareImport(data, { household } = {}) {
     ? data.documents.filter((d) => householdOf(d.path ?? '') === household)
     : data.documents;
   if (household && documents.length === 0) throw new Error(`Hushållet ${household} finns inte i filen`);
+  const seen = new Set();
   return documents.map(({ path, data: doc }) => {
     if (typeof path !== 'string' || !collectionOf(path)) throw new Error(`Okänd sökväg i filen: ${path}`);
+    if (!hasValidIds(path)) throw new Error(`Ogiltigt ID i sökvägen: ${path}`);
+    if (seen.has(path)) throw new Error(`${path} finns två gånger i filen`);
+    seen.add(path);
     if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) throw new Error(`${path}: data saknas`);
     if (isHouseholdDoc(path) && versionOf(doc) > CURRENT_VERSION) {
       throw new Error(`${path} har schemaVersion ${versionOf(doc)}, verktyget förstår bara ${CURRENT_VERSION} – uppdatera tools/db först`);

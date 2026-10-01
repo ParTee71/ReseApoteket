@@ -18,7 +18,13 @@ fun Doc.stringOrNull(key: String): String? = this[key] as? String
 /** Firestore lämnar heltal som `Long`; allt numeriskt accepteras. */
 fun Doc.int(key: String, default: Int = 0): Int = intOrNull(key) ?: default
 
-fun Doc.intOrNull(key: String): Int? = (this[key] as? Number)?.toInt()
+fun Doc.intOrNull(key: String): Int? = (this[key] as? Number)?.toIntClamped()
+
+/**
+ * Som `toInt()`, men ett värde utanför Int-intervallet (t.ex. ett Long från ett annat verktyg)
+ * begränsas till gränsen i stället för att slå runt till ett litet, rimligt tal.
+ */
+internal fun Number.toIntClamped(): Int = toLong().coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
 
 fun Doc.bool(key: String, default: Boolean = false): Boolean = this[key] as? Boolean ?: default
 
@@ -37,7 +43,7 @@ fun Doc.stringList(key: String): List<String> = (this[key] as? List<*>)?.filterI
 
 /** Veckodagar lagras som ISO-nummer (1 = måndag … 7 = söndag); ogiltiga tal hoppas över. */
 fun Doc.weekdays(key: String): Set<DayOfWeek> =
-    (this[key] as? List<*>)?.filterIsInstance<Number>()?.map { it.toInt() }
+    (this[key] as? List<*>)?.filterIsInstance<Number>()?.map { it.toIntClamped() }
         ?.filter { it in 1..7 }?.map { DayOfWeek(it) }?.toSet().orEmpty()
 
 /** Nästlat objekt; [codec] får det råa värdet och avgör vad saknat eller okänt betyder. */

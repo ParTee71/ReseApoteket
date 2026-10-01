@@ -13,7 +13,12 @@ Kör när appen inte används – dokument som ändras under körningen kan skri
   options: { to: { type: 'string' }, household: { type: 'string' }, 'dry-run': { type: 'boolean' } },
   main: async ({ to, household, 'dry-run': dryRun }) => {
     if (!to) throw new Error('--to saknas');
-    const result = await migrateHouseholds(openFirestore({ write: !dryRun }), Number(to), { household, dryRun });
-    printSummary(dryRun ? 'Torrkörning – skulle migrera:' : 'Migrerade:', result);
+    const { fel, ...counts } = await migrateHouseholds(openFirestore({ write: !dryRun }), Number(to), { household, dryRun });
+    printSummary(dryRun ? 'Torrkörning – skulle migrera:' : 'Migrerade:', counts);
+    if (fel) {
+      console.error('Kunde inte migreras:');
+      for (const line of fel) console.error(`  ${line}`);
+      process.exitCode = 1;
+    }
   },
 });

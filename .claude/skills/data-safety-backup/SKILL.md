@@ -27,7 +27,7 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 | Codec | `core/.../schema/*Codec.kt` | `encode`/`decode` byggda **enbart** av de delade fälthjälparna (`map.string`, `map.int`, `map.enum`, `map.localDate`, `map.nested`, `map.stringList` …) |
 | Schema | `core/.../schema/Schema.kt`, `SchemaMigrator.kt` | `Schema.CURRENT_VERSION`; migreringssteg per version |
 | Åtkomst | `app/.../data/firestore/FirestoreCollection.kt`, `Paths.kt` | Enda stället som talar med Firestore; sökvägar på ett ställe |
-| Regler | `firestore.rules` | Varje samling under `households/{hid}` skyddad av `memberUids` |
+| Regler | `firestore.rules` | Bara samlingarna i `collections.mjs`, var och en skyddad av `memberUids` och med typkontroll av kända fält; `schemaVersion` minst 1, kan inte sänkas och höjs högst till `maxSchemaVersion()` |
 | Samlingslista | `tools/db/lib/collections.mjs` | Enda listan export/import/query går igenom; testad mot `Paths` och rules |
 | Backup | `.github/workflows/backup.yml` | Veckovis export, krypterad artifact, 90 dagar |
 
@@ -40,9 +40,12 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
   Versionen hör till hushållet, inte till varje dokument, så **varje steg är idempotent** och
   hushållets `schemaVersion` höjs **bara** av en fullständig migrering av alla dess dokument
   (appen eller `tools/db/migrate.mjs`) – aldrig av en vanlig skrivning.
-- Saknas `schemaVersion` gäller `Schema.FIRST_VERSION`, aldrig "senaste".
+- Saknas `schemaVersion`, eller är den under `Schema.FIRST_VERSION` (trasigt värde), gäller
+  `Schema.FIRST_VERSION` (`Schema.versionOf`, `versionOf` i `lib/schema.mjs`), aldrig "senaste".
 - Höjs versionen: nytt steg i `SchemaMigrator` **och** spegling i `tools/db/migrate.mjs`,
-  test per steg, och `lib/schema.mjs` följer med (ett test jämför konstanterna).
+  test per steg, och `lib/schema.mjs` samt `maxSchemaVersion()` i `firestore.rules` följer med
+  (ett test jämför konstanterna). De nya rules deployas **före** appen – annars nekas
+  migreringens stämpling.
 - De flesta ändringar kräver **ingen** versionshöjning: ett nytt valfritt fält med default
   läses redan av gamla dokument. Höj bara vid betydelseändring (omdöpt fält, ändrad enhet,
   ändrad struktur) **och vid ett nytt enum-värde eller en ny `schedule`/`rule`-variant** –
@@ -75,7 +78,8 @@ fält den inte känner till. Den får aldrig radera dem när den sparar:
    `encode` skriver fältet även när det saknar värde (`null`).
 3. Tolka äldre dokument medvetet: saknas fältet → default. Behöver det härledas från
    andra fält, gör det i `decode` och testa det.
-4. Påverkar fältet vem som får läsa/skriva? Uppdatera `firestore.rules` + rules-test.
+4. Fältets typ i samlingens `valid…`-funktion i `firestore.rules` (`optInt`, `optString` …)
+   + rules-test; påverkar det vem som får läsa/skriva, även den regeln.
 5. Tester (nedan). Uppdatera rundturstestets seed så att fältet har ett icke-default-värde.
 6. KRAVLISTA: DAT-raden för modellen (regel 3).
 
@@ -84,7 +88,8 @@ fält den inte känner till. Den får aldrig radera dem när den sparar:
 1. Modell + `DocCodec` i `:core`.
 2. En rad i `Paths` och en `FirestoreCollection<T>` via `CollectionFactory` – ingen ny
    repository-mekanik (skill `firestore-data-layer`).
-3. `firestore.rules`-regel + rules-test.
+3. Egen `match` med `valid…`-funktion i `firestore.rules` + rules-test – en samling utan
+   regel nekas (och skulle annars stoppa backupen, BCK-8).
 4. En rad i `tools/db/lib/collections.mjs`.
 5. Rundturstestets seed får minst ett dokument i samlingen.
 6. KRAVLISTA: ny DAT-rad och BCK-raden som listar vad som ingår i backup.
