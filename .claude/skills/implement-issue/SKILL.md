@@ -93,6 +93,10 @@ ram/komponent – eller är diffen större än ett par filer – kör dessutom d
 reglerna; `/code-review` letar buggar. Verifiera varje fynd och åtgärda de verkliga. Rena
 dokument- och strängändringar behöver den inte.
 
+Ändras koden efter granskningen (rättningar av fynden) granskas rättningarna igen – `granskare`
+och `/code-review` på det som ändrats – innan push. En PR går aldrig ut med kod som ingen
+granskning sett.
+
 ## Steg 9 – Commit och push
 
 - Konventionella meddelanden, gärna svenska: `feat(packlista): …`, `fix(berakning): …`,
