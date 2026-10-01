@@ -26,9 +26,10 @@ Varje mockup startar från **mallen**: en Design-canvas med
 2. **beteendearket** – ramarnas tillstånd (lista: laddar/tom/fel/innehåll; redigering:
    ogiltig/giltig/sparfel/"Släng ändringar?"; arkivera med ångra; radering med bekräftelse).
 
-**Mallens länk:** _läggs in av #20 när mallen är godkänd._ Fram till dess används
-designreferensen https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p och katalogen i
-`shared-ui-components`.
+**Mallens länk:** https://claude.ai/artifact/JuYKsRkwnrcbzXz4ccBodk (komponentark,
+beteendeark och navigationsramen, godkänd i #20). Designreferensen för packlistan är
+fortfarande https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p. Mallen är en approximation –
+det byggda är facit: jämför med `ComponentGallery` och skärmdumparna i `app/src/test/screenshots/`.
 
 När katalogen ändras uppdateras mallen i samma PR som komponenten.
 

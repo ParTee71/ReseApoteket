@@ -29,6 +29,7 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * Tomt tillstånd (skill shared-ui-components): ikon, rubrik, en mening och en knapp som löser
  * det. [fullScreen] fyller skärmen med budskapet i mitten och knappen längst ned – för skärmar
  * som bara består av budskapet (inloggning, "Uppdatera appen"); annars står knappen under texten.
+ * [isError] tonar ikonrutan som ett fel (listans feltillstånd i `EntityListScreen`).
  */
 @Composable
 fun EmptyState(
@@ -38,6 +39,7 @@ fun EmptyState(
     modifier: Modifier = Modifier,
     note: String? = null,
     fullScreen: Boolean = false,
+    isError: Boolean = false,
     action: (@Composable () -> Unit)? = null,
 ) {
     val footer: @Composable ColumnScope.() -> Unit = {
@@ -54,7 +56,7 @@ fun EmptyState(
     }
     if (fullScreen) {
         Column(modifier.fillMaxSize().padding(horizontal = Spacing.xl, vertical = Spacing.xxl)) {
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Message(icon, title, message) }
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Message(icon, title, message, isError) }
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.m), content = footer)
         }
     } else {
@@ -63,33 +65,35 @@ fun EmptyState(
             verticalArrangement = Arrangement.spacedBy(Spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Message(icon, title, message)
+            Message(icon, title, message, isError)
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.m), content = footer)
         }
     }
 }
 
 @Composable
-private fun Message(@DrawableRes icon: Int, title: String, message: String) {
+private fun Message(@DrawableRes icon: Int, title: String, message: String, isError: Boolean) {
+    val tile = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+    val onTile = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.xl),
     ) {
         Box(
-            Modifier.size(ICON_TILE).background(MaterialTheme.colorScheme.primaryContainer, AppShapes.iconTile),
+            Modifier.size(ICON_TILE).background(tile, AppShapes.iconTile),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painterResource(icon),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = onTile,
                 modifier = Modifier.size(ICON),
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
             Text(
                 title,
-                style = AppTypography.screenTitle,
+                style = AppTypography.headline,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.semantics { heading() },

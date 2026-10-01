@@ -1,0 +1,10 @@
+Typsnitt i appen (app/src/main/res/font/)
+
+Nunito (nunito_extrabold.ttf)
+Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
+
+Nunito Sans (nunito_sans_regular.ttf, nunito_sans_semibold.ttf, nunito_sans_bold.ttf)
+Copyright 2016 The Nunito Sans Project Authors (https://github.com/Fonthausen/NunitoSans)
+
+Båda är licensierade under SIL Open Font License, version 1.1:
+https://openfontlicense.org/open-font-license-official-text/
