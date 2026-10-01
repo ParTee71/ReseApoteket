@@ -39,8 +39,13 @@ class FirestoreHouseholdDirectory @Inject constructor(
         // ligger kvar i cachen och kan nå servern senare – nästa försök skriver samma hushåll
         // (DefaultHouseholdRepository återanvänder det), så det blir aldrig två. Merge som alla
         // skrivningar (BCK-3).
-        withTimeoutOrNull(CREATE_TIMEOUT) { db.document(Paths.household(household.id)).set(data, SetOptions.merge()).await() }
-            ?: throw DataError.Offline
+        // await() ger null även när skrivningen lyckas – därför ett eget kvitto, så att bara
+        // en timeout räknas som offline.
+        val confirmed = withTimeoutOrNull(CREATE_TIMEOUT) {
+            db.document(Paths.household(household.id)).set(data, SetOptions.merge()).await()
+            true
+        }
+        if (confirmed == null) throw DataError.Offline
     }
 
     private companion object {
