@@ -94,6 +94,7 @@ class CatalogScreenshotTest {
                 ApotekCard {
                     CheckRow("Enalapril 10 mg", false, {}, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
                     CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
+                    CheckRow("Alvedon 250 mg", false, {}, subtitle = "14 tabletter", onClick = {}, accent = AppColors.person(2), trailing = { InfoPill("ändrad") })
                 }
             }
         }
@@ -216,6 +217,7 @@ class CatalogScreenshotTest {
                 LabeledGroup("Snabbval", helper = "Fyller i namnet – resten väljer du själv") { ChipRow { AppFilterChip("Omega-3", false, {}) } }
             }
         }
+        captureLightAndDark("FieldError_sparfel") { Sheet { FieldError("Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.") } }
         captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}) } }
         captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX[3], {}) } }
         captureLightAndDark("AppSegmentedChoice_tema") { Sheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), 2, {}) } }
@@ -263,6 +265,7 @@ class CatalogScreenshotTest {
         captureLightAndDark("SuitcaseProgress_varianter") {
             Sheet {
                 ApotekCard { SuitcaseProgress(9, 14) }
+                ApotekCard(tone = Tone.Green) { SuitcaseProgress(14, 14) }
                 SuitcaseProgress(4, 10, compact = true)
                 SuitcaseProgress(0, 0, compact = true)
             }

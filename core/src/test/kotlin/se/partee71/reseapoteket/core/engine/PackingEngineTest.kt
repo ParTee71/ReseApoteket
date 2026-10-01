@@ -368,5 +368,8 @@ class PackingEngineTest {
         )
         assertEquals(PackingProgress(1, 2), PackingEngine.progress(items))
         assertEquals(PackingProgress.NONE, PackingEngine.progress(emptyList()))
+        assertEquals(true, PackingProgress(2, 2).isComplete)
+        assertEquals(false, PackingProgress(1, 2).isComplete)
+        assertEquals(false, PackingProgress.NONE.isComplete, "en tom lista är inte packad")
     }
 }

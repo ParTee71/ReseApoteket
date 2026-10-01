@@ -133,6 +133,7 @@ private fun Rows() {
         AppDivider()
         CheckRow("Enalapril 10 mg", packed, { packed = it }, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
         CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
+        CheckRow("Ventoline", false, {}, subtitle = "1 st", onClick = {}, accent = AppColors.person(1), trailing = { InfoPill("vid behov", tone = Tone.Blue) })
         AppDivider()
         SwitchRow("Flytta avprickade sist", sorted, { sorted = it }, subtitle = "I packlistan")
     }
@@ -163,6 +164,7 @@ private fun Fields() {
     LabeledGroup("Form") {
         ChoiceChips(listOf(0, 1, 2, 3), form, { form = it }, { listOf("Tablett", "Kapsel", "Flytande", "Inhalator")[it] })
     }
+    FieldError("Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.")
     AppFilterChip("Flytande", selected = false, onClick = {}, enabled = false)
     ExampleChips(listOf("D-vitamin", "Omega-3", "Magnesium"), {}, chosen = "D-vitamin")
     ChipRow(wrap = false) {
@@ -193,6 +195,7 @@ private fun Fields() {
 @Composable
 private fun Progress() {
     ApotekCard { SuitcaseProgress(packed = 9, total = 14) }
+    ApotekCard(tone = Tone.Green) { SuitcaseProgress(packed = 14, total = 14) }
     SuitcaseProgress(packed = 4, total = 10, compact = true)
     Box(Modifier.fillMaxWidth().height(96.dp)) { AppLoading() }
     var tab by remember { mutableIntStateOf(0) }
@@ -285,6 +288,28 @@ private fun Frames(onBack: () -> Unit) {
             onAdd = {},
             key = { it },
         ) {}
+    }
+    Label("EntityListScreen – rubrik, grupper, undergrupper, kolumner, hopfällbar")
+    val grouped = listOf("Anna" to "Levaxin 50 µg", "Erik" to "Ventoline", "" to "Solkräm", "" to "Plåster", "" to "Myggmedel", "-" to "Halstabletter")
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        EntityListScreen(
+            title = "Kreta",
+            subtitle = "2 okt · 7 dagar",
+            state = ListUiState.Content(grouped),
+            empty = EmptyContent(R.drawable.ic_family_items, "", "", ""),
+            onAdd = {},
+            key = { it.second },
+            onBack = {},
+            header = { ApotekCard { SuitcaseProgress(packed = 2, total = 5) } },
+            group = { (who, _) ->
+                when (who) {
+                    "" -> ListGroup("Övrigt", count = "1 / 3", columns = 2)
+                    "-" -> ListGroup("Dolda", count = "1", collapsible = true)
+                    else -> ListGroup("Mediciner", tone = Tone.Blue, count = "1 / 2")
+                }
+            },
+            subgroup = { (who, _) -> if (who.length > 1) ListSubgroup(who, AppColors.person(if (who == "Anna") 0 else 1)) else null },
+        ) { (_, name) -> CheckRow(name, name.startsWith("S") || name.startsWith("L"), {}) }
     }
     Label("EntityDetailScreen – finns inte längre")
     Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {

@@ -13,19 +13,27 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.ui.common.toMessage
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppShapes
 import se.partee71.reseapoteket.ui.theme.AppTypography
 import se.partee71.reseapoteket.ui.theme.Spacing
 
-/** Bottom sheet med rubrik, t.ex. "ändra mängd" i packlistan. Öppnas helt direkt. */
+/**
+ * Bottom sheet med rubrik, t.ex. "ändra mängd" i packlistan. Öppnas helt direkt. Ett skrivfel
+ * ([error], via `DataError.toMessage()`) visas sist i panelen, eftersom panelen ligger över
+ * skärmens meddelanden.
+ */
 @Composable
 fun AppBottomSheet(
     title: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    error: DataError? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     ModalBottomSheet(
@@ -41,6 +49,7 @@ fun AppBottomSheet(
         ) {
             Text(title, style = AppTypography.sectionTitle, modifier = Modifier.semantics { heading() })
             content()
+            error?.let { FieldError(stringResource(it.toMessage())) }
         }
     }
 }

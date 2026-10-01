@@ -42,6 +42,7 @@ fälthjälparna; toleranta mot saknade och okända fält.
 | `upsert(item)` | `set(…, merge)` med codecens fullständiga fältlista; okända fält bevaras, `null` tömmer; `updatedAt` sätts, `createdAt` utan värde skrivs inte (`prepareForWrite`) |
 | `delete(id)` | permanent radering |
 | `setArchived(id, archived)` | ändrar bara `archived` via `update` – ett raderat dokument återuppstår inte |
+| `update(item, fields)`, `updateAll(items, fields)` | Firestores `update` (i en batch): bara [fields] plus `updatedAt` (`fieldsForUpdate`), varje fält ersätts helt (en map slås inte ihop), okänt fält är fel, ett dokument som inte finns skapas inte; atomärt inom bitar om 500. Fältnamnen som konstanter i codecen (`TripCodec.STATUS`, `PackingItemCodec.CHECKED` …) |
 | `batch(upserts, deletes)` | i bitar om 500 – atomärt inom varje bit, inte över bitar |
 | `newId()` | slumpat klient-ID – fungerar offline |
 

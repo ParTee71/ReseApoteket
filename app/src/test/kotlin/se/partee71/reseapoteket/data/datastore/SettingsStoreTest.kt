@@ -32,6 +32,14 @@ class SettingsStoreTest {
     }
 
     @Test
+    fun `avprickade flyttas sist tills användaren stänger av det (SET-3)`() = runTest {
+        val settings = SettingsStore(dataStore())
+        assertEquals(true, settings.moveCheckedLast.first())
+        settings.setMoveCheckedLast(false)
+        assertEquals(false, settings.moveCheckedLast.first())
+    }
+
+    @Test
     fun `ett okänt lagrat tema, t_ex från en nyare app, ger System`() = runTest {
         val store = dataStore()
         store.edit { it[stringPreferencesKey("themeMode")] = "Sepia" }

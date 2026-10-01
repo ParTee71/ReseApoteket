@@ -7,12 +7,15 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.core.engine.PackingEngine
+import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingPreviewText
 import se.partee71.reseapoteket.core.engine.PackingSuggestion
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.HouseholdSettings
+import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
+import se.partee71.reseapoteket.core.schema.TripCodec
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.combineByKey
 import se.partee71.reseapoteket.data.common.suspendRunCatching
@@ -69,22 +72,36 @@ class TripPacking @Inject constructor(
      * först, så att ett läsfel inte lämnar resan halvsparad. Packlistan skrivs före resan: en ny
      * resa finns aldrig utan sin lista, och en ändrad resa står kvar som osparad om listan inte
      * gick att skriva. (Skrivningar läggs i cachen direkt; fel efter läsningen är sällsynta.)
+     * En befintlig resa skrivs bara med formulärets fält, så att statusen som packlistan satt under
+     * tiden inte skrivs över; efter en omräkning följer statusen den nya listan (PAK-5).
      */
     suspend fun save(trip: Trip, update: PackingUpdate): Result<Unit> = suspendRunCatching({ DataError.Unknown }) {
         when (update) {
-            PackingUpdate.KEEP -> Unit
+            PackingUpdate.KEEP -> trips.update(trip, TripCodec.FORM_FIELDS)
             PackingUpdate.CREATE -> {
-                val items = suggest(trip).items
                 // Ett tidigare försök kan ha skrivit en lista – den ersätts helt.
-                packing.replacePackingItems(trip.id, items).getOrThrow()
+                packing.replacePackingItems(trip.id, suggest(trip).items).getOrThrow()
+                trips.upsert(trip)
             }
             PackingUpdate.RECOUNT -> {
-                val existing = packing.forTrip(trip.id).getAll().getOrThrow()
-                val items = PackingEngine.merge(existing, suggest(trip))
-                packing.replacePackingItems(trip.id, items, existing).getOrThrow()
+                val status = PackingList.statusAfter(trip.status, PackingEngine.progress(recountList(trip)))
+                trips.update(trip.copy(status = status), TripCodec.FORM_FIELDS + TripCodec.STATUS)
             }
-        }
-        trips.upsert(trip).getOrThrow()
+        }.getOrThrow()
+    }
+
+    /**
+     * "Räkna om" från packlistan (RES-4): bara listan skrivs, aldrig resan, så att en ändring av
+     * resan någon annanstans inte skrivs över med packlistans kopia.
+     */
+    suspend fun recount(trip: Trip): Result<Unit> = suspendRunCatching({ DataError.Unknown }) { recountList(trip) }
+
+    /** Den omräknade listan, skriven. */
+    private suspend fun recountList(trip: Trip): List<PackingItem> {
+        val existing = packing.forTrip(trip.id).getAll().getOrThrow()
+        val items = PackingEngine.merge(existing, suggest(trip))
+        packing.replacePackingItems(trip.id, items, existing).getOrThrow()
+        return items
     }
 
     private suspend fun suggest(trip: Trip): PackingSuggestion = PackingEngine.suggest(

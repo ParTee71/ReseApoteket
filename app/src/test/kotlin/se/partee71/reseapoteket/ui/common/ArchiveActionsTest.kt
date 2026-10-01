@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.MainDispatcherRule
@@ -24,10 +25,14 @@ class ArchiveActionsTest {
     private val written = mutableListOf<Pair<String, Boolean>>()
     private var result: Result<Unit> = Result.success(Unit)
 
-    private fun actions() = ArchiveActions(CoroutineScope(main.dispatcher)) { id, archived ->
-        written += id to archived
-        result
-    }
+    private fun actions(undoFormat: Int = R.string.archived_format) = ArchiveActions(
+        CoroutineScope(main.dispatcher),
+        setArchived = { id, archived ->
+            written += id to archived
+            result
+        },
+        undoFormat = undoFormat,
+    )
 
     @Test
     fun `arkivera ger Ångra, och Ångra återställer en gång`() = runTest {
@@ -61,5 +66,14 @@ class ArchiveActionsTest {
         assertEquals(listOf("Bo", "Anna"), archive.visible(all).first().map { it.name })
         archive.onEvent(ArchiveEvent.ToggleArchived)
         assertFalse(archive.showingArchived.value)
+    }
+
+    @Test
+    fun `samma mekanik döljer en rad med ett eget meddelande, och andra fel visas likadant`() {
+        val hiding = actions(R.string.hidden_format)
+        hiding.onEvent(ArchiveEvent.Archive("p", "Plåster"))
+        assertEquals(UndoRequest("p", "Plåster", R.string.hidden_format), hiding.undo.value)
+        hiding.report(DataError.Offline)
+        assertEquals(DataError.Offline, hiding.error.value)
     }
 }

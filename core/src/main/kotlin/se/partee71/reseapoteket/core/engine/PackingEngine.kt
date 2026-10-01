@@ -30,6 +30,9 @@ data class PackingPreviewText(val context: String, val quantity: String, val rea
 
 /** Hur mycket av en packlista som är packat: avprickade och totalt bland de synliga raderna. */
 data class PackingProgress(val packed: Int, val total: Int) {
+    /** Allt packat (PAK-5); en tom lista räknas inte som packad. */
+    val isComplete: Boolean get() = total > 0 && packed == total
+
     companion object {
         val NONE = PackingProgress(0, 0)
     }

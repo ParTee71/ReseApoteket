@@ -34,6 +34,17 @@ interface EntityCollection<T : Identified> {
     /** Ändrar bara `archived`; ett dokument som inte finns skapas inte. */
     suspend fun setArchived(id: String, archived: Boolean): Result<Unit>
 
+    /**
+     * Skriver bara [fields] ur [item], kodade som vid [upsert] – t.ex. en resas status – och
+     * `updatedAt`. Varje fält ersätts helt (en map slås inte ihop). Andra fält som ändrats under
+     * tiden (på en annan enhet, i ett annat formulär) skrivs inte över, och ett dokument som inte
+     * finns skapas inte. Ett fältnamn som codecen inte känner till är ett fel.
+     */
+    suspend fun update(item: T, fields: Set<String>): Result<Unit> = updateAll(listOf(item), fields)
+
+    /** [update] för flera på en gång – atomärt inom varje bit om 500 (Firestores gräns). */
+    suspend fun updateAll(items: List<T>, fields: Set<String>): Result<Unit>
+
     /** Flera skrivningar i ett svep – atomärt inom varje bit om 500 (Firestores gräns). */
     suspend fun batch(upserts: List<T>, deletes: List<String> = emptyList()): Result<Unit>
 

@@ -8,12 +8,18 @@ import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
 
 object TripCodec : DocCodec<Trip> {
+    /** Fältet som packlistan skriver när resans status följer listan (PAK-5). */
+    const val STATUS = "status"
+
+    /** Fälten som reseformuläret ändrar – inte status, som följer packlistan (PAK-5). */
+    val FORM_FIELDS = setOf("name", "startDate", "days", "travellerIds")
+
     override fun encode(value: Trip): Doc = mapOf(
         "name" to value.name,
         "startDate" to value.startDate.encodeDate(),
         "days" to value.days,
         "travellerIds" to value.travellerIds,
-        "status" to value.status.encodeEnum(),
+        STATUS to value.status.encodeEnum(),
         "createdAt" to value.createdAt,
         "updatedAt" to value.updatedAt,
         "archived" to value.archived,
@@ -25,7 +31,7 @@ object TripCodec : DocCodec<Trip> {
         startDate = map.localDate("startDate"),
         days = map.int("days", default = 1),
         travellerIds = map.stringList("travellerIds"),
-        status = map.enum("status", TripStatus.PLANNING),
+        status = map.enum(STATUS, TripStatus.PLANNING),
         createdAt = map.instant("createdAt"),
         updatedAt = map.instant("updatedAt"),
         archived = map.bool("archived"),
@@ -33,6 +39,13 @@ object TripCodec : DocCodec<Trip> {
 }
 
 object PackingItemCodec : DocCodec<PackingItem> {
+    // Fälten som packlistan skriver var för sig (PAK-2–4), så att en samtidig ändring av en annan
+    // del av raden inte skrivs över.
+    const val QUANTITY = "quantity"
+    const val CHECKED = "checked"
+    const val CHECKED_AT = "checkedAt"
+    const val HIDDEN = "hidden"
+
     override fun encode(value: PackingItem): Doc = mapOf(
         "section" to value.section.encodeEnum(),
         "personId" to value.personId,
@@ -41,12 +54,12 @@ object PackingItemCodec : DocCodec<PackingItem> {
         "name" to value.name,
         "unit" to value.unit.encodeEnum(),
         "suggestedQuantity" to value.suggestedQuantity,
-        "quantity" to value.quantity,
+        QUANTITY to value.quantity,
         "packages" to value.packages,
         "reason" to value.reason,
-        "checked" to value.checked,
-        "checkedAt" to value.checkedAt,
-        "hidden" to value.hidden,
+        CHECKED to value.checked,
+        CHECKED_AT to value.checkedAt,
+        HIDDEN to value.hidden,
         "sortOrder" to value.sortOrder,
     )
 
@@ -59,12 +72,12 @@ object PackingItemCodec : DocCodec<PackingItem> {
         name = map.string("name"),
         unit = map.enum("unit", ItemUnit.ST),
         suggestedQuantity = map.int("suggestedQuantity"),
-        quantity = map.int("quantity"),
+        quantity = map.int(QUANTITY),
         packages = map.intOrNull("packages"),
         reason = map.string("reason"),
-        checked = map.bool("checked"),
-        checkedAt = map.instant("checkedAt"),
-        hidden = map.bool("hidden"),
+        checked = map.bool(CHECKED),
+        checkedAt = map.instant(CHECKED_AT),
+        hidden = map.bool(HIDDEN),
         sortOrder = map.int("sortOrder"),
     )
 }

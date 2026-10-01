@@ -6,10 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import kotlin.test.assertEquals
@@ -24,11 +28,11 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
-import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorEffect
-import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
+import se.partee71.reseapoteket.ui.common.DetailUiState
+import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorState
+import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.runEditScreenContract
@@ -66,6 +70,63 @@ class FramesTest {
         rule.onNodeWithText("Krämer & salvor").assertIsDisplayed()
         rule.onNodeWithText("2").assertIsDisplayed()
         rule.onNodeWithText("Plåster & förband").assertIsDisplayed()
+    }
+
+    @Test
+    fun `undergrupper, två kolumner, en hopfälld grupp och rubrik överst`() {
+        val rows = listOf("A1" to "a", "A2" to "a", "B1" to "b", "Ö1" to "ö", "Ö2" to "ö", "Ö3" to "ö", "D1" to "d")
+        val groups = mapOf(
+            "a" to ListGroup("Mediciner", count = "1 / 2"),
+            "b" to ListGroup("Mediciner"),
+            "ö" to ListGroup("Övrigt", columns = 2),
+            "d" to ListGroup("Dolda", collapsible = true),
+        )
+        rule.setContent {
+            ReseApoteketTheme {
+                EntityListScreen(
+                    "Gran Canaria",
+                    ListUiState.Content(rows),
+                    empty,
+                    {},
+                    key = { it.first },
+                    group = { groups.getValue(if (it.second == "b") "a" else it.second) },
+                    subtitle = "7 dagar",
+                    header = { ItemRow("Rubrikplats") },
+                    subgroup = { row -> ListSubgroup(if (row.second == "b") "Erik" else "Anna", AppColors.person(0)).takeIf { row.second in setOf("a", "b") } },
+                    archive = ListArchive(showToggle = false),
+                ) { ItemRow(it.first) }
+            }
+        }
+        rule.onNodeWithText("Rubrikplats").assertIsDisplayed()
+        rule.onNodeWithText("7 dagar").assertIsDisplayed()
+        rule.onNodeWithText("1 / 2").assertIsDisplayed()
+        rule.onNodeWithText("Anna").assertIsDisplayed()
+        rule.onNodeWithText("Erik").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Fler val").assertDoesNotExist()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Ö2"))
+        val left = rule.onNodeWithText("Ö1").fetchSemanticsNode().positionInRoot
+        val right = rule.onNodeWithText("Ö2").fetchSemanticsNode().positionInRoot
+        assertEquals(left.y, right.y, "två kolumner: samma rad")
+        rule.onNodeWithText("D1").assertDoesNotExist()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Dolda"))
+        rule.onNodeWithText("Dolda").performClick()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("D1"))
+        rule.onNodeWithText("D1").assertExists()
+    }
+
+    @Test
+    fun `en utfälld grupp står kvar efter att skärmen återskapats`() {
+        val restore = StateRestorationTester(rule)
+        restore.setContent {
+            ReseApoteketTheme {
+                EntityListScreen("Gran Canaria", ListUiState.Content(listOf("A1", "D1")), empty, {}, key = { it }, group = { ListGroup(if (it == "D1") "Dolda" else "Övrigt", collapsible = it == "D1") }) { ItemRow(it) }
+            }
+        }
+        rule.onNodeWithText("D1").assertDoesNotExist()
+        rule.onNodeWithText("Dolda").performClick()
+        rule.onNodeWithText("D1").assertIsDisplayed()
+        restore.emulateSavedInstanceStateRestore()
+        rule.onNodeWithText("D1").assertIsDisplayed()
     }
 
     @Test

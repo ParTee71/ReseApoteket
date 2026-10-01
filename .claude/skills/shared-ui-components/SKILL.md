@@ -25,14 +25,15 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Knapp (primär/sekundär/text/destruktiv) | `AppButton` | M3-knappar, `variant`- och `compact`-parameter |
 | Ikonknapp | `AppIconButton` | M3 ikonknapp, min 48 dp |
 | Split-knapp "Lägg till ▾" | `AddSplitButton` | Expressive split-knapp |
-| Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing` |
+| Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing`; `tone` färgar ytan (grönt när allt är packat) |
 | Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat) |
 | Resenärer på en resa | `AvatarStack` | överlappande `PersonAvatar` (Small) med ring; TalkBack läser namnen |
 | Pausbar rad (recept, kosttillskott, familjeartikel) | `PausableRow` | `ItemRow` + typ som `InfoPill`; pausad nedtonad med "Pausat" |
-| Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss |
+| Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss; med `onClick` är krysset en egen knapp (läses med namn och mängd) och raden öppnar detaljer; `accent` = personens färg |
 | Sektionsrubrik med räknare | `SectionHeader` | `InfoPill` för räknaren |
 | Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
 | Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet, valfri `helper` under och fältfel (`error`, `FieldError`) |
+| Fel under ett fält eller i en panel | `FieldError` | Felfärg, läses som fel; ett skrivfel i ett bottom sheet visas via `AppBottomSheet(error)` |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
@@ -47,7 +48,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Antal ± | `QuantityStepper` | M3 ikonknappar i en pill, `label` för TalkBack |
 | Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper`; valideringsfel (`error`) under fälten |
 | Mängdregel | `QuantityRuleRow` | `AppFilterChip` + `QuantityStepper`; valideringsfel (`error`) under fälten |
-| Packprogress | `SuitcaseProgress` | Expressive vågig progress, `compact`-parameter |
+| Packprogress | `SuitcaseProgress` | Expressive vågig progress, `compact`-parameter; allt packat → "Allt packat! 🧳" |
 | Laddning | `AppLoading` | Expressive laddningsindikator |
 | Tomt tillstånd | `EmptyState` | ikon + text + `AppButton` |
 | Bekräftelse | `ConfirmDialog` | M3 dialog, `destructive`-parameter |
@@ -66,10 +67,10 @@ komponent, komponentnamnet i backticks först i kolumn två.
 
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
-| Listskärm | `EntityListScreen` | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden |
+| Listskärm | `EntityListScreen` | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal eller `ListGroup.count`, `columns` = 2 kolumner, `collapsible` = hopfälld) och undergrupper (`ListSubgroup`, personens namn i färg); lägg till (`AddSplitButton`) ovanför verktygsraden; för en undersida `onBack`, `subtitle`, `actions` och `header` överst i listan; `ListArchive.showToggle = false` utan "Visa arkiverade" |
 | Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); arkivera/återställ/radera i menyn |
 | Detaljskärm | `EntityDetailScreen` | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `ApotekCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
-| Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s; `enabled = false` för en redan arkiverad rad |
+| Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s (packlistan: "%s dold" via `ArchiveActions(undoFormat)`); `enabled = false` för en redan arkiverad rad |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
 | Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep. `onDecline` när nej-knappen gör något annat än att stänga ("Behåll listan") |
 | Förhandsvisning av beräkning | `PackingPreview` | Samma format i recept, kosttillskott, familjeartiklar |
@@ -96,8 +97,10 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `NotFound`, `Unknown`) i `data/common/` |
 | Fel till text | `DataError.toMessage()` i `ui/common/`; `NotFound` (raderat) visas utan "Försök igen" |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
+| Skriva bara vissa fält (resans status, en rads avprickning) | `EntityCollection.update(item, fields)` / `updateAll` (atomärt) med fältnamnen som konstanter i codecen (`TripCodec.STATUS`, `PackingItemCodec.CHECKED`); se skill `firestore-data-layer` |
 | Beräkningar | `PackingEngine` i `:core` |
-| Packförslag för en resa (förhandsvisning, spara med packlista, räkna om) | `TripPacking` i `domain/` – enda stället som hämtar underlaget till `PackingEngine`; `save` läser allt före skrivning |
+| Packlistans ordning, dolda, ändrad mängd och resans status | `PackingList` i `:core` (`arrange`, `isChanged`, `amount`, `statusAfter`) |
+| Packförslag för en resa (förhandsvisning, spara med packlista, räkna om) | `TripPacking` i `domain/` – enda stället som hämtar underlaget till `PackingEngine`; `save` läser allt före skrivning, `recount` skriver bara listan |
 | Svensk sortering av namn | `SwedishOrder.names` i `:core` |
 | Mängd-, doserings- och regeltexter | `ReasonFormatter`, `DoseScheduleFormatter`, `QuantityRuleFormatter` i `:core` |
 | Lista + data per nyckel ur den (recept per person, packlista per resa) | `combineByKey` i `data/common/` – källan följs en gång, flödet för nyckeln byts bara när nyckeln ändras |

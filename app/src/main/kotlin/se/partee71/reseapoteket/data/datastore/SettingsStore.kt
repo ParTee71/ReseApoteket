@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -105,11 +106,19 @@ class SettingsStore @Inject constructor(private val store: DataStore<Preferences
         store.edit { it[THEME_MODE] = mode.name }
     }
 
+    /** "Flytta avprickade sist" i packlistan (SET-3); på tills användaren stänger av den. */
+    val moveCheckedLast: Flow<Boolean> = preferences.map { it[MOVE_CHECKED_LAST] ?: true }
+
+    suspend fun setMoveCheckedLast(on: Boolean) {
+        store.edit { it[MOVE_CHECKED_LAST] = on }
+    }
+
     private companion object {
         val ACTIVE_HOUSEHOLD = stringPreferencesKey("activeHouseholdId")
         val PENDING_ID = stringPreferencesKey("pendingHouseholdId")
         val PENDING_OWNER = stringPreferencesKey("pendingHouseholdOwner")
         val PENDING_CREATED_AT = longPreferencesKey("pendingHouseholdCreatedAt")
         val THEME_MODE = stringPreferencesKey("themeMode")
+        val MOVE_CHECKED_LAST = booleanPreferencesKey("moveCheckedLast")
     }
 }

@@ -1,5 +1,6 @@
 package se.partee71.reseapoteket.ui.common
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Archivable
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.dataError
@@ -32,12 +34,14 @@ sealed interface ArchiveEvent {
 /**
  * Den enda arkiveringslogiken för en listskärms ViewModel (skill shared-ui-components): vad
  * `SwipeToHide`, `UndoSnackbar` och "Visa arkiverade" i `EntityListScreen` behöver. [setArchived]
- * skriver; ett fel visas som meddelande ([error]) i stället för att tappas. ViewModeln exponerar
+ * skriver; ett fel visas som meddelande ([error]) i stället för att tappas. Samma mekanik för
+ * att dölja en rad i packlistan: [setArchived] sätter då `hidden` och [undoFormat] är "%s dold". ViewModeln exponerar
  * den som `archive`, och skärmen skickar `archive.collectAsListArchive()` till listan.
  */
 class ArchiveActions(
     private val scope: CoroutineScope,
     private val setArchived: suspend (id: String, archived: Boolean) -> Result<Unit>,
+    @param:StringRes private val undoFormat: Int = R.string.archived_format,
 ) {
     private val _showingArchived = MutableStateFlow(false)
     val showingArchived: StateFlow<Boolean> = _showingArchived.asStateFlow()
@@ -53,10 +57,15 @@ class ArchiveActions(
     fun <T : Archivable> visible(source: Flow<List<T>>): Flow<List<T>> =
         combine(source, _showingArchived) { all, showArchived -> all.filter { showArchived || !it.archived }.sortedBy { it.archived } }
 
+    /** Ett fel från en annan skrivning i samma lista (t.ex. en avprickning) visas på samma sätt. */
+    fun report(error: DataError) {
+        _error.value = error
+    }
+
     fun onEvent(event: ArchiveEvent) {
         when (event) {
             is ArchiveEvent.Archive -> scope.launch {
-                setArchived(event.id, true).dataError()?.let { _error.value = it } ?: run { _undo.value = UndoRequest(event.id, event.name) }
+                setArchived(event.id, true).dataError()?.let { _error.value = it } ?: run { _undo.value = UndoRequest(event.id, event.name, undoFormat) }
             }
             ArchiveEvent.Undo -> {
                 val request = _undo.value ?: return
@@ -70,11 +79,11 @@ class ArchiveActions(
     }
 }
 
-/** Tillståndet som listan visar, med händelserna tillbaka hit (NFR-3). */
+/** Tillståndet som listan visar, med händelserna tillbaka hit (NFR-3); [showToggle] = "Visa arkiverade" i menyn. */
 @Composable
-fun ArchiveActions.collectAsListArchive(): ListArchive {
+fun ArchiveActions.collectAsListArchive(showToggle: Boolean = true): ListArchive {
     val showing by showingArchived.collectAsStateWithLifecycle()
     val request by undo.collectAsStateWithLifecycle()
     val failure by error.collectAsStateWithLifecycle()
-    return ListArchive(showing, request, failure, ::onEvent)
+    return ListArchive(showing, request, failure, showToggle, ::onEvent)
 }
