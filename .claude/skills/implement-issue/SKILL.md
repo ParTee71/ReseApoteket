@@ -87,6 +87,12 @@ får skärmdump ljust + mörkt och plats i `ComponentGallery`.
 Kör agenten **`granskare`** på diffen och åtgärda varje ⚠️/❌ i dess tabell. Spåra varje
 acceptanskriterium till kod eller test. Kan du inte det är du inte klar.
 
+Rör ändringen logik i `:core`, datalagret, `firestore.rules`, `tools/db` eller en delad
+ram/komponent – eller är diffen större än ett par filer – kör dessutom den inbyggda
+**`/code-review`** på diffen, *efter* `granskare` och innan push. `granskare` kontrollerar
+reglerna; `/code-review` letar buggar. Verifiera varje fynd och åtgärda de verkliga. Rena
+dokument- och strängändringar behöver den inte.
+
 ## Steg 9 – Commit och push
 
 - Konventionella meddelanden, gärna svenska: `feat(packlista): …`, `fix(berakning): …`,
