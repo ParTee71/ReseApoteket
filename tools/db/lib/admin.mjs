@@ -1,0 +1,40 @@
+// Admin SDK mot Firestore – enda stället som initierar (skill db-access, data-safety-backup).
+// Riktig databas: FIREBASE_SERVICE_ACCOUNT (base64 av service-account-JSON; skrivningar tar
+// FIREBASE_SERVICE_ACCOUNT_RW om den finns). Emulator: FIRESTORE_EMULATOR_HOST.
+// Testläge (BCK-4): bara emulatorn och ett demo-projekt – aldrig den riktiga databasen.
+import { cert, initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+let appCount = 0;
+const newApp = (options) => initializeApp(options, `tools-db-${++appCount}`);
+
+/** Under `node --test` sätts NODE_TEST_CONTEXT; testhjälparen begär dessutom alltid testläge. */
+const inTestMode = (requested) => requested || Boolean(process.env.NODE_TEST_CONTEXT);
+
+/**
+ * Firestore-instans. `test: true` (eller körning under node --test) godkänner bara
+ * FIRESTORE_EMULATOR_HOST satt och ett projekt-ID som börjar med `demo-`.
+ */
+export function openFirestore({ test = false, write = false, projectId } = {}) {
+  const emulator = process.env.FIRESTORE_EMULATOR_HOST;
+  if (inTestMode(test)) {
+    const id = projectId ?? process.env.GCLOUD_PROJECT;
+    const local = /^(localhost|127\.0\.0\.1|\[::1\]):\d+$/.test(emulator ?? '');
+    if (!local || !id?.startsWith('demo-')) {
+      throw new Error('Testläge: bara en lokal Firebase-emulator (FIRESTORE_EMULATOR_HOST) och ett demo-projekt tillåts.');
+    }
+    return getFirestore(newApp({ projectId: id }));
+  }
+  if (emulator) return getFirestore(newApp({ projectId: projectId ?? process.env.GCLOUD_PROJECT ?? 'demo-reseapoteket' }));
+
+  const name = write && process.env.FIREBASE_SERVICE_ACCOUNT_RW ? 'FIREBASE_SERVICE_ACCOUNT_RW' : 'FIREBASE_SERVICE_ACCOUNT';
+  const encoded = process.env[name];
+  if (!encoded) throw new Error(`${name} saknas – lägg in den i miljöns inställningar (skill db-access), aldrig i chatten.`);
+  let account;
+  try {
+    account = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
+  } catch {
+    throw new Error(`${name} är inte base64-kodad JSON.`); // värdet skrivs aldrig ut
+  }
+  return getFirestore(newApp({ credential: cert(account), projectId: account.project_id }));
+}
