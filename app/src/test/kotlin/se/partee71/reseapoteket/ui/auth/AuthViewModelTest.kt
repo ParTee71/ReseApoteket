@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.ui.auth
 
 import android.content.Context
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -142,6 +143,54 @@ class AuthViewModelTest {
 
         vm.awaitGate(AuthGate.SignedOut)
         fixture.session.householdId.first { it == null }
+    }
+
+    @Test
+    fun `borttagen ur det valda hushållet - appen fastnar inte utan väljer ett annat (HUS-5)`() = runTest(main.dispatcher) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.storeHousehold(Household("eriks", "Eriks", listOf("uid-erik")))
+        fixture.storeHousehold(Household("annas", "Annas", listOf("uid-anna")))
+        fixture.denied.value = setOf("eriks")
+        fixture.session.select("eriks")
+        auth.authState.value = AuthUser("uid-anna")
+        val (_, vm) = viewModel(fixture)
+
+        assertEquals(AuthUiState(AuthGate.Ready), vm.awaitGate(AuthGate.Ready))
+        assertEquals("annas", fixture.session.householdId.value)
+    }
+
+    @Test
+    fun `borttagen ur sitt enda hushåll - ett nytt skapas (HUS-5, HUS-2)`() = runTest(main.dispatcher) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.storeHousehold(Household("raderat", "Familjen", listOf("uid-erik")))
+        fixture.denied.value = setOf("raderat")
+        fixture.session.select("raderat")
+        auth.authState.value = AuthUser("uid-anna")
+        val (_, vm) = viewModel(fixture)
+
+        vm.awaitGate(AuthGate.Ready)
+        val created = fixture.households().single { "uid-anna" in it.memberUids }
+        assertEquals(created.id, fixture.session.householdId.value)
+    }
+
+    @Test
+    fun `byte av konto medan hushållet väljs - det nya kontot får sitt eget hushåll och inget fel`() = runTest(main.dispatcher) {
+        val fixture = HouseholdFixture(backgroundScope, folder.root)
+        fixture.storeHousehold(Household("annas", "Annas", listOf("uid-anna")))
+        fixture.storeHousehold(Household("eriks", "Eriks", listOf("uid-erik")))
+        val hold = CompletableDeferred<Unit>()
+        fixture.directory.hold = hold
+        val (_, vm) = viewModel(fixture)
+        auth.authState.value = AuthUser("uid-anna")
+        vm.state.first { it.busy }
+
+        auth.signOut()
+        auth.authState.value = AuthUser("uid-erik")
+        vm.state.first { it.gate == AuthGate.NeedsHousehold }
+        hold.complete(Unit)
+
+        assertEquals(AuthUiState(AuthGate.Ready), vm.awaitGate(AuthGate.Ready))
+        assertEquals("eriks", fixture.session.householdId.value)
     }
 
     @Test

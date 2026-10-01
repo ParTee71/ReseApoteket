@@ -2,7 +2,9 @@ package se.partee71.reseapoteket.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.firebase.firestore.Source
+import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -12,8 +14,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.schema.Schema
+import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.firestore.FirestoreCollectionFactory
-import se.partee71.reseapoteket.data.firestore.FirestoreHouseholdVersions
 import se.partee71.reseapoteket.data.firestore.Paths
 
 /** Offline först och hushållets version, mot riktig Firestore i emulatorn (ÖV-5, BCK-5). */
@@ -43,10 +45,19 @@ class FirestoreOfflineTest {
 
     @Test
     fun hushallets_version_lases_ur_dokumentet() = test {
-        val versions = FirestoreHouseholdVersions(FirebaseEmulator.db)
+        val versions = FirebaseEmulator.versions()
         val current = FirebaseEmulator.newHousehold()
         val newer = FirebaseEmulator.newHousehold(version = Schema.CURRENT_VERSION + 1)
         assertEquals(Schema.CURRENT_VERSION, versions.schemaVersion(current).first())
         assertEquals(Schema.CURRENT_VERSION + 1, versions.schemaVersion(newer).first())
+    }
+
+    @Test
+    fun ett_hushall_som_inte_gar_att_lasa_avslutar_versionen_med_nekad() = test {
+        FirebaseEmulator.newHousehold() // loggar in testanvändaren
+        val versions = FirebaseEmulator.versions()
+        assertFailsWith<DataError.PermissionDenied> {
+            versions.schemaVersion("finns-inte-" + UUID.randomUUID()).collect {}
+        }
     }
 }

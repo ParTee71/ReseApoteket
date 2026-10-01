@@ -6,6 +6,7 @@ import kotlin.time.Clock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -16,17 +17,21 @@ import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.data.common.CollectionFactory
+import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.EntityCollection
+import se.partee71.reseapoteket.data.common.dataError
+import se.partee71.reseapoteket.data.datastore.PendingHousehold
+import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.household.HouseholdDirectory
 import se.partee71.reseapoteket.data.household.HouseholdSession
 
-/** Singleton: det väntande hushållet ska överleva mellan försöken. */
 @Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultHouseholdRepository @Inject constructor(
     collections: CollectionFactory,
     private val directory: HouseholdDirectory,
     private val session: HouseholdSession,
+    private val settings: SettingsStore,
     private val clock: Clock,
 ) : HouseholdRepository {
     private val households = collections.households()
@@ -34,21 +39,36 @@ class DefaultHouseholdRepository @Inject constructor(
     override val current: Flow<Household?> =
         session.householdId.flatMapLatest { id -> if (id == null) flowOf(null) else households.observe(id) }
 
-    /** Hushållet som senast inte bekräftades av servern – återanvänds, så att ett nytt försök inte skapar ett till. */
-    private var pending: Household? = null
-
     override suspend fun create(name: String, ownerUid: String): Result<String> {
-        // Slumpat ID – rules förutsätter att ingen kan gissa ett hushålls-ID (NFR-16).
-        val household = pending?.takeIf { it.memberUids == listOf(ownerUid) }
-            ?: Household(households.newId(), name, listOf(ownerUid), createdAt = clock.now())
-        pending = household
+        // Ett hushåll som inte bekräftades av servern kan ligga kvar i skrivkön och nå servern
+        // senare – det återanvänds, även efter omstart, så att ett nytt försök inte skapar ett till.
+        val saved = settings.pendingHousehold.first()?.takeIf { it.ownerUid == ownerUid }
+        val household = if (saved != null) {
+            Household(saved.id, name, listOf(ownerUid), createdAt = saved.createdAt)
+        } else {
+            // Slumpat ID – rules förutsätter att ingen kan gissa ett hushålls-ID (NFR-16).
+            Household(households.newId(), name, listOf(ownerUid), createdAt = clock.now())
+                .also { settings.setPendingHousehold(PendingHousehold(it.id, ownerUid, it.createdAt!!)) }
+        }
         // Via servern, inte offline först: hushållet ska finnas innan det väljs (HUS-2).
-        return directory.create(household)
+        val result = directory.create(household)
+        if (saved != null && result.dataError() == DataError.PermissionDenied) {
+            // Det sparade hushållet finns redan och användaren är inte längre medlem – börja om.
+            settings.setPendingHousehold(null)
+            return create(name, ownerUid)
+        }
+        return result
             .onSuccess {
-                pending = null
+                settings.setPendingHousehold(null)
                 session.select(household.id)
             }
             .map { household.id }
+    }
+
+    override suspend fun select(householdId: String) {
+        // Ett kvarglömt försök får inte återuppliva ett hushåll som sedan raderats.
+        settings.setPendingHousehold(null)
+        session.select(householdId)
     }
 
     override suspend fun update(household: Household) = households.upsert(household)

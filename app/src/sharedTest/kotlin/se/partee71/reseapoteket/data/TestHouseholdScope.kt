@@ -12,6 +12,7 @@ class TestHouseholdScope(
 ) : HouseholdScope {
     override val householdId = MutableStateFlow(householdId)
     override val schemaVersion = MutableStateFlow(versionOf(householdId, version))
+    override val unreadable = MutableStateFlow<String?>(null)
 
     /** Sätter det aktiva hushållets version; `null` = okänd. */
     fun setVersion(version: Int?) {

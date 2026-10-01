@@ -1,7 +1,7 @@
 package se.partee71.reseapoteket.testing
 
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import java.io.File
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -15,6 +15,7 @@ import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.HouseholdVersionSource
 import se.partee71.reseapoteket.data.datastore.SettingsStore
+import se.partee71.reseapoteket.data.datastore.settingsDataStore
 import se.partee71.reseapoteket.data.firestore.Paths
 import se.partee71.reseapoteket.data.household.HouseholdDirectory
 import se.partee71.reseapoteket.data.household.HouseholdSession
@@ -30,17 +31,21 @@ class HouseholdFixture(scope: CoroutineScope, folder: File) {
 
     /** `false` = hushållets version går inte att läsa just nu (som när servern inte svarat). */
     val versionsKnown = MutableStateFlow(true)
+
+    /** Hushåll vars dokument servern nekar, som när användaren inte längre är medlem (HUS-5). */
+    val denied = MutableStateFlow(emptySet<String>())
     private val versions = HouseholdVersionSource { id ->
-        combine(store.documents, versionsKnown) { all, known ->
+        combine(store.documents, versionsKnown, denied) { all, known, denied ->
+            if (id in denied) throw DataError.PermissionDenied
             if (known) (all[Paths.HOUSEHOLDS]?.get(id)?.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION else null
         }.filterNotNull()
     }
-    private val dataStore = PreferenceDataStoreFactory.create(scope = scope) { File(folder, "settings.preferences_pb") }
-    val session = HouseholdSession(SettingsStore(dataStore), versions, scope)
+    val settings = SettingsStore(settingsDataStore(scope) { File(folder, "settings.preferences_pb") })
+    val session = HouseholdSession(settings, versions, scope)
     val collections = FakeCollectionFactory(store, session)
     val directory = FakeHouseholdDirectory(collections)
-    val repository = DefaultHouseholdRepository(collections, directory, session, FixedClock())
-    val ensureHousehold = EnsureHouseholdUseCase(directory, repository, session)
+    val repository = DefaultHouseholdRepository(collections, directory, session, settings, FixedClock())
+    val ensureHousehold = EnsureHouseholdUseCase(directory, repository)
 
     /** Lägger ett hushåll direkt i den fejkade databasen, som om en annan enhet skapat det. */
     fun storeHousehold(household: Household) = store.set(Paths.HOUSEHOLDS, household.id, HouseholdCodec.encode(household), merge = false)
@@ -48,21 +53,31 @@ class HouseholdFixture(scope: CoroutineScope, folder: File) {
     fun households(): List<Household> = store.documents.value[Paths.HOUSEHOLDS].orEmpty().map { (id, doc) -> HouseholdCodec.decode(id, doc) }
 }
 
-/** Som servern: hushåll där uid är medlem. [failure] och [createFailure] simulerar t.ex. att nätet saknas. */
+/**
+ * Som servern: hushåll där uid är medlem. [failure] och [createFailure] simulerar t.ex. att nätet
+ * saknas; [hold] låter en fråga vänta tills testet släpper den.
+ */
 class FakeHouseholdDirectory(private val collections: FakeCollectionFactory) : HouseholdDirectory {
     var failure: DataError? = null
     var createFailure: DataError? = null
+    var hold: CompletableDeferred<Unit>? = null
     var calls = 0
         private set
 
     override suspend fun householdsOf(uid: String): Result<List<Household>> {
         calls++
+        hold?.await()
         failure?.let { return Result.failure(it) }
         return collections.households().getAll().map { all -> all.filter { uid in it.memberUids } }
     }
 
     override suspend fun create(household: Household): Result<Unit> {
         createFailure?.let { return Result.failure(it) }
+        // Som rules: ett befintligt hushåll får bara skrivas av sina medlemmar.
+        val existing = collections.households().get(household.id).getOrThrow()
+        if (existing != null && household.memberUids.any { it !in existing.memberUids }) {
+            return Result.failure(DataError.PermissionDenied)
+        }
         return collections.households().upsert(household)
     }
 }

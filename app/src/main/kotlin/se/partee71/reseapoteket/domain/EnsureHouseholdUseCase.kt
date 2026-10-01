@@ -7,7 +7,6 @@ import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.household.HouseholdDirectory
-import se.partee71.reseapoteket.data.household.HouseholdSession
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 
 /** Hur det gick att välja hushåll efter inloggning. */
@@ -26,7 +25,6 @@ sealed interface HouseholdStatus {
 class EnsureHouseholdUseCase @Inject constructor(
     private val directory: HouseholdDirectory,
     private val households: HouseholdRepository,
-    private val session: HouseholdSession,
 ) {
     suspend operator fun invoke(uid: String): Result<HouseholdStatus> =
         suspendRunCatching({ DataError.Unknown }) {
@@ -36,7 +34,7 @@ class EnsureHouseholdUseCase @Inject constructor(
             if (existing == null) {
                 HouseholdStatus.Ready(households.create(DEFAULT_NAME, uid).getOrThrow())
             } else {
-                session.select(existing.id)
+                households.select(existing.id)
                 if (Schema.isNewerThanApp(existing.schemaVersion)) {
                     HouseholdStatus.RequiresUpdate(existing.id)
                 } else {

@@ -1,23 +1,27 @@
 package se.partee71.reseapoteket.data.datastore
 
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
+import app.cash.turbine.test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import se.partee71.reseapoteket.testing.FakeDataStore
 
-/** Temavalet (SET-1) lagras per enhet i DataStore. */
+/** Enhetens inställningar: tema (SET-1), valt hushåll (HUS-4) och ett obekräftat hushåll (HUS-2). */
 class SettingsStoreTest {
 
     @get:Rule
     val folder = TemporaryFolder()
 
-    private fun TestScope.dataStore() = PreferenceDataStoreFactory.create(scope = backgroundScope) { folder.newFile("s.preferences_pb") }
+    private fun TestScope.dataStore() = settingsDataStore(backgroundScope) { folder.newFile("s.preferences_pb") }
 
     @Test
     fun `temat är System tills användaren väljer`() = runTest {
@@ -32,5 +36,48 @@ class SettingsStoreTest {
         val store = dataStore()
         store.edit { it[stringPreferencesKey("themeMode")] = "Sepia" }
         assertEquals(ThemeMode.System, SettingsStore(store).themeMode.first())
+    }
+
+    @Test
+    fun `en trasig inställningsfil ersätts, så att läsning och skrivning fungerar`() = runTest {
+        val file = folder.newFile("trasig.preferences_pb").apply { writeBytes(byteArrayOf(0x0a, 0x7f, 0x01)) }
+        val settings = SettingsStore(settingsDataStore(backgroundScope) { file })
+
+        assertNull(settings.activeHouseholdId.first())
+        settings.setActiveHouseholdId("h1")
+        assertEquals("h1", settings.activeHouseholdId.first())
+    }
+
+    @Test
+    fun `ett läsfel ger standardvärden och flödet fortsätter i stället för att ta slut`() = runTest {
+        val store = FakeDataStore(readFailures = 1, initial = mutablePreferencesOf(stringPreferencesKey("activeHouseholdId") to "h1"))
+        val settings = SettingsStore(store)
+
+        settings.activeHouseholdId.test {
+            assertNull(awaitItem(), "standardvärde medan filen inte går att läsa")
+            assertEquals("h1", awaitItem(), "läsningen försöker igen")
+            settings.setActiveHouseholdId("h2")
+            assertEquals("h2", awaitItem(), "flödet lever kvar efter felet")
+        }
+    }
+
+    @Test
+    fun `valet tas bara bort om det fortfarande gäller samma hushåll`() = runTest {
+        val settings = SettingsStore(dataStore())
+        settings.setActiveHouseholdId("nytt")
+        settings.clearActiveHouseholdId(ifEquals = "gammalt")
+        assertEquals("nytt", settings.activeHouseholdId.first())
+        settings.clearActiveHouseholdId(ifEquals = "nytt")
+        assertNull(settings.activeHouseholdId.first())
+    }
+
+    @Test
+    fun `ett obekräftat hushåll sparas och glöms`() = runTest {
+        val settings = SettingsStore(dataStore())
+        val pending = PendingHousehold("h1", "uid-anna", Instant.fromEpochMilliseconds(1_790_000_000_123))
+        settings.setPendingHousehold(pending)
+        assertEquals(pending, settings.pendingHousehold.first())
+        settings.setPendingHousehold(null)
+        assertNull(settings.pendingHousehold.first())
     }
 }
