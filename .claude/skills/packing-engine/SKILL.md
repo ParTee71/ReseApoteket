@@ -24,7 +24,7 @@ Tabellen visar det motorn använder. Fullständiga fält och lagring: `ARKITEKTU
 | `DoseSchedule` | sealed: `Daily(dosesPerDay, unitsPerDose)`, `Weekdays(days: Set<DayOfWeek>, unitsPerDose)`, `IntervalDays(intervalDays, unitsPerDose)`, `AsNeeded(quantity)`, `Unknown` |
 | `FamilyItem` | namn, kategori, `unit`, `rule`, `active`, `archived` |
 | `QuantityRule` | sealed: `Fixed(quantity)`, `PerTraveller(quantity)`, `PerDays(quantity, perDays)`, `Unknown` |
-| `Trip` | `startDate: LocalDate`, `days`, `travellerIds` |
+| `Trip` | `startDate: LocalDate?` (saknas → `Weekdays` ger varning), `days`, `travellerIds` |
 | `HouseholdSettings` | `marginDays` (default 2) |
 | `PackingItem` | sektion, `personId?`, `sourceType` (`REGIMEN`/`FAMILY_ITEM`/`MANUAL`), `sourceId?`, namn, `unit`, `suggestedQuantity`, `quantity`, `packages?`, `reason`, `checked`, `checkedAt?`, `hidden` |
 
@@ -32,17 +32,22 @@ Tabellen visar det motorn använder. Fullständiga fält och lagring: `ARKITEKTU
 
 ```kotlin
 object PackingEngine {
-    fun suggest(trip: Trip, persons: List<Person>, regimens: List<Regimen>,
-                familyItems: List<FamilyItem>, settings: HouseholdSettings): PackingSuggestion
+    fun suggest(trip: Trip, persons: List<Person>, regimensByPerson: Map<String, List<Regimen>>,
+                familyItems: List<FamilyItem>, settings: HouseholdSettings): PackingSuggestion  // items + warnings
     fun merge(existing: List<PackingItem>, suggestion: PackingSuggestion): List<PackingItem>
-    fun regimenQuantity(schedule: DoseSchedule, trip: Trip, settings: HouseholdSettings): Int
-    fun familyQuantity(rule: QuantityRule, travellers: Int, trip: Trip, settings: HouseholdSettings): Int
+    fun regimenLine(regimen: Regimen, trip: Trip, settings: HouseholdSettings): PackingLine      // mängd, förpackningar, reason, warning
+    fun familyLine(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings): PackingLine
+    fun regimenQuantity(schedule: DoseSchedule, trip: Trip, settings: HouseholdSettings): Int?  // null = kan inte räknas ut
+    fun familyQuantity(rule: QuantityRule, travellers: Int, trip: Trip, settings: HouseholdSettings): Int?
 }
 ```
 
 `regimenQuantity` och `familyQuantity` är **enda stället** där formlerna finns. `suggest`
 och förhandsvisningarna (`PackingPreview` i recept, kosttillskott och familjeartiklar)
-anropar dem – ingen formel skrivs två gånger (regel 4).
+anropar `regimenLine`/`familyLine` – ingen formel skrivs två gånger (regel 4). Recepten
+skickas per person (`regimensByPerson`, samma form som `RegimenRepository.regimensFor`),
+eftersom `Regimen` inte bär sitt person-ID. Rad-ID:n är stabila (`regimen-<pid>-<rid>`,
+`family-<fid>`).
 
 ## Formler
 
@@ -64,8 +69,10 @@ anropar dem – ingen formel skrivs två gånger (regel 4).
 - Urval: bara `active && !archived` regimens för personer i `travellerIds` som själva
   inte är arkiverade; bara `active && !archived` familjeartiklar.
 - Samma medicinnamn hos två personer ger **två rader** (en per person).
-- Sortering: sektion (Mediciner, Kosttillskott, Övrigt) → person (`sortOrder`) → namn,
-  via den generiska `Sortable`-jämföraren.
+- Sortering: sektion (Mediciner, Kosttillskott, Övrigt) → person (`sortOrder`, via den
+  generiska `Sortable`-jämföraren) → namn i **svensk ordning** (å, ä, ö sist); familje-
+  artiklar på `sortOrder` → namn.
+- Veckodagar utan startdatum kan inte räknas ut: 0 + varning ("startdatum saknas").
 
 ## Texter
 
@@ -83,12 +90,37 @@ används av alla tre formatterarna.
 För varje förslagsrad matchas befintlig rad på (`sourceType`, `sourceId`, `personId`):
 - **Finns, mängden inte manuellt ändrad** (`quantity == suggestedQuantity`) → ny
   `suggestedQuantity` och `quantity`.
-- **Finns, manuellt ändrad** → ny `suggestedQuantity`, `quantity` behålls.
+- **Finns, manuellt ändrad** → ny `suggestedQuantity`; `quantity` och radens `packages`
+  behålls (förpackningarna hör till mängden – den som ändrar mängden räknar om dem).
 - **`checked`, `checkedAt`, `hidden`** behålls alltid.
 - **Ny i förslaget** → läggs till.
 - **Saknas i förslaget** (t.ex. resenär borttagen) → tas bort om inte avprickad; avprickad
-  rad behålls och markeras "inte längre i förslaget".
+  rad behålls och får förklaringen "Inte längre i förslaget" (`NO_LONGER_SUGGESTED`).
 - **`MANUAL`-rader** rörs aldrig.
+- **Dubbletter** av samma nyckel: den första matchas, övriga behandlas som försvunna.
+- Resultatet får entydig `sortOrder`: förslagets rader, sedan kvarvarande avprickade, sedan
+  egna rader (i sin tidigare ordning).
+- Texterna ("Inte längre i förslaget", "kan inte beräknas – uppdatera appen" m.fl.) finns
+  en gång, i `Texts`.
+
+## Skydd mot trasiga data
+
+Värden kommer från Firestore och kan vara orimliga (äldre eller nyare app, BCK-5). Motorn
+litar inte på dem:
+- `days` och `marginDays` räknas som 0–`MAX_DAYS` (366) var; negativa antal som 0.
+- Varje mängd räknas i `Long` och begränsas till `MAX_QUANTITY` (99 999) – inget överlopp.
+- Intervall och `perDays` under 1 räknas som 1; `packageSize` 0 ger inga förpackningar.
+- Sorteringen är deterministisk: `sortOrder`, sedan svenskt namn (och styrka), sedan ID – samma
+  lista oavsett i vilken ordning data kommer.
+- `weekdayCount` är den enda räkningen av veckodagar; förklaringen använder den i stället för
+  att räkna baklänges ur mängden.
+- `PackingSuggestion.warnings` innehåller läkemedelsnamn (hälsodata) – logga dem aldrig.
+
+## Förhandsvisningens texter
+
+`ReasonFormatter.amount(line, unit)` ("18 tabletter · 2 kartor"), `tripContext(days)`
+("För en 7-dagarsresa") och `familyContext(travellers, days)` ("För 4 resenärer i 10 dagar")
+är texterna i `PackingPreview` och packlistan – ingen skärm formulerar dem själv.
 
 ## Kantfall som ALLTID ska ha test (`core/src/test/.../engine/`)
 
@@ -102,7 +134,9 @@ För varje förslagsrad matchas befintlig rad på (`sourceType`, `sourceId`, `pe
 - Inaktiv och arkiverad regimen/familjeartikel ignoreras.
 - `packageSize` som inte går jämnt upp → avrundning uppåt.
 - `merge` bevarar manuellt ändrad mängd, `checked`, `hidden` och `MANUAL`-rader.
-- `ReasonFormatter`-text för varje schematyp och regel.
+- `ReasonFormatter`-text för varje schematyp och regel, `Weekdays` med `unitsPerDose` > 1.
+- Orimliga värden (se *Skydd mot trasiga data*), lika `sortOrder`, `merge` två gånger.
+- Varje `ItemUnit` har namn och förpackning.
 
 ## Anti-mönster
 

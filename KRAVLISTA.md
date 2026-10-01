@@ -82,7 +82,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | REC-1 | Ett recept har namn (obligatoriskt), form, styrka, enhet, förpackningsstorlek (valfri), dosering, anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. *(planerad, #22)* |
 | REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1. *(planerad, #22)* |
-| REC-3 | Doseringen visas i klartext, samma text i lista, redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån/ons/fre", "1 dos var 3:e dag", "vid behov: ta med 10". *(planerad, #22)* |
+| REC-3 | Doseringen visas i klartext, samma text i lista, redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån, ons, fre", "1 dos var 3:e dag", "vid behov: ta med 10". *(planerad, #22)* |
 | REC-4 | Under doseringen visas vad som skulle packas, t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor", med hushållets marginaldagar (BER). *(planerad, #22)* |
 | REC-5 | Inaktiva recept visas nedtonade och räknas inte med i packförslaget. Ett recept raderas permanent via menyn med bekräftelse (NFR-4). *(planerad, #22)* |
 
@@ -109,21 +109,21 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | RES-1 | Fliken **Resor** listar resor med namn, datum, antal dagar, resenärernas avatarer, packprogress och status; arkiveras enligt NFR-3. *(planerad, #25 – fliken med namn och antal dagar sedan #20)* |
 | RES-2 | En resa har namn ("Vart/vad?", förval "Resa <datum>"), antal dagar 1–60, startdatum (förval i morgon) och resenärer ("Vem åker med?", alla aktiva personer förvalda); minst en resenär krävs. *(planerad, #25)* |
 | RES-3 | En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan (BER) och öppnar den. *(planerad, #25)* |
-| RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd och en avprickning behålls, egna rader rörs inte. *(planerad, #25)* |
+| RES-4 | Ändras dagar eller resenärer erbjuds **"Räkna om"**: föreslagna rader får nya förslag, en ändrad mängd (med sina förpackningar) och en avprickning behålls, egna rader rörs inte; en avprickad rad som inte längre finns i förslaget behålls med förklaringen "Inte längre i förslaget". *(planerad, #25)* |
 
 ## 11. Beräkning
 
-Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-engine/SKILL.md).
+Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-engine/SKILL.md). Beräkningen finns i `:core`; kraven bockas av när resan och packlistan byggs (#25, #26).
 
 | ID | Krav |
 |----|------|
-| BER-1 | `effectiveDays = trip.days + settings.marginDays`. *(planerad, #25)* |
+| BER-1 | `effectiveDays = trip.days + settings.marginDays`; negativa värden räknas som 0 och vart och ett begränsas till 366 dagar, och en mängd till 99 999 (skydd mot trasiga data). *(planerad, #25)* |
 | BER-2 | Dagligen: `dosesPerDay × unitsPerDose × effectiveDays`. *(planerad, #25)* |
-| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`. *(planerad, #25)* |
-| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose`; vid behov: `quantity`; okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). *(planerad, #25)* |
+| BER-3 | Veckodagar: antal datum `d` i `[startDate, startDate + effectiveDays)` där `d.dayOfWeek ∈ days`, × `unitsPerDose`; utan startdatum 0 + varning ("startdatum saknas – kan inte beräknas"). *(planerad, #25)* |
+| BER-4 | Intervall: `ceil(effectiveDays / intervalDays) × unitsPerDose` (intervall under 1 räknas som 1); vid behov: `quantity`, och utan angiven mängd 0 + varning ("vid behov – ange hur många som ska med"); okänd dosering: 0 + varning ("kan inte beräknas – uppdatera appen"). *(planerad, #25)* |
 | BER-5 | Fast antal: `quantity`. *(planerad, #25)* |
 | BER-6 | Per resenär: `quantity × antal resenärer`. *(planerad, #25)* |
-| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity`. *(planerad, #25)* |
+| BER-7 | Per N dagar: `ceil(effectiveDays / perDays) × quantity` (`perDays` under 1 räknas som 1). *(planerad, #25)* |
 | BER-8 | Resultatet avrundas **uppåt** till helt antal enheter; `packages = ceil(quantity / packageSize)` när `packageSize` finns. *(planerad, #25)* |
 | BER-9 | Bara aktiva, icke arkiverade recept och kosttillskott för resenärer som inte själva är arkiverade, och bara aktiva, icke arkiverade familjeartiklar, räknas med. Samma medicinnamn hos två personer ger två rader. *(planerad, #25)* |
 | BER-10 | Varje rad har en förklaring, t.ex. "2 × 1 tablett/dag × (7 + 2) dagar = 18 tabletter → 2 kartor à 10". *(planerad, #25)* |
@@ -133,7 +133,7 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 | ID | Krav |
 |----|------|
 | PAK-1 | Packlistan visar resans namn, "7 dagar · 3 resenärer" och packprogress "9 av 14 packat", och sektionerna **Mediciner** och **Kosttillskott** (per person, i personens färg) och **Övrigt**, var och en med räknare. *(planerad, #26)* |
-| PAK-2 | Varje rad visar namn, mängd och enhet stort ("18 tabletter · 2 kartor") och förklaringen (BER-10). En avprickning sparar tidpunkten; avprickade rader hamnar sist i gruppen om inställningen SET-3 är på. *(planerad, #26)* |
+| PAK-2 | Varje rad visar namn (för recept "namn styrka", t.ex. "Levaxin 50 µg"), mängd och enhet stort ("18 tabletter · 2 kartor") och förklaringen (BER-10). En avprickning sparar tidpunkten; avprickade rader hamnar sist i gruppen om inställningen SET-3 är på. *(planerad, #26)* |
 | PAK-3 | Mängden ändras i ett bottom sheet; en ändrad mängd märks **"ändrad"** och kan återställas till förslaget. *(planerad, #26)* |
 | PAK-4 | **"Lägg till"** skapar en egen rad; menyn har **"Räkna om"** (RES-4) och **"Dölj packade"**. En rad döljs med svep och ångra (NFR-3) och syns under **"Dolda"**. *(planerad, #26)* |
 | PAK-5 | När allt är packat visas konfetti och **"Allt packat! 🧳 Trevlig resa"** och resans status blir packad; tas en avprickning bort blir den planerad igen. *(planerad, #26)* |
