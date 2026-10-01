@@ -1,10 +1,14 @@
 // Migreringssteg – spegling av SchemaMigrator i :core. Nyckel = versionen steget migrerar
-// från; varje steg är idempotent och tar (samling, dokument) → dokument. Tom tills formatet
-// ändras första gången; ett nytt steg läggs till här och i SchemaMigrator i samma PR.
+// från; varje steg är idempotent och tar (samling, dokument) → dokument. Ett nytt steg läggs
+// till här och i SchemaMigrator i samma PR.
+import { isDeepStrictEqual } from 'node:util';
 import { CURRENT_VERSION, versionOf } from './schema.mjs';
 import { collectionOf, householdIds, walkHousehold } from './walk.mjs';
 
-export const STEPS = {};
+export const STEPS = {
+  // 1 → 2: bara ett nytt enum-värde (POWDER) – inga befintliga dokument ändras.
+  1: (_collection, doc) => doc,
+};
 
 /**
  * Migrerar hushållen till version [to]: alla dokument lyfts, och hushållets schemaVersion höjs
@@ -49,8 +53,12 @@ async function migrateHousehold(db, id, to, { dryRun, steps, result }) {
     for (let v = from; v < to; v++) doc = steps[v](collectionOf(path), doc);
     return { path, data: doc };
   });
-  // Hushållet stämplas sist: avbryts körningen läses resten om vid nästa försök (idempotent).
-  for (const { path, data } of migrated.slice(1)) await db.doc(path).set(data);
+  // Bara dokument som stegen ändrat skrivs – ett oförändrat dokument skrivs aldrig över med en
+  // äldre läsning (en användare kan ha sparat under tiden). Hushållet stämplas sist: avbryts
+  // körningen läses resten om vid nästa försök (idempotent).
+  for (const [i, { path, data }] of migrated.entries()) {
+    if (i > 0 && !isDeepStrictEqual(data, docs[i].data)) await db.doc(path).set(data);
+  }
   await db.doc(migrated[0].path).set({ ...migrated[0].data, schemaVersion: to });
   count();
 }

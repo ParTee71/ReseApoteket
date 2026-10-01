@@ -183,7 +183,10 @@ class CatalogScreenshotTest {
             }
         }
         captureLightAndDark("LabeledGroup_form") {
-            Sheet { LabeledGroup("Form") { ChipRow { listOf("Tablett", "Kapsel", "Flytande").forEachIndexed { i, c -> AppFilterChip(c, i == 0, {}) } } } }
+            Sheet {
+                LabeledGroup("Form") { ChipRow { listOf("Tablett", "Kapsel", "Flytande").forEachIndexed { i, c -> AppFilterChip(c, i == 0, {}) } } }
+                LabeledGroup("Snabbval", helper = "Fyller i namnet – resten väljer du själv") { ChipRow { AppFilterChip("Omega-3", false, {}) } }
+            }
         }
         captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}) } }
         captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX[3], {}) } }

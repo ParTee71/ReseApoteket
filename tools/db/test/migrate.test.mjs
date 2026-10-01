@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { exportData } from '../lib/backup.mjs';
 import { migrateHouseholds } from '../lib/migrate.mjs';
+import { CURRENT_VERSION } from '../lib/schema.mjs';
 import { fixture, seed, useCleanEmulator } from './helpers/emulator.mjs';
 
 const database = useCleanEmulator();
@@ -16,11 +17,22 @@ test('hushåll som redan har versionen lämnas orörda', async () => {
 
 test('en version nyare än verktyget vägras', async () => {
   const db = database();
-  await assert.rejects(migrateHouseholds(db, 2), /nyare än verktygets/);
+  await assert.rejects(migrateHouseholds(db, CURRENT_VERSION + 1), /nyare än verktygets/);
 });
 
-// Verktygets riktiga version är den första, så testerna låtsas att version 2 finns (current)
-// med ett påhittat steg 1 → 2 – mekaniken utan att ändra formatet.
+test('de riktiga stegen: 1 → 2 lämnar dokumenten orörda och stämplar hushållet (POWDER, #23)', async () => {
+  const db = database();
+  // Fixturen i version 1 (den är i version 2, med ett kosttillskott i form POWDER).
+  await seed(db, fixture.documents.map((d) => (d.path.split('/').length === 2 ? { ...d, data: { ...d.data, schemaVersion: 1 } } : d)));
+  const before = (await exportData(db)).documents;
+  assert.deepEqual(await migrateHouseholds(db, 2), { 'hushåll från v1': 1 });
+  const after = Object.fromEntries((await exportData(db)).documents.map((d) => [d.path, d.data]));
+  for (const { path, data } of before) {
+    assert.deepEqual(after[path], path.split('/').length === 2 ? { ...data, schemaVersion: 2 } : data, path);
+  }
+});
+
+// Mekaniken med påhittade steg 1 → 2 (current = 2), oberoende av de riktiga stegen.
 const v2 = { current: 2 };
 
 test('ett steg lyfter alla dokument och hushållet stämplas med den nya versionen', async () => {
@@ -84,7 +96,7 @@ test('ett hushåll som inte går att migrera rapporteras och stoppar inte de and
 test('saknat steg skriver ingenting och rapporteras', async () => {
   const db = database();
   await seed(db, [{ path: 'households/gammalt', data: { memberUids: ['uid-x'], schemaVersion: 1 } }]);
-  const result = await migrateHouseholds(db, 2, v2);
+  const result = await migrateHouseholds(db, 2, { ...v2, steps: {} });
   assert.deepEqual(result.fel, ['gammalt: Migreringssteg saknas för version 1']);
   const docs = Object.fromEntries((await exportData(db)).documents.map((d) => [d.path, d.data]));
   assert.equal(docs['households/gammalt'].schemaVersion, 1);

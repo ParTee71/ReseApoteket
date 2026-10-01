@@ -19,7 +19,7 @@ service cloud.firestore {
     // Högsta schemaVersion som finns – speglar Schema.CURRENT_VERSION (test/schema.test.mjs håller
     // dem lika). Höjs formatet deployas rules med den nya versionen före appen (skill release).
     function maxSchemaVersion() {
-      return 1;
+      return 2;
     }
 
     // Fälttyper. Bara fält som skrivningen ändrar kontrolleras (vid create: alla) – ett värde som

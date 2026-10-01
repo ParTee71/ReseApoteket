@@ -141,9 +141,9 @@ class RegimenEditViewModel @AssistedInject constructor(
     val state = editor.state
     val effects: Flow<EditorEffect> = editor.effects
 
-    /** Det lagrade namnet ("Levaxin 50 µg") – det som raderas, oavsett vad som skrivits i fältet. */
-    private val _storedName = MutableStateFlow("")
-    val storedName: StateFlow<String> = _storedName.asStateFlow()
+    /** Det lagrade receptet – det som raderas och vars form alltid kan väljas, oavsett vad som ändrats i fälten. */
+    private val _stored = MutableStateFlow<Regimen?>(null)
+    val stored: StateFlow<Regimen?> = _stored.asStateFlow()
 
     /** Vad som skulle packas för en 7-dagarsresa med hushållets marginal (REC-4). */
     val preview: StateFlow<PackingPreviewText> = combine(
@@ -185,7 +185,7 @@ class RegimenEditViewModel @AssistedInject constructor(
 
     private fun load() {
         val id = regimenId ?: return
-        viewModelScope.launch { editor.loadFrom({ collection.get(id) }) { it.also { stored -> _storedName.value = stored.displayName } } }
+        viewModelScope.launch { editor.loadFrom({ collection.get(id) }) { it.also { stored -> _stored.value = stored } } }
     }
 
     /** Texterna sparas utan omgivande blanksteg; ett nytt recept hamnar sist. */
@@ -204,14 +204,15 @@ class RegimenEditViewModel @AssistedInject constructor(
 fun RegimenEditScreen(config: RegimenEditorConfig, onClose: () -> Unit, viewModel: RegimenEditViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val preview by viewModel.preview.collectAsStateWithLifecycle()
-    val storedName by viewModel.storedName.collectAsStateWithLifecycle()
-    RegimenEditContent(config, viewModel.isNew, state, preview, viewModel.effects, viewModel::onEvent, onClose, storedName = storedName)
+    val stored by viewModel.stored.collectAsStateWithLifecycle()
+    RegimenEditContent(config, viewModel.isNew, state, preview, viewModel.effects, viewModel::onEvent, onClose, stored = stored)
 }
 
 /**
  * Formuläret i mockupens ordning (variant B: enheten väljs för sig, oberoende av formen).
- * Rubriken är fast ("Nytt recept"/"Redigera recept") som i alla formulär; [storedName] är det
- * lagrade namnet som radering frågar om.
+ * Rubriken är fast ("Nytt recept"/"Redigera recept") som i alla formulär. [stored] är det lagrade
+ * receptet: radering frågar om dess namn, och dess form finns kvar bland valen även när den inte
+ * hör till sortens former (KOS-2).
  */
 @Composable
 fun RegimenEditContent(
@@ -223,7 +224,7 @@ fun RegimenEditContent(
     onEvent: (RegimenEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    storedName: String = "",
+    stored: Regimen? = null,
 ) {
     val regimen = state.value
     EntityEditScreen(
@@ -236,10 +237,20 @@ fun RegimenEditContent(
         delete = if (isNew) {
             null
         } else {
-            DeleteAction(stringResource(R.string.delete_title_format, storedName), stringResource(config.deleteMessage)) { onEvent(RegimenEditEvent.Delete) }
+            DeleteAction(stringResource(R.string.delete_title_format, stored?.displayName.orEmpty()), stringResource(config.deleteMessage)) { onEvent(RegimenEditEvent.Delete) }
         },
         onRetry = { onEvent(RegimenEditEvent.Retry) },
     ) {
+        if (isNew && config.suggestions.isNotEmpty()) {
+            LabeledGroup(stringResource(R.string.regimen_suggestions), helper = stringResource(R.string.regimen_suggestions_note)) {
+                ChipRow {
+                    config.suggestions.forEach { suggestion ->
+                        val name = stringResource(suggestion)
+                        AppFilterChip(name, selected = regimen.name.trim() == name, onClick = { onEvent(RegimenEditEvent.Name(name)) }, icon = R.drawable.ic_add)
+                    }
+                }
+            }
+        }
         AppTextField(
             regimen.name,
             { onEvent(RegimenEditEvent.Name(it)) },
@@ -249,12 +260,14 @@ fun RegimenEditContent(
         AppTextField(
             regimen.strength,
             { onEvent(RegimenEditEvent.Strength(it)) },
-            stringResource(R.string.regimen_strength),
-            helper = stringResource(R.string.regimen_strength_helper),
+            stringResource(config.strength),
+            helper = stringResource(config.strengthHelper),
         )
         LabeledGroup(stringResource(R.string.regimen_form)) {
             ChipRow {
-                config.forms.forEach { form ->
+                // En lagrad form utanför sortens lista (t.ex. Flytande på ett kosttillskott) går att
+                // välja igen; formerna står alltid i samma ordning som i resten av appen.
+                (config.forms + listOfNotNull(stored?.form)).distinct().sortedBy { it.ordinal }.forEach { form ->
                     AppFilterChip(stringResource(form.label()), selected = regimen.form == form, onClick = { onEvent(RegimenEditEvent.Form(form)) })
                 }
             }

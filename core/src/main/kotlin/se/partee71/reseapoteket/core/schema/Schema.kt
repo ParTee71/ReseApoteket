@@ -7,7 +7,13 @@ package se.partee71.reseapoteket.core.schema
  * default höjer den inte.
  */
 object Schema {
-    const val CURRENT_VERSION = 1
+    /**
+     * Historik:
+     * - 1: första formatet (#14).
+     * - 2: formen `POWDER` (#23). Inget fält ändras – en äldre app skulle läsa formen som
+     *   `OTHER` och kunna skriva tillbaka den, därför en ny version.
+     */
+    const val CURRENT_VERSION = 2
 
     /** Version för ett hushåll utan `schemaVersion` – det första formatet, aldrig "senaste". */
     const val FIRST_VERSION = 1

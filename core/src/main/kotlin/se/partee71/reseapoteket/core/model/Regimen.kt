@@ -28,4 +28,5 @@ fun List<Regimen>.listed(kind: RegimenKind): List<Regimen> = filter { it.kind ==
 
 enum class RegimenKind { MEDICINE, SUPPLEMENT }
 
-enum class MedicineForm { TABLET, CAPSULE, LIQUID, INHALER, DROPS, PATCH, OTHER }
+/** Ordningen är visningsordningen i formuläret; namnen lagras. `POWDER` kom i schemaVersion 2. */
+enum class MedicineForm { TABLET, CAPSULE, LIQUID, POWDER, INHALER, DROPS, PATCH, OTHER }

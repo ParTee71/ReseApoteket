@@ -79,7 +79,7 @@ test('stats visar schemaVersion och antal per samling, inget innehåll', async (
   const [stats] = await householdStats(database());
   assert.deepEqual(stats, {
     household: 'hushall-test',
-    schemaVersion: 1,
+    schemaVersion: 2,
     counts: { households: 1, persons: 1, regimens: 3, familyItems: 1, trips: 1, packingItems: 2 },
   });
 });

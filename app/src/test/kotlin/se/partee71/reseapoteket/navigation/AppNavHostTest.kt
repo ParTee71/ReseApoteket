@@ -19,7 +19,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
 /** Navigationsramen: verktygsraden i flikarnas rot, dold på undersidor (NAV-1). */
@@ -106,15 +105,5 @@ class AppNavHostTest {
         }
         rule.onNodeWithText("Den här delen byggs i en senare version av appen.").assertIsDisplayed()
         rule.onNodeWithContentDescription("Tillbaka").assertIsDisplayed()
-    }
-
-    @Test
-    fun `kosttillskottens formulär visar Kommer snart tills det finns (#23)`() {
-        backStack.push(RegimenEditKey("anna", RegimenKind.SUPPLEMENT))
-        rule.setContent {
-            val owner = checkNotNull(LocalViewModelStoreOwner.current)
-            ReseApoteketTheme { AppNavHost(backStack, appEntries(backStack, owner)) }
-        }
-        rule.onNodeWithText("Den här delen byggs i en senare version av appen.").assertIsDisplayed()
     }
 }

@@ -39,7 +39,7 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 - **Lägre** → `SchemaMigrator` lyfter dokumenten vid läsning; skrivning sker i nytt format.
   Versionen hör till hushållet, inte till varje dokument, så **varje steg är idempotent** och
   hushållets `schemaVersion` höjs **bara** av en fullständig migrering av alla dess dokument
-  (appen eller `tools/db/migrate.mjs`) – aldrig av en vanlig skrivning.
+  (`tools/db/migrate.mjs`, i release-ordningen i skill `release`) – aldrig av appen eller en vanlig skrivning.
 - Saknas `schemaVersion`, eller är den under `Schema.FIRST_VERSION` (trasigt värde), gäller
   `Schema.FIRST_VERSION` (`Schema.versionOf`, `versionOf` i `lib/schema.mjs`), aldrig "senaste".
 - Höjs versionen: nytt steg i `SchemaMigrator` **och** spegling i `tools/db/migrate.mjs`,

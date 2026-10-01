@@ -30,7 +30,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss |
 | Sektionsrubrik med räknare | `SectionHeader` | `InfoPill` för räknaren |
 | Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
-| Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet |
+| Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet, valfri `helper` under |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |

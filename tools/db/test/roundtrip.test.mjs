@@ -19,7 +19,7 @@ test('exporten innehåller exakt fixturens dokument, med tidsstämplar på mikro
   await seed(db);
   const exported = await exportData(db, { now: new Date('2026-10-01T00:00:00Z') });
   assert.equal(exported.exportedAt, '2026-10-01T00:00:00.000Z');
-  assert.equal(exported.schemaVersion, 1);
+  assert.equal(exported.schemaVersion, 2);
   assert.deepEqual(byPath(exported.documents), byPath(fixture.documents));
 });
 

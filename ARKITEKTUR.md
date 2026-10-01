@@ -195,18 +195,18 @@ Session:    Claude → tools/db query/get/stats (service account, läsroll) → 
 
 ## Datamodell
 
-Version 1 (`Schema.CURRENT_VERSION = 1`), byggd i #14. Modellerna ligger i
+Version 2 (`Schema.CURRENT_VERSION = 2`): version 1 byggd i #14, version 2 lade till formen `POWDER` (#23). Modellerna ligger i
 `core/.../model/`, codecs och fälthjälpare i `core/.../schema/`. Regler för ändringar:
 skill `data-safety-backup`. Medvetet platt: inget separat medicinregister – varje recept bär
 sin medicins uppgifter.
 
 ```
 households/{hid}
-  name, memberUids: [uid], marginDays = 2, schemaVersion = 1, createdAt
+  name, memberUids: [uid], marginDays = 2, schemaVersion = 2, createdAt
 households/{hid}/persons/{pid}
   name, emoji, colorHex, sortOrder, archived
 households/{hid}/persons/{pid}/regimens/{rid}
-  kind: MEDICINE|SUPPLEMENT, name, form: TABLET|CAPSULE|LIQUID|INHALER|DROPS|PATCH|OTHER,
+  kind: MEDICINE|SUPPLEMENT, name, form: TABLET|CAPSULE|LIQUID|POWDER|INHALER|DROPS|PATCH|OTHER,
   strength ("500 mg"), unit, packageSize?,
   schedule: { type: DAILY|WEEKDAYS|INTERVAL|AS_NEEDED,
               dosesPerDay?, unitsPerDose?, weekdays?: [1..7], intervalDays?, asNeededQuantity? },

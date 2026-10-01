@@ -78,6 +78,22 @@ class RegimenViewModelsTest {
     }
 
     @Test
+    fun `ett kosttillskott från snabbvalet sparas med rätt sort och form (KOS-1–3)`() = runTest {
+        val vm = viewModel(kind = RegimenKind.SUPPLEMENT)
+        vm.effects.test {
+            vm.onEvent(RegimenEditEvent.Name("Magnesium"))
+            vm.onEvent(RegimenEditEvent.Form(MedicineForm.POWDER))
+            vm.onEvent(RegimenEditEvent.DoseUnit(ItemUnit.DOS))
+            vm.onEvent(RegimenEditEvent.Save)
+            assertEquals(EditorEffect.Done, awaitItem())
+        }
+        val saved = anna.getAll().getOrThrow().single()
+        assertEquals(RegimenKind.SUPPLEMENT, saved.kind)
+        assertEquals("Magnesium", saved.name)
+        assertEquals(MedicineForm.POWDER, saved.form)
+    }
+
+    @Test
     fun `redigering laddar receptet, pausar det och sparar (REC-5)`() = runTest {
         anna.upsert(levaxin)
         val vm = viewModel("r1")
@@ -196,11 +212,11 @@ class RegimenViewModelsTest {
     }
 
     @Test
-    fun `det lagrade namnet följer inte namnfältet`() = runTest {
+    fun `det lagrade receptet följer inte fälten`() = runTest {
         anna.upsert(levaxin)
         val vm = viewModel("r1")
         vm.onEvent(RegimenEditEvent.Name("Något annat"))
-        assertEquals("Levaxin 50 µg", vm.storedName.value)
+        assertEquals(levaxin, vm.stored.value)
     }
 }
 

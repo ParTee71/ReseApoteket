@@ -7,7 +7,7 @@
         "name": "Familjen Test",
         "memberUids": ["uid-anna", "uid-erik"],
         "marginDays": 2,
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "createdAt": { "__ts": "2026-09-01T08:15:30.123456000Z" },
         "framtidaFält": { "okänd": true, "andel": 0.25, "lista": [1, "två", null] }
       }
@@ -27,7 +27,7 @@
     {
       "path": "households/hushall-test/persons/anna/regimens/d-vitamin",
       "data": {
-        "kind": "SUPPLEMENT", "name": "D-vitamin", "form": "LIQUID", "strength": "", "unit": "ML",
+        "kind": "SUPPLEMENT", "name": "D-vitamin", "form": "POWDER", "strength": "", "unit": "ML",
         "packageSize": null, "notes": "", "active": true, "sortOrder": 1, "archived": false,
         "schedule": { "type": "WEEKDAYS", "dosesPerDay": null, "unitsPerDose": 2, "weekdays": [1, 3, 5], "intervalDays": null, "asNeededQuantity": null }
       }

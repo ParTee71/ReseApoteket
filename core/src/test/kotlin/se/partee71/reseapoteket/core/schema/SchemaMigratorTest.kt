@@ -23,6 +23,13 @@ class SchemaMigratorTest {
     }
 
     @Test
+    fun `1 till 2 lämnar dokumenten orörda (bara formen POWDER tillkom)`() {
+        val regimen: Doc = mapOf("name" to "Levaxin", "form" to "TABLET", "okänt" to 1)
+        assertEquals(regimen, SchemaMigrator.migrate(1, "regimens", regimen))
+        assertEquals(doc, SchemaMigrator.migrate(1, "persons", doc))
+    }
+
+    @Test
     fun `nyare data än appen migreras aldrig och markeras som nyare`() {
         assertTrue(Schema.isNewerThanApp(Schema.CURRENT_VERSION + 1))
         assertFalse(Schema.isNewerThanApp(Schema.CURRENT_VERSION))

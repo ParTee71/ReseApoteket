@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.ui.regimens
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -29,14 +30,18 @@ import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
-/** Receptformuläret (REC-1–5): ramens kontrakt och det som är unikt för recept. */
+/**
+ * Formuläret för recept och kosttillskott (REC-1–5, KOS-1–3): ramens kontrakt för båda sorterna
+ * och det som är unikt – sorten styrs bara av `RegimenKindConfig`.
+ */
 @RunWith(RobolectricTestRunner::class)
 class RegimenScreensTest {
 
     @get:Rule
     val rule = createComposeRule()
 
-    private val config = checkNotNull(RegimenKindConfig.of(RegimenKind.MEDICINE).editor)
+    private val config = RegimenKindConfig.of(RegimenKind.MEDICINE).editor
+    private val supplements = RegimenKindConfig.of(RegimenKind.SUPPLEMENT).editor
     private val today = LocalDate(2026, 10, 1)
     private val levaxin = Regimen(
         "r1", RegimenKind.MEDICINE, "Levaxin", MedicineForm.TABLET, "50 µg", ItemUnit.TABLETT, 100,
@@ -46,8 +51,14 @@ class RegimenScreensTest {
     private fun preview(regimen: Regimen) = PackingEngine.regimenPreview(regimen, HouseholdSettings(), today)
 
     @Test
-    fun `redigeringen uppfyller formulärkontraktet`() {
-        val editor = EditorState(levaxin.copy(name = ""), RegimenValidator)
+    fun `receptformuläret uppfyller formulärkontraktet`() = contract(RegimenKind.MEDICINE)
+
+    @Test
+    fun `kosttillskottsformuläret uppfyller formulärkontraktet`() = contract(RegimenKind.SUPPLEMENT)
+
+    private fun contract(kind: RegimenKind) {
+        val config = RegimenKindConfig.of(kind).editor
+        val editor = EditorState(levaxin.copy(kind = kind, name = ""), RegimenValidator)
         rule.runEditScreenContract(
             editor = editor,
             makeInvalid = { update(RegimenValidator.NAME) { it.copy(name = "x") }; update(RegimenValidator.NAME) { it.copy(name = "") } },
@@ -58,6 +69,37 @@ class RegimenScreensTest {
                 if (event == RegimenEditEvent.Save) onSave()
             }, onClose)
         }
+    }
+
+    @Test
+    fun `kosttillskott har Dos, sina former och snabbval som fyller i namnet (KOS-1–3)`() {
+        val events = mutableListOf<RegimenEditEvent>()
+        val new = Regimen("s1", RegimenKind.SUPPLEMENT, form = MedicineForm.TABLET, schedule = DoseSchedule.Daily())
+        rule.setContent { ReseApoteketTheme { RegimenEditContent(supplements, true, EditorUiState(new), preview(new), emptyFlow(), { events += it }, {}) } }
+        rule.onNodeWithText("Nytt kosttillskott").assertIsDisplayed()
+        rule.onNodeWithText("Dos").assertIsDisplayed()
+        rule.onNodeWithText("Pulver").assertIsDisplayed()
+        rule.onNodeWithText("Inhalator").assertDoesNotExist()
+        rule.onNodeWithText("Omega-3").performClick()
+        assertEquals(listOf<RegimenEditEvent>(RegimenEditEvent.Name("Omega-3")), events)
+    }
+
+    @Test
+    fun `snabbval visas bara för något nytt, och en lagrad form utanför listan visas ändå`() {
+        val stored = Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", MedicineForm.LIQUID, unit = ItemUnit.ML, schedule = DoseSchedule.Daily())
+        // Användaren har redan bytt till Tablett: Flytande, den sparade formen, går att välja igen.
+        val edited = stored.copy(form = MedicineForm.TABLET)
+        rule.setContent { ReseApoteketTheme { RegimenEditContent(supplements, false, EditorUiState(edited), preview(edited), emptyFlow(), {}, {}, stored = stored) } }
+        rule.onNodeWithText("Snabbval").assertDoesNotExist()
+        rule.onNodeWithText("Tablett").assertIsSelected()
+        rule.onNodeWithText("Flytande").assertIsDisplayed()
+    }
+
+    @Test
+    fun `recept kan också vara pulver (en form i hela appen)`() {
+        rule.setContent { ReseApoteketTheme { RegimenEditContent(config, true, EditorUiState(levaxin), preview(levaxin), emptyFlow(), {}, {}) } }
+        rule.onNodeWithText("Pulver").assertIsDisplayed()
+        rule.onNodeWithText("Snabbval").assertDoesNotExist()
     }
 
     @Test
@@ -85,7 +127,7 @@ class RegimenScreensTest {
         // Namnfältet är ändrat men inte sparat: dialogen nämner det lagrade namnet.
         rule.setContent {
             ReseApoteketTheme {
-                RegimenEditContent(config, false, EditorUiState(levaxin.copy(name = "")), preview(levaxin), emptyFlow(), { events += it }, {}, storedName = "Levaxin 50 µg")
+                RegimenEditContent(config, false, EditorUiState(levaxin.copy(name = "")), preview(levaxin), emptyFlow(), { events += it }, {}, stored = levaxin)
             }
         }
         rule.onNodeWithText("Redigera recept").assertIsDisplayed()
@@ -109,7 +151,7 @@ class RegimenScreensTest {
     fun `skärmdumpar i alla fyra doseringslägen`() {
         fun capture(name: String, regimen: Regimen) =
             captureLightAndDark("RegimenEditScreen_$name") {
-                RegimenEditContent(config, false, EditorUiState(regimen, isDirty = true), preview(regimen), emptyFlow(), {}, {}, storedName = "Levaxin 50 µg")
+                RegimenEditContent(config, false, EditorUiState(regimen, isDirty = true), preview(regimen), emptyFlow(), {}, {}, stored = levaxin)
             }
         capture("dagligen", levaxin)
         capture(
@@ -118,5 +160,9 @@ class RegimenScreensTest {
         )
         capture("intervall", levaxin.copy(name = "Alendronat", strength = "70 mg", packageSize = 4, notes = "", schedule = DoseSchedule.IntervalDays(7, 1)))
         capture("vid_behov", levaxin.copy(name = "Alvedon", strength = "500 mg", packageSize = 20, notes = "Vid feber eller värk", schedule = DoseSchedule.AsNeeded(20)))
+        val omega = Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", MedicineForm.TABLET, "10 µg", ItemUnit.TABLETT, null, DoseSchedule.Daily(1, 1))
+        captureLightAndDark("RegimenEditScreen_kosttillskott_nytt") {
+            RegimenEditContent(supplements, true, EditorUiState(omega, isDirty = true), preview(omega), emptyFlow(), {}, {})
+        }
     }
 }

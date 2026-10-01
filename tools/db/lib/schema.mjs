@@ -1,5 +1,5 @@
 // Dataformatets version – speglar Schema.kt i :core (test/schema.test.mjs håller dem lika).
-export const CURRENT_VERSION = 1;
+export const CURRENT_VERSION = 2;
 
 /** Version för ett hushåll utan schemaVersion – det första formatet, aldrig "senaste". */
 export const FIRST_VERSION = 1;
