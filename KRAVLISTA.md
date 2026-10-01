@@ -16,8 +16,8 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ID | Krav |
 |----|------|
 | ÖV-1 | Appen ska räkna fram ett **packförslag** av mediciner, kosttillskott och familjeartiklar utifrån resans längd i dagar och vilka som åker med. |
-| ÖV-2 | Appen ska ha en **packlista** där framplockade saker prickas av. *(planerad)* |
-| ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå. *(planerad)* |
+| ÖV-2 | Appen ska ha en **packlista** där framplockade saker prickas av (PAK). |
+| ÖV-3 | Appen ska hantera **personer** med egna recept och kosttillskott, och **familjeartiklar** på hushållsnivå (PER, REC, KOS, FAM). |
 | ÖV-4 | Appen ska kräva **Google-inloggning**; all data hör till användarens hushåll. |
 | ÖV-5 | Appen ska fungera **offline**: allt läses från den lokala Firestore-cachen och ändringar sparas direkt och synkas när nätet kommer tillbaka. |
 | ÖV-6 | Hela gränssnittet ska vara på **svenska**. |
@@ -74,7 +74,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 |----|------|
 | PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott som inte är arkiverade ("3 recept · 1 kosttillskott", annars "Inga recept eller kosttillskott än"); lista, tomt tillstånd och fel enligt NFR-1. "Visa arkiverade" i menyn visar arkiverade personer sist, märkta "Arkiverad". |
 | PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista på 40 och en av åtta personfärger, valda direkt i formuläret med en förhandsvisning av avataren; en ny person börjar med första emojin och färgen och hamnar sist i listan. Skapas och redigeras enligt NFR-2. |
-| PER-3 | En person arkiveras med svep och kan ångras (NFR-3), eller arkiveras och återställs från persondetaljens meny. En arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(packlistan planerad, #26)* |
+| PER-3 | En person arkiveras med svep och kan ångras (NFR-3), eller arkiveras och återställs från persondetaljens meny. En arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. |
 | PER-4 | Persondetaljen visar personens avatar, namn och antal överst, och personens **Recept** och **Kosttillskott** i var sin sektion med antal, dosering per rad och "Lägg till" (NFR-1). Arkiverade recept och kosttillskott visas inte. |
 
 ## 7. Recept
@@ -108,9 +108,9 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| RES-1 | Fliken **Resor** listar resor med senaste start först (samma start: namn i svensk ordning): namn, startdatum och antal dagar, status (**Planeras**, **Packad**, **Klar** – en klar resa nedtonad), resenärernas avatarer och packat ("9 / 16", dolda rader räknas inte). Går resenärer eller packat inte att läsa visas resorna ändå, utan dem. En resa arkiveras med svep och Ångra (NFR-3) eller från formulärets meny; "Visa arkiverade" visar dem sist. Tryck öppnar resans formulär. *(packlistan, #26, öppnas i stället och resan ändras därifrån)* |
+| RES-1 | Fliken **Resor** listar resor med senaste start först (samma start: namn i svensk ordning): namn, startdatum och antal dagar, status (**Planeras**, **Packad**, **Klar** – en klar resa nedtonad), resenärernas avatarer och packat ("9 / 16", dolda rader räknas inte). Går resenärer eller packat inte att läsa visas resorna ändå, utan dem. En resa arkiveras med svep och Ångra (NFR-3) eller från formulärets meny; "Visa arkiverade" visar dem sist. Tryck öppnar resans packlista (PAK); resan ändras därifrån med pennan. |
 | RES-2 | En resa har namn ("Vart?"; lämnas det tomt blir det "Resa <datum>", t.ex. "Resa 2 okt"), startdatum (förval i morgon), antal dagar 1–60 (förval 7) och resenärer ("Vem åker med?", alla personer som inte är arkiverade förvalda; en arkiverad person visas bara om den åker med i den sparade resan); minst en resenär krävs. Skapas och redigeras enligt NFR-2. |
-| RES-3 | Under resenärerna visas vad packlistan blir, t.ex. "För 4 resenärer i 7 dagar: 16 saker att packa – 6 recept · 3 kosttillskott · 7 familjeartiklar" (BER). En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan och öppnar den. *(packlistan planerad, #26)* |
+| RES-3 | Under resenärerna visas vad packlistan blir, t.ex. "För 4 resenärer i 7 dagar: 16 saker att packa – 6 recept · 3 kosttillskott · 7 familjeartiklar" (BER). En ny resa sparas med **"Skapa packlista"**, som räknar fram packlistan och öppnar den. |
 | RES-4 | Ändras dagar, startdatum eller resenärer frågar Spara **"Räkna om packlistan?"**: **"Räkna om"** sparar och räknar om – föreslagna rader får nya förslag, en ändrad mängd (med sina förpackningar) och en avprickning behålls, egna rader rörs inte; en avprickad rad som inte längre finns i förslaget behålls med förklaringen "Inte längre i förslaget". **"Behåll listan"** sparar resan utan att röra packlistan; tryck utanför sparar ingenting. Går packlistan inte att räkna fram eller skriva sparas inte heller resan – formuläret står kvar med felet. |
 
 ## 11. Beräkning
@@ -134,11 +134,11 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 
 | ID | Krav |
 |----|------|
-| PAK-1 | Packlistan visar resans namn, "7 dagar · 3 resenärer" och packprogress "9 av 14 packat", och sektionerna **Mediciner** och **Kosttillskott** (per person, i personens färg) och **Övrigt**, var och en med räknare. *(planerad, #26)* |
-| PAK-2 | Varje rad visar namn (för recept "namn styrka", t.ex. "Levaxin 50 µg"), mängd och enhet stort ("18 tabletter · 2 kartor") och förklaringen (BER-10). En avprickning sparar tidpunkten; avprickade rader hamnar sist i gruppen om inställningen SET-3 är på. *(planerad, #26)* |
-| PAK-3 | Mängden ändras i ett bottom sheet; en ändrad mängd märks **"ändrad"** och kan återställas till förslaget. *(planerad, #26)* |
-| PAK-4 | **"Lägg till"** skapar en egen rad; menyn har **"Räkna om"** (RES-4) och **"Dölj packade"**. En rad döljs med svep och ångra (NFR-3) och syns under **"Dolda"**. *(planerad, #26)* |
-| PAK-5 | När allt är packat visas konfetti och **"Allt packat! 🧳 Trevlig resa"** och resans status blir packad; tas en avprickning bort blir den planerad igen. *(planerad, #26)* |
+| PAK-1 | Packlistan visar resans namn, startdatum, "7 dagar · 3 resenärer", resenärernas avatarer och packprogress "9 av 14 packat" (dolda rader räknas inte), och sektionerna **Mediciner** och **Kosttillskott** (per person, med personens namn och färg) och **Övrigt** (i två kolumner), var och en med packat/totalt. Pennan öppnar resans formulär (RES-2–4). |
+| PAK-2 | Varje rad visar namn (för recept "namn styrka", t.ex. "Levaxin 50 µg"), mängd och enhet ("18 tabletter · 2 kartor") och för recept och kosttillskott doseringen i kort form ("1/dag", "vid behov"). Krysset prickar av – TalkBack läser namn och mängd; en avprickning sparar tidpunkten. Avprickade rader hamnar sist hos personen om inställningen SET-3 är på (förval på). |
+| PAK-3 | Tryck på en rad öppnar mängden i ett bottom sheet med förslaget och förklaringen (BER-10); en ändrad mängd märks **"ändrad"** (utan förpackningar) och kan återställas till förslaget. |
+| PAK-4 | **"Lägg till"** skapar en egen rad: vad, var (Mediciner, Kosttillskott eller Övrigt), vem (för mediciner och kosttillskott, en av resenärerna) och hur många. Menyn har **"Räkna om"** (frågar först, RES-4) och **"Dölj packade"**. En rad döljs med svep och ångra ("%s dold", NFR-3) och syns i den hopfällda sektionen **"Dolda"** sist, där **"Visa igen"** tar tillbaka den. Ett fel när en ändring sparas visas i den öppna panelen (ändra mängd, lägg till), annars som snackbar (NFR-3). |
+| PAK-5 | När allt är packat visas konfetti och **"Allt packat! 🧳 Trevlig resa"** i grönt i stället för progressen, och resans status blir packad; blir listan ofullständig igen blir den planerad. Statusen följer listan först efter en egen ändring (avprickning, mängd, dölj, lägg till, räkna om) och sedan medan listan är öppen – att bara öppna listan ändrar ingenting. Bara status skrivs på resan, och avprickning, mängd och dölj skriver bara sitt fält på raden, så att en samtidig ändring på en annan enhet inte skrivs över; reseformuläret skriver i sin tur aldrig över statusen, och "Räkna om" där låter den följa den nya listan. En klar resa ändras inte, en lista utan synliga rader räknas inte som packad, och att dölja det packade packar inte upp resan. |
 
 ## 13. Inställningar
 
@@ -146,7 +146,7 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 |----|------|
 | SET-1 | Tema **ljust**, **mörkt** eller **system**, sparat på enheten; ingen dynamisk färg. |
 | SET-2 | Hushållets namn och **marginaldagar** 0–7 (förval 2) med förklaringen "Extra dagar som läggs på varje resa, ifall något krånglar". *(planerad, #27)* |
-| SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten. *(planerad, #27)* |
+| SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten, förval på (PAK-2). *(valet i Inställningar planerat, #27)* |
 | SET-4 | Kontot visar Google-kontots namn och e-post; **"Logga ut"** kräver bekräftelse (NFR-4) och leder till inloggningen (AUTH-4). *(planerad, #27)* |
 | SET-5 | **Data & backup:** text om synk och veckobackup, `schemaVersion` och appversion; **"Exportera som JSON"** delar hushållets data i samma format som `tools/db export` (BCK-6), bara efter uttrycklig handling. *(planerad, #27)* |
 | SET-6 | **Om:** version och länk till repot; i debug-byggen öppnar "Komponenter" komponentgalleriet. *(planerad, #27 – version och "Komponenter" sedan #20)* |

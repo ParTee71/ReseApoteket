@@ -28,10 +28,11 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Personer med recept och kosttillskott: dosering, förhandsvisning av vad som ska packas, pausade recept och snabbval (PER, REC, KOS).
 - Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster, med mängdregler och exempel att börja från (FAM).
 - Resor: skapa en resa som räknar fram packlistan från resans längd och vilka som åker med, och räkna om när resan ändras (RES).
+- Packlistan: pricka av per sektion och person, ändra mängd, lägg till egna rader, dölj med svep och ångra, och konfetti när allt är packat (PAK).
 - Komponentkatalogen och ramarna för listor och redigering; i debug-bygget visar Inställningar → Komponenter alla delar.
 
 **Planerat:**
-- Packlista med avprickning (#26) och inställningar (#27).
+- Inställningar och konto (#27).
 
 ## Kom igång (Android Studio)
 

@@ -94,16 +94,4 @@ class AppNavHostTest {
         rule.runOnIdle { backStack.pop() }
         rule.onNodeWithContentDescription("Personer").assertIsDisplayed()
     }
-
-    @Test
-    fun `nycklar utan egen skärm visar Kommer snart`() {
-        // Undersidan läggs på före visningen: flikarnas skärmar kräver Hilt och visas aldrig här.
-        backStack.push(PackingListKey("resa-1"))
-        rule.setContent {
-            val owner = checkNotNull(LocalViewModelStoreOwner.current)
-            ReseApoteketTheme { AppNavHost(backStack, appEntries(backStack, owner)) }
-        }
-        rule.onNodeWithText("Den här delen byggs i en senare version av appen.").assertIsDisplayed()
-        rule.onNodeWithContentDescription("Tillbaka").assertIsDisplayed()
-    }
 }
