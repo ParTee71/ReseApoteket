@@ -49,6 +49,16 @@ class UiConsistencyTest {
         }
     }
 
+    @Test
+    fun `skärmar stänger sig med popIfTop, aldrig pop (NAV-2)`() {
+        // Bara back stacken själv och systemets bakåt i AppNavHost går tillbaka utan nyckel.
+        val allowed = setOf("AppBackStack.kt", "AppNavHost.kt")
+        val hits = production.files
+            .filter { File(it.path).name !in allowed && Regex("\\.pop\\(\\)").containsMatchIn(it.text) }
+            .map { File(it.path).relativeTo(repoRoot).invariantSeparatorsPath }
+        assertEquals(emptyList(), hits, "använd backStack.popIfTop(key) – ett andra anrop får inte stänga skärmen under")
+    }
+
     // De delade exemplen körs med tom allowlist utom sektionen "allowlist" – precis som i hooktestet.
 
     @Test

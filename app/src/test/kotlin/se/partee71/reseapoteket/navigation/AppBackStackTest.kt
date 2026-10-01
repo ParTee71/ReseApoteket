@@ -72,4 +72,28 @@ class AppBackStackTest {
         restored.select(TripsKey)
         assertEquals(listOf(TripsKey, PackingListKey("resa-1")), restored.entries)
     }
+
+    @Test
+    fun `ett dubbeltryck öppnar skärmen en gång (NAV-2)`() {
+        val stack = AppBackStack()
+        stack.push(TripEditKey())
+        stack.push(TripEditKey())
+        assertEquals(listOf(TripsKey, TripEditKey()), stack.entries)
+        stack.push(PackingListKey("t1"))
+        stack.push(PackingListKey("t2"))
+        assertEquals(listOf(TripsKey, TripEditKey(), PackingListKey("t1"), PackingListKey("t2")), stack.entries)
+    }
+
+    @Test
+    fun `en skärm som stänger sig två gånger stänger inte skärmen under (NAV-2)`() {
+        val stack = AppBackStack()
+        stack.select(PersonsKey)
+        stack.push(PersonDetailKey("p1"))
+        stack.push(PersonEditKey("p1"))
+
+        stack.popIfTop(PersonEditKey("p1"))
+        stack.popIfTop(PersonEditKey("p1"))
+
+        assertEquals(listOf(TripsKey, PersonsKey, PersonDetailKey("p1")), stack.entries)
+    }
 }

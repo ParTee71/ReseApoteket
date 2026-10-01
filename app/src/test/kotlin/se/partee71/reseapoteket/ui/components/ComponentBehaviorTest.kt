@@ -197,11 +197,15 @@ class ComponentBehaviorTest {
     @Test
     fun `en svept rad som står kvar glider tillbaka`() {
         show { SwipeToHide(onHide = {}) { ItemRow("Solkräm", it, onClick = {}) } }
-        val start = rule.onNodeWithText("Solkräm").fetchSemanticsNode().positionInRoot.x
+        val x = { rule.onNodeWithText("Solkräm").fetchSemanticsNode().positionInRoot.x }
+        val start = x()
+        rule.mainClock.autoAdvance = false
         rule.onNodeWithText("Solkräm").performTouchInput { swipeLeft() }
+        rule.mainClock.advanceTimeBy(RESET_DELAY_MILLIS / 2) // undan, men inte tillbaka än
+        assertTrue(x() < start, "raden ska ha svepts åt vänster innan den glider tillbaka")
         rule.mainClock.advanceTimeBy(RESET_DELAY_MILLIS + SETTLE_MILLIS)
         rule.waitForIdle()
-        assertEquals(start, rule.onNodeWithText("Solkräm").fetchSemanticsNode().positionInRoot.x)
+        assertEquals(start, x())
     }
 
     @Test

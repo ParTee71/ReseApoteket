@@ -48,7 +48,8 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * - arkivera/radera i menyn när [onArchive]/[delete] finns;
  * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
  *
- * @param onClose lämnar skärmen (navigationens tillbaka).
+ * @param onClose lämnar skärmen: `backStack.popIfTop(key)`, aldrig `pop()` – den kan anropas mer
+ *   än en gång ("klar" efter "släng ändringar", dubbeltryck) och får då inte stänga skärmen under.
  */
 @Composable
 fun EntityEditScreen(
@@ -78,7 +79,7 @@ fun EntityEditScreen(
             }
         }
     }
-    val back = { if (state.isDirty) confirmDiscard = true else onClose() }
+    val back = { if (state.isDirty) confirmDiscard = true else close() }
     BackHandler(enabled = state.isDirty) { confirmDiscard = true }
 
     Scaffold(
@@ -126,7 +127,7 @@ fun EntityEditScreen(
             confirmLabel = stringResource(R.string.discard_confirm),
             onConfirm = {
                 confirmDiscard = false
-                onClose()
+                close()
             },
             onDismiss = { confirmDiscard = false },
             dismissLabel = stringResource(R.string.keep_editing),

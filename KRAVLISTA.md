@@ -44,7 +44,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | ID | Krav |
 |----|------|
 | NAV-1 | Toppnivå med fyra flikar – **Resor**, **Personer**, **Familjeartiklar**, **Inställningar** – i en flytande verktygsrad. Appen startar på Resor. |
-| NAV-2 | Underskärmar döljer verktygsraden; fliktillstånd bevaras vid byte. Tillbaka i en annan fliks rot går till Resor; tillbaka i Resor lämnar appen. |
+| NAV-2 | Underskärmar döljer verktygsraden; fliktillstånd bevaras vid byte. Tillbaka i en annan fliks rot går till Resor; tillbaka i Resor lämnar appen. Ett dubbeltryck öppnar en skärm en gång, och en skärm som stänger sig två gånger stänger aldrig skärmen under. |
 | NAV-3 | Alla skärmbyten använder samma rörelse. |
 
 ---
@@ -185,9 +185,9 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 | ID | Krav |
 |----|------|
-| NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp, fel med "Försök igen" och innehåll på samma sätt överallt. |
-| NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas när fältet ändrats eller efter ett sparförsök; uppgifter som inte går att läsa visas som fel med "Försök igen"; bakåt med osparade ändringar frågar "Släng ändringar?"; sparfel visas som meddelande. |
-| NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder; samma åtgärd finns för TalkBack. |
+| NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp, fel med "Försök igen" och innehåll på samma sätt överallt. En lista som inte visats på en stund laddas om innan den visas, så att ett tidigare hushålls data aldrig syns efter kontobyte (NFR-8). |
+| NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas när fältet ändrats eller efter ett sparförsök; uppgifter som inte går att läsa visas som fel med "Försök igen"; bakåt med osparade ändringar – pilen eller systemets bakåt – frågar "Släng ändringar?"; sparfel visas som meddelande. Medan uppgifterna laddas sparas inget, och ändras något medan det sparas står formuläret kvar med ändringen osparad i stället för att stängas. |
+| NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder; samma åtgärd finns för TalkBack. Lämnar man skärmen under tiden är åtgärden klar – meddelandet visas inte igen. |
 | NFR-4 | **Permanent radering** kräver alltid bekräftelse. |
 | NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt; varje fel från datalagret har en egen text. |
 | NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad, saknar ännu issue – synkläget finns sedan #15)* |

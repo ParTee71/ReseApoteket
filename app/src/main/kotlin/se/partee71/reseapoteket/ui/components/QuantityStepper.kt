@@ -26,6 +26,7 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppShapes
 import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.reseapoteket.ui.theme.Spacing
 
 /**
  * Antal ± inom [range]. [label] beskriver vad som räknas ("doser per dag") och läses av
@@ -45,9 +46,9 @@ fun QuantityStepper(
         contentColor = MaterialTheme.colorScheme.onSurface,
     )
     Row(
-        modifier.background(AppColors.extended.rowTint, AppShapes.pill).padding(4.dp),
+        modifier.background(AppColors.extended.rowTint, AppShapes.pill).padding(Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
     ) {
         FilledIconButton(
             onClick = { onValueChange((value - 1).coerceIn(range)) },

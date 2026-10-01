@@ -2,9 +2,11 @@ package se.partee71.reseapoteket.ui.common
 
 import app.cash.turbine.test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import se.partee71.reseapoteket.core.model.Person
@@ -27,6 +29,17 @@ class ListLoaderTest {
             assertEquals(ListUiState.Content(listOf("Solkräm")), expectMostRecentItem())
         }
         assertEquals(2, attempts)
+    }
+
+    @Test
+    fun `utan prenumerant går listan tillbaka till laddning - gammal lista visas aldrig (NFR-8)`() = runTest(UnconfinedTestDispatcher()) {
+        val source = MutableStateFlow(listOf("Annas solkräm"))
+        val loader = ListLoader(source, backgroundScope)
+        loader.state.test {
+            assertEquals(ListUiState.Content(listOf("Annas solkräm")), expectMostRecentItem())
+        }
+        advanceTimeBy(STOP_TIMEOUT_MILLIS + 1)
+        assertEquals(ListUiState.Loading, loader.state.value)
     }
 
     @Test

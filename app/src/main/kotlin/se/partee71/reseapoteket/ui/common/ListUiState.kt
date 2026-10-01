@@ -51,8 +51,16 @@ sealed interface ListEvent {
 class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope) {
     private val retries = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    val state: StateFlow<ListUiState<T>> =
-        source.asListUiState(retries).stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ListUiState.Loading)
+    /**
+     * Utan prenumerant i [STOP_TIMEOUT_MILLIS] stoppas flödet och tillståndet går tillbaka till
+     * laddning: listan från förra gången (kanske ett annat hushåll efter kontobyte) visas aldrig
+     * ens en bildruta när skärmen kommer tillbaka (NFR-8).
+     */
+    val state: StateFlow<ListUiState<T>> = source.asListUiState(retries).stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS, replayExpirationMillis = 0),
+        ListUiState.Loading,
+    )
 
     fun onEvent(event: ListEvent) {
         when (event) {
