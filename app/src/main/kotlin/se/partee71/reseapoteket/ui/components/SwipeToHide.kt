@@ -38,15 +38,20 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * Samma åtgärd finns för TalkBack ("Arkivera"), eftersom svep inte går att göra med
  * skärmläsare: [content] får en modifier som raden ska använda, så att åtgärden hamnar på
  * den nod som TalkBack läser. Står raden kvar efter svepet (t.ex. när arkiverade visas)
- * glider den tillbaka.
+ * glider den tillbaka. Med [enabled] = `false` (en redan arkiverad rad) visas raden utan svep.
  */
 @Composable
 fun SwipeToHide(
     onHide: () -> Unit,
     modifier: Modifier = Modifier,
     label: String = stringResource(R.string.archive),
+    enabled: Boolean = true,
     content: @Composable (Modifier) -> Unit,
 ) {
+    if (!enabled) {
+        content(Modifier)
+        return
+    }
     val hide by rememberUpdatedState(onHide)
     val state = rememberSwipeToDismissBoxState()
     val tone = AppColors.extended.primaryTone

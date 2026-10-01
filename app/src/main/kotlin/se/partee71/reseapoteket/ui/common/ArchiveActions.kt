@@ -1,5 +1,8 @@
 package se.partee71.reseapoteket.ui.common
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,6 +13,7 @@ import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.core.model.Archivable
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.dataError
+import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.UndoRequest
 
 /** Arkivera med svep, Ångra och "Visa arkiverade" – samma händelser i alla listor (NFR-3). */
@@ -28,7 +32,8 @@ sealed interface ArchiveEvent {
 /**
  * Den enda arkiveringslogiken för en listskärms ViewModel (skill shared-ui-components): vad
  * `SwipeToHide`, `UndoSnackbar` och "Visa arkiverade" i `EntityListScreen` behöver. [setArchived]
- * skriver; ett fel visas som meddelande ([error]) i stället för att tappas.
+ * skriver; ett fel visas som meddelande ([error]) i stället för att tappas. ViewModeln exponerar
+ * den som `archive`, och skärmen skickar `archive.collectAsListArchive()` till listan.
  */
 class ArchiveActions(
     private val scope: CoroutineScope,
@@ -63,4 +68,13 @@ class ArchiveActions(
             ArchiveEvent.ErrorShown -> _error.value = null
         }
     }
+}
+
+/** Tillståndet som listan visar, med händelserna tillbaka hit (NFR-3). */
+@Composable
+fun ArchiveActions.collectAsListArchive(): ListArchive {
+    val showing by showingArchived.collectAsStateWithLifecycle()
+    val request by undo.collectAsStateWithLifecycle()
+    val failure by error.collectAsStateWithLifecycle()
+    return ListArchive(showing, request, failure, ::onEvent)
 }

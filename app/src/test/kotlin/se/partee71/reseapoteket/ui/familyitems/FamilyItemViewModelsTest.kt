@@ -54,7 +54,7 @@ class FamilyItemViewModelsTest {
         val vm = FamilyItemsViewModel(items)
         vm.state.test {
             assertEquals(listOf("Solkräm", "Plåster", "Febertermometer"), expectMostRecentItem().names())
-            vm.onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.ToggleArchived))
+            vm.archive.onEvent(ArchiveEvent.ToggleArchived)
             assertEquals(listOf("Solkräm", "Hydrokortison", "Plåster", "Febertermometer"), expectMostRecentItem().names())
         }
     }
@@ -64,12 +64,12 @@ class FamilyItemViewModelsTest {
         items.upsert(sunscreen)
         val vm = FamilyItemsViewModel(items)
         vm.state.test {
-            vm.onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.Archive("f1", "Solkräm")))
+            vm.archive.onEvent(ArchiveEvent.Archive("f1", "Solkräm"))
             assertEquals(ListUiState.Empty, expectMostRecentItem())
-            assertEquals(UndoRequest("f1", "Solkräm"), vm.undo.value)
-            vm.onEvent(FamilyItemsEvent.Archiving(ArchiveEvent.Undo))
+            assertEquals(UndoRequest("f1", "Solkräm"), vm.archive.undo.value)
+            vm.archive.onEvent(ArchiveEvent.Undo)
             assertEquals(listOf("Solkräm"), expectMostRecentItem().names())
-            assertNull(vm.undo.value)
+            assertNull(vm.archive.undo.value)
         }
     }
 

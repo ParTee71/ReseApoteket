@@ -26,12 +26,13 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Ikonknapp | `AppIconButton` | M3 ikonknapp, min 48 dp |
 | Split-knapp "Lägg till ▾" | `AddSplitButton` | Expressive split-knapp |
 | Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing` |
-| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat) |
+| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat) |
+| Resenärer på en resa | `AvatarStack` | överlappande `PersonAvatar` (Small) med ring; TalkBack läser namnen |
 | Pausbar rad (recept, kosttillskott, familjeartikel) | `PausableRow` | `ItemRow` + typ som `InfoPill`; pausad nedtonad med "Pausat" |
 | Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss |
 | Sektionsrubrik med räknare | `SectionHeader` | `InfoPill` för räknaren |
 | Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
-| Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet, valfri `helper` under |
+| Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet, valfri `helper` under och fältfel (`error`, `FieldError`) |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
@@ -65,12 +66,12 @@ komponent, komponentnamnet i backticks först i kolumn två.
 
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
-| Listskärm | `EntityListScreen` | Fel från en åtgärd i listan (`error`, t.ex. arkivera) som meddelande; laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden; "Visa arkiverade" där arkivering finns |
-| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka; arkivera/återställ/radera i menyn |
+| Listskärm | `EntityListScreen` | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden |
+| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); arkivera/återställ/radera i menyn |
 | Detaljskärm | `EntityDetailScreen` | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `ApotekCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
-| Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s |
+| Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s; `enabled = false` för en redan arkiverad rad |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
-| Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep |
+| Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep. `onDecline` när nej-knappen gör något annat än att stänga ("Behåll listan") |
 | Förhandsvisning av beräkning | `PackingPreview` | Samma format i recept, kosttillskott, familjeartiklar |
 | Komponentöversikt | `ComponentGallery` | Debug-skärm med alla komponenter och ramar i alla tillstånd |
 
@@ -87,7 +88,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` (fel per fält visas efter ändring eller sparförsök; `EditorEffect` till ramen) |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>`, och `ListLoader` (med "Försök igen") + `activeOnly()` för en listas ViewModel, i `ui/common/` |
-| Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions` + `ArchiveEvent` i `ui/common/` (en per list-ViewModel) |
+| Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions` + `ArchiveEvent` i `ui/common/` (en per list-ViewModel, exponerad som `archive`); skärmen skickar `archive.collectAsListArchive()` till `EntityListScreen` |
 | Detaljtillstånd | `Flow<T?>.asDetailUiState()` → `DetailUiState<T>`, och `DetailLoader` (med "Försök igen") för en detaljskärms ViewModel, i `ui/common/` |
 | ViewModel med nyckel | Hilt assisted injection: `@HiltViewModel(assistedFactory = …)` + `hiltViewModel<VM, VM.Factory> { it.create(key.…) }` i `appEntries` (ARKITEKTUR → Verifierade API:er) |
 | Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |
@@ -96,6 +97,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Fel till text | `DataError.toMessage()` i `ui/common/` |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Beräkningar | `PackingEngine` i `:core` |
+| Packförslag för en resa (förhandsvisning, skapa, räkna om) | `TripPacking` i `domain/` – enda stället som hämtar underlaget till `PackingEngine` |
 | Mängd-, doserings- och regeltexter | `ReasonFormatter`, `DoseScheduleFormatter`, `QuantityRuleFormatter` i `:core` |
 | Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |

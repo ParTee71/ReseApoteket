@@ -27,10 +27,10 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Designsystemet: Material 3 Expressive med egen palett och Nunito, ljust, mörkt eller system (SET-1).
 - Personer med recept och kosttillskott: dosering, förhandsvisning av vad som ska packas, pausade recept och snabbval (PER, REC, KOS).
 - Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster, med mängdregler och exempel att börja från (FAM).
+- Resor: skapa en resa som räknar fram packlistan från resans längd och vilka som åker med, och räkna om när resan ändras (RES).
 - Komponentkatalogen och ramarna för listor och redigering; i debug-bygget visar Inställningar → Komponenter alla delar.
 
 **Planerat:**
-- Resor och packförslag som räknas ut från resans längd och vilka som åker med (#25).
 - Packlista med avprickning (#26) och inställningar (#27).
 
 ## Kom igång (Android Studio)

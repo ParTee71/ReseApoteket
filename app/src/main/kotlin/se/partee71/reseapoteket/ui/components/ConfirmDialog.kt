@@ -13,7 +13,8 @@ import se.partee71.reseapoteket.ui.theme.AppTypography
 
 /**
  * Bekräftelse. Permanent radering bekräftas alltid här med [destructive] = true – aldrig med
- * svep (skill shared-ui-components).
+ * svep (skill shared-ui-components). [onDecline] är nej-knappen när den betyder något annat än
+ * att stänga (t.ex. "Behåll listan" – spara utan att räkna om); tryck utanför är alltid [onDismiss].
  */
 @Composable
 fun ConfirmDialog(
@@ -25,6 +26,7 @@ fun ConfirmDialog(
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
     dismissLabel: String = stringResource(R.string.cancel),
+    onDecline: () -> Unit = onDismiss,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -32,7 +34,7 @@ fun ConfirmDialog(
             AppButton(confirmLabel, onConfirm, variant = if (destructive) ButtonVariant.Destructive else ButtonVariant.Primary)
         },
         modifier = modifier,
-        dismissButton = { AppButton(dismissLabel, onDismiss, variant = ButtonVariant.Text) },
+        dismissButton = { AppButton(dismissLabel, onDecline, variant = ButtonVariant.Text) },
         title = { Text(title, style = AppTypography.headline) },
         text = { Text(message, style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant) },
         shape = AppShapes.card,

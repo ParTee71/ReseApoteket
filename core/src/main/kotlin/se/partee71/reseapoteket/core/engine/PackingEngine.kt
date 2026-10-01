@@ -30,6 +30,13 @@ data class PackingLine(val quantity: Int, val packages: Int?, val reason: String
  */
 data class PackingPreviewText(val context: String, val quantity: String, val reason: String?)
 
+/** Hur mycket av en packlista som är packat: avprickade och totalt bland de synliga raderna. */
+data class PackingProgress(val packed: Int, val total: Int) {
+    companion object {
+        val NONE = PackingProgress(0, 0)
+    }
+}
+
 /** Förslaget för en resa; [warnings] är namnen på rader som inte kunde räknas ut. */
 data class PackingSuggestion(val items: List<PackingItem>, val warnings: List<String>)
 
@@ -112,6 +119,26 @@ object PackingEngine {
     fun familyPreview(item: FamilyItem, travellers: Int, settings: HouseholdSettings): PackingPreviewText {
         val line = familyLine(item, travellers, Trip(id = "", days = PREVIEW_DAYS), settings)
         return preview(ReasonFormatter.familyContext(travellers, PREVIEW_DAYS), line, item.unit)
+    }
+
+    /**
+     * Sammanfattningen i reseformuläret (RES-3): förslaget för resan som den ser ut nu – hur många
+     * saker och vad de består av, för resenärerna i resans dagar.
+     */
+    fun tripPreview(
+        trip: Trip,
+        persons: List<Person>,
+        regimensByPerson: Map<String, List<Regimen>>,
+        familyItems: List<FamilyItem>,
+        settings: HouseholdSettings,
+    ): PackingPreviewText {
+        val suggestion = suggest(trip, persons, regimensByPerson, familyItems, settings)
+        val travellers = persons.count { it.id in trip.travellerIds && !it.archived }
+        return PackingPreviewText(
+            ReasonFormatter.familyContext(travellers, tripDays(trip)),
+            ReasonFormatter.suggestionCount(suggestion),
+            ReasonFormatter.suggestionParts(suggestion),
+        )
     }
 
     /** Kan mängden inte räknas ut står förklaringen i stället för mängden – aldrig "0 st" som om den vore riktig. */
@@ -217,6 +244,10 @@ object PackingEngine {
         return (updated + keptChecked + manual.sortedWith(Sortable.ORDER))
             .mapIndexed { index, item -> item.copy(sortOrder = index) }
     }
+
+    /** Packat av totalt (RES-1, PAK-4); dolda rader räknas inte. */
+    fun progress(items: List<PackingItem>): PackingProgress =
+        items.filterNot { it.hidden }.let { shown -> PackingProgress(shown.count { it.checked }, shown.size) }
 
     /** Namn sorteras i svensk ordning: … x, y, z, å, ä, ö – inte på teckenkod. */
     private val swedish: Comparator<String> = Collator.getInstance(Locale.forLanguageTag("sv-SE")).let { collator ->

@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.core.engine
 
 import se.partee71.reseapoteket.core.model.ItemUnit
+import se.partee71.reseapoteket.core.model.PackingSection
 
 /**
  * Svenska enhetsnamn och pluralböjning – en gång, för alla formatterare (skill packing-engine).
@@ -28,6 +29,10 @@ object UnitNames {
 
     private val days = Noun("dag", "dagar")
     private val travellers = Noun("resenär", "resenärer")
+    private val things = Noun("sak", "saker")
+    private val medicines = Noun("recept", "recept")
+    private val supplements = Noun("kosttillskott", "kosttillskott")
+    private val familyItems = Noun("familjeartikel", "familjeartiklar")
 
     private fun Noun.of(count: Int) = if (count == 1) one else many
 
@@ -49,6 +54,16 @@ object UnitNames {
     fun amount(count: Int, unit: ItemUnit): String = if (unit == ItemUnit.ST) "$count" else quantity(count, unit)
 
     fun travellers(count: Int): String = "$count ${travellers.of(count)}"
+
+    /** "16 saker", "1 sak". */
+    fun things(count: Int): String = "$count ${things.of(count)}"
+
+    /** Packlistans rader per sektion: "6 recept", "3 kosttillskott", "1 familjeartikel". */
+    fun section(count: Int, section: PackingSection): String = "$count " + when (section) {
+        PackingSection.MEDICINE -> medicines
+        PackingSection.SUPPLEMENT -> supplements
+        PackingSection.FAMILY -> familyItems
+    }.of(count)
 
     /** Svenska ordningstal: 1:a, 2:a, 3:e … 11:e, 12:e … 21:a, 22:a. */
     fun ordinal(n: Int): String {

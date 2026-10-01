@@ -47,6 +47,8 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * - arkivera/återställ/radera i menyn när [onArchive]/[onRestore]/[delete] finns;
  * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
  *
+ * @param onSaved efter lyckad sparning (och arkivera/radera); standard [onClose]. En ny resa
+ *   öppnar packlistan i stället för att gå tillbaka.
  * @param onClose lämnar skärmen: `backStack.popIfTop(key)`, aldrig `pop()` – den kan anropas mer
  *   än en gång ("klar" efter "släng ändringar", dubbeltryck) och får då inte stänga skärmen under.
  */
@@ -63,17 +65,19 @@ fun EntityEditScreen(
     onRestore: (() -> Unit)? = null,
     delete: DeleteAction? = null,
     onRetry: () -> Unit = {},
+    onSaved: () -> Unit = onClose,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val close by rememberUpdatedState(onClose)
+    val saved by rememberUpdatedState(onSaved)
     val context = LocalContext.current
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
-                EditorEffect.Done -> close()
+                EditorEffect.Done -> saved()
                 // Egen coroutine: en visad snackbar får inte hålla tillbaka nästa händelse.
                 is EditorEffect.Failed -> launch { snackbar.showSnackbar(context.getString(effect.error.toMessage())) }
             }

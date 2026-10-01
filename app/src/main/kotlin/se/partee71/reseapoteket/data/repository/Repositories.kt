@@ -57,10 +57,14 @@ interface PackingRepository {
     /** Packlistan för en resa. */
     fun forTrip(tripId: String): EntityCollection<PackingItem>
 
+    /** Packlistorna för flera resor, per res-ID – packat i reselistan (RES-1). */
+    fun packingFor(tripIds: List<String>): Flow<Map<String, List<PackingItem>>>
+
     /**
      * Ersätter resans packlista med [items]; rader som inte finns kvar tas bort. Atomärt upp
-     * till 500 rader. Läser listan först, så en rad som en annan enhet lägger till i samma
-     * ögonblick kan tas bort – används bara när användaren själv räknar om listan.
+     * till 500 rader. [existing] är listan som den redan lästs (annars läses den här), så en rad
+     * som en annan enhet lägger till i samma ögonblick kan tas bort – används bara när
+     * användaren själv räknar om listan.
      */
-    suspend fun replacePackingItems(tripId: String, items: List<PackingItem>): Result<Unit>
+    suspend fun replacePackingItems(tripId: String, items: List<PackingItem>, existing: List<PackingItem>? = null): Result<Unit>
 }

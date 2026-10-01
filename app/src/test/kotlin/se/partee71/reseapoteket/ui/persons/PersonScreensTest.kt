@@ -26,6 +26,7 @@ import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.runEditScreenContract
+import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
@@ -79,17 +80,17 @@ class PersonScreensTest {
 
     @Test
     fun `svep arkiverar och Visa arkiverade växlar (PER-3)`() {
-        val events = mutableListOf<PersonsEvent>()
+        val events = mutableListOf<ArchiveEvent>()
         rule.setContent {
             ReseApoteketTheme {
-                PersonsContent(ListUiState.Content(listOf(PersonListItem(anna, 1))), false, null, { events += it }, {}, {})
+                PersonsContent(ListUiState.Content(listOf(PersonListItem(anna, 1))), {}, {}, {}, archive = ListArchive { events += it })
             }
         }
         rule.onNodeWithText("Anna").performTouchInput { swipeLeft() }
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Visa arkiverade").performClick()
-        assertEquals(listOf<PersonsEvent>(PersonsEvent.Archiving(ArchiveEvent.Archive(anna.id, anna.name)), PersonsEvent.Archiving(ArchiveEvent.ToggleArchived)), events)
+        assertEquals(listOf(ArchiveEvent.Archive(anna.id, anna.name), ArchiveEvent.ToggleArchived), events)
     }
 
     @Test
