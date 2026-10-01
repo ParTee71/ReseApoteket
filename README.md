@@ -26,10 +26,10 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Fyra flikar – Resor, Personer, Familjeartiklar och Inställningar – i en flytande verktygsrad (NAV).
 - Designsystemet: Material 3 Expressive med egen palett och Nunito, ljust, mörkt eller system (SET-1).
 - Personer med recept och kosttillskott: dosering, förhandsvisning av vad som ska packas, pausade recept och snabbval (PER, REC, KOS).
+- Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster, med mängdregler och exempel att börja från (FAM).
 - Komponentkatalogen och ramarna för listor och redigering; i debug-bygget visar Inställningar → Komponenter alla delar.
 
 **Planerat:**
-- Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster (#24).
 - Resor och packförslag som räknas ut från resans längd och vilka som åker med (#25).
 - Packlista med avprickning (#26) och inställningar (#27).
 

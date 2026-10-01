@@ -13,21 +13,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.listed
 import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.data.common.dataError
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
+import se.partee71.reseapoteket.ui.common.ArchiveActions
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -46,38 +43,24 @@ data class PersonListItem(val person: Person, val medicines: Int = 0, val supple
 sealed interface PersonsEvent {
     data class List(val event: ListEvent) : PersonsEvent
 
-    data class Archive(val person: Person) : PersonsEvent
-
-    data object Undo : PersonsEvent
-
-    data object UndoDismissed : PersonsEvent
-
-    data object ToggleArchived : PersonsEvent
-
-    data object ErrorShown : PersonsEvent
+    /** Svep-arkivera, Ångra och "Visa arkiverade" (PER-3) – samma som i alla listor. */
+    data class Archiving(val event: ArchiveEvent) : PersonsEvent
 }
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class PersonsViewModel @Inject constructor(
-    private val persons: PersonRepository,
+    persons: PersonRepository,
     regimens: RegimenRepository,
 ) : ViewModel() {
-    private val _showingArchived = MutableStateFlow(false)
-    val showingArchived: StateFlow<Boolean> = _showingArchived.asStateFlow()
-
-    private val _undo = MutableStateFlow<UndoRequest?>(null)
-    val undo: StateFlow<UndoRequest?> = _undo.asStateFlow()
-
-    /** Ett misslyckat arkivera/ångra, tills listan visat det. */
-    private val _error = MutableStateFlow<DataError?>(null)
-    val error: StateFlow<DataError?> = _error.asStateFlow()
+    private val archive = ArchiveActions(viewModelScope, persons::setArchived)
+    val showingArchived: StateFlow<Boolean> = archive.showingArchived
+    val undo: StateFlow<UndoRequest?> = archive.undo
+    val error: StateFlow<DataError?> = archive.error
 
     // Aktiva först; arkiverade sist och bara när de visas (PER-1, PER-3).
     private val items: Flow<List<PersonListItem>> =
-        combine(persons.observe(), _showingArchived) { all, showArchived ->
-            all.filter { showArchived || !it.archived }.sortedBy { it.archived }
-        }.flatMapLatest { list ->
+        archive.visible(persons.observe()).flatMapLatest { list ->
             regimens.regimensFor(list.map { it.id }).map { byPerson ->
                 list.map { person ->
                     val own = byPerson[person.id].orEmpty()
@@ -92,18 +75,7 @@ class PersonsViewModel @Inject constructor(
     fun onEvent(event: PersonsEvent) {
         when (event) {
             is PersonsEvent.List -> loader.onEvent(event.event)
-            is PersonsEvent.Archive -> viewModelScope.launch {
-                val result = persons.setArchived(event.person.id, true)
-                result.dataError()?.let { _error.value = it } ?: run { _undo.value = UndoRequest(event.person.id, event.person.name) }
-            }
-            PersonsEvent.Undo -> {
-                val request = _undo.value ?: return
-                _undo.value = null
-                viewModelScope.launch { persons.setArchived(request.id, false).dataError()?.let { _error.value = it } }
-            }
-            PersonsEvent.UndoDismissed -> _undo.value = null
-            PersonsEvent.ToggleArchived -> _showingArchived.value = !_showingArchived.value
-            PersonsEvent.ErrorShown -> _error.value = null
+            is PersonsEvent.Archiving -> archive.onEvent(event.event)
         }
     }
 }
@@ -142,18 +114,18 @@ fun PersonsContent(
         key = { it.person.id },
         modifier = modifier,
         onRetry = { onEvent(PersonsEvent.List(ListEvent.Retry)) },
-        archived = ArchivedToggle(showingArchived) { onEvent(PersonsEvent.ToggleArchived) },
+        archived = ArchivedToggle(showingArchived) { onEvent(PersonsEvent.Archiving(ArchiveEvent.ToggleArchived)) },
         undo = undo,
-        onUndo = { onEvent(PersonsEvent.Undo) },
-        onUndoDismissed = { onEvent(PersonsEvent.UndoDismissed) },
+        onUndo = { onEvent(PersonsEvent.Archiving(ArchiveEvent.Undo)) },
+        onUndoDismissed = { onEvent(PersonsEvent.Archiving(ArchiveEvent.UndoDismissed)) },
         error = error,
-        onErrorShown = { onEvent(PersonsEvent.ErrorShown) },
+        onErrorShown = { onEvent(PersonsEvent.Archiving(ArchiveEvent.ErrorShown)) },
     ) { item ->
         val person = item.person
         if (person.archived) {
             PersonRow(item, onOpen = { onOpen(person.id) })
         } else {
-            SwipeToHide(onHide = { onEvent(PersonsEvent.Archive(person)) }) { swipe ->
+            SwipeToHide(onHide = { onEvent(PersonsEvent.Archiving(ArchiveEvent.Archive(person.id, person.name))) }) { swipe ->
                 PersonRow(item, swipe, onOpen = { onOpen(person.id) })
             }
         }
@@ -166,7 +138,7 @@ private fun PersonRow(item: PersonListItem, modifier: Modifier = Modifier, onOpe
     ItemRow(
         title = person.name,
         modifier = modifier,
-        subtitle = if (person.archived) stringResource(R.string.person_archived) else personSummary(item.medicines, item.supplements),
+        subtitle = if (person.archived) stringResource(R.string.archived_state) else personSummary(item.medicines, item.supplements),
         leading = { PersonAvatar(person.emoji, AppColors.person(person.colorHex)) },
         onClick = onOpen,
         navigates = true,

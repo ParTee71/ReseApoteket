@@ -5,6 +5,7 @@ package se.partee71.reseapoteket.ui.components
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,13 +32,20 @@ import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.Spacing
 import se.partee71.reseapoteket.ui.theme.Tone
 
-/** Det tomma tillståndet för en lista: ikon, rubrik, en mening och texten på lägg till-knappen. */
+/**
+ * Det tomma tillståndet för en lista: ikon, rubrik, en mening och texten på lägg till-knappen.
+ * [examples] är exempel att börja från ("Solkräm") – chips med plus ovanför knappen.
+ */
 data class EmptyContent(
     @param:DrawableRes val icon: Int,
     val title: String,
     val message: String,
     val actionLabel: String,
+    val examples: List<EmptyExample> = emptyList(),
 )
+
+/** Ett exempel i en tom lista: tryck öppnar något nytt att börja från. */
+data class EmptyExample(val label: String, val onClick: () -> Unit)
 
 /** En grupp i en grupperad lista: rubrik, valfri ikon och ton. */
 data class ListGroup(val title: String, @param:DrawableRes val icon: Int? = null, val tone: Tone = Tone.Primary)
@@ -104,7 +112,14 @@ fun <T> EntityListScreen(
                     title = empty.title,
                     message = empty.message,
                     modifier = Modifier.padding(bottom = clearance),
-                    action = { AppButton(empty.actionLabel, onAdd, Modifier.fillMaxWidth(), icon = R.drawable.ic_add) },
+                    action = {
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
+                            if (empty.examples.isNotEmpty()) {
+                                ExampleChips(empty.examples.map { it.label }, { label -> empty.examples.first { it.label == label }.onClick() })
+                            }
+                            AppButton(empty.actionLabel, onAdd, Modifier.fillMaxWidth(), icon = R.drawable.ic_add)
+                        }
+                    },
                 )
                 is ListUiState.Error ->
                     LoadErrorState(stringResource(R.string.list_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))

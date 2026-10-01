@@ -43,3 +43,7 @@ interface EntityCollection<T : Identified> {
  */
 suspend fun <T> EntityCollection<T>.nextSortOrder(): Int where T : Identified, T : Sortable =
     getAll().getOrNull()?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+
+/** Sparar [item]; något nytt ([isNew]) hamnar sist i listan via [placeLast] – samma i alla formulär. */
+suspend fun <T> EntityCollection<T>.upsertPlaced(item: T, isNew: Boolean, placeLast: T.(Int) -> T): Result<Unit> where T : Identified, T : Sortable =
+    upsert(if (isNew) item.placeLast(nextSortOrder()) else item)

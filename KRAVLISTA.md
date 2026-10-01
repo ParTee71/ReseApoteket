@@ -99,9 +99,10 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| FAM-1 | Fliken **Familjeartiklar** listar hushållets gemensamma saker grupperade per kategori: **Krämer & salvor**, **Plåster & förband**, **Verktyg**, **Övrigt**; tomt tillstånd med exempel att lägga till (NFR-1). *(planerad, #24)* |
-| FAM-2 | En familjeartikel har namn (obligatoriskt), kategori, enhet, mängdregel, anteckning och aktiv/inaktiv (NFR-2); arkiveras med svep och ångra (NFR-3). *(planerad, #24)* |
-| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7); samma regeltext i lista, redigering och packlista, med förhandsvisning t.ex. "För 4 resenärer i 10 dagar: 2 tuber". *(planerad, #24)* |
+| FAM-1 | Fliken **Familjeartiklar** listar hushållets gemensamma saker grupperade per kategori i ordningen **Krämer & salvor**, **Plåster & förband**, **Verktyg**, **Övrigt**, med ikon och antal per kategori (NFR-1). Varje rad visar namn, mängdregeln i klartext och regeltypen som etikett; en pausad (inaktiv) artikel visas nedtonad med "Pausat" och räknas inte med i packförslaget, som recepten (REC-5). |
+| FAM-2 | En familjeartikel har namn (obligatoriskt), kategori, enhet, mängdregel, anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2 och en ny hamnar sist. Den arkiveras med svep och Ångra (NFR-3) eller från formulärets meny; "Visa arkiverade" visar arkiverade sist i sin kategori, och en arkiverad återställs från formulärets meny. |
+| FAM-3 | Mängdregeln är **Fast antal**, **Per resenär** eller **Per N dagar** (DAT-3, BER-5–7), minst 1; samma regeltext i lista, redigering och packlista. Under regeln visas vad som skulle packas för hushållets personer (inte arkiverade) i 7 dagar med hushållets marginaldagar, t.ex. "För 4 resenärer i 7 dagar: 2 tuber", och förklaringen (BER-10). |
+| FAM-4 | När listan är tom finns exemplen **Solkräm**, **Plåster** och **Febertermometer**. Ett exempel öppnar formuläret ifyllt med namn, kategori, enhet och en vanlig mängd (1 tub per 7 dagar, 10 per resenär, 1 st) – inget sparas förrän användaren sparar. |
 
 ## 10. Resa
 
@@ -186,7 +187,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 | ID | Krav |
 |----|------|
-| NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp, fel med "Försök igen" och innehåll på samma sätt överallt. En lista som inte visats på en stund laddas om innan den visas, så att ett tidigare hushålls data aldrig syns efter kontobyte (NFR-8). |
+| NFR-1 | **Listskärmar** visar laddning, tomt tillstånd med en primärknapp (och där det finns exempel att börja från, som chips med plus ovanför, t.ex. FAM-4), fel med "Försök igen" och innehåll på samma sätt överallt. En lista som inte visats på en stund laddas om innan den visas, så att ett tidigare hushålls data aldrig syns efter kontobyte (NFR-8). |
 | NFR-2 | **Redigering:** "Spara" är aktiv först när uppgifterna är giltiga och ändrade; fältfel visas när fältet ändrats eller efter ett sparförsök; uppgifter som inte går att läsa visas som fel med "Försök igen"; bakåt med osparade ändringar – pilen eller systemets bakåt – frågar "Släng ändringar?"; sparfel visas som meddelande. Medan uppgifterna laddas sparas inget, och ändras något medan det sparas står formuläret kvar med ändringen osparad i stället för att stängas. |
 | NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder; samma åtgärd finns för TalkBack. Lämnar man skärmen under tiden är åtgärden klar – meddelandet visas inte igen. |
 | NFR-4 | **Permanent radering** kräver alltid bekräftelse. |

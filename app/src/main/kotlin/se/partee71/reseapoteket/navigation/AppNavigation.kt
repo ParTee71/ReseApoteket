@@ -4,6 +4,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -11,6 +12,8 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.entryProvider
 import se.partee71.reseapoteket.BuildConfig
 import se.partee71.reseapoteket.ui.components.ComponentGallery
+import se.partee71.reseapoteket.ui.familyitems.FamilyItemEditScreen
+import se.partee71.reseapoteket.ui.familyitems.FamilyItemEditViewModel
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsScreen
 import se.partee71.reseapoteket.ui.persons.PersonDetailScreen
 import se.partee71.reseapoteket.ui.persons.PersonDetailViewModel
@@ -52,6 +55,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
         entry<FamilyItemsKey> {
             FamilyItemsScreen(
                 onAdd = { backStack.push(FamilyItemEditKey()) },
+                onAddExample = { backStack.push(FamilyItemEditKey(example = it)) },
                 onOpen = { backStack.push(FamilyItemEditKey(it)) },
                 viewModel = hiltViewModel(tabOwner),
             )
@@ -82,6 +86,13 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 RegimenKindConfig.of(key.kind).editor,
                 onClose = { backStack.popIfTop(key) },
                 viewModel = hiltViewModel<RegimenEditViewModel, RegimenEditViewModel.Factory> { it.create(key.personId, key.kind, key.regimenId) },
+            )
+        }
+        entry<FamilyItemEditKey> { key ->
+            val exampleName = key.example?.let { stringResource(it.label) }.orEmpty()
+            FamilyItemEditScreen(
+                onClose = { backStack.popIfTop(key) },
+                viewModel = hiltViewModel<FamilyItemEditViewModel, FamilyItemEditViewModel.Factory> { it.create(key.itemId, key.example, exampleName) },
             )
         }
         entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }

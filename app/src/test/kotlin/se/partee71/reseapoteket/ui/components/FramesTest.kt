@@ -118,6 +118,18 @@ class FramesTest {
     }
 
     @Test
+    fun `EntityEditScreen - Återställ i menyn för något arkiverat`() {
+        var restored = 0
+        rule.setContent {
+            ReseApoteketTheme { EntityEditScreen("Solkräm", EditorUiState("Solkräm"), emptyFlow(), {}, {}, onRestore = { restored++ }) {} }
+        }
+        rule.onNodeWithContentDescription("Fler val").performClick()
+        rule.onNodeWithText("Arkivera").assertDoesNotExist()
+        rule.onNodeWithText("Återställ").performClick()
+        assertEquals(1, restored)
+    }
+
+    @Test
     fun `EntityDetailScreen - lägen, försök igen och meny`() {
         var state by mutableStateOf<DetailUiState<String>>(DetailUiState.Loading)
         var retries = 0

@@ -1,8 +1,11 @@
 package se.partee71.reseapoteket.data.repository
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.Household
+import se.partee71.reseapoteket.core.model.HouseholdSettings
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
@@ -25,7 +28,18 @@ interface HouseholdRepository {
     suspend fun update(household: Household): Result<Unit>
 }
 
+/**
+ * Det beräkningsmotorn behöver från det aktiva hushållet – förhandsvisningarna i formulären.
+ * Utan hushåll, eller om det inte går att läsa, gäller standardvärdena (förhandsvisningen är bara
+ * en vägledning och får aldrig stoppa formuläret).
+ */
+fun HouseholdRepository.householdSettings(): Flow<HouseholdSettings> =
+    current.map { it?.settings ?: HouseholdSettings() }.catch { emit(HouseholdSettings()) }
+
 interface PersonRepository : EntityCollection<Person>
+
+/** Antal personer som inte är arkiverade – resenärerna i familjeartiklarnas förhandsvisning (FAM-3). */
+fun PersonRepository.activeCount(): Flow<Int> = observe().map { all -> all.count { !it.archived } }
 
 interface FamilyItemRepository : EntityCollection<FamilyItem>
 

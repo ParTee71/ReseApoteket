@@ -72,14 +72,7 @@ fun DoseScheduleRow(
                 )
             is DoseSchedule.Unknown -> Unit
         }
-        error?.let {
-            Text(
-                it,
-                Modifier.semantics { error(it) },
-                style = AppTypography.itemSubtitle,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
+        error?.let { FieldError(it) }
     }
 }
 
@@ -94,6 +87,12 @@ internal fun LabeledStepper(value: Int, onChange: (Int) -> Unit, label: String, 
         QuantityStepper(value, onChange, label, range = range)
         Text(label, style = AppTypography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+}
+
+/** Ett valideringsfel under ett fält som inte är ett textfält – delas av [DoseScheduleRow] och [QuantityRuleRow]. */
+@Composable
+internal fun FieldError(text: String) {
+    Text(text, Modifier.semantics { error(text) }, style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.error)
 }
 
 /** Meddelandet för en typ som den här appversionen inte känner till. */

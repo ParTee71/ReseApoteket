@@ -22,8 +22,8 @@ import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
-import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
+import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.EditorEffect
 
 /** Receptformuläret (REC-1–5) mot `FakeCollection` – ramens beteende testas i ramens tester. */
@@ -218,13 +218,4 @@ class RegimenViewModelsTest {
         vm.onEvent(RegimenEditEvent.Name("Något annat"))
         assertEquals(levaxin, vm.stored.value)
     }
-}
-
-/** Bara det aktiva hushållet – formuläret läser marginalen därifrån. */
-private class StubHouseholds(override val current: MutableStateFlow<Household?>) : HouseholdRepository {
-    override suspend fun create(name: String, ownerUid: String): Result<String> = error("används inte")
-
-    override suspend fun select(householdId: String) = error("används inte")
-
-    override suspend fun update(household: Household): Result<Unit> = error("används inte")
 }

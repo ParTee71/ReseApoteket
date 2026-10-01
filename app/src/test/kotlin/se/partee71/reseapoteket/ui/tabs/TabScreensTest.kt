@@ -12,6 +12,7 @@ import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsContent
+import se.partee71.reseapoteket.ui.familyitems.FamilyItemsEvent
 import se.partee71.reseapoteket.ui.persons.PersonListItem
 import se.partee71.reseapoteket.ui.persons.PersonsContent
 import se.partee71.reseapoteket.ui.persons.PersonsEvent
@@ -40,7 +41,7 @@ class TabScreensTest {
     @Test
     fun `Familjeartiklar uppfyller listkontraktet`() =
         rule.runListScreenContract(FamilyItem("f1", "Solkräm"), "Solkräm", "Inga familjeartiklar än", "Lägg till") { state, onAdd, onRetry ->
-            FamilyItemsContent(state, { if (it == ListEvent.Retry) onRetry() }, onAdd, {})
+            FamilyItemsContent(state, { if (it == FamilyItemsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
         }
 
     @Test

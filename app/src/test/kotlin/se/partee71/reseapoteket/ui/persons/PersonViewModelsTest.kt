@@ -19,6 +19,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -62,15 +63,15 @@ class PersonViewModelsTest {
         persons.upsert(Person("erik", "Erik", sortOrder = 1))
         val vm = PersonsViewModel(persons, regimens)
         vm.state.test {
-            vm.onEvent(PersonsEvent.Archive(Person("anna", "Anna")))
+            vm.onEvent(PersonsEvent.Archiving(ArchiveEvent.Archive("anna", "Anna")))
             assertEquals(listOf("Erik"), expectMostRecentItem().items().map { it.person.name })
             assertEquals(UndoRequest("anna", "Anna"), vm.undo.value)
 
-            vm.onEvent(PersonsEvent.ToggleArchived)
+            vm.onEvent(PersonsEvent.Archiving(ArchiveEvent.ToggleArchived))
             assertTrue(vm.showingArchived.value)
             assertEquals(listOf("Erik", "Anna"), expectMostRecentItem().items().map { it.person.name })
 
-            vm.onEvent(PersonsEvent.Undo)
+            vm.onEvent(PersonsEvent.Archiving(ArchiveEvent.Undo))
             assertNull(vm.undo.value)
             assertFalse(expectMostRecentItem().items().first { it.person.id == "anna" }.person.archived)
         }
@@ -157,10 +158,10 @@ class PersonViewModelsTest {
         val detail = PersonDetailViewModel("erik", persons, regimens)
         scope.setVersion(Schema.CURRENT_VERSION + 1) // nyare data än appen: skrivskyddat
 
-        list.onEvent(PersonsEvent.Archive(Person("anna", "Anna")))
+        list.onEvent(PersonsEvent.Archiving(ArchiveEvent.Archive("anna", "Anna")))
         assertEquals(DataError.UpdateRequired, list.error.value)
         assertNull(list.undo.value)
-        list.onEvent(PersonsEvent.ErrorShown)
+        list.onEvent(PersonsEvent.Archiving(ArchiveEvent.ErrorShown))
         assertNull(list.error.value)
 
         detail.onEvent(PersonDetailEvent.SetArchived(true))

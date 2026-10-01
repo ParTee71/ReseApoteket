@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import se.partee71.reseapoteket.core.model.RegimenKind
+import se.partee71.reseapoteket.ui.familyitems.FamilyItemExample
 
 /** Alla skärmar i appen (NAV-1–3). Sparas med kotlinx.serialization, så nycklarna överlever processdöd. */
 @Serializable
@@ -34,8 +35,9 @@ data class PersonEditKey(val personId: String? = null) : AppKey
 @Serializable
 data class RegimenEditKey(val personId: String, val kind: RegimenKind, val regimenId: String? = null) : AppKey
 
+/** En familjeartikel; [itemId] = `null` för en ny, som kan börja från ett [example] (FAM-4). */
 @Serializable
-data class FamilyItemEditKey(val itemId: String? = null) : AppKey
+data class FamilyItemEditKey(val itemId: String? = null, val example: FamilyItemExample? = null) : AppKey
 
 @Serializable
 data class TripEditKey(val tripId: String? = null) : AppKey

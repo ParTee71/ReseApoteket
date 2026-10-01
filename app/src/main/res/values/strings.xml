@@ -120,7 +120,7 @@
         <item quantity="other">%d kosttillskott</item>
     </plurals>
     <string name="person_nothing_yet">Inga recept eller kosttillskott än</string>
-    <string name="person_archived">Arkiverad</string>
+    <string name="archived_state">Arkiverad</string>
     <string name="person_medicines_title">Recept</string>
     <string name="person_supplements_title">Kosttillskott</string>
     <string name="person_medicines_none">Inga recept</string>
@@ -135,16 +135,16 @@
     <string name="regimen_strength">Styrka</string>
     <string name="regimen_strength_helper">Till exempel 50 µg eller 10 mg</string>
     <string name="regimen_form">Form</string>
-    <string name="regimen_unit">Enhet</string>
+    <string name="unit">Enhet</string>
     <string name="regimen_schedule">Dosering</string>
     <string name="regimen_package_size">Förpackning</string>
     <string name="regimen_package_size_helper">Antal per karta eller flaska – valfritt, ger antal förpackningar</string>
     <string name="regimen_package_size_invalid">Ange minst 1, eller lämna tomt</string>
-    <string name="regimen_notes">Anteckning</string>
-    <string name="regimen_active">Aktivt</string>
-    <string name="regimen_active_note">Räknas med i packförslaget</string>
-    <string name="regimen_paused">Pausat</string>
-    <string name="regimen_paused_note">Pausat – räknas inte med</string>
+    <string name="notes">Anteckning</string>
+    <string name="active">Aktivt</string>
+    <string name="active_note">Räknas med i packförslaget</string>
+    <string name="paused">Pausat</string>
+    <string name="paused_note">Pausat – räknas inte med</string>
     <string name="regimen_doses_required">Minst en dos per dag</string>
     <string name="regimen_days_required">Välj minst en veckodag</string>
     <string name="regimen_interval_min">Minst 2 dagar mellan doserna – annars Dagligen</string>
@@ -168,6 +168,19 @@
     <string name="form_drops">Droppar</string>
     <string name="form_patch">Plåster</string>
     <string name="form_other">Annat</string>
+    <!-- Familjeartiklar (FAM-1–4) -->
+    <string name="family_item_new">Ny artikel</string>
+    <string name="family_item_edit">Redigera artikel</string>
+    <string name="family_item_category">Kategori</string>
+    <string name="family_item_quantity">Mängd</string>
+    <string name="category_cream">Krämer &amp; salvor</string>
+    <string name="category_plaster">Plåster &amp; förband</string>
+    <string name="category_tool">Verktyg</string>
+    <string name="category_other">Övrigt</string>
+    <string name="rule_min_one">Minst 1</string>
+    <string name="example_sunscreen">Solkräm</string>
+    <string name="example_plaster">Plåster</string>
+    <string name="example_thermometer">Febertermometer</string>
     <string name="family_items_empty_title">Inga familjeartiklar än</string>
     <string name="family_items_empty_message">Solkräm, plåster, febertermometer – saker hela familjen delar.</string>
     <plurals name="trip_days">
