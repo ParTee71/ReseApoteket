@@ -36,7 +36,9 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Etikett/pill | `InfoPill` | `AppShapes.pill` |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` | M3 filterchip |
-| Avatar | `PersonAvatar` | emoji i färgad cirkel |
+| Avatar | `PersonAvatar` | emoji i färgad cirkel, `size` (`Small`, `Regular`, `Large`) |
+| Emojival | `EmojiPicker` | rutnät av runda val (`ChoiceGrid`), kurerad lista `PERSON_EMOJIS` |
+| Färgval | `ColorSwatchPicker` | rutnät av runda val (`ChoiceGrid`) över `AppColors.PERSON_HEX`; TalkBack läser färgens namn |
 | Antal ± | `QuantityStepper` | M3 ikonknappar i en pill, `label` för TalkBack |
 | Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper` |
 | Mängdregel | `QuantityRuleRow` | `AppFilterChip` + `QuantityStepper` |
@@ -59,8 +61,9 @@ komponent, komponentnamnet i backticks först i kolumn två.
 
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
-| Listskärm | `EntityListScreen` | Laddning → `AppLoading`; tomt → `EmptyState` med primärknapp; fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden; "Visa arkiverade" där arkivering finns |
+| Listskärm | `EntityListScreen` | Fel från en åtgärd i listan (`error`, t.ex. arkivera) som meddelande; laddning → `AppLoading`; tomt → `EmptyState` med primärknapp; fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden; "Visa arkiverade" där arkivering finns |
 | Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka; arkivera/radera i menyn |
+| Detaljskärm | `EntityDetailScreen` | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `ApotekCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
 | Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
 | Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep |
@@ -80,6 +83,8 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` (fel per fält visas efter ändring eller sparförsök; `EditorEffect` till ramen) |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>`, och `ListLoader` (med "Försök igen") + `activeOnly()` för en listas ViewModel, i `ui/common/` |
+| Detaljtillstånd | `Flow<T?>.asDetailUiState()` → `DetailUiState<T>`, och `DetailLoader` (med "Försök igen") för en detaljskärms ViewModel, i `ui/common/` |
+| ViewModel med nyckel | Hilt assisted injection: `@HiltViewModel(assistedFactory = …)` + `hiltViewModel<VM, VM.Factory> { it.create(key.…) }` i `appEntries` (ARKITEKTUR → Verifierade API:er) |
 | Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |
 | Navigation | `AppKey`, `AppBackStack`, `AppNavHost`, `Transitions` i `navigation/` |
 | Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) i `data/common/` |

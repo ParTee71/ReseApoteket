@@ -11,6 +11,7 @@ import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.repository.DefaultFamilyItemRepository
 import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
+import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.data.repository.DefaultTripRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -32,8 +33,8 @@ class TabViewModelsTest {
         repository.upsert(Person("p2", "Erik", sortOrder = 2))
         repository.upsert(Person("p1", "Anna", sortOrder = 1))
         repository.upsert(Person("p3", "Bo", archived = true))
-        PersonsViewModel(repository).state.test {
-            assertEquals(listOf("Anna", "Erik"), (expectMostRecentItem() as ListUiState.Content).items.map { it.name })
+        PersonsViewModel(repository, DefaultRegimenRepository(collections)).state.test {
+            assertEquals(listOf("Anna", "Erik"), (expectMostRecentItem() as ListUiState.Content).items.map { it.person.name })
         }
     }
 

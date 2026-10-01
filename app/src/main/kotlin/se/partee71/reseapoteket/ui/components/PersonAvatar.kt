@@ -14,11 +14,12 @@ import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.ui.theme.AppShapes
 import se.partee71.reseapoteket.ui.theme.AppTypography
 
-enum class AvatarSize(internal val size: Dp) { Regular(40.dp), Small(28.dp) }
+enum class AvatarSize(internal val size: Dp) { Regular(40.dp), Small(28.dp), Large(72.dp) }
 
 /**
  * Personens emoji i en cirkel i personens färg (`AppColors.person`). Dekorativ – namnet står
- * alltid bredvid, så TalkBack hoppar över den.
+ * alltid bredvid, så TalkBack hoppar över den. [AvatarSize.Large] överst i persondetaljen och
+ * i redigeringen.
  */
 @Composable
 fun PersonAvatar(emoji: String, color: Color, modifier: Modifier = Modifier, size: AvatarSize = AvatarSize.Regular) {
@@ -26,6 +27,11 @@ fun PersonAvatar(emoji: String, color: Color, modifier: Modifier = Modifier, siz
         modifier.size(size.size).background(color, AppShapes.pill).clearAndSetSemantics {},
         contentAlignment = Alignment.Center,
     ) {
-        Text(emoji, style = if (size == AvatarSize.Regular) AppTypography.sectionTitle else AppTypography.pill)
+        val style = when (size) {
+            AvatarSize.Small -> AppTypography.pill
+            AvatarSize.Regular -> AppTypography.sectionTitle
+            AvatarSize.Large -> AppTypography.screenTitle
+        }
+        Text(emoji, style = style)
     }
 }

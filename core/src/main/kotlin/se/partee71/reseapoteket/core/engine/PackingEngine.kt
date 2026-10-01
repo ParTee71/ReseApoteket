@@ -16,6 +16,7 @@ import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.Sortable
 import se.partee71.reseapoteket.core.model.Trip
+import se.partee71.reseapoteket.core.model.displayName
 
 /** En uträknad mängd: antal enheter, förpackningar och förklaringen (BER-10). */
 data class PackingLine(val quantity: Int, val packages: Int?, val reason: String, val warning: Boolean = false)
@@ -127,7 +128,7 @@ object PackingEngine {
         personId = person.id,
         sourceType = PackingSource.REGIMEN,
         sourceId = regimen.id,
-        name = listOf(regimen.name, regimen.strength).filter { it.isNotBlank() }.joinToString(" "),
+        name = regimen.displayName,
         unit = regimen.unit,
         suggestedQuantity = line.quantity,
         quantity = line.quantity,

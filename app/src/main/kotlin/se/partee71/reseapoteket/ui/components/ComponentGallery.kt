@@ -32,6 +32,7 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.AppColors
@@ -127,6 +128,7 @@ private fun Rows() {
     ChipRow {
         listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧").forEachIndexed { i, emoji -> PersonAvatar(emoji, AppColors.person(i)) }
     }
+    PersonAvatar("🦉", AppColors.person(3), size = AvatarSize.Large)
 }
 
 @Composable
@@ -159,6 +161,12 @@ private fun Fields() {
     DoseScheduleRow(schedule, { schedule = it }, unitName = { if (it == 1) "tablett" else "tabletter" })
     PackingPreview("För en 7-dagarsresa", "18 tabletter · 2 kartor", reason = "2 × 1 tablett/dag × (7 + 2) dagar")
     QuantityRuleRow(rule, { rule = it }, unitName = { if (it == 1) "tub" else "tuber" })
+    var emoji by remember { mutableStateOf("🦉") }
+    var color by remember { mutableStateOf(AppColors.PERSON_HEX[3]) }
+    Label("EmojiPicker")
+    EmojiPicker(emoji, { emoji = it })
+    Label("ColorSwatchPicker")
+    ColorSwatchPicker(color, { color = it })
 }
 
 @Composable
@@ -257,6 +265,22 @@ private fun Frames(onBack: () -> Unit) {
             delete = DeleteAction("Radera Solkräm?", "Artikeln tas bort för gott. Det går inte att ångra.") {},
         ) {
             AppTextField(name, { name = it }, "Namn")
+        }
+    }
+    Label("EntityDetailScreen")
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        EntityDetailScreen(
+            state = DetailUiState.Content("Anna"),
+            header = { DetailHeader(it, "3 recept · 1 kosttillskott") },
+            onBack = onBack,
+            onEdit = {},
+            menu = { listOf(AppMenuItem("Arkivera", {}, R.drawable.ic_archive)) },
+            leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) },
+        ) {
+            ApotekCard {
+                SectionHeader("Recept", icon = R.drawable.ic_medication, count = "1")
+                ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", navigates = true, onClick = {})
+            }
         }
     }
 }

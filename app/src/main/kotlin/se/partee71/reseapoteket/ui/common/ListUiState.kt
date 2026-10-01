@@ -69,6 +69,42 @@ class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope) {
     }
 }
 
+/** Tillståndet för en detaljskärm (`EntityDetailScreen`): laddning, fel eller innehåll. */
+sealed interface DetailUiState<out T> {
+    data object Loading : DetailUiState<Nothing>
+
+    data class Content<T>(val value: T) : DetailUiState<T>
+
+    data class Error(val error: DataError) : DetailUiState<Nothing>
+}
+
+/**
+ * Den enda översättningen från ett dokument till [DetailUiState]; börjar om från laddning när
+ * [retry] emitterar. Ett dokument som inte finns (raderat, eller en annans) är ett fel.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T : Any> Flow<T?>.asDetailUiState(retry: Flow<Unit>): Flow<DetailUiState<T>> =
+    retry.onStart { emit(Unit) }.flatMapLatest {
+        map<T?, DetailUiState<T>> { value -> value?.let { DetailUiState.Content(it) } ?: DetailUiState.Error(DataError.Unknown) }
+            .onStart { emit(DetailUiState.Loading) }
+            .catch { emit(DetailUiState.Error(it as? DataError ?: DataError.Unknown)) }
+    }
+
+/** Detaljtillståndet för en ViewModel, med "Försök igen" – som [ListLoader] för listor. */
+class DetailLoader<T : Any>(source: Flow<T?>, scope: CoroutineScope) {
+    private val retries = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    val state: StateFlow<DetailUiState<T>> = source.asDetailUiState(retries).stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS, replayExpirationMillis = 0),
+        DetailUiState.Loading,
+    )
+
+    fun retry() {
+        retries.tryEmit(Unit)
+    }
+}
+
 /** Arkiverade dokument visas inte i listorna förrän "Visa arkiverade" finns för samlingen. */
 fun <T : Archivable> Flow<List<T>>.activeOnly(): Flow<List<T>> = map { items -> items.filterNot { it.archived } }
 

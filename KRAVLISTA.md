@@ -72,10 +72,10 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott; lista, tomt tillstånd, fel och "Visa arkiverade" enligt NFR-1. *(planerad, #21)* |
-| PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista och en av åtta personfärger; skapas och redigeras enligt NFR-2. *(planerad, #21)* |
-| PER-3 | En person arkiveras med svep och kan ångras (NFR-3); en arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(planerad, #21)* |
-| PER-4 | Persondetaljen visar personens **Recept** och **Kosttillskott** i var sin sektion. *(planerad, #21)* |
+| PER-1 | Fliken **Personer** listar hushållets personer med emoji-avatar, namn och antal recept och kosttillskott som inte är arkiverade ("3 recept · 1 kosttillskott", annars "Inga recept eller kosttillskott än"); lista, tomt tillstånd och fel enligt NFR-1. "Visa arkiverade" i menyn visar arkiverade personer sist, märkta "Arkiverad". |
+| PER-2 | En person har namn (obligatoriskt), emoji ur en kurerad lista på 40 och en av åtta personfärger, valda direkt i formuläret med en förhandsvisning av avataren; en ny person börjar med första emojin och färgen och hamnar sist i listan. Skapas och redigeras enligt NFR-2. |
+| PER-3 | En person arkiveras med svep och kan ångras (NFR-3), eller arkiveras och återställs från persondetaljens meny. En arkiverad person föreslås inte i nya resor (BER-9); en befintlig packlista behåller personens rader tills listan räknas om (RES-4), och avprickade rader finns kvar även då. *(resorna planerade, #24–#26)* |
+| PER-4 | Persondetaljen visar personens avatar, namn och antal överst, och personens **Recept** och **Kosttillskott** i var sin sektion med antal, dosering per rad och "Lägg till" (NFR-1). Arkiverade recept och kosttillskott visas inte. |
 
 ## 7. Recept
 

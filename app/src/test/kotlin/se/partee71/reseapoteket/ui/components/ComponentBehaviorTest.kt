@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.state.ToggleableState
@@ -14,6 +15,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTouchHeightIsEqualTo
+import androidx.compose.ui.test.assertTouchWidthIsEqualTo
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -21,6 +24,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.datetime.DayOfWeek
@@ -144,6 +148,32 @@ class ComponentBehaviorTest {
         show { PersonChip("Anna", "🦊", AppColors.person(0), selected, { selected = !selected }) }
         rule.onNodeWithText("Anna").performClick()
         assertTrue(selected)
+    }
+
+    @Test
+    fun `emojivalet väljer en emoji och läses som ett av flera alternativ`() {
+        var emoji by mutableStateOf("🦊")
+        show { EmojiPicker(emoji, { emoji = it }) }
+        rule.onNodeWithContentDescription("🦉").performClick()
+        assertEquals("🦉", emoji)
+        rule.onNodeWithContentDescription("🦉").assertIsSelected()
+        rule.onNodeWithContentDescription("🦉").assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton))
+    }
+
+    @Test
+    fun `färgvalet väljer en personfärg och läser färgens namn`() {
+        var color by mutableStateOf(AppColors.PERSON_HEX[0])
+        show { ColorSwatchPicker(color, { color = it }) }
+        rule.onNodeWithContentDescription("Färg: lila").performClick()
+        assertEquals(AppColors.PERSON_HEX[3], color)
+        rule.onNodeWithContentDescription("Färg: lila").assertIsSelected()
+    }
+
+    @Test
+    fun `färgvalet känner igen en lagrad färg med små bokstäver och har 48 dp tryckytor`() {
+        show { ColorSwatchPicker(AppColors.PERSON_HEX[1].lowercase(), {}) }
+        rule.onNodeWithContentDescription("Färg: blå").assertIsSelected()
+        rule.onNodeWithContentDescription("Färg: blå").assertTouchHeightIsEqualTo(48.dp).assertTouchWidthIsEqualTo(48.dp)
     }
 
     @Test
