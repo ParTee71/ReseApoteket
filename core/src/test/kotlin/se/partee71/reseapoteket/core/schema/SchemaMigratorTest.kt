@@ -30,6 +30,14 @@ class SchemaMigratorTest {
     }
 
     @Test
+    fun `ett hushåll stämplas av appen bara när inget steg dit ändrar data (BCK-5)`() {
+        assertTrue(SchemaMigrator.canStamp(1), "1 → 2 lägger bara till POWDER")
+        assertTrue(SchemaMigrator.canStamp(0), "ett trasigt värde är det första formatet")
+        assertFalse(SchemaMigrator.canStamp(Schema.CURRENT_VERSION))
+        assertFalse(SchemaMigrator.canStamp(Schema.CURRENT_VERSION + 1))
+    }
+
+    @Test
     fun `nyare data än appen migreras aldrig och markeras som nyare`() {
         assertTrue(Schema.isNewerThanApp(Schema.CURRENT_VERSION + 1))
         assertFalse(Schema.isNewerThanApp(Schema.CURRENT_VERSION))

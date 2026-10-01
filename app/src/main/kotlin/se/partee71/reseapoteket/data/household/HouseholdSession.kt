@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
+import se.partee71.reseapoteket.core.schema.Schema
+import se.partee71.reseapoteket.core.schema.SchemaMigrator
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.HouseholdScope
 import se.partee71.reseapoteket.data.common.HouseholdVersion
@@ -35,7 +37,7 @@ import se.partee71.reseapoteket.di.ApplicationScope
 @OptIn(ExperimentalCoroutinesApi::class)
 class HouseholdSession @Inject constructor(
     private val settings: SettingsStore,
-    versions: HouseholdVersionSource,
+    private val versions: HouseholdVersionSource,
     @ApplicationScope scope: CoroutineScope,
 ) : HouseholdScope {
 
@@ -57,6 +59,7 @@ class HouseholdSession @Inject constructor(
                 emptyFlow()
             } else {
                 versions.schemaVersion(id)
+                    .onEach { version -> stampIfDataFree(id, version) }
                     .map { HouseholdVersion(id, it) }
                     .onEach { _unreadable.compareAndSet(id, null) }
                     .catch { error ->
@@ -73,6 +76,20 @@ class HouseholdSession @Inject constructor(
                     }
             }
         }.stateIn(scope, SharingStarted.Eagerly, null)
+
+    /** Hushåll som stämplats den här körningen – en nekad stämpling upprepas inte i en slinga. */
+    private val stamped = mutableSetOf<String>()
+
+    /**
+     * Ett äldre hushåll vars väg till appens version inte ändrar några dokument stämplas direkt,
+     * så att en äldre app på en annan enhet ber om uppdatering i stället för att läsa ett nytt
+     * värde fel och skriva tillbaka det (BCK-5). Kräver dokumentändringar körs `migrate.mjs`.
+     */
+    private fun stampIfDataFree(householdId: String, version: Int) {
+        if (SchemaMigrator.canStamp(version) && synchronized(stamped) { stamped.add(householdId) }) {
+            versions.stamp(householdId, Schema.CURRENT_VERSION)
+        }
+    }
 
     /**
      * Väljer hushåll och återvänder när sessionen visar det – nästa skrivning hamnar rätt. Kan

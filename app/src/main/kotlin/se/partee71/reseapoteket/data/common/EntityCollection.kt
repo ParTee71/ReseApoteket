@@ -1,6 +1,10 @@
 package se.partee71.reseapoteket.data.common
 
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withTimeoutOrNull
 import se.partee71.reseapoteket.core.model.Identified
 import se.partee71.reseapoteket.core.model.Sortable
 
@@ -39,10 +43,15 @@ interface EntityCollection<T : Identified> {
 
 /**
  * `sortOrder` för något nytt, så att det hamnar sist i listan – en gång för alla formulär.
- * Går listan inte att läsa hamnar det först (0) i stället för att sparandet stoppas.
+ * Läses ur listan som den redan finns i cachen ([EntityCollection.observe]), så att sparandet
+ * inte väntar på nätet (offline först). Går listan inte att läsa i tid hamnar det först (0) i
+ * stället för att sparandet stoppas.
  */
 suspend fun <T> EntityCollection<T>.nextSortOrder(): Int where T : Identified, T : Sortable =
-    getAll().getOrNull()?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+    withTimeoutOrNull(SORT_ORDER_WAIT) { observe().catch { }.firstOrNull() }?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+
+/** Hur länge [nextSortOrder] väntar på listan (ur cachen tar det millisekunder; utan hushåll kommer den aldrig). */
+private val SORT_ORDER_WAIT = 2.seconds
 
 /** Sparar [item]; något nytt ([isNew]) hamnar sist i listan via [placeLast] – samma i alla formulär. */
 suspend fun <T> EntityCollection<T>.upsertPlaced(item: T, isNew: Boolean, placeLast: T.(Int) -> T): Result<Unit> where T : Identified, T : Sortable =

@@ -153,7 +153,7 @@ class FamilyItemViewModelsTest {
 
     @Test
     fun `en artikel som inte finns visar läsfel`() = runTest {
-        editor("borta").state.test { assertEquals(DataError.Unknown, expectMostRecentItem().loadError) }
+        editor("borta").state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError) }
     }
 
     @Test

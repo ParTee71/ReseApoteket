@@ -114,7 +114,7 @@ class EditorStateTest {
 
         val missing = EditorState(Form(), validator, loading = true)
         missing.loadFrom({ Result.success(null) })
-        assertEquals(DataError.Unknown, missing.state.value.loadError)
+        assertEquals(DataError.NotFound, missing.state.value.loadError)
 
         val offline = EditorState(Form(), validator, loading = true)
         offline.loadFrom({ Result.failure(DataError.Offline) })
@@ -209,5 +209,14 @@ class EditorStateTest {
     private companion object {
         const val NAME = "name"
         const val NOTE = "note"
+    }
+
+    @Test
+    fun `Försök igen för något nytt läser inget och laddar inte för evigt`() = runTest {
+        val editor = editor()
+        val loader = EditorLoader(editor, backgroundScope, read = null)
+        loader.retry()
+        assertFalse(editor.state.value.loading)
+        assertNull(loader.stored.value)
     }
 }

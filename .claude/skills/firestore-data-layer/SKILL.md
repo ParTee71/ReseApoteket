@@ -59,7 +59,7 @@ fälthjälparna; toleranta mot saknade och okända fält.
   översätts i `data/firestore/FirestoreValues.kt`, rekursivt; `:core` ser aldrig Firebase-typer.
 - **Fel:** `firestoreError` mappar `FirebaseFirestoreException` → `DataError` en gång, via
   `suspendRunCatching`. `DataError` (`Offline`, `PermissionDenied`, `Cancelled`,
-  `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) används även av `AuthRepository`. UI visar
+  `UpdateRequired`, `SignInRejected`, `NoHousehold`, `NotFound`, `Unknown`) används även av `AuthRepository`. UI visar
   texten via `DataError.toMessage()`.
 - **`FakeCollection`** (test) använder samma `prepareForWrite`/`readDocument` och emulerar
   Firestores merge (djup för nästlade maps, heltal som `Long`). `CollectionContract` i
@@ -82,7 +82,9 @@ felmappning, ingen codec-logik.
 `HouseholdSession` (`data/household/`, implementerar `HouseholdScope`): hushålls-ID:t sparas i
 DataStore (`SettingsStore`, som ger standardvärden om filen inte går att läsa),
 `schemaVersion` läses direkt ur hushållsdokumentet (`HouseholdVersionSource`; vid fel
-emitteras inget, så skrivspärren förblir stängd). `select(id)` återvänder först när
+emitteras inget, så skrivspärren förblir stängd). Ett äldre hushåll vars väg till appens
+version inte ändrar några dokument (`SchemaMigrator.canStamp`) stämplas av sessionen med
+`HouseholdVersionSource.stamp` (bara fältet `schemaVersion`, en gång per körning). `select(id)` återvänder först när
 sessionen visar det nya hushållet, så nästa skrivning hamnar rätt.
 `selection` är det sparade valet som flöde och emitterar först när DataStore lästs.
 Hushållen en användare är medlem i hämtas med `HouseholdDirectory` (fråga

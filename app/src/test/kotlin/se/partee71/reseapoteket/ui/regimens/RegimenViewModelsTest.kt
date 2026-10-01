@@ -133,13 +133,13 @@ class RegimenViewModelsTest {
 
     @Test
     fun `ett recept som inte finns visar läsfel`() = runTest {
-        viewModel("borta").state.test { assertEquals(DataError.Unknown, expectMostRecentItem().loadError) }
+        viewModel("borta").state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError) }
     }
 
     @Test
     fun `Försök igen läser receptet på nytt efter ett läsfel`() = runTest {
         val vm = viewModel("r1")
-        assertEquals(DataError.Unknown, vm.state.value.loadError)
+        assertEquals(DataError.NotFound, vm.state.value.loadError)
         anna.upsert(levaxin)
         vm.onEvent(RegimenEditEvent.Retry)
         assertNull(vm.state.value.loadError)

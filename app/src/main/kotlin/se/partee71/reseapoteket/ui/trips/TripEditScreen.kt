@@ -14,14 +14,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
@@ -33,8 +34,10 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingPreviewText
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
+import se.partee71.reseapoteket.data.common.withFallback
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
+import se.partee71.reseapoteket.domain.PackingUpdate
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.ui.common.DateFormat
 import se.partee71.reseapoteket.ui.common.EditorEffect
@@ -121,16 +124,28 @@ class TripEditViewModel @AssistedInject constructor(
     /** Den lagrade resan – vad som räknas om jämförs mot, och vad som arkiveras eller återställs. */
     val stored: StateFlow<Trip?> = loader.stored
 
-    /** Hushållets personer som kan åka med; arkiverade bara om de redan är resenärer. */
-    val people: StateFlow<List<Person>> = persons.observe()
-        .combine(editor.state.map { it.value.travellerIds }.distinctUntilChanged()) { all, ids -> all.filter { !it.archived || it.id in ids } }
-        .catch { emit(emptyList()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    /**
+     * Hushållets personer, följda en gång för chipen, förvalet och sammanfattningen; `null` medan
+     * de inte går att läsa (då visas inga chip och ingen sammanfattning – aldrig "0 resenärer").
+     */
+    private val household: SharedFlow<List<Person>?> = persons.observe()
+        .map<List<Person>, List<Person>?> { it }
+        .withFallback(null)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    /** Vad packlistan skulle bli (RES-3); `null` tills underlaget är läst, eller om det inte går. */
-    val preview: StateFlow<PackingPreviewText?> = packing.preview(editor.state.map { it.value })
+    /**
+     * Personerna som kan åka med; en arkiverad bara om den var resenär i den sparade resan – så att
+     * den går att välja igen om den valts bort av misstag.
+     */
+    val people: StateFlow<List<Person>> = combine(household, stored) { all, saved ->
+        val travellers = saved?.travellerIds.orEmpty().toSet()
+        all.orEmpty().filter { !it.archived || it.id in travellers }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Vad packlistan skulle bli (RES-3); `null` tills underlaget är läst, eller medan det inte går. */
+    val preview: StateFlow<PackingPreviewText?> = packing.preview(editor.state.map { it.value }, household.filterNotNull())
         .map<PackingPreviewText, PackingPreviewText?> { it }
-        .catch { emit(null) }
+        .withFallback(null)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var defaultName = ""
@@ -144,8 +159,8 @@ class TripEditViewModel @AssistedInject constructor(
             val start = clock.todayIn(timeZone).plus(DatePeriod(days = 1))
             editor.update { it.copy(name = "", startDate = start) }
             viewModelScope.launch {
-                // Går personerna inte att läsa väljer användaren själv; felet syns redan i listan.
-                val everyone = persons.observe().catch { }.firstOrNull().orEmpty().filterNot { it.archived }.map { it.id }
+                // Väntar tills personerna gått att läsa; har användaren valt själv under tiden står valet kvar.
+                val everyone = household.filterNotNull().first().filterNot { it.archived }.map { it.id }
                 // Har användaren redan valt någon skrivs valet inte över.
                 if (everyone.isNotEmpty()) editor.update { if (it.travellerIds.isEmpty()) it.copy(travellerIds = everyone) else it }
             }
@@ -191,16 +206,16 @@ class TripEditViewModel @AssistedInject constructor(
         viewModelScope.launch { editor.run { trips.setArchived(editor.value.id, archived) } }
     }
 
-    /**
-     * Ett tomt namn blir "Resa <datum>". En ny resa får sin packlista först, så att den aldrig
-     * finns utan lista; en ändrad räknas om på begäran.
-     */
+    /** Ett tomt namn blir "Resa <datum>"; en ny resa får sin packlista, en ändrad räknas om på begäran. */
     private suspend fun write(trip: Trip, recount: Boolean): Result<Unit> {
         val now = clock.now()
         val named = trip.copy(name = trip.name.trim().ifEmpty { defaultName }, updatedAt = now, createdAt = trip.createdAt ?: now)
-        if (isNew) packing.create(named).onFailure { return Result.failure(it) }
-        val saved = trips.upsert(named)
-        return if (saved.isSuccess && recount) packing.recount(named) else saved
+        val update = when {
+            isNew -> PackingUpdate.CREATE
+            recount -> PackingUpdate.RECOUNT
+            else -> PackingUpdate.KEEP
+        }
+        return packing.save(named, update)
     }
 
     private companion object {

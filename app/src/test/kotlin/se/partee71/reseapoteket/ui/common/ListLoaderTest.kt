@@ -57,7 +57,7 @@ class ListLoaderTest {
         loader.state.test {
             assertEquals(DetailUiState.Error(DataError.Offline), expectMostRecentItem())
             loader.retry()
-            assertEquals(DetailUiState.Error(DataError.Unknown), expectMostRecentItem())
+            assertEquals(DetailUiState.Error(DataError.NotFound), expectMostRecentItem())
             loader.retry()
             assertEquals(DetailUiState.Content("Anna"), expectMostRecentItem())
         }

@@ -124,7 +124,7 @@ fun <T> EntityListScreen(
                     action = {
                         Column(verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
                             if (empty.examples.isNotEmpty()) {
-                                ExampleChips(empty.examples.map { it.label }, { label -> empty.examples.first { it.label == label }.onClick() })
+                                ExampleChips(empty.examples, { it.onClick() }, label = { it.label })
                             }
                             AppButton(empty.actionLabel, onAdd, Modifier.fillMaxWidth(), icon = R.drawable.ic_add)
                         }

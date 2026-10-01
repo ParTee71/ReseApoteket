@@ -22,6 +22,7 @@
     <string name="error_update_required">Hushållets data är sparad med en nyare version av appen. Uppdatera appen för att kunna ändra.</string>
     <string name="error_sign_in_rejected">Inloggningen godkändes inte. Försök igen.</string>
     <string name="error_no_household">Inget hushåll är valt.</string>
+    <string name="error_not_found">Det finns inte längre – det kan ha raderats på en annan enhet.</string>
     <string name="error_unknown">Något gick fel. Försök igen.</string>
     <!-- Återkommande texter – används av ramarna och komponenterna, en gång (regel 4) -->
     <string name="save">Spara</string>

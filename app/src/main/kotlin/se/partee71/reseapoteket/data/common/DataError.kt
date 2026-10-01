@@ -25,6 +25,9 @@ sealed class DataError : Exception() {
     /** Inget aktivt hushåll valt ännu. */
     data object NoHousehold : DataError()
 
+    /** Det som efterfrågas finns inte (längre) – t.ex. raderat på en annan enhet. Ett nytt försök hjälper inte. */
+    data object NotFound : DataError()
+
     data object Unknown : DataError()
 }
 

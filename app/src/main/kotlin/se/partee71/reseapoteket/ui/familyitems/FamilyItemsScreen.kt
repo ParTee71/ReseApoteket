@@ -18,14 +18,14 @@ import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.FamilyItemCategory
 import se.partee71.reseapoteket.data.repository.FamilyItemRepository
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.components.ListArchive
+import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EmptyExample
 import se.partee71.reseapoteket.ui.components.EntityListScreen
+import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.ListGroup
 import se.partee71.reseapoteket.ui.components.PausableRow
 import se.partee71.reseapoteket.ui.components.SwipeToHide

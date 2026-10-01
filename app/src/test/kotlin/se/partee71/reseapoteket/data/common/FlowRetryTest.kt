@@ -6,6 +6,7 @@ import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -40,5 +41,39 @@ class FlowRetryTest {
             source.retryWithBackoff(1.seconds, 30.seconds, retryOn = { it is IOException }).toList()
         }
         assertEquals(0L, testScheduler.currentTime)
+    }
+
+    @Test
+    fun `ett bestående fel försöks inte igen – ersättningen står kvar`() = runTest {
+        var attempts = 0
+        val source = flow<String> {
+            attempts++
+            throw DataError.PermissionDenied
+        }
+        assertEquals(listOf("–"), source.withFallback("–").toList())
+        assertEquals(1, attempts)
+    }
+
+    @Test
+    fun `pausen börjar om när något lästs igen`() = runTest {
+        var attempt = 0
+        val source = flow {
+            attempt++
+            if (attempt in setOf(2, 3)) emit("ok $attempt")
+            if (attempt < 4) throw IOException("nere") else emit("klar")
+        }
+        val start = currentTime
+        assertEquals(listOf("–", "ok 2", "–", "ok 3", "–", "klar"), source.withFallback("–").toList())
+        assertEquals(3 * 2_000L, currentTime - start, "varje paus är den första, 2 s")
+    }
+
+    @Test
+    fun `ett tillägg visar ersättningen vid fel och kommer tillbaka efter pausen`() = runTest {
+        var failures = 1
+        val source = flow {
+            if (failures-- > 0) throw IOException("nere")
+            emit("Anna")
+        }
+        assertEquals(listOf("–", "Anna"), source.withFallback("–").toList())
     }
 }

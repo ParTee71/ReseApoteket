@@ -31,4 +31,9 @@ class FirestoreHouseholdVersions @Inject constructor(private val db: FirebaseFir
                 throw if (error is FirebaseFirestoreException && error.code == Code.PERMISSION_DENIED) DataError.PermissionDenied else error
             }
             .retryWithBackoff(first = 2.seconds, max = 60.seconds, retryOn = { it != DataError.PermissionDenied })
+
+    /** `update`, inte `set`: bara versionen ändras, och ett hushåll som inte finns skapas inte. */
+    override fun stamp(householdId: String, version: Int) {
+        db.document(Paths.household(householdId)).update("schemaVersion", version)
+    }
 }

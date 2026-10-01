@@ -32,6 +32,7 @@ import se.partee71.reseapoteket.data.repository.DefaultPackingRepository
 import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.data.repository.DefaultTripRepository
+import se.partee71.reseapoteket.domain.PackingUpdate
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
@@ -53,7 +54,7 @@ class TripViewModelsTest {
     private val familyItems = DefaultFamilyItemRepository(collections)
     private val packing = DefaultPackingRepository(collections)
     private val household = MutableStateFlow<Household?>(Household("h1", marginDays = 2))
-    private val tripPacking = TripPacking(persons, regimens, familyItems, StubHouseholds(household), packing)
+    private val tripPacking = TripPacking(trips, persons, regimens, familyItems, StubHouseholds(household), packing)
 
     // FixedClock = mån 21 sep 2026 (UTC): en ny resa börjar i morgon.
     private fun editor(tripId: String? = null) = TripEditViewModel(tripId, trips, persons, tripPacking, FixedClock(), TimeZone.UTC)
@@ -64,6 +65,12 @@ class TripViewModelsTest {
         persons.upsert(Person("lova", "Lova", archived = true))
         regimens.forPerson("anna").upsert(Regimen("levaxin", name = "Levaxin", schedule = DoseSchedule.Daily(1, 1)))
         familyItems.upsert(FamilyItem("solkram", "Solkräm", rule = QuantityRule.Fixed(1)))
+    }
+
+    /** Hushållet och resan "Kreta" (t1, Anna, 7 dagar) med sin packlista. */
+    private suspend fun seedTripWithList() {
+        seedHousehold()
+        tripPacking.save(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna")), PackingUpdate.CREATE).getOrThrow()
     }
 
     private suspend fun items(tripId: String) = packing.forTrip(tripId).getAll().getOrThrow()
@@ -120,9 +127,7 @@ class TripViewModelsTest {
 
     @Test
     fun `ändrade dagar frågar först, och Räkna om behåller avprickning och egna rader (RES-4)`() = runTest {
-        seedHousehold()
-        trips.upsert(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna")))
-        tripPacking.create(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna"))).getOrThrow()
+        seedTripWithList()
         val levaxin = items("t1").single { it.name == "Levaxin" }
         packing.forTrip("t1").upsert(levaxin.copy(checked = true))
         packing.forTrip("t1").upsert(PackingItem("egen", name = "Laddare", sourceType = PackingSource.MANUAL))
@@ -145,9 +150,7 @@ class TripViewModelsTest {
 
     @Test
     fun `Behåll listan sparar resan men rör inte packlistan (RES-4)`() = runTest {
-        seedHousehold()
-        trips.upsert(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna")))
-        tripPacking.create(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna"))).getOrThrow()
+        seedTripWithList()
         val before = items("t1")
         val vm = editor("t1")
         vm.onEvent(TripEditEvent.Traveller("erik"))
@@ -224,26 +227,29 @@ class TripViewModelsTest {
     fun `en ny resa utan läsbart hushåll kraschar inte – resenärerna väljs själv (RES-2)`() = runTest {
         val noHousehold = FakeCollectionFactory(scope = TestHouseholdScope(householdId = null))
         val people = DefaultPersonRepository(noHousehold)
-        val vm = TripEditViewModel(null, DefaultTripRepository(noHousehold), people, TripPacking(people, DefaultRegimenRepository(noHousehold), DefaultFamilyItemRepository(noHousehold), StubHouseholds(household), DefaultPackingRepository(noHousehold)), FixedClock(), TimeZone.UTC)
+        val vm = TripEditViewModel(null, DefaultTripRepository(noHousehold), people, TripPacking(DefaultTripRepository(noHousehold), people, DefaultRegimenRepository(noHousehold), DefaultFamilyItemRepository(noHousehold), StubHouseholds(household), DefaultPackingRepository(noHousehold)), FixedClock(), TimeZone.UTC)
         assertEquals(emptyList(), vm.state.value.value.travellerIds)
         assertFalse(vm.state.value.canSave)
     }
 
     @Test
-    fun `en arkiverad resenär syns bara medan den är vald`() = runTest {
+    fun `en arkiverad resenär i den sparade resan går att välja bort och välja igen`() = runTest {
         seedHousehold()
         trips.upsert(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna", "lova")))
         val vm = editor("t1")
         vm.people.test {
             assertEquals(setOf("Anna", "Erik", "Lova"), expectMostRecentItem().map { it.name }.toSet())
             vm.onEvent(TripEditEvent.Traveller("lova"))
-            assertEquals(setOf("Anna", "Erik"), expectMostRecentItem().map { it.name }.toSet())
+            vm.onEvent(TripEditEvent.Traveller("lova"))
+            assertEquals(setOf("Anna", "Erik", "Lova"), vm.people.value.map { it.name }.toSet(), "Lova finns kvar att välja")
+            assertEquals(listOf("anna", "lova"), vm.state.value.value.travellerIds)
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
     /** Packlistor som inte går att skriva (nyare data än appen), resten som vanligt. */
     private fun failingPacking() = TripPacking(
-        persons, regimens, familyItems, StubHouseholds(household),
+        trips, persons, regimens, familyItems, StubHouseholds(household),
         DefaultPackingRepository(FakeCollectionFactory(collections.store, TestHouseholdScope(version = Schema.CURRENT_VERSION + 1))),
     )
 
@@ -259,7 +265,7 @@ class TripViewModelsTest {
     }
 
     @Test
-    fun `misslyckas omräkningen visas felet och resan är sparad (RES-4)`() = runTest {
+    fun `misslyckas omräkningen sparas ingenting och formuläret står kvar (RES-4)`() = runTest {
         seedHousehold()
         trips.upsert(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna")))
         val vm = TripEditViewModel("t1", trips, persons, failingPacking(), FixedClock(), TimeZone.UTC)
@@ -269,6 +275,17 @@ class TripViewModelsTest {
             vm.onEvent(TripEditEvent.Recount(true))
             assertTrue(awaitItem() is EditorEffect.Failed)
         }
-        assertEquals(10, trips.get("t1").getOrThrow()!!.days)
+        assertEquals(7, trips.get("t1").getOrThrow()!!.days, "resan och listan hänger ihop")
+        assertTrue(vm.state.value.isDirty)
+    }
+
+    @Test
+    fun `resor med samma start sorteras i svensk ordning (RES-1)`() = runTest {
+        trips.upsert(Trip("o", "Örebro", LocalDate(2026, 10, 1), 2))
+        trips.upsert(Trip("a", "Åre", LocalDate(2026, 10, 1), 2))
+        trips.upsert(Trip("z", "Zürich", LocalDate(2026, 10, 1), 2))
+        TripsViewModel(trips, persons, packing).state.test {
+            assertEquals(listOf("Zürich", "Åre", "Örebro"), (expectMostRecentItem() as ListUiState.Content).items.map { it.trip.name })
+        }
     }
 }

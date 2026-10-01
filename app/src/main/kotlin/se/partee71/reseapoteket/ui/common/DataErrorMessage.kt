@@ -13,5 +13,6 @@ fun DataError.toMessage(): Int = when (this) {
     DataError.UpdateRequired -> R.string.error_update_required
     DataError.SignInRejected -> R.string.error_sign_in_rejected
     DataError.NoHousehold -> R.string.error_no_household
+    DataError.NotFound -> R.string.error_not_found
     DataError.Unknown -> R.string.error_unknown
 }

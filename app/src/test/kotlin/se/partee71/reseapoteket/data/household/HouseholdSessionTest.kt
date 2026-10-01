@@ -33,8 +33,15 @@ class HouseholdSessionTest {
 
     /** Hushåll vars dokument servern nekar. */
     private val denied = mutableSetOf<String>()
-    private val versionSource = HouseholdVersionSource { id ->
-        if (id in denied) flow { throw DataError.PermissionDenied } else versions.getOrPut(id) { MutableStateFlow(Schema.CURRENT_VERSION) }
+    /** Stämplingar som sessionen gjort: (hushåll, version). */
+    private val stamps = mutableListOf<Pair<String, Int>>()
+    private val versionSource = object : HouseholdVersionSource {
+        override fun schemaVersion(householdId: String) =
+            if (householdId in denied) flow { throw DataError.PermissionDenied } else versions.getOrPut(householdId) { MutableStateFlow(Schema.CURRENT_VERSION) }
+
+        override fun stamp(householdId: String, version: Int) {
+            stamps += householdId to version
+        }
     }
 
     private fun TestScope.session(): HouseholdSession {
@@ -60,6 +67,29 @@ class HouseholdSessionTest {
         versions.getValue("h1").value = Schema.CURRENT_VERSION + 1
         session.schemaVersion.first { it?.version == Schema.CURRENT_VERSION + 1 }
         assertEquals(DataError.UpdateRequired, session.writeBlocker())
+    }
+
+    @Test
+    fun `ett äldre hushåll vars väg hit inte ändrar data stämplas en gång (BCK-5)`() = runTest {
+        versions["gammalt"] = MutableStateFlow(1)
+        val session = session()
+        session.select("gammalt")
+        session.schemaVersion.first { it?.version == 1 }
+        assertEquals(listOf("gammalt" to Schema.CURRENT_VERSION), stamps)
+        // Nekas stämplingen och versionen står kvar stämplas det inte om i en slinga.
+        versions.getValue("gammalt").value = Schema.CURRENT_VERSION
+        session.schemaVersion.first { it?.version == Schema.CURRENT_VERSION }
+        versions.getValue("gammalt").value = 1
+        session.schemaVersion.first { it?.version == 1 }
+        assertEquals(1, stamps.size)
+    }
+
+    @Test
+    fun `ett hushåll i appens version stämplas inte`() = runTest {
+        val session = session()
+        session.select("h1")
+        session.schemaVersion.filterNotNull().first()
+        assertEquals(emptyList(), stamps)
     }
 
     @Test

@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso
 import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
@@ -144,6 +145,33 @@ class FramesTest {
         }
         rule.onNodeWithText("Behåll listan").performClick()
         assertEquals(1 to 0, declined to dismissed)
+        // Bakåt (som tryck utanför) stänger bara – "Räkna om packlistan?" sparar då ingenting (RES-4).
+        Espresso.pressBack()
+        rule.waitForIdle()
+        assertEquals(1 to 1, declined to dismissed)
+    }
+
+    @Test
+    fun `EntityEditScreen - arkivera med osparade ändringar frågar först (NFR-2)`() {
+        var archived = 0
+        rule.setContent {
+            ReseApoteketTheme { EntityEditScreen("Solkräm", EditorUiState("Solkräm 50", isValid = true, isDirty = true), emptyFlow(), {}, {}, onArchive = { archived++ }) {} }
+        }
+        rule.onNodeWithContentDescription("Fler val").performClick()
+        rule.onNodeWithText("Arkivera").performClick()
+        rule.onNodeWithText("Fortsätt redigera").performClick()
+        assertEquals(0, archived)
+        rule.onNodeWithContentDescription("Fler val").performClick()
+        rule.onNodeWithText("Arkivera").performClick()
+        rule.onNodeWithText("Släng").performClick()
+        assertEquals(1, archived)
+    }
+
+    @Test
+    fun `LoadErrorState - något som inte finns längre har inget Försök igen (NFR-5)`() {
+        rule.setContent { ReseApoteketTheme { LoadErrorState("Kunde inte hämta uppgifterna", DataError.NotFound, {}) } }
+        rule.onNodeWithText("Det finns inte längre", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Försök igen").assertDoesNotExist()
     }
 
     @Test
@@ -204,6 +232,9 @@ class FramesTest {
         }
         captureLightAndDark("EntityDetailScreen_fel") {
             EntityDetailScreen<String>(DetailUiState.Error(DataError.Offline), header = { DetailHeader(it) }, onBack = {}) {}
+        }
+        captureLightAndDark("EntityDetailScreen_finns_inte") {
+            EntityDetailScreen<String>(DetailUiState.Error(DataError.NotFound), header = { DetailHeader(it) }, onBack = {}) {}
         }
     }
 
