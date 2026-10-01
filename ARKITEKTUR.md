@@ -285,6 +285,7 @@ kräver `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`, som bara får stå 
 | Poster | `androidx.navigation3.runtime.entryProvider { entry<K> { … } }` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
 | Sparat tillstånd per post | `androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator()` | `navigation3-runtime:1.2.0` | stabil | 2026-09-30 |
 | ViewModel per nav-post | `androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator()` | `lifecycle-viewmodel-navigation3:2.11.0` | stabil | 2026-09-30 |
+| ViewModel med nyckel | `@HiltViewModel(assistedFactory = F::class)` + `@AssistedInject`/`@Assisted`/`@AssistedFactory`, och `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel<VM, F>(creationCallback = { it.create(key) })` i nav-posten | `hilt-android:2.60.1`, `hilt-lifecycle-viewmodel-compose:1.4.0` | stabil | 2026-10-01 (kompilerad) |
 
 ---
 

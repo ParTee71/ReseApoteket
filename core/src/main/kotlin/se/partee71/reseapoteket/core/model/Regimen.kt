@@ -20,6 +20,12 @@ data class Regimen(
     override val archived: Boolean = false,
 ) : Identified, Sortable, Archivable
 
+/** "Levaxin 50 µg" – namn och styrka, så som receptet visas i listor och packlistan (PAK-2). */
+val Regimen.displayName: String get() = listOf(name, strength).filter { it.isNotBlank() }.joinToString(" ")
+
+/** Recepten (eller kosttillskotten) av sorten [kind] som inte är arkiverade – det som listor och antal visar. */
+fun List<Regimen>.listed(kind: RegimenKind): List<Regimen> = filter { it.kind == kind && !it.archived }
+
 enum class RegimenKind { MEDICINE, SUPPLEMENT }
 
 enum class MedicineForm { TABLET, CAPSULE, LIQUID, INHALER, DROPS, PATCH, OTHER }

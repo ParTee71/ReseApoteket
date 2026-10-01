@@ -1,6 +1,10 @@
 package se.partee71.reseapoteket.ui.components
 
 import android.content.Context
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -19,12 +23,14 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
+import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.runListScreenContract
+import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.reseapoteket.ui.theme.Tone
 
@@ -109,6 +115,55 @@ class FramesTest {
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Arkivera").performClick()
         assertEquals(1, archived)
+    }
+
+    @Test
+    fun `EntityDetailScreen - lägen, försök igen och meny`() {
+        var state by mutableStateOf<DetailUiState<String>>(DetailUiState.Loading)
+        var retries = 0
+        var edits = 0
+        var archived = 0
+        rule.setContent {
+            ReseApoteketTheme {
+                EntityDetailScreen(
+                    state, header = { DetailHeader(it, "3 recept") }, onBack = {}, onEdit = { edits++ },
+                    menu = { listOf(AppMenuItem("Arkivera", { archived++ })) }, onRetry = { retries++ },
+                ) { Text("Recept") }
+            }
+        }
+        rule.onNodeWithContentDescription("Laddar").assertExists()
+        rule.onNodeWithContentDescription("Redigera").assertDoesNotExist()
+        state = DetailUiState.Error(DataError.Offline)
+        rule.onNodeWithText("Kunde inte hämta uppgifterna").assertIsDisplayed()
+        rule.onNodeWithText("Försök igen").performClick()
+        assertEquals(1, retries)
+        state = DetailUiState.Content("Anna")
+        rule.onNodeWithText("Anna").assertIsDisplayed()
+        rule.onNodeWithText("Recept").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Redigera").performClick()
+        rule.onNodeWithContentDescription("Fler val").performClick()
+        rule.onNodeWithText("Arkivera").performClick()
+        assertEquals(1, edits)
+        assertEquals(1, archived)
+    }
+
+    @Test
+    fun `EntityDetailScreen - innehåll och fel`() {
+        captureLightAndDark("EntityDetailScreen_innehall") {
+            EntityDetailScreen(
+                DetailUiState.Content("Anna"), header = { DetailHeader(it, "3 recept · 1 kosttillskott") }, onBack = {}, onEdit = {},
+                menu = { listOf(AppMenuItem("Arkivera", {})) },
+                leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) },
+            ) {
+                ApotekCard {
+                    SectionHeader("Recept", icon = R.drawable.ic_medication, count = "1")
+                    ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", navigates = true, onClick = {})
+                }
+            }
+        }
+        captureLightAndDark("EntityDetailScreen_fel") {
+            EntityDetailScreen<String>(DetailUiState.Error(DataError.Offline), header = { DetailHeader(it) }, onBack = {}) {}
+        }
     }
 
     @Test

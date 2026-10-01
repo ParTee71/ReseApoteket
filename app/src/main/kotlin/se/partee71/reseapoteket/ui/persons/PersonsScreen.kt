@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.ui.persons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -10,41 +11,123 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
+import se.partee71.reseapoteket.core.model.RegimenKind
+import se.partee71.reseapoteket.core.model.listed
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.dataError
 import se.partee71.reseapoteket.data.repository.PersonRepository
+import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.common.activeOnly
+import se.partee71.reseapoteket.ui.components.ArchivedToggle
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.PersonAvatar
+import se.partee71.reseapoteket.ui.components.SwipeToHide
+import se.partee71.reseapoteket.ui.components.UndoRequest
 import se.partee71.reseapoteket.ui.theme.AppColors
 
-@HiltViewModel
-class PersonsViewModel @Inject constructor(persons: PersonRepository) : ViewModel() {
-    private val loader = ListLoader(persons.observe().activeOnly(), viewModelScope)
-    val state = loader.state
+/** En rad i personlistan: personen och hur många recept och kosttillskott den har (PER-1). */
+data class PersonListItem(val person: Person, val medicines: Int = 0, val supplements: Int = 0)
 
-    fun onEvent(event: ListEvent) = loader.onEvent(event)
+sealed interface PersonsEvent {
+    data class List(val event: ListEvent) : PersonsEvent
+
+    data class Archive(val person: Person) : PersonsEvent
+
+    data object Undo : PersonsEvent
+
+    data object UndoDismissed : PersonsEvent
+
+    data object ToggleArchived : PersonsEvent
+
+    data object ErrorShown : PersonsEvent
 }
 
-/** Fliken Personer. */
+@HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
+class PersonsViewModel @Inject constructor(
+    private val persons: PersonRepository,
+    regimens: RegimenRepository,
+) : ViewModel() {
+    private val _showingArchived = MutableStateFlow(false)
+    val showingArchived: StateFlow<Boolean> = _showingArchived.asStateFlow()
+
+    private val _undo = MutableStateFlow<UndoRequest?>(null)
+    val undo: StateFlow<UndoRequest?> = _undo.asStateFlow()
+
+    /** Ett misslyckat arkivera/ångra, tills listan visat det. */
+    private val _error = MutableStateFlow<DataError?>(null)
+    val error: StateFlow<DataError?> = _error.asStateFlow()
+
+    // Aktiva först; arkiverade sist och bara när de visas (PER-1, PER-3).
+    private val items: Flow<List<PersonListItem>> =
+        combine(persons.observe(), _showingArchived) { all, showArchived ->
+            all.filter { showArchived || !it.archived }.sortedBy { it.archived }
+        }.flatMapLatest { list ->
+            regimens.regimensFor(list.map { it.id }).map { byPerson ->
+                list.map { person ->
+                    val own = byPerson[person.id].orEmpty()
+                    PersonListItem(person, own.listed(RegimenKind.MEDICINE).size, own.listed(RegimenKind.SUPPLEMENT).size)
+                }
+            }
+        }
+
+    private val loader = ListLoader(items, viewModelScope)
+    val state = loader.state
+
+    fun onEvent(event: PersonsEvent) {
+        when (event) {
+            is PersonsEvent.List -> loader.onEvent(event.event)
+            is PersonsEvent.Archive -> viewModelScope.launch {
+                val result = persons.setArchived(event.person.id, true)
+                result.dataError()?.let { _error.value = it } ?: run { _undo.value = UndoRequest(event.person.id, event.person.name) }
+            }
+            PersonsEvent.Undo -> {
+                val request = _undo.value ?: return
+                _undo.value = null
+                viewModelScope.launch { persons.setArchived(request.id, false).dataError()?.let { _error.value = it } }
+            }
+            PersonsEvent.UndoDismissed -> _undo.value = null
+            PersonsEvent.ToggleArchived -> _showingArchived.value = !_showingArchived.value
+            PersonsEvent.ErrorShown -> _error.value = null
+        }
+    }
+}
+
+/** Fliken Personer (PER-1, PER-3). */
 @Composable
 fun PersonsScreen(onAdd: () -> Unit, onOpen: (String) -> Unit, viewModel: PersonsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    PersonsContent(state, viewModel::onEvent, onAdd, onOpen)
+    val showingArchived by viewModel.showingArchived.collectAsStateWithLifecycle()
+    val undo by viewModel.undo.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    PersonsContent(state, showingArchived, undo, viewModel::onEvent, onAdd, onOpen, error = error)
 }
 
 @Composable
 fun PersonsContent(
-    state: ListUiState<Person>,
-    onEvent: (ListEvent) -> Unit,
+    state: ListUiState<PersonListItem>,
+    showingArchived: Boolean,
+    undo: UndoRequest?,
+    onEvent: (PersonsEvent) -> Unit,
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
+    error: DataError? = null,
 ) {
     EntityListScreen(
         title = stringResource(R.string.tab_persons),
@@ -56,15 +139,46 @@ fun PersonsContent(
             actionLabel = stringResource(R.string.persons_add),
         ),
         onAdd = onAdd,
-        key = Person::id,
+        key = { it.person.id },
         modifier = modifier,
-        onRetry = { onEvent(ListEvent.Retry) },
-    ) { person ->
-        ItemRow(
-            title = person.name,
-            leading = { PersonAvatar(person.emoji, AppColors.person(person.colorHex)) },
-            onClick = { onOpen(person.id) },
-            navigates = true,
-        )
+        onRetry = { onEvent(PersonsEvent.List(ListEvent.Retry)) },
+        archived = ArchivedToggle(showingArchived) { onEvent(PersonsEvent.ToggleArchived) },
+        undo = undo,
+        onUndo = { onEvent(PersonsEvent.Undo) },
+        onUndoDismissed = { onEvent(PersonsEvent.UndoDismissed) },
+        error = error,
+        onErrorShown = { onEvent(PersonsEvent.ErrorShown) },
+    ) { item ->
+        val person = item.person
+        if (person.archived) {
+            PersonRow(item, onOpen = { onOpen(person.id) })
+        } else {
+            SwipeToHide(onHide = { onEvent(PersonsEvent.Archive(person)) }) { swipe ->
+                PersonRow(item, swipe, onOpen = { onOpen(person.id) })
+            }
+        }
     }
+}
+
+@Composable
+private fun PersonRow(item: PersonListItem, modifier: Modifier = Modifier, onOpen: () -> Unit) {
+    val person = item.person
+    ItemRow(
+        title = person.name,
+        modifier = modifier,
+        subtitle = if (person.archived) stringResource(R.string.person_archived) else personSummary(item.medicines, item.supplements),
+        leading = { PersonAvatar(person.emoji, AppColors.person(person.colorHex)) },
+        onClick = onOpen,
+        navigates = true,
+    )
+}
+
+/** "3 recept · 1 kosttillskott", eller att personen inte har något än – samma text i lista och detalj. */
+@Composable
+internal fun personSummary(medicines: Int, supplements: Int): String {
+    val parts = listOfNotNull(
+        medicines.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.person_medicines, it, it) },
+        supplements.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.person_supplements, it, it) },
+    )
+    return if (parts.isEmpty()) stringResource(R.string.person_nothing_yet) else parts.joinToString(" · ")
 }

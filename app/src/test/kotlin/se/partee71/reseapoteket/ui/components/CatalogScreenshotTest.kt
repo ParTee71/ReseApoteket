@@ -123,6 +123,7 @@ class CatalogScreenshotTest {
                 }
             }
         }
+        captureLightAndDark("PersonAvatar_stor") { Sheet { PersonAvatar("🦉", AppColors.person(3), size = AvatarSize.Large) } }
         captureLightAndDark("GroupLabel_over_kort") { Sheet { GroupLabel("Utseende"); ApotekCard { ItemRow("Tema") } } }
         captureLightAndDark("AppDivider_i_kort") { Sheet { ApotekCard { ItemRow("Anna"); AppDivider(); ItemRow("Erik") } } }
     }
@@ -165,6 +166,8 @@ class CatalogScreenshotTest {
                 ChipRow(wrap = false) { listOf("Anna" to "🦊", "Erik" to "🐻", "Lova" to "🐰", "Ture" to "🦉").forEachIndexed { i, (n, e) -> PersonChip(n, e, AppColors.person(i), i < 2, {}) } }
             }
         }
+        captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}) } }
+        captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX[3], {}) } }
         captureLightAndDark("AppSegmentedChoice_tema") { Sheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), 2, {}) } }
         captureLightAndDark("QuantityStepper_varde") {
             Sheet {

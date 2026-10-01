@@ -43,6 +43,27 @@ class ListLoaderTest {
     }
 
     @Test
+    fun `detaljen laddar, visar värdet, ger fel för ett saknat dokument och försöker igen`() = runTest(UnconfinedTestDispatcher()) {
+        var attempts = 0
+        val source = flow<String?> {
+            attempts++
+            when (attempts) {
+                1 -> throw DataError.Offline
+                2 -> emit(null)
+                else -> emit("Anna")
+            }
+        }
+        val loader = DetailLoader(source, backgroundScope)
+        loader.state.test {
+            assertEquals(DetailUiState.Error(DataError.Offline), expectMostRecentItem())
+            loader.retry()
+            assertEquals(DetailUiState.Error(DataError.Unknown), expectMostRecentItem())
+            loader.retry()
+            assertEquals(DetailUiState.Content("Anna"), expectMostRecentItem())
+        }
+    }
+
+    @Test
     fun `activeOnly döljer arkiverade`() = runTest {
         val people = listOf(Person("a", "Anna"), Person("b", "Bo", archived = true))
         activeOnly(people).test {

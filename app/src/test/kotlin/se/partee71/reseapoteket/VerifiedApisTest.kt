@@ -29,6 +29,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -37,11 +38,13 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import kotlin.test.assertNotNull
 import kotlinx.serialization.Serializable
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.partee71.reseapoteket.ui.persons.PersonEditViewModel
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
 /**
@@ -61,6 +64,19 @@ class VerifiedApisTest {
 
         compose.onNodeWithText("Lägg till").assertIsDisplayed()
         compose.onNodeWithText("Verktygsrad").assertIsDisplayed()
+    }
+
+    /**
+     * Hilt assisted injection för en ViewModel med nyckel. Hilt-komponenten finns inte i
+     * Robolectric-testerna, så här bevisas att API:et kompileras med appens egen ViewModel;
+     * att det körs bevisas av appens start (instrumenttest och release).
+     */
+    @Test
+    fun `ViewModel med nyckel via Hilt assisted injection kompileras`() {
+        val probe: @Composable (String) -> PersonEditViewModel = { id ->
+            hiltViewModel<PersonEditViewModel, PersonEditViewModel.Factory> { it.create(id) }
+        }
+        assertNotNull(probe)
     }
 
     @Test

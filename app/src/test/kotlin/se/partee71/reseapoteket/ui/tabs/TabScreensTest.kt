@@ -12,7 +12,9 @@ import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsContent
+import se.partee71.reseapoteket.ui.persons.PersonListItem
 import se.partee71.reseapoteket.ui.persons.PersonsContent
+import se.partee71.reseapoteket.ui.persons.PersonsEvent
 import se.partee71.reseapoteket.ui.runListScreenContract
 import se.partee71.reseapoteket.ui.trips.TripsContent
 
@@ -31,8 +33,8 @@ class TabScreensTest {
 
     @Test
     fun `Personer uppfyller listkontraktet`() =
-        rule.runListScreenContract(Person("p1", "Anna", "🦊", "#D97757"), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
-            PersonsContent(state, { if (it == ListEvent.Retry) onRetry() }, onAdd, {})
+        rule.runListScreenContract(PersonListItem(Person("p1", "Anna", "🦊", "#D97757")), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
+            PersonsContent(state, showingArchived = false, undo = null, { if (it == PersonsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
         }
 
     @Test
@@ -45,7 +47,16 @@ class TabScreensTest {
     fun `tomma flikar och innehåll`() {
         captureLightAndDark("TripsScreen_tom") { TripsContent(ListUiState.Empty, {}, {}, {}) }
         captureLightAndDark("PersonsScreen_innehall") {
-            PersonsContent(ListUiState.Content(listOf(Person("p1", "Anna", "🦊", "#D97757"), Person("p2", "Erik", "🐻", "#3B7EA1"))), {}, {}, {})
+            PersonsContent(
+                ListUiState.Content(
+                    listOf(
+                        PersonListItem(Person("p1", "Anna", "🦊", "#D97757"), medicines = 3, supplements = 1),
+                        PersonListItem(Person("p2", "Erik", "🐻", "#3B7EA1"), medicines = 1),
+                        PersonListItem(Person("p3", "Lova", "🐰", "#7A9A3C")),
+                    ),
+                ),
+                showingArchived = false, undo = null, {}, {}, {},
+            )
         }
         captureLightAndDark("FamilyItemsScreen_tom") { FamilyItemsContent(ListUiState.Empty, {}, {}, {}) }
     }

@@ -26,8 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.common.toMessage
 import se.partee71.reseapoteket.ui.theme.Spacing
 import se.partee71.reseapoteket.ui.theme.Tone
 
@@ -50,7 +50,7 @@ data class ArchivedToggle(val showing: Boolean, val onToggle: () -> Unit)
  * laddning → [AppLoading]; tomt → [EmptyState] med knapp; fel → feltillstånd med
  * "Försök igen"; innehåll → rader i kort, valfritt grupperade med [SectionHeader].
  * "Lägg till" står nere till höger ovanför verktygsraden; arkiverade rader ångras med
- * [UndoSnackbar].
+ * [UndoSnackbar]. Ett fel från en åtgärd i listan ([error]) visas som meddelande.
  *
  * @param group grupp för en rad; grupperna visas i den ordning de först förekommer.
  */
@@ -69,9 +69,12 @@ fun <T> EntityListScreen(
     undo: UndoRequest? = null,
     onUndo: () -> Unit = {},
     onUndoDismissed: () -> Unit = {},
+    error: DataError? = null,
+    onErrorShown: () -> Unit = {},
     row: @Composable (T) -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
+    ErrorSnackbar(error, snackbar, onErrorShown)
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val clearance = LocalBottomClearance.current
     UndoSnackbar(undo, snackbar, onUndo, onUndoDismissed)
@@ -103,14 +106,8 @@ fun <T> EntityListScreen(
                     modifier = Modifier.padding(bottom = clearance),
                     action = { AppButton(empty.actionLabel, onAdd, Modifier.fillMaxWidth(), icon = R.drawable.ic_add) },
                 )
-                is ListUiState.Error -> EmptyState(
-                    icon = R.drawable.ic_wifi_off,
-                    title = stringResource(R.string.list_error_title),
-                    message = stringResource(state.error.toMessage()),
-                    modifier = Modifier.padding(bottom = clearance),
-                    isError = true,
-                    action = { AppButton(stringResource(R.string.retry), onRetry, Modifier.fillMaxWidth(), variant = ButtonVariant.Secondary) },
-                )
+                is ListUiState.Error ->
+                    LoadErrorState(stringResource(R.string.list_error_title), state.error, onRetry, Modifier.padding(bottom = clearance))
                 is ListUiState.Content -> ListContent(state.items, key, group, clearance, row)
             }
         }

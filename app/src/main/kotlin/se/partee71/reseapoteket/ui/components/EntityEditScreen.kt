@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -102,13 +101,7 @@ fun EntityEditScreen(
             if (state.loading) {
                 AppLoading()
             } else if (loadError != null) {
-                EmptyState(
-                    icon = R.drawable.ic_wifi_off,
-                    title = stringResource(R.string.load_error_title),
-                    message = stringResource(loadError.toMessage()),
-                    isError = true,
-                    action = { AppButton(stringResource(R.string.retry), onRetry, Modifier.fillMaxWidth(), variant = ButtonVariant.Secondary) },
-                )
+                LoadErrorState(stringResource(R.string.load_error_title), loadError, onRetry)
             } else {
                 Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
