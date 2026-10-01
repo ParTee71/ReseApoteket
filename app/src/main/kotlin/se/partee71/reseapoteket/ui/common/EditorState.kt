@@ -70,6 +70,16 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
         _state.value = compute(value, loading = false)
     }
 
+    /**
+     * Läser det lagrade värdet med [read] – en gång för alla formulär. Finns det inte, eller går
+     * det inte att läsa, visas läsfelet; [prepare] fyller i förval för det som saknas.
+     */
+    suspend fun loadFrom(read: suspend () -> Result<T?>, prepare: (T) -> T = { it }) {
+        read()
+            .onSuccess { stored -> if (stored == null) loadFailed(DataError.Unknown) else load(prepare(stored)) }
+            .onFailure { loadFailed(it as? DataError ?: DataError.Unknown) }
+    }
+
     /** Det lagrade värdet gick inte att läsa – formuläret visar felet i stället för en evig laddning. */
     fun loadFailed(error: DataError) {
         _state.update { it.copy(loading = false, loadError = error) }

@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import kotlinx.datetime.DayOfWeek
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
@@ -20,6 +22,7 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * Dosering: typ (Dagligen · Veckodagar · Intervall · Vid behov) och dess antal. [unitName]
  * ger enhetens namn för ett antal ("tablett"/"tabletter") från `UnitNames` i `:core`.
  * En okänd typ från en nyare app visas som meddelande och kan inte ändras (BCK-5).
+ * [error] (från formulärets validering) visas under fälten, som i `AppTextField`.
  */
 @Composable
 fun DoseScheduleRow(
@@ -27,6 +30,7 @@ fun DoseScheduleRow(
     onChange: (DoseSchedule) -> Unit,
     unitName: (Int) -> String,
     modifier: Modifier = Modifier,
+    error: String? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         if (schedule is DoseSchedule.Unknown) {
@@ -56,7 +60,7 @@ fun DoseScheduleRow(
                 UnitsPerDose(schedule.unitsPerDose, unitName) { onChange(schedule.copy(unitsPerDose = it)) }
             }
             is DoseSchedule.IntervalDays -> {
-                LabeledStepper(schedule.intervalDays, { onChange(schedule.copy(intervalDays = it)) }, stringResource(R.string.dose_interval_days), 1..365)
+                LabeledStepper(schedule.intervalDays, { onChange(schedule.copy(intervalDays = it)) }, stringResource(R.string.dose_interval_days), 2..365)
                 UnitsPerDose(schedule.unitsPerDose, unitName) { onChange(schedule.copy(unitsPerDose = it)) }
             }
             is DoseSchedule.AsNeeded ->
@@ -64,9 +68,17 @@ fun DoseScheduleRow(
                     schedule.quantity,
                     { onChange(schedule.copy(quantity = it)) },
                     stringResource(R.string.dose_as_needed_quantity, unitName(schedule.quantity)),
-                    0..999,
+                    1..999,
                 )
             is DoseSchedule.Unknown -> Unit
+        }
+        error?.let {
+            Text(
+                it,
+                Modifier.semantics { error(it) },
+                style = AppTypography.itemSubtitle,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
     }
 }
@@ -90,7 +102,14 @@ internal fun UnknownVariant() {
     Text(stringResource(R.string.unknown_variant), style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** En valbar typ: hur den känns igen och hur man byter till den (antal per dos följer med). */
+/** Doseringstypens namn ("Dagligen", "Vid behov") – samma etikett som i väljaren; `null` för en okänd typ. */
+@StringRes
+fun DoseSchedule.kindLabel(): Int? = DOSE_KINDS.firstOrNull { it.matches(this) }?.label
+
+/**
+ * En valbar typ: hur den känns igen och hur man byter till den (antal per dos följer med).
+ * Stegarna börjar där en dosering blir giltig (REC-2): intervall från 2 dagar, vid behov från 1.
+ */
 private enum class DoseKind(@param:StringRes val label: Int) {
     DAILY(R.string.dose_daily),
     WEEKDAYS(R.string.dose_weekdays),
@@ -116,7 +135,7 @@ private enum class DoseKind(@param:StringRes val label: Int) {
             DAILY -> DoseSchedule.Daily(unitsPerDose = units)
             WEEKDAYS -> DoseSchedule.Weekdays(unitsPerDose = units)
             INTERVAL -> DoseSchedule.IntervalDays(intervalDays = 2, unitsPerDose = units)
-            AS_NEEDED -> DoseSchedule.AsNeeded()
+            AS_NEEDED -> DoseSchedule.AsNeeded(quantity = 1)
         }
     }
 }

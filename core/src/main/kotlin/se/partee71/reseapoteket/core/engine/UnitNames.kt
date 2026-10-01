@@ -31,8 +31,11 @@ object UnitNames {
 
     private fun Noun.of(count: Int) = if (count == 1) one else many
 
+    /** Enhetens namn för ett antal: "tablett", "tabletter" – också etiketten när enheten väljs. */
+    fun name(count: Int, unit: ItemUnit): String = units.getValue(unit).of(count)
+
     /** "1 tablett", "18 tabletter". */
-    fun quantity(count: Int, unit: ItemUnit): String = "$count ${units.getValue(unit).of(count)}"
+    fun quantity(count: Int, unit: ItemUnit): String = "$count ${name(count, unit)}"
 
     /** "2 kartor". */
     fun packages(count: Int, unit: ItemUnit): String = "$count ${(packages[unit] ?: defaultPackage).of(count)}"

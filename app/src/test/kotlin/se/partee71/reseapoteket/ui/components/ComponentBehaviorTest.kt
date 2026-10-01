@@ -185,7 +185,16 @@ class ComponentBehaviorTest {
         rule.onNodeWithText("tor").performClick()
         assertEquals(setOf(DayOfWeek.THURSDAY), (schedule as DoseSchedule.Weekdays).days)
         rule.onNodeWithText("Vid behov").performClick()
-        assertEquals(DoseSchedule.AsNeeded(), schedule)
+        assertEquals(DoseSchedule.AsNeeded(quantity = 1), schedule, "vid behov börjar giltigt, med 1 att ta med")
+    }
+
+    @Test
+    fun `doseringens stegare stannar där doseringen är giltig (REC-2)`() {
+        var schedule by mutableStateOf<DoseSchedule>(DoseSchedule.IntervalDays(2, 1))
+        show { DoseScheduleRow(schedule, { schedule = it }, tablets) }
+        rule.onNodeWithContentDescription("Minska dagar mellan doserna").assertIsNotEnabled()
+        rule.runOnIdle { schedule = DoseSchedule.AsNeeded(1) }
+        rule.onNodeWithContentDescription("Minska tablett att ta med").assertIsNotEnabled()
     }
 
     @Test

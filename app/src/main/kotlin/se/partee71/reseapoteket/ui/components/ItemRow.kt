@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -33,7 +34,8 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * Den enda listraden (skill shared-ui-components): valfri [leading] (avatar, kryss), titel,
  * undertext och [trailing] (pill, pil, växel). [done] ger den dämpade "packad"-stilen,
  * [tinted] den tonade bakgrunden och [accent] en färgad vänsterkant (personens färg).
- * [navigates] visar en pil till höger – raden öppnar en annan skärm.
+ * [navigates] visar en pil längst till höger (efter [trailing]) – raden öppnar en annan skärm.
+ * [inactive] tonar ner hela raden, för det som finns men inte räknas med (ett pausat recept).
  */
 @Composable
 fun ItemRow(
@@ -47,19 +49,23 @@ fun ItemRow(
     done: Boolean = false,
     accent: Color? = null,
     navigates: Boolean = false,
+    inactive: Boolean = false,
 ) {
-    val arrow: (@Composable () -> Unit)? = if (navigates) {
-        { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+    val end: (@Composable () -> Unit)? = if (navigates) {
+        {
+            trailing?.invoke()
+            Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     } else {
-        null
+        trailing
     }
     ItemRowLayout(
         title = title,
-        modifier = modifier,
+        modifier = if (inactive) modifier.alpha(INACTIVE_ALPHA) else modifier,
         interaction = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         subtitle = subtitle,
         leading = leading,
-        trailing = trailing ?: arrow,
+        trailing = end,
         tinted = tinted,
         done = done,
         accent = accent,
@@ -117,3 +123,4 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAccent(color: C
 
 private val MIN_HEIGHT = 56.dp
 private val ACCENT_WIDTH = 4.dp
+private const val INACTIVE_ALPHA = 0.55f

@@ -26,10 +26,11 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Ikonknapp | `AppIconButton` | M3 ikonknapp, min 48 dp |
 | Split-knapp "Lägg till ▾" | `AddSplitButton` | Expressive split-knapp |
 | Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing` |
-| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil, `done` packad-stil, `accent` personens färg |
+| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat) |
 | Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss |
 | Sektionsrubrik med räknare | `SectionHeader` | `InfoPill` för räknaren |
 | Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
+| Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
@@ -40,7 +41,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Emojival | `EmojiPicker` | rutnät av runda val (`ChoiceGrid`), kurerad lista `PERSON_EMOJIS` |
 | Färgval | `ColorSwatchPicker` | rutnät av runda val (`ChoiceGrid`) över `AppColors.PERSON_HEX`; TalkBack läser färgens namn |
 | Antal ± | `QuantityStepper` | M3 ikonknappar i en pill, `label` för TalkBack |
-| Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper` |
+| Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper`; valideringsfel (`error`) under fälten |
 | Mängdregel | `QuantityRuleRow` | `AppFilterChip` + `QuantityStepper` |
 | Packprogress | `SuitcaseProgress` | Expressive vågig progress, `compact`-parameter |
 | Laddning | `AppLoading` | Expressive laddningsindikator |
