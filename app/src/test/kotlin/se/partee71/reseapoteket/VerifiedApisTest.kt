@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -84,8 +85,11 @@ private fun ExpressiveProbe() {
             clickableItem(onClick = {}, label = "−")
             clickableItem(onClick = {}, label = "+")
         }
-        HorizontalFloatingToolbar(expanded = true) { Text("Verktygsrad") }
-        val morph = remember { Morph(MaterialShapes.Square, MaterialShapes.Cookie9Sided) }
+        HorizontalFloatingToolbar(
+            expanded = true,
+            colors = FloatingToolbarDefaults.standardFloatingToolbarColors(toolbarContainerColor = Color.Black, toolbarContentColor = Color.White),
+        ) { Text("Verktygsrad") }
+        val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
         Box(
             Modifier
                 .size(24.dp)

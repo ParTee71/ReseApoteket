@@ -1,0 +1,41 @@
+package se.partee71.reseapoteket.ui.components
+
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.reseapoteket.ui.theme.AppShapes
+import se.partee71.reseapoteket.ui.theme.AppTypography
+
+/**
+ * Bekräftelse. Permanent radering bekräftas alltid här med [destructive] = true – aldrig med
+ * svep (skill shared-ui-components).
+ */
+@Composable
+fun ConfirmDialog(
+    title: String,
+    message: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    destructive: Boolean = false,
+    dismissLabel: String = stringResource(R.string.cancel),
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            AppButton(confirmLabel, onConfirm, variant = if (destructive) ButtonVariant.Destructive else ButtonVariant.Primary)
+        },
+        modifier = modifier,
+        dismissButton = { AppButton(dismissLabel, onDismiss, variant = ButtonVariant.Text) },
+        title = { Text(title, style = AppTypography.headline) },
+        text = { Text(message, style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        shape = AppShapes.card,
+        containerColor = AppColors.extended.card,
+    )
+}

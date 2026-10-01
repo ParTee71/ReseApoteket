@@ -5,7 +5,7 @@
 #               (även filer direkt under ui/)
 # [firestore] = all Kotlin under app/src/main utom data/firestore/
 # [expressive] = all Kotlin under app/src/main utom ui/theme/ och ui/components/
-# Tillåtet i feature-kod: Text (med AppTypography-stil), Icon (Material Symbols),
+# Tillåtet i feature-kod: Text (med AppTypography-stil), Icon (appens ikoner i res/drawable),
 # Column, Row, Box, Spacer med Spacing, samt allt i ui/components och ui/common.
 # Regexarna ska fungera både i JavaScript och Kotlin (ingen lookbehind).
 

@@ -14,29 +14,30 @@ agenter länkar hit – de kopierar dem inte. Komponenttabellen och ramtabellen 
 `UiConsistencyTest` och jämförs med koden (se *Dokumentdrift*). Håll formatet: en rad per
 komponent, komponentnamnet i backticks först i kolumn två.
 
-> Katalogen byggs i omgångar: `AppButton`, `AppSnackbarHost` och `EmptyState` i #16, resten
-> och ramarna i #20. De exakta API:erna bakom kolumnen *Bygger på*
+> Hela katalogen och ramarna finns sedan #20 och syns i `ComponentGallery` (Inställningar →
+> Komponenter i debug-bygget). De exakta API:erna bakom kolumnen *Bygger på*
 > står i `ARKITEKTUR.md` → "Verifierade API:er" – gissa aldrig ett API-namn.
 
 ## Utseende: elementtyp → enda tillåtna komponent
 
 | Elementtyp | Komponent | Bygger på |
 |---|---|---|
-| Knapp (primär/sekundär/text) | `AppButton` | M3-knappar, `variant`-parameter |
+| Knapp (primär/sekundär/text/destruktiv) | `AppButton` | M3-knappar, `variant`- och `compact`-parameter |
 | Ikonknapp | `AppIconButton` | M3 ikonknapp, min 48 dp |
 | Split-knapp "Lägg till ▾" | `AddSplitButton` | Expressive split-knapp |
 | Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing` |
-| Listrad | `ItemRow` | bas för alla listor |
+| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil, `done` packad-stil, `accent` personens färg |
 | Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss |
 | Sektionsrubrik med räknare | `SectionHeader` | `InfoPill` för räknaren |
+| Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
-| Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad |
+| Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
 | Etikett/pill | `InfoPill` | `AppShapes.pill` |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` | M3 filterchip |
 | Avatar | `PersonAvatar` | emoji i färgad cirkel |
-| Antal ± | `QuantityStepper` | Expressive knappgrupp |
+| Antal ± | `QuantityStepper` | M3 ikonknappar i en pill, `label` för TalkBack |
 | Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper` |
 | Mängdregel | `QuantityRuleRow` | `AppFilterChip` + `QuantityStepper` |
 | Packprogress | `SuitcaseProgress` | Expressive vågig progress, `compact`-parameter |
@@ -58,8 +59,8 @@ komponent, komponentnamnet i backticks först i kolumn två.
 
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
-| Listskärm | `EntityListScreen` | Laddning → `AppLoading`; tomt → `EmptyState` med primärknapp; fel → snackbar med "Försök igen"; lista av `ItemRow`; valfri gruppering (`SectionHeader`, `columns`); lägg till; "Visa arkiverade" där arkivering finns |
-| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas efter första försöket; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka; arkivera/radera i menyn |
+| Listskärm | `EntityListScreen` | Laddning → `AppLoading`; tomt → `EmptyState` med primärknapp; fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal); lägg till (`AddSplitButton`) ovanför verktygsraden; "Visa arkiverade" där arkivering finns |
+| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka; arkivera/radera i menyn |
 | Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
 | Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep |
@@ -77,8 +78,10 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Firestore-CRUD | `EntityCollection<T>` från `CollectionFactory` (`data/common/`); enda implementationen `FirestoreCollection<T>` i `data/firestore/`, i test `FakeCollection<T>` |
 | Sökvägar, codecs per samling | `Paths` och `CollectionTable` i `data/firestore/` (speglade i `tools/db/lib/collections.mjs`) |
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
-| Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` |
-| Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>` i `ui/common/` |
+| Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` (fel per fält visas efter ändring eller sparförsök; `EditorEffect` till ramen) |
+| Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>`, och `ListLoader` (med "Försök igen") + `activeOnly()` för en listas ViewModel, i `ui/common/` |
+| Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |
+| Navigation | `AppKey`, `AppBackStack`, `AppNavHost`, `Transitions` i `navigation/` |
 | Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) i `data/common/` |
 | Fel till text | `DataError.toMessage()` i `ui/common/` |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
@@ -110,7 +113,7 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
     progress, snackbar, `LazyColumn`/`LazyRow`, `Scaffold`, `SwipeToDismissBox`.
   - Hårdkodat utseende: färger, former, textstilar (även `MaterialTheme.typography` – använd
     `AppTypography`) och literala dp för storlek och padding.
-  - **Tillåtet:** `Text` med en `AppTypography`-stil, `Icon` (Material Symbols),
+  - **Tillåtet:** `Text` med en `AppTypography`-stil, `Icon` (appens ikoner i `res/drawable`),
     `Column`/`Row`/`Box` och `Spacer` med `Spacing`.
 - **All kod utom `ui/theme/` och `ui/components/`:** `ExperimentalMaterial3ExpressiveApi` (opt-in
   för Expressive). Behövs ett Expressive-API i en skärm → bygg eller utöka en delad komponent.
@@ -118,7 +121,7 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
   `CollectionReference`, `DocumentReference`. Därför ligger `FirestoreModule` i `data/firestore/`.
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
 - **I `ui/components/`:** publik komponent utan skärmdump (ljust + mörkt) eller utan plats i
-  `ComponentGallery` – platsen i galleriet kontrolleras när `ComponentGallery` finns (#20).
+  `ComponentGallery`.
 - **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Undantaget gäller bara
   träffar vars matchade text överlappar symbolen – andra förbjudna mönster på samma rad stoppas
   ändå. En rad utan symbol eller motivering fäller hooken och bygget. Filen är tom som
@@ -130,8 +133,6 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
 de publika `@Composable`-funktionerna i `ui.components`:
 - komponent i koden men inte i tabellen → bygget faller ("lägg till raden i shared-ui-components");
 - komponent i tabellen men inte i koden → bygget faller ("ta bort raden eller bygg komponenten").
-  Den riktningen kontrolleras när `ComponentGallery` finns (#20) – katalogen byggs i omgångar
-  och tabellen beskriver målet. Innan dess skriver testet i loggen att den hoppas över.
 
 En ändring av denna fil kör därför app-testerna i CI (skill `ci-budget`).
 
