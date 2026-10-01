@@ -13,6 +13,7 @@ import se.partee71.reseapoteket.ui.theme.Spacing
 /**
  * Mängdregel för en familjeartikel: Fast antal · Per resenär · Per N dagar och dess antal.
  * [unitName] som i [DoseScheduleRow]; en okänd regel visas som meddelande (BCK-5).
+ * [error] (från formulärets validering) visas under fälten.
  */
 @Composable
 fun QuantityRuleRow(
@@ -20,6 +21,7 @@ fun QuantityRuleRow(
     onChange: (QuantityRule) -> Unit,
     unitName: (Int) -> String,
     modifier: Modifier = Modifier,
+    error: String? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         if (rule is QuantityRule.Unknown) {
@@ -52,8 +54,13 @@ fun QuantityRuleRow(
             }
             is QuantityRule.Unknown -> Unit
         }
+        error?.let { FieldError(it) }
     }
 }
+
+/** Regeltypens namn ("Fast antal", "Per resenär") – samma etikett som i väljaren; `null` för en okänd typ. */
+@StringRes
+fun QuantityRule.kindLabel(): Int? = RuleKind.entries.firstOrNull { it.matches(this) }?.label
 
 private enum class RuleKind(@param:StringRes val label: Int) {
     FIXED(R.string.rule_fixed),

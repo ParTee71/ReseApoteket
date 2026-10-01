@@ -16,11 +16,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -39,16 +36,18 @@ import se.partee71.reseapoteket.core.model.MedicineForm
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.displayName
-import se.partee71.reseapoteket.data.common.nextSortOrder
+import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
+import se.partee71.reseapoteket.data.repository.householdSettings
 import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.AppFilterChip
 import se.partee71.reseapoteket.ui.components.AppTextField
-import se.partee71.reseapoteket.ui.components.ChipRow
+import se.partee71.reseapoteket.ui.components.ChoiceChips
+import se.partee71.reseapoteket.ui.components.ExampleChips
 import se.partee71.reseapoteket.ui.components.DeleteAction
 import se.partee71.reseapoteket.ui.components.DoseScheduleRow
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
@@ -141,20 +140,17 @@ class RegimenEditViewModel @AssistedInject constructor(
     val state = editor.state
     val effects: Flow<EditorEffect> = editor.effects
 
+    private val loader = EditorLoader(editor, viewModelScope, regimenId?.let { id -> { collection.get(id) } })
+
     /** Det lagrade receptet – det som raderas och vars form alltid kan väljas, oavsett vad som ändrats i fälten. */
-    private val _stored = MutableStateFlow<Regimen?>(null)
-    val stored: StateFlow<Regimen?> = _stored.asStateFlow()
+    val stored: StateFlow<Regimen?> = loader.stored
 
     /** Vad som skulle packas för en 7-dagarsresa med hushållets marginal (REC-4). */
     val preview: StateFlow<PackingPreviewText> = combine(
         editor.state.map { it.value }.distinctUntilChanged(),
-        households.current.map { it?.settings ?: HouseholdSettings() }.catch { emit(HouseholdSettings()) },
+        households.householdSettings(),
     ) { regimen, settings -> PackingEngine.regimenPreview(regimen, settings, clock.todayIn(timeZone)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, PackingEngine.regimenPreview(editor.value, HouseholdSettings(), clock.todayIn(timeZone)))
-
-    init {
-        load()
-    }
 
     fun onEvent(event: RegimenEditEvent) {
         when (event) {
@@ -176,22 +172,14 @@ class RegimenEditViewModel @AssistedInject constructor(
             is RegimenEditEvent.Active -> editor.update { it.copy(active = event.active) }
             RegimenEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
             RegimenEditEvent.Delete -> viewModelScope.launch { editor.run { collection.delete(editor.value.id) } }
-            RegimenEditEvent.Retry -> {
-                editor.reload()
-                load()
-            }
+            RegimenEditEvent.Retry -> loader.retry()
         }
-    }
-
-    private fun load() {
-        val id = regimenId ?: return
-        viewModelScope.launch { editor.loadFrom({ collection.get(id) }) { it.also { stored -> _stored.value = stored } } }
     }
 
     /** Texterna sparas utan omgivande blanksteg; ett nytt recept hamnar sist. */
     private suspend fun write(regimen: Regimen): Result<Unit> {
         val trimmed = regimen.copy(name = regimen.name.trim(), strength = regimen.strength.trim(), notes = regimen.notes.trim())
-        return collection.upsert(if (isNew) trimmed.copy(sortOrder = collection.nextSortOrder()) else trimmed)
+        return collection.upsertPlaced(trimmed, isNew) { copy(sortOrder = it) }
     }
 
     private companion object {
@@ -234,21 +222,16 @@ fun RegimenEditContent(
         onSave = { onEvent(RegimenEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,
-        delete = if (isNew) {
-            null
-        } else {
-            DeleteAction(stringResource(R.string.delete_title_format, stored?.displayName.orEmpty()), stringResource(config.deleteMessage)) { onEvent(RegimenEditEvent.Delete) }
+        // Först när det lagrade receptet är läst finns något att radera.
+        delete = stored?.let {
+            DeleteAction(stringResource(R.string.delete_title_format, it.displayName), stringResource(config.deleteMessage)) { onEvent(RegimenEditEvent.Delete) }
         },
         onRetry = { onEvent(RegimenEditEvent.Retry) },
     ) {
         if (isNew && config.suggestions.isNotEmpty()) {
             LabeledGroup(stringResource(R.string.regimen_suggestions), helper = stringResource(R.string.regimen_suggestions_note)) {
-                ChipRow {
-                    config.suggestions.forEach { suggestion ->
-                        val name = stringResource(suggestion)
-                        AppFilterChip(name, selected = regimen.name.trim() == name, onClick = { onEvent(RegimenEditEvent.Name(name)) }, icon = R.drawable.ic_add)
-                    }
-                }
+                val names = config.suggestions.map { stringResource(it) }
+                ExampleChips(names, { onEvent(RegimenEditEvent.Name(it)) }, chosen = regimen.name.trim())
             }
         }
         AppTextField(
@@ -264,20 +247,13 @@ fun RegimenEditContent(
             helper = stringResource(config.strengthHelper),
         )
         LabeledGroup(stringResource(R.string.regimen_form)) {
-            ChipRow {
-                // En lagrad form utanför sortens lista (t.ex. Flytande på ett kosttillskott) går att
-                // välja igen; formerna står alltid i samma ordning som i resten av appen.
-                (config.forms + listOfNotNull(stored?.form)).distinct().sortedBy { it.ordinal }.forEach { form ->
-                    AppFilterChip(stringResource(form.label()), selected = regimen.form == form, onClick = { onEvent(RegimenEditEvent.Form(form)) })
-                }
-            }
+            // En lagrad form utanför sortens lista (t.ex. Flytande på ett kosttillskott) går att
+            // välja igen; formerna står alltid i samma ordning som i resten av appen.
+            val forms = (config.forms + listOfNotNull(stored?.form)).distinct().sortedBy { it.ordinal }
+            ChoiceChips(forms, regimen.form, { onEvent(RegimenEditEvent.Form(it)) }, { stringResource(it.label()) })
         }
-        LabeledGroup(stringResource(R.string.regimen_unit)) {
-            ChipRow {
-                ItemUnit.entries.forEach { unit ->
-                    AppFilterChip(UnitNames.name(1, unit), selected = regimen.unit == unit, onClick = { onEvent(RegimenEditEvent.DoseUnit(unit)) })
-                }
-            }
+        LabeledGroup(stringResource(R.string.unit)) {
+            ChoiceChips(ItemUnit.entries, regimen.unit, { onEvent(RegimenEditEvent.DoseUnit(it)) }, { UnitNames.name(1, it) })
         }
         LabeledGroup(stringResource(R.string.regimen_schedule)) {
             DoseScheduleRow(
@@ -296,12 +272,12 @@ fun RegimenEditContent(
             helper = stringResource(R.string.regimen_package_size_helper),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        AppTextField(regimen.notes, { onEvent(RegimenEditEvent.Notes(it)) }, stringResource(R.string.regimen_notes), singleLine = false)
+        AppTextField(regimen.notes, { onEvent(RegimenEditEvent.Notes(it)) }, stringResource(R.string.notes), singleLine = false)
         SwitchRow(
-            stringResource(R.string.regimen_active),
+            stringResource(R.string.active),
             regimen.active,
             { onEvent(RegimenEditEvent.Active(it)) },
-            subtitle = stringResource(R.string.regimen_active_note),
+            subtitle = stringResource(R.string.active_note),
         )
     }
 }

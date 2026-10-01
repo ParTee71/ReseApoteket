@@ -44,7 +44,7 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * - "Spara" ([saveLabel]) aktiv först när formuläret är giltigt och ändrat;
  * - bakåt med osparade ändringar → "Släng ändringar?";
  * - sparfel → snackbar via `DataError.toMessage()`; lyckad sparning → [onClose];
- * - arkivera/radera i menyn när [onArchive]/[delete] finns;
+ * - arkivera/återställ/radera i menyn när [onArchive]/[onRestore]/[delete] finns;
  * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
  *
  * @param onClose lämnar skärmen: `backStack.popIfTop(key)`, aldrig `pop()` – den kan anropas mer
@@ -60,6 +60,7 @@ fun EntityEditScreen(
     modifier: Modifier = Modifier,
     saveLabel: String = stringResource(R.string.save),
     onArchive: (() -> Unit)? = null,
+    onRestore: (() -> Unit)? = null,
     delete: DeleteAction? = null,
     onRetry: () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
@@ -89,6 +90,7 @@ fun EntityEditScreen(
                 AppButton(saveLabel, onSave, Modifier.padding(horizontal = Spacing.xs), enabled = state.canSave, loading = state.saving, compact = true)
                 val menu = listOfNotNull(
                     onArchive?.let { AppMenuItem(stringResource(R.string.archive), it, R.drawable.ic_archive) },
+                    onRestore?.let { AppMenuItem(stringResource(R.string.restore), it, R.drawable.ic_unarchive) },
                     delete?.let { AppMenuItem(stringResource(R.string.delete), { confirmDelete = true }, R.drawable.ic_delete, destructive = true) },
                 )
                 if (menu.isNotEmpty()) AppMenu(menu)

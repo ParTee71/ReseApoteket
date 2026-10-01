@@ -8,6 +8,7 @@ import kotlinx.datetime.plus
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.HouseholdSettings
+import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
 import se.partee71.reseapoteket.core.model.PackingSource
@@ -92,7 +93,7 @@ object PackingEngine {
         return PackingLine(total, packages, ReasonFormatter.regimen(regimen, trip, settings, quantity, packages), missing)
     }
 
-    /** Resans längd i förhandsvisningen för recept och kosttillskott (REC-4). */
+    /** Resans längd i förhandsvisningarna för recept, kosttillskott och familjeartiklar (REC-4, FAM-3). */
     const val PREVIEW_DAYS = 7
 
     /**
@@ -101,13 +102,25 @@ object PackingEngine {
      */
     fun regimenPreview(regimen: Regimen, settings: HouseholdSettings, today: LocalDate): PackingPreviewText {
         val line = regimenLine(regimen, Trip(id = "", startDate = today, days = PREVIEW_DAYS), settings)
-        val context = ReasonFormatter.tripContext(PREVIEW_DAYS)
-        return if (line.warning) {
+        return preview(ReasonFormatter.tripContext(PREVIEW_DAYS), line, regimen.unit)
+    }
+
+    /**
+     * Förhandsvisningen i formuläret för en familjeartikel (FAM-3): [travellers] resenärer – hushållets
+     * personer – i [PREVIEW_DAYS] dagar, med hushållets marginal.
+     */
+    fun familyPreview(item: FamilyItem, travellers: Int, settings: HouseholdSettings): PackingPreviewText {
+        val line = familyLine(item, travellers, Trip(id = "", days = PREVIEW_DAYS), settings)
+        return preview(ReasonFormatter.familyContext(travellers, PREVIEW_DAYS), line, item.unit)
+    }
+
+    /** Kan mängden inte räknas ut står förklaringen i stället för mängden – aldrig "0 st" som om den vore riktig. */
+    private fun preview(context: String, line: PackingLine, unit: ItemUnit): PackingPreviewText =
+        if (line.warning) {
             PackingPreviewText(context, line.reason, null)
         } else {
-            PackingPreviewText(context, ReasonFormatter.amount(line, regimen.unit), line.reason)
+            PackingPreviewText(context, ReasonFormatter.amount(line, unit), line.reason)
         }
-    }
 
     /** Mängd och förklaring för en familjeartikel – också förhandsvisningen. */
     fun familyLine(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings): PackingLine {

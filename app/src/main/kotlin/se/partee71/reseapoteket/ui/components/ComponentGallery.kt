@@ -115,14 +115,9 @@ private fun Rows() {
             onClick = {},
         )
         AppDivider()
-        ItemRow(
-            "Hydrokortison 1 %",
-            subtitle = "Pausat – räknas inte med",
-            trailing = { InfoPill("Pausat", tone = Tone.Blue) },
-            onClick = {},
-            navigates = true,
-            inactive = true,
-        )
+        PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
+        AppDivider()
+        PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {})
         AppDivider()
         CheckRow("Enalapril 10 mg", packed, { packed = it }, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
         CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
@@ -154,12 +149,10 @@ private fun Fields() {
     AppTextField("", {}, "Namn", error = "Ange ett namn")
     DateField("Startdatum", date, { date = it })
     LabeledGroup("Form") {
-        ChipRow {
-            listOf("Tablett", "Kapsel", "Flytande", "Inhalator").forEachIndexed { i, label ->
-                AppFilterChip(label, selected = form == i, onClick = { form = i })
-            }
-        }
+        ChoiceChips(listOf(0, 1, 2, 3), form, { form = it }, { listOf("Tablett", "Kapsel", "Flytande", "Inhalator")[it] })
     }
+    AppFilterChip("Flytande", selected = false, onClick = {}, enabled = false)
+    ExampleChips(listOf("D-vitamin", "Omega-3", "Magnesium"), {}, chosen = "D-vitamin")
     ChipRow(wrap = false) {
         listOf("Anna" to "🦊", "Erik" to "🐻", "Lova" to "🐰").forEachIndexed { i, (person, emoji) ->
             PersonChip(person, emoji, AppColors.person(i), person in selected.value, {
@@ -246,7 +239,13 @@ private fun Frames(onBack: () -> Unit) {
         EntityListScreen(
             title = "Familjeartiklar",
             state = if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items),
-            empty = EmptyContent(R.drawable.ic_family_items, "Inga familjeartiklar än", "Solkräm, plåster, febertermometer.", "Lägg till"),
+            empty = EmptyContent(
+                R.drawable.ic_family_items,
+                "Inga familjeartiklar än",
+                "Solkräm, plåster, febertermometer.",
+                "Lägg till",
+                examples = listOf(EmptyExample("Solkräm") { items = listOf("Solkräm") }),
+            ),
             onAdd = {},
             key = { it },
             undo = undo,

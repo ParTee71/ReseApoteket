@@ -20,6 +20,7 @@ import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -88,7 +89,7 @@ class PersonScreensTest {
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Visa arkiverade").performClick()
-        assertEquals(listOf(PersonsEvent.Archive(anna), PersonsEvent.ToggleArchived), events)
+        assertEquals(listOf<PersonsEvent>(PersonsEvent.Archiving(ArchiveEvent.Archive(anna.id, anna.name)), PersonsEvent.Archiving(ArchiveEvent.ToggleArchived)), events)
     }
 
     @Test

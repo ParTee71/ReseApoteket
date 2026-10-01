@@ -129,6 +129,23 @@ class FormattersTest {
     }
 
     @Test
+    fun `förhandsvisningen för en familjeartikel räknar hushållets personer i 7 dagar (FAM-3)`() {
+        val sunscreen = FamilyItem("f", "Solkräm", unit = ItemUnit.TUB, rule = QuantityRule.PerDays(1, 7))
+        assertEquals(
+            PackingPreviewText("För 4 resenärer i 7 dagar", "2 tuber", "1 tub per 7 dagar under (7 + 2) dagar = 2 tuber"),
+            PackingEngine.familyPreview(sunscreen, 4, margin2),
+        )
+        val plaster = FamilyItem("p", "Plåster", unit = ItemUnit.ST, rule = QuantityRule.PerTraveller(10))
+        assertEquals("40 st", PackingEngine.familyPreview(plaster, 4, margin2).quantity)
+        assertEquals("0 st", PackingEngine.familyPreview(plaster, 0, margin2).quantity, "utan personer packas inget per resenär")
+        assertEquals("För 0 resenärer i 7 dagar", PackingEngine.familyPreview(plaster, 0, margin2).context)
+        val thermometer = FamilyItem("t", "Febertermometer", rule = QuantityRule.Fixed(1))
+        assertEquals("1 st", PackingEngine.familyPreview(thermometer, 0, margin2).quantity)
+        val unknown = PackingEngine.familyPreview(thermometer.copy(rule = QuantityRule.Unknown("framtida")), 4, margin2)
+        assertEquals(PackingPreviewText("För 4 resenärer i 7 dagar", Texts.CANNOT_CALCULATE, null), unknown)
+    }
+
+    @Test
     fun `varje enhet har namn och förpackning`() {
         for (unit in ItemUnit.entries) {
             assertEquals(true, UnitNames.quantity(2, unit).startsWith("2 "), unit.name)

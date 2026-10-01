@@ -126,6 +126,15 @@ class CatalogScreenshotTest {
         captureLightAndDark("PersonAvatar_stor") { Sheet { PersonAvatar("🦉", AppColors.person(3), size = AvatarSize.Large) } }
         captureLightAndDark("GroupLabel_over_kort") { Sheet { GroupLabel("Utseende"); ApotekCard { ItemRow("Tema") } } }
         captureLightAndDark("AppDivider_i_kort") { Sheet { ApotekCard { ItemRow("Anna"); AppDivider(); ItemRow("Erik") } } }
+        captureLightAndDark("PausableRow_aktiv_och_pausad") {
+            Sheet {
+                ApotekCard {
+                    PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
+                    AppDivider()
+                    PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {})
+                }
+            }
+        }
         captureLightAndDark("ItemRow_pill_och_pausad") {
             Sheet {
                 ApotekCard {
@@ -181,6 +190,10 @@ class CatalogScreenshotTest {
                 ChipRow { listOf("Krämer & salvor", "Plåster & förband", "Verktyg", "Övrigt").forEachIndexed { i, c -> AppFilterChip(c, i == 0, {}) } }
                 ChipRow(wrap = false) { listOf("Anna" to "🦊", "Erik" to "🐻", "Lova" to "🐰", "Ture" to "🦉").forEachIndexed { i, (n, e) -> PersonChip(n, e, AppColors.person(i), i < 2, {}) } }
             }
+        }
+        captureLightAndDark("ExampleChips_valt") { Sheet { ExampleChips(listOf("D-vitamin", "Omega-3", "Magnesium", "Probiotika"), {}, chosen = "Omega-3") } }
+        captureLightAndDark("ChoiceChips_val") {
+            Sheet { ChoiceChips(listOf("Krämer & salvor", "Plåster & förband", "Verktyg", "Övrigt"), "Verktyg", {}, { it }) }
         }
         captureLightAndDark("LabeledGroup_form") {
             Sheet {

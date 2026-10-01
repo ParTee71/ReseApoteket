@@ -19,9 +19,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
-import se.partee71.reseapoteket.data.common.nextSortOrder
+import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.Validator
@@ -76,10 +77,7 @@ class PersonEditViewModel @AssistedInject constructor(
     )
     val state = editor.state
     val effects: Flow<EditorEffect> = editor.effects
-
-    init {
-        load()
-    }
+    private val loader = EditorLoader(editor, viewModelScope, personId?.let { id -> { persons.get(id) } }) { it.withDefaults() }
 
     fun onEvent(event: PersonEditEvent) {
         when (event) {
@@ -87,16 +85,8 @@ class PersonEditViewModel @AssistedInject constructor(
             is PersonEditEvent.Emoji -> editor.update { it.copy(emoji = event.emoji) }
             is PersonEditEvent.PersonColor -> editor.update { it.copy(colorHex = event.hex) }
             PersonEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
-            PersonEditEvent.Retry -> {
-                editor.reload()
-                load()
-            }
+            PersonEditEvent.Retry -> loader.retry()
         }
-    }
-
-    private fun load() {
-        val id = personId ?: return
-        viewModelScope.launch { editor.loadFrom({ persons.get(id) }) { it.withDefaults() } }
     }
 
     /**
@@ -109,14 +99,8 @@ class PersonEditViewModel @AssistedInject constructor(
     )
 
     /** En ny person hamnar sist i listan. */
-    private suspend fun write(person: Person): Result<Unit> {
-        val toWrite = if (isNew) {
-            person.copy(name = person.name.trim(), sortOrder = persons.nextSortOrder())
-        } else {
-            person.copy(name = person.name.trim())
-        }
-        return persons.upsert(toWrite)
-    }
+    private suspend fun write(person: Person): Result<Unit> =
+        persons.upsertPlaced(person.copy(name = person.name.trim()), isNew) { copy(sortOrder = it) }
 }
 
 @Composable

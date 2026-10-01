@@ -118,7 +118,7 @@ fun PersonDetailContent(
 ) {
     val archive = stringResource(R.string.archive)
     val restore = stringResource(R.string.restore)
-    val archived = stringResource(R.string.person_archived)
+    val archived = stringResource(R.string.archived_state)
     val summary = (state as? DetailUiState.Content)?.value?.let { personSummary(it.medicines.size, it.supplements.size) }
     EntityDetailScreen(
         state = state,
