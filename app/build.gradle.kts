@@ -10,7 +10,8 @@ plugins {
 }
 
 // google-services.json är hemlig och git-ignorerad. Saknas den (PR-bygge, session) byggs
-// appen ändå: debug får default_web_client_id från src/authStub (se android.sourceSets).
+// appen ändå: debug får stubbad Firebase-konfiguration (demo-projekt) från src/authStub
+// (se android.sourceSets), så att appen kompilerar och startar – inloggning fungerar inte där.
 private val hasGoogleServices = file("google-services.json").exists()
 if (hasGoogleServices) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
@@ -106,12 +107,16 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     // I appen, inte bara androidTest: Firebase hittar sina komponenter via appens manifest,
     // så auth-emulatorn i instrumenttesterna kräver det här. Används av inloggningen i #16.
     implementation(libs.firebase.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services)
+    implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.datastore.preferences)
 

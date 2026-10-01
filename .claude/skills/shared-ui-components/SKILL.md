@@ -14,7 +14,8 @@ agenter länkar hit – de kopierar dem inte. Komponenttabellen och ramtabellen 
 `UiConsistencyTest` och jämförs med koden (se *Dokumentdrift*). Håll formatet: en rad per
 komponent, komponentnamnet i backticks först i kolumn två.
 
-> Komponenterna och ramarna byggs i #20. De exakta API:erna bakom kolumnen *Bygger på*
+> Katalogen byggs i omgångar: `AppButton`, `AppSnackbarHost` och `EmptyState` i #16, resten
+> och ramarna i #20. De exakta API:erna bakom kolumnen *Bygger på*
 > står i `ARKITEKTUR.md` → "Verifierade API:er" – gissa aldrig ett API-namn.
 
 ## Utseende: elementtyp → enda tillåtna komponent
@@ -78,7 +79,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>` i `ui/common/` |
-| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `NoHousehold`, `Unknown`) i `data/common/` |
+| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) i `data/common/` |
 | Fel till text | `DataError.toMessage()` i `ui/common/` |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Beräkningar | `PackingEngine` i `:core` |
@@ -117,7 +118,7 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
   `CollectionReference`, `DocumentReference`. Därför ligger `FirestoreModule` i `data/firestore/`.
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
 - **I `ui/components/`:** publik komponent utan skärmdump (ljust + mörkt) eller utan plats i
-  `ComponentGallery` – hoppas över, som dokumentdriften, tills katalogen byggs i #20.
+  `ComponentGallery` – platsen i galleriet kontrolleras när `ComponentGallery` finns (#20).
 - **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Undantaget gäller bara
   träffar vars matchade text överlappar symbolen – andra förbjudna mönster på samma rad stoppas
   ändå. En rad utan symbol eller motivering fäller hooken och bygget. Filen är tom som
@@ -126,11 +127,11 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
 ## Dokumentdrift
 
 `UiConsistencyTest` läser komponenttabellen och ramtabellen i denna fil och jämför med
-de publika `@Composable`-funktionerna i `ui.components`. Jämförelsen **aktiveras i #20**,
-när katalogen byggs. Innan dess (inga publika composables i `ui.components`) hoppar testet
-över den och skriver det i testloggen. Från #20:
+de publika `@Composable`-funktionerna i `ui.components`:
 - komponent i koden men inte i tabellen → bygget faller ("lägg till raden i shared-ui-components");
 - komponent i tabellen men inte i koden → bygget faller ("ta bort raden eller bygg komponenten").
+  Den riktningen kontrolleras när `ComponentGallery` finns (#20) – katalogen byggs i omgångar
+  och tabellen beskriver målet. Innan dess skriver testet i loggen att den hoppas över.
 
 En ändring av denna fil kör därför app-testerna i CI (skill `ci-budget`).
 

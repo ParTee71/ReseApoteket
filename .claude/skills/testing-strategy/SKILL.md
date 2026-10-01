@@ -59,6 +59,9 @@ hjälparna och testar bara det som är unikt för funktionen:
 | `CollectionContract`, `TestHouseholdScope`, `FixedClock` | `app/src/sharedTest/.../data/` (JVM mot fake, enhet mot Firebase-emulatorn) | separata tester per repository-implementation |
 | `assertCodecContract` (samlar `assertEveryFieldDiffersFromDefault`, `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields`, `assertEncodesAllFields`), `assertVariantCodecContract` | `core/src/test/.../schema/CodecAssertions.kt` | egna codec-asserts |
 | `MainDispatcherRule` | `app/src/test/.../testing/` | egen `Dispatchers.setMain` per test |
+| `HouseholdFixture` (riktig `HouseholdSession` + fejkad Firestore + `FakeHouseholdDirectory`, `EnsureHouseholdUseCase`) | `app/src/test/.../testing/` | egen uppställning av hushåll och session per test |
+| `FakeAuthRepository` | `app/src/test/.../ui/auth/` | Google-inloggning i ViewModel-tester |
+| `captureLightAndDark(name) { … }` och `rule.captureLightAndDark(name, settle) { … }` | `app/src/test/.../testing/Screenshots.kt` | egna Roborazzi-anrop; regelvarianten behåller en visad snackbar mellan bilderna |
 | `runListScreenContract(screen, data)` | `app/src/test/.../ui/` | att testa tomt/fel/laddar/lägg till per skärm |
 | `runEditScreenContract(screen, valid, invalid)` | `app/src/test/.../ui/` | att testa spara-aktivering/släng-dialog/sparfel per skärm |
 | `test/fixtures/household.json` | `tools/db/test/` | egna seeds per Nodetest |
@@ -90,8 +93,9 @@ miljön får aldrig köra dem utan emulator (skill `data-safety-backup`).
 ## Dokumentdrift-kontrollen
 
 `UiConsistencyTest` jämför komponent- och ramtabellen i skill `shared-ui-components` med
-koden. Jämförelsen **aktiveras i #20**, när katalogen byggs; innan dess (inga publika
-composables i `ui.components`) hoppar testet över den och skriver det i testloggen.
+koden. Kod → tabell kontrolleras så snart `ui.components` har en publik composable (#16);
+tabell → kod och platsen i `ComponentGallery` när galleriet finns (#20). Det som hoppas över
+skrivs i testloggen.
 
 ## Skärmdumpar (Roborazzi)
 

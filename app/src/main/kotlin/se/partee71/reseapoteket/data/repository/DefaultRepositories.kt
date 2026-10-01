@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.data.repository
 
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.Clock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -16,11 +17,15 @@ import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.data.common.CollectionFactory
 import se.partee71.reseapoteket.data.common.EntityCollection
+import se.partee71.reseapoteket.data.household.HouseholdDirectory
 import se.partee71.reseapoteket.data.household.HouseholdSession
 
+/** Singleton: det väntande hushållet ska överleva mellan försöken. */
+@Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultHouseholdRepository @Inject constructor(
     collections: CollectionFactory,
+    private val directory: HouseholdDirectory,
     private val session: HouseholdSession,
     private val clock: Clock,
 ) : HouseholdRepository {
@@ -29,11 +34,20 @@ class DefaultHouseholdRepository @Inject constructor(
     override val current: Flow<Household?> =
         session.householdId.flatMapLatest { id -> if (id == null) flowOf(null) else households.observe(id) }
 
+    /** Hushållet som senast inte bekräftades av servern – återanvänds, så att ett nytt försök inte skapar ett till. */
+    private var pending: Household? = null
+
     override suspend fun create(name: String, ownerUid: String): Result<String> {
         // Slumpat ID – rules förutsätter att ingen kan gissa ett hushålls-ID (NFR-16).
-        val household = Household(households.newId(), name, listOf(ownerUid), createdAt = clock.now())
-        return households.upsert(household)
-            .onSuccess { session.select(household.id) }
+        val household = pending?.takeIf { it.memberUids == listOf(ownerUid) }
+            ?: Household(households.newId(), name, listOf(ownerUid), createdAt = clock.now())
+        pending = household
+        // Via servern, inte offline först: hushållet ska finnas innan det väljs (HUS-2).
+        return directory.create(household)
+            .onSuccess {
+                pending = null
+                session.select(household.id)
+            }
             .map { household.id }
     }
 

@@ -12,105 +12,51 @@ This project uses **Firebase Auth + Android Credential Manager** (not the deprec
 ## Architecture
 
 ```
-UI (SignInScreen)
-  → AuthViewModel.signIn(activityContext)
-    → AuthRepository.signInWithGoogle(activityContext): Result<FirebaseUser>
-      → CredentialManager.getCredential() — shows Google account picker
-      → GoogleIdTokenCredential.createFrom() — extracts ID token
-      → FirebaseAuth.signInWithCredential() — exchanges token for Firebase session
-  → EnsureHouseholdUseCase() — select/create household, set HouseholdSession
+AppRoot → AuthViewModel.state.gate: Loading | SignedOut | NeedsHousehold | UpdateRequired | Ready
+  SignInScreen → AuthEvent.SignIn(activityContext)
+    → AuthRepository.signInWithGoogle(activityContext): Result<AuthUser>   (GoogleAuthRepository)
+      → CredentialManager.getCredential() — Google account picker
+      → GoogleIdTokenCredential.createFrom() — ID token
+      → FirebaseAuth.signInWithCredential() — Firebase session
+  authState = user && HouseholdSession.selection = null
+    → EnsureHouseholdUseCase(uid) — HouseholdDirectory (server query) → select oldest, or create "Mitt hushåll"
 ```
 
 ## Key Classes
 
-- **`AuthRepository`** (`data/auth/`) — singleton, inject with `@Inject` constructor
-- **`CredentialManager`** — created from `ApplicationContext` at repository construction time
+- **`AuthRepository`** (`data/auth/`) — interface; `GoogleAuthRepository` is the only implementation (bound in `di/AuthModule`). Tests use `FakeAuthRepository`.
+- **`AuthUser(uid)`** — all the app keeps of the user. Never email, name or photo (skill `data-privacy-security`).
+- **`authError`** (`data/auth/AuthErrors.kt`) — the one mapping to `DataError`.
 - **`GetSignInWithGoogleOption`** — use this (not `GetGoogleIdOption`) — opens full-page Google account picker
-- **`AuthViewModel`** (`ui/auth/`) — sign-in state; `SettingsViewModel` only handles sign-out
+- **`AuthViewModel`** (`ui/auth/`) — decides what `AppRoot` shows; `SettingsViewModel` only handles sign-out (#27)
+- **`EnsureHouseholdUseCase`** (`domain/`) + **`HouseholdDirectory`** (`data/household/`, Firestore implementation in `data/firestore/`)
 - **`R.string.default_web_client_id`** — auto-generated from `google-services.json` by `google-services` plugin. Requires `client_type: 3` in `google-services.json`. When the file is missing (CI without the secret, sessions), a debug-only stub resource provides the string so the code compiles (skill `android-gradle-logic`).
 
 ## `AuthRepository` API
 
 ```kotlin
-@Singleton
-class AuthRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
-) {
-    val currentUser: FirebaseUser? get() = auth.currentUser
-
-    // Hot flow — emits on every auth state change (sign in, sign out, token refresh)
-    val authState: Flow<FirebaseUser?> = callbackFlow {
-        val listener = FirebaseAuth.AuthStateListener { trySend(it.currentUser) }
-        auth.addAuthStateListener(listener)
-        awaitClose { auth.removeAuthStateListener(listener) }
-    }
-
-    // Needs activityContext (not ApplicationContext) for the Credential Manager UI
-    suspend fun signInWithGoogle(activityContext: Context): Result<FirebaseUser>
-
-    fun signOut()
-    suspend fun clearCredentialState() // call before signOut() for clean sign-out
+interface AuthRepository {
+    val authState: Flow<AuthUser?>                                   // null = signed out
+    suspend fun signInWithGoogle(activityContext: Context): Result<AuthUser> // Activity context for the picker
+    suspend fun signOut(): Result<Unit> // clears Credential Manager state, Firebase session and HouseholdSession
 }
 ```
 
-## Sign-In Flow
+## Sign-In Flow (as built)
 
-```kotlin
-// In AuthViewModel – actions arrive as sealed events (skill android-dev)
-fun onEvent(event: AuthEvent) = when (event) {
-    is AuthEvent.SignIn -> signIn(event.activityContext)
-}
+- One button, one event: `AuthEvent.SignIn(context)`. Signed out → sign in. Already signed in but no household (the household step failed, e.g. offline) → retry `EnsureHouseholdUseCase` without a new sign-in.
+- The household step starts by itself once per user when `authState` has a user and `HouseholdSession.selection` is `null` (`selection` emits only after DataStore has loaded, so a stored household never triggers a lookup).
+- `busy` covers both steps; the button shows "Loggar in …" (`AppButton(loading = true)`).
+- Errors arrive already mapped; `Cancelled` is silent (AUTH-2), anything else is shown once via `AppSnackbarHost` and cleared with `AuthEvent.ErrorShown`.
+- `HouseholdDirectory` talks to the **server** only: the lookup uses `Source.SERVER` (an empty cache must never mean "no household", HUS-1) and `create` returns only when the server has accepted the new household (else `Offline` after 15 s, or the rules error) – so the app never selects a household that does not exist. Offline → nothing is created or selected.
+- Signed out with a household still selected (sign-out from another place, process death) → `AuthViewModel` clears the selection, so the next account never inherits it.
+- `gate = Loading` until the selected household's `schemaVersion` is known – the app is never shown before "Uppdatera appen" could apply.
+- Rules: `households` read is `request.auth.uid in resource.data.memberUids` so the `array-contains` query is provable (a `get()` in the read rule cannot be evaluated for a query).
+- `gate = UpdateRequired` when the selected household's `schemaVersion` is newer than the app → `UpdateRequiredScreen` (HUS-3).
 
-private fun signIn(activityContext: Context) {
-    viewModelScope.launch {
-        _state.update { it.copy(isSigningIn = true, error = null) }
-        val result = authRepo.signInWithGoogle(activityContext)
-        _state.update { it.copy(isSigningIn = false) }
-        result
-            .onSuccess { ensureHousehold() }
-            .onFailure { e ->
-                // AuthRepository has already mapped the exception to DataError (once, via
-                // suspendRunCatching in data/common). Cancelled = user dismissed the picker → silent.
-                val error = e as? DataError ?: DataError.Unknown
-                if (error != DataError.Cancelled) _state.update { it.copy(error = error) }
-            }
-    }
-}
+## Sign-Out
 
-// In Composable — pass LocalContext.current (which is the Activity context in Compose)
-val context = LocalContext.current
-AppButton(onClick = { vm.onEvent(AuthEvent.SignIn(context)) }, text = stringResource(R.string.sign_in_google))
-```
-
-## Sign-Out Flow
-
-```kotlin
-// In SettingsViewModel, reached via SettingsEvent.SignOut after ConfirmDialog.
-// Always clear credential state before signing out.
-private fun signOut() {
-    viewModelScope.launch {
-        authRepo.clearCredentialState() // removes cached credential from Credential Manager
-        authRepo.signOut()              // signs out from Firebase
-    }
-}
-```
-
-## Observing Auth State
-
-```kotlin
-// In ViewModel init — collect authState to sync UI
-viewModelScope.launch {
-    authRepo.authState.collectLatest { user ->
-        _state.value = _state.value.copy(
-            googleAccountEmail = user?.email,
-            googleAccountPhotoUrl = user?.photoUrl?.toString(),
-            googleDisplayName = user?.displayName,
-        )
-    }
-}
-
-// Null user = signed out; non-null = signed in
-```
+`AuthRepository.signOut()` (from Settings, behind `ConfirmDialog`, #27) clears the cached credential, the Firebase session and the selected household, so the next user on the device never inherits it.
 
 ## google-services.json Requirements
 
@@ -137,7 +83,7 @@ Always use `GetSignInWithGoogleOption` for first-time sign-in flows.
 
 ## Signed-out state
 
-- `authState` emitting `null` → navigation shows `SignInScreen`; `HouseholdSession` is cleared.
+- `authState` emitting `null` → `AppRoot` shows `SignInScreen`; `signOut()` clears `HouseholdSession`.
 - Never read Firestore before `HouseholdSession` has a value – `FirestoreCollection` depends on it.
 - Sign-out is offered only in Settings, behind `ConfirmDialog` (rule 4: same confirmation pattern everywhere).
 
@@ -150,7 +96,7 @@ Always use `GetSignInWithGoogleOption` for first-time sign-in flows.
 |---|---|---|---|
 | `GetCredentialCancellationException` | User dismissed picker | `Cancelled` | Silent — not an error |
 | `GetCredentialException` | No Google accounts on device, API not available | `Unknown` | Show error |
-| `FirebaseAuthException` | Firebase rejected the token | `PermissionDenied` | Show error; log only the exception class, never email/uid (skill `data-privacy-security`) |
+| `FirebaseAuthException` | Firebase rejected the token | `SignInRejected` | Show error; log only the exception class, never email/uid (skill `data-privacy-security`) |
 | `FirebaseNetworkException`, `IOException` | No network | `Offline` | Show error |
 
 ## Dependencies (added in the Gradle skeleton, #11)

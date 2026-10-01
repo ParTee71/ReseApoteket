@@ -19,6 +19,9 @@ sealed class DataError : Exception() {
     /** Hushållets data har ett nyare format än appen: läsbart men skrivskyddat (BCK-5). */
     data object UpdateRequired : DataError()
 
+    /** Firebase godtog inte Google-inloggningen (t.ex. ogiltig eller återkallad token). */
+    data object SignInRejected : DataError()
+
     /** Inget aktivt hushåll valt ännu. */
     data object NoHousehold : DataError()
 

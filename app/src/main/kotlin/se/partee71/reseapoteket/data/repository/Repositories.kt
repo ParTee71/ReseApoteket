@@ -16,7 +16,7 @@ interface HouseholdRepository {
     /** Det aktiva hushållet, eller `null` om inget är valt. */
     val current: Flow<Household?>
 
-    /** Skapar ett hushåll med [ownerUid] som enda medlem och gör det aktivt; ger dess ID. */
+    /** Skapar ett hushåll med [ownerUid] som enda medlem – bekräftat av servern – och gör det aktivt; ger dess ID. */
     suspend fun create(name: String, ownerUid: String): Result<String>
 
     suspend fun update(household: Household): Result<Unit>

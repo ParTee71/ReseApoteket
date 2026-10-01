@@ -13,4 +13,18 @@ object AppTypography {
     val screenTitle: TextStyle
         @Composable @ReadOnlyComposable
         get() = MaterialTheme.typography.headlineMedium
+
+    /** Löptext, t.ex. meningen i ett tomt tillstånd. */
+    val body: TextStyle
+        @Composable @ReadOnlyComposable
+        get() = MaterialTheme.typography.bodyLarge
+
+    /** Undertext och fotnoter. */
+    val itemSubtitle: TextStyle
+        @Composable @ReadOnlyComposable
+        get() = MaterialTheme.typography.bodyMedium
+
+    val button: TextStyle
+        @Composable @ReadOnlyComposable
+        get() = MaterialTheme.typography.labelLarge
 }

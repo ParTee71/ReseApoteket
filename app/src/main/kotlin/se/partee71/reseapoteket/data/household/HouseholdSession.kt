@@ -4,8 +4,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -28,6 +30,12 @@ class HouseholdSession @Inject constructor(
 
     override val householdId: StateFlow<String?> =
         settings.activeHouseholdId.stateIn(scope, SharingStarted.Eagerly, null)
+
+    /**
+     * Det sparade valet som flöde: första värdet kommer först när inställningarna lästs, så
+     * "inget valt" skiljs från "inte inläst än" (inloggningen ska inte skapa ett hushåll i onödan).
+     */
+    val selection: Flow<String?> = settings.activeHouseholdId.distinctUntilChanged()
 
     override val schemaVersion: StateFlow<HouseholdVersion?> =
         householdId.flatMapLatest { id ->

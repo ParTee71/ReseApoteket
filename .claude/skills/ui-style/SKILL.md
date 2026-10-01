@@ -43,12 +43,13 @@ färg som bär text ska klara 4,5:1 mot sin bakgrund – räkna efter vid ny nya
 - **Nunito 800** för rubriker: resans namn som stor rundad display (~34 sp), sektionsrubriker.
 - **Nunito Sans** för brödtext.
 - Mängder och räknare stora och feta: "18 tabletter · 2 kartor", "9 av 14 packat".
-- Namngivna stilar (`screenTitle`, `sectionTitle`, `itemTitle`, `itemSubtitle`,
+- Namngivna stilar (`screenTitle`, `sectionTitle`, `itemTitle`, `itemSubtitle`, `body`,
   `quantity`, `pill`, `button`). Aldrig `fontSize` i feature-kod.
 
 ## Former och avstånd
 
-- `AppShapes`: kort 28 dp, rader 18 dp, pills och knappar helt rundade, sheet 28 dp upptill.
+- `AppShapes`: kort 28 dp, rader 18 dp, pills och knappar helt rundade, sheet 28 dp upptill,
+  ikonrutan i ett tomt tillstånd 40 dp (`iconTile`).
 - `Spacing`: `xs 4 · s 8 · m 12 · l 16 · xl 24 · xxl 32` dp – enda tillåtna avstånden.
 - Tryckytor minst 48 dp.
 

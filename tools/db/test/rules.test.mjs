@@ -1,7 +1,7 @@
 // Security rules (skill firestore-data-layer). Körs bara mot emulatorn – se helpers/emulator.mjs.
 import { after, before, beforeEach, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { rulesTestEnvironment } from './helpers/emulator.mjs';
 
 const HID = 'hushall-1';
@@ -41,15 +41,27 @@ test('icke-medlem nekas läsning och skrivning', async () => {
   await assertFails(setDoc(doc(db('bertil'), 'households', HID, 'persons', 'p9'), { name: 'X' }));
 });
 
+test('inloggningens fråga: egna hushåll kan listas, andras och alla inte', async () => {
+  const households = (uid) => collection(db(uid), 'households');
+  const mine = await assertSucceeds(getDocs(query(households('anna'), where('memberUids', 'array-contains', 'anna'))));
+  if (mine.size !== 1) throw new Error(`väntade 1 hushåll, fick ${mine.size}`);
+  await assertFails(getDocs(query(households('bertil'), where('memberUids', 'array-contains', 'anna'))));
+  await assertFails(getDocs(households('anna')));
+  await assertFails(getDocs(query(collection(db(null), 'households'), where('memberUids', 'array-contains', 'anna'))));
+});
+
 test('oautentiserad nekas allt', async () => {
   await assertFails(getDoc(doc(db(null), 'households', HID)));
   await assertFails(getDoc(doc(db(null), 'households', HID, 'persons', 'p1')));
   await assertFails(setDoc(doc(db(null), 'households', 'nytt'), { memberUids: ['x'], schemaVersion: 1 }));
 });
 
-test('hushåll kan skapas bara av någon som själv står i memberUids', async () => {
+test('hushåll kan skapas bara med skaparen som enda medlem', async () => {
   await assertSucceeds(setDoc(doc(db('cecilia'), 'households', 'h2'), { memberUids: ['cecilia'], schemaVersion: 1 }));
   await assertFails(setDoc(doc(db('cecilia'), 'households', 'h3'), { memberUids: ['david'], schemaVersion: 1 }));
+  // Annars kunde cecilia lägga davids uid i ett eget, äldre hushåll som david sedan väljer.
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h6'), { memberUids: ['cecilia', 'david'], schemaVersion: 1 }));
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h7'), { memberUids: ['david', 'cecilia'], schemaVersion: 1 }));
 });
 
 test('ett befintligt hushåll kan inte skrivas över av någon annan', async () => {

@@ -12,6 +12,7 @@ import javax.inject.Singleton
 import se.partee71.reseapoteket.data.common.CollectionFactory
 import se.partee71.reseapoteket.data.common.HouseholdVersionSource
 import se.partee71.reseapoteket.data.common.SyncStatus
+import se.partee71.reseapoteket.data.household.HouseholdDirectory
 
 /** Firestore-instansen och det som bygger på den. Ligger här – `FirebaseFirestore` får inte finnas utanför `data/firestore`. */
 @Module
@@ -26,6 +27,9 @@ abstract class FirestoreModule {
 
     @Binds
     abstract fun householdVersions(source: FirestoreHouseholdVersions): HouseholdVersionSource
+
+    @Binds
+    abstract fun householdDirectory(directory: FirestoreHouseholdDirectory): HouseholdDirectory
 
     companion object {
         /** Offline först: lokal cache på 100 MB (skill firestore-data-layer). */
