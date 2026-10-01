@@ -19,6 +19,7 @@ import androidx.compose.ui.test.assertTouchHeightIsEqualTo
 import androidx.compose.ui.test.assertTouchWidthIsEqualTo
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -222,6 +223,20 @@ class ComponentBehaviorTest {
     fun `packprogressen läses som en mening`() {
         show { SuitcaseProgress(9, 14) }
         rule.onNodeWithContentDescription("9 av 14 packat").assertIsDisplayed()
+    }
+
+    @Test
+    fun `exempel med samma text väljer var sitt objekt`() {
+        val picked = mutableListOf<Int>()
+        show { ExampleChips(listOf(1, 2), { picked += it }, label = { "Solkräm" }) }
+        rule.onAllNodesWithText("Solkräm")[1].performClick()
+        assertEquals(listOf(2), picked)
+    }
+
+    @Test
+    fun `en rad utan svep har ingen arkivera-åtgärd`() {
+        show { SwipeToHide(onHide = {}, enabled = false) { ItemRow("Solkräm", it, onClick = {}) } }
+        rule.onNodeWithText("Solkräm").assert(SemanticsMatcher.keyNotDefined(SemanticsActions.CustomActions))
     }
 
     @Test

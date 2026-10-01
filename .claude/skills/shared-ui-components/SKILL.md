@@ -40,7 +40,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` | M3 filterchip |
 | Ett val bland några (form, enhet, kategori) | `ChoiceChips` | `ChipRow` + en `AppFilterChip` per alternativ |
-| Exempel att börja från (snabbval, tom lista) | `ExampleChips` | `ChipRow` + `AppFilterChip` med plus; det valda med bock |
+| Exempel att börja från (snabbval, tom lista) | `ExampleChips` | `ChipRow` + `AppFilterChip` med plus; det valda med bock; varje chip väljer sitt eget objekt (`label` ger texten) |
 | Avatar | `PersonAvatar` | emoji i färgad cirkel, `size` (`Small`, `Regular`, `Large`) |
 | Emojival | `EmojiPicker` | rutnät av runda val (`ChoiceGrid`), kurerad lista `PERSON_EMOJIS` |
 | Färgval | `ColorSwatchPicker` | rutnät av runda val (`ChoiceGrid`) över `AppColors.PERSON_HEX`; TalkBack läser färgens namn |
@@ -93,12 +93,16 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | ViewModel med nyckel | Hilt assisted injection: `@HiltViewModel(assistedFactory = …)` + `hiltViewModel<VM, VM.Factory> { it.create(key.…) }` i `appEntries` (ARKITEKTUR → Verifierade API:er) |
 | Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |
 | Navigation | `AppKey`, `AppBackStack`, `AppNavHost`, `Transitions` i `navigation/` |
-| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `Unknown`) i `data/common/` |
-| Fel till text | `DataError.toMessage()` i `ui/common/` |
+| Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `NotFound`, `Unknown`) i `data/common/` |
+| Fel till text | `DataError.toMessage()` i `ui/common/`; `NotFound` (raderat) visas utan "Försök igen" |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Beräkningar | `PackingEngine` i `:core` |
-| Packförslag för en resa (förhandsvisning, skapa, räkna om) | `TripPacking` i `domain/` – enda stället som hämtar underlaget till `PackingEngine` |
+| Packförslag för en resa (förhandsvisning, spara med packlista, räkna om) | `TripPacking` i `domain/` – enda stället som hämtar underlaget till `PackingEngine`; `save` läser allt före skrivning |
+| Svensk sortering av namn | `SwedishOrder.names` i `:core` |
 | Mängd-, doserings- och regeltexter | `ReasonFormatter`, `DoseScheduleFormatter`, `QuantityRuleFormatter` i `:core` |
+| Lista + data per nyckel ur den (recept per person, packlista per resa) | `combineByKey` i `data/common/` – källan följs en gång, flödet för nyckeln byts bara när nyckeln ändras |
+| Tillägg som inte får fälla skärmen (avatarer, packat, sammanfattning) | `withFallback(värde)` i `data/common/FlowRetry.kt` – ersättning vid fel och nytt försök efter paus |
+| Ordning för något nytt | `upsertPlaced`/`nextSortOrder` i `data/common/` – ur cachen, väntar inte på nätet |
 | Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
 | Aktivt hushåll | `HouseholdSession` i `data/household/` (`HouseholdScope`) |

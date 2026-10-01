@@ -121,7 +121,7 @@ class PersonViewModelsTest {
     @Test
     fun `en person som inte finns visar läsfel`() = runTest {
         val vm = PersonEditViewModel("borta", persons)
-        vm.state.test { assertEquals(DataError.Unknown, expectMostRecentItem().loadError) }
+        vm.state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError) }
     }
 
     @Test
@@ -146,7 +146,7 @@ class PersonViewModelsTest {
     @Test
     fun `persondetaljen för en person som inte finns är ett fel`() = runTest {
         PersonDetailViewModel("borta", persons, regimens).state.test {
-            assertEquals(DetailUiState.Error(DataError.Unknown), expectMostRecentItem())
+            assertEquals(DetailUiState.Error(DataError.NotFound), expectMostRecentItem())
         }
     }
 

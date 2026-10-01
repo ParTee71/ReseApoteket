@@ -286,6 +286,10 @@ private fun Frames(onBack: () -> Unit) {
             key = { it },
         ) {}
     }
+    Label("EntityDetailScreen – finns inte längre")
+    Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
+        EntityDetailScreen<String>(DetailUiState.Error(DataError.NotFound), header = { DetailHeader(it) }, onBack = {}) {}
+    }
     Label("EntityEditScreen")
     var name by remember { mutableStateOf("") }
     Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {

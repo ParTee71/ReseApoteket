@@ -85,7 +85,7 @@ sealed interface DetailUiState<out T> {
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T : Any> Flow<T?>.asDetailUiState(retry: Flow<Unit>): Flow<DetailUiState<T>> =
     retry.onStart { emit(Unit) }.flatMapLatest {
-        map<T?, DetailUiState<T>> { value -> value?.let { DetailUiState.Content(it) } ?: DetailUiState.Error(DataError.Unknown) }
+        map<T?, DetailUiState<T>> { value -> value?.let { DetailUiState.Content(it) } ?: DetailUiState.Error(DataError.NotFound) }
             .onStart { emit(DetailUiState.Loading) }
             .catch { emit(DetailUiState.Error(it as? DataError ?: DataError.Unknown)) }
     }

@@ -57,7 +57,8 @@ Kör v<ny>, eller en annan version?
    1. deploya `firestore.rules` med den nya `maxSchemaVersion()`;
    2. stämpla hushållen: `node tools/db/migrate.mjs --to <N> --dry-run`, sedan utan `--dry-run`.
    Äldre appar visar då "Uppdatera appen" (HUS-3) redan innan den nya appen kan skriva ett värde
-   som de skulle läsa fel och skriva tillbaka. Appen höjer aldrig versionen själv. Vänta med
+   som de skulle läsa fel och skriva tillbaka. Appen stämplar själv bara när inget steg ändrar
+   data (`SchemaMigrator.canStamp`) – och bara om de nya rules redan är deployade. Vänta med
    steg 5 tills användaren bekräftat båda.
 
 ## Steg 4 – Release-commit på master

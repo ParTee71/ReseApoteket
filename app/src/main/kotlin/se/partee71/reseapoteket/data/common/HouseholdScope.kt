@@ -56,11 +56,18 @@ private class Verdict(val blocker: DataError?)
 /** Hur länge en skrivning väntar på hushållets version (från cachen tar det millisekunder). */
 private val VERSION_WAIT = 5.seconds
 
-/**
- * Hushållets `schemaVersion` som flöde, läst direkt ur hushållsdokumentet. Ett dokument utan
- * fältet har [Schema.FIRST_VERSION]. Går dokumentet inte att läsa (inte medlem, raderat) avslutas
- * flödet med [DataError.PermissionDenied]; andra fel försöker källan själv igen.
- */
-fun interface HouseholdVersionSource {
+/** Hushållets `schemaVersion` direkt ur hushållsdokumentet (utan codec). */
+interface HouseholdVersionSource {
+    /**
+     * Versionen som flöde. Ett dokument utan fältet har [Schema.FIRST_VERSION]. Går dokumentet
+     * inte att läsa (inte medlem, raderat) avslutas flödet med [DataError.PermissionDenied];
+     * andra fel försöker källan själv igen.
+     */
     fun schemaVersion(householdId: String): Flow<Int>
+
+    /**
+     * Stämplar hushållet med [version] utan att något annat fält skrivs om. Läggs i cachen och
+     * synkas senare (offline först); ett fel rapporteras inte – nästa öppning försöker igen.
+     */
+    fun stamp(householdId: String, version: Int)
 }

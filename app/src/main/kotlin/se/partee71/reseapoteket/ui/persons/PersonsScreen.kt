@@ -11,25 +11,23 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.listed
+import se.partee71.reseapoteket.data.common.combineByKey
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.components.ListArchive
+import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ItemRow
+import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.components.SwipeToHide
 import se.partee71.reseapoteket.ui.theme.AppColors
@@ -42,7 +40,6 @@ sealed interface PersonsEvent {
 }
 
 @HiltViewModel
-@OptIn(ExperimentalCoroutinesApi::class)
 class PersonsViewModel @Inject constructor(
     persons: PersonRepository,
     regimens: RegimenRepository,
@@ -52,12 +49,10 @@ class PersonsViewModel @Inject constructor(
 
     // Aktiva först; arkiverade sist och bara när de visas (PER-1, PER-3).
     private val items: Flow<List<PersonListItem>> =
-        archive.visible(persons.observe()).flatMapLatest { list ->
-            regimens.regimensFor(list.map { it.id }).map { byPerson ->
-                list.map { person ->
-                    val own = byPerson[person.id].orEmpty()
-                    PersonListItem(person, own.listed(RegimenKind.MEDICINE).size, own.listed(RegimenKind.SUPPLEMENT).size)
-                }
+        archive.visible(persons.observe()).combineByKey({ list -> list.map { it.id }.toSet() }, { ids -> regimens.regimensFor(ids.toList()) }) { list, byPerson ->
+            list.map { person ->
+                val own = byPerson[person.id].orEmpty()
+                PersonListItem(person, own.listed(RegimenKind.MEDICINE).size, own.listed(RegimenKind.SUPPLEMENT).size)
             }
         }
 

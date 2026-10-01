@@ -1,7 +1,5 @@
 package se.partee71.reseapoteket.core.engine
 
-import java.text.Collator
-import java.util.Locale
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
@@ -249,10 +247,7 @@ object PackingEngine {
     fun progress(items: List<PackingItem>): PackingProgress =
         items.filterNot { it.hidden }.let { shown -> PackingProgress(shown.count { it.checked }, shown.size) }
 
-    /** Namn sorteras i svensk ordning: … x, y, z, å, ä, ö – inte på teckenkod. */
-    private val swedish: Comparator<String> = Collator.getInstance(Locale.forLanguageTag("sv-SE")).let { collator ->
-        Comparator { a, b -> collator.compare(a, b) }
-    }
+    private val swedish: Comparator<String> = SwedishOrder.names
 
     /** [Sortable.ORDER] för en konkret typ, så att den kan kedjas med namn och ID. */
     private fun <T : Sortable> bySortOrder(): Comparator<T> = Comparator { a, b -> Sortable.ORDER.compare(a, b) }

@@ -3,6 +3,7 @@
 // till här och i SchemaMigrator i samma PR.
 import { isDeepStrictEqual } from 'node:util';
 import { CURRENT_VERSION, versionOf } from './schema.mjs';
+import { fromJson, toJson } from './serialize.mjs';
 import { collectionOf, householdIds, walkHousehold } from './walk.mjs';
 
 export const STEPS = {
@@ -48,8 +49,9 @@ async function migrateHousehold(db, id, to, { dryRun, steps, result }) {
     result[`hushåll från v${from}`] = (result[`hushåll från v${from}`] ?? 0) + 1;
   };
   if (dryRun) return count();
+  // Stegen får en kopia: ett steg som ändrar dokumentet på plats får inte få det att se oförändrat ut.
   const migrated = docs.map(({ path, data }) => {
-    let doc = data;
+    let doc = fromJson(toJson(data));
     for (let v = from; v < to; v++) doc = steps[v](collectionOf(path), doc);
     return { path, data: doc };
   });
@@ -59,6 +61,10 @@ async function migrateHousehold(db, id, to, { dryRun, steps, result }) {
   for (const [i, { path, data }] of migrated.entries()) {
     if (i > 0 && !isDeepStrictEqual(data, docs[i].data)) await db.doc(path).set(data);
   }
-  await db.doc(migrated[0].path).set({ ...migrated[0].data, schemaVersion: to });
+  // Hushållsdokumentet likadant: har stegen inte ändrat det sätts bara versionen, så att en
+  // ändring i appen under körningen (namn, marginaldagar) inte skrivs över.
+  const household = migrated[0];
+  if (isDeepStrictEqual(household.data, docs[0].data)) await db.doc(household.path).update({ schemaVersion: to });
+  else await db.doc(household.path).set({ ...household.data, schemaVersion: to });
   count();
 }

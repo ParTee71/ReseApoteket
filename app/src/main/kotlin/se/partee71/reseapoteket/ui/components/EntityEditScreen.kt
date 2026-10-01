@@ -35,6 +35,9 @@ import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.toMessage
 import se.partee71.reseapoteket.ui.theme.Spacing
 
+/** Det som händer efter "Släng ändringar": lämna formuläret, arkivera eller återställa. */
+private enum class AfterDiscard { Close, Archive, Restore }
+
 /** Radering i redigeringens meny – alltid bekräftad med [ConfirmDialog] (destructive). */
 data class DeleteAction(val title: String, val message: String, val onConfirm: () -> Unit)
 
@@ -42,7 +45,8 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * Den enda redigeringsskärmen (NFR-2, skill shared-ui-components), tillsammans med
  * `EditorState`:
  * - "Spara" ([saveLabel]) aktiv först när formuläret är giltigt och ändrat;
- * - bakåt med osparade ändringar → "Släng ändringar?";
+ * - bakåt med osparade ändringar → "Släng ändringar?" – likaså arkivera/återställ, som stänger
+ *   formuläret utan att spara fälten;
  * - sparfel → snackbar via `DataError.toMessage()`; lyckad sparning → [onClose];
  * - arkivera/återställ/radera i menyn när [onArchive]/[onRestore]/[delete] finns;
  * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
@@ -69,7 +73,8 @@ fun EntityEditScreen(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
-    var confirmDiscard by rememberSaveable { mutableStateOf(false) }
+    // Vad "Släng ändringar" leder till; null = ingen fråga visas.
+    var discardThen by rememberSaveable { mutableStateOf<AfterDiscard?>(null) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val close by rememberUpdatedState(onClose)
     val saved by rememberUpdatedState(onSaved)
@@ -83,8 +88,18 @@ fun EntityEditScreen(
             }
         }
     }
-    val back = { if (state.isDirty) confirmDiscard = true else close() }
-    BackHandler(enabled = state.isDirty) { confirmDiscard = true }
+    val archive by rememberUpdatedState(onArchive)
+    val restore by rememberUpdatedState(onRestore)
+    val proceed: (AfterDiscard) -> Unit = { after ->
+        when (after) {
+            AfterDiscard.Close -> close()
+            AfterDiscard.Archive -> archive?.invoke()
+            AfterDiscard.Restore -> restore?.invoke()
+        }
+    }
+    val askFirst: (AfterDiscard) -> Unit = { after -> if (state.isDirty) discardThen = after else proceed(after) }
+    val back: () -> Unit = { askFirst(AfterDiscard.Close) }
+    BackHandler(enabled = state.isDirty) { discardThen = AfterDiscard.Close }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -93,8 +108,8 @@ fun EntityEditScreen(
             AppTopBar(title, size = TopBarSize.Small, onBack = back) {
                 AppButton(saveLabel, onSave, Modifier.padding(horizontal = Spacing.xs), enabled = state.canSave, loading = state.saving, compact = true)
                 val menu = listOfNotNull(
-                    onArchive?.let { AppMenuItem(stringResource(R.string.archive), it, R.drawable.ic_archive) },
-                    onRestore?.let { AppMenuItem(stringResource(R.string.restore), it, R.drawable.ic_unarchive) },
+                    onArchive?.let { AppMenuItem(stringResource(R.string.archive), { askFirst(AfterDiscard.Archive) }, R.drawable.ic_archive) },
+                    onRestore?.let { AppMenuItem(stringResource(R.string.restore), { askFirst(AfterDiscard.Restore) }, R.drawable.ic_unarchive) },
                     delete?.let { AppMenuItem(stringResource(R.string.delete), { confirmDelete = true }, R.drawable.ic_delete, destructive = true) },
                 )
                 if (menu.isNotEmpty()) AppMenu(menu)
@@ -119,16 +134,16 @@ fun EntityEditScreen(
         }
     }
 
-    if (confirmDiscard) {
+    discardThen?.let { after ->
         ConfirmDialog(
             title = stringResource(R.string.discard_title),
             message = stringResource(R.string.discard_message),
             confirmLabel = stringResource(R.string.discard_confirm),
             onConfirm = {
-                confirmDiscard = false
-                close()
+                discardThen = null
+                proceed(after)
             },
-            onDismiss = { confirmDiscard = false },
+            onDismiss = { discardThen = null },
             dismissLabel = stringResource(R.string.keep_editing),
         )
     }

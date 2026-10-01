@@ -50,6 +50,58 @@ test('ett steg lyfter alla dokument och hushållet stämplas med den nya version
   assert.equal(docs['households/gammalt'].schemaVersion, 2);
 });
 
+test('ett steg som ändrar dokumentet på plats skrivs ändå', async () => {
+  const db = database();
+  await seed(db, [
+    { path: 'households/gammalt', data: { memberUids: ['uid-x'], schemaVersion: 1, createdAt: new Date('2026-01-01T00:00:00Z') } },
+    { path: 'households/gammalt/persons/p1', data: { namn: 'Anna' } },
+  ]);
+  const inPlace = (collection, doc) => {
+    if (collection === 'persons' && 'namn' in doc) { doc.name = doc.namn; delete doc.namn; }
+    if (collection === 'households') doc.marginDays = 2;
+    return doc;
+  };
+  await migrateHouseholds(db, 2, { ...v2, steps: { 1: inPlace } });
+  assert.deepEqual((await db.doc('households/gammalt/persons/p1').get()).data(), { name: 'Anna' });
+  const household = (await db.doc('households/gammalt').get()).data();
+  assert.equal(household.marginDays, 2);
+  assert.equal(household.schemaVersion, 2);
+});
+
+test('ett oförändrat hushållsdokument får bara ny version – en ändring under körningen står kvar', async () => {
+  const real = database();
+  await seed(real, [
+    { path: 'households/gammalt', data: { name: 'Gammalt', memberUids: ['uid-x'], marginDays: 2, schemaVersion: 1 } },
+    { path: 'households/gammalt/persons/p1', data: { name: 'Anna' } },
+  ]);
+  // Användaren ändrar marginaldagarna i appen precis innan hushållet stämplas.
+  const bind = (target, key) => (typeof target[key] === 'function' ? target[key].bind(target) : target[key]);
+  const db = new Proxy(real, {
+    get(target, key) {
+      if (key !== 'doc') return bind(target, key);
+      return (path) => {
+        const ref = target.doc(path);
+        if (path !== 'households/gammalt') return ref;
+        return new Proxy(ref, {
+          get(r, method) {
+            if (method !== 'set' && method !== 'update') return bind(r, method);
+            return async (...args) => {
+              await real.doc(path).update({ marginDays: 5 });
+              return r[method](...args);
+            };
+          },
+        });
+      };
+    },
+  });
+
+  assert.deepEqual(await migrateHouseholds(db, 2, { ...v2, steps: { 1: (_, doc) => doc } }), { 'hushåll från v1': 1 });
+
+  const household = (await real.doc('households/gammalt').get()).data();
+  assert.equal(household.schemaVersion, 2);
+  assert.equal(household.marginDays, 5, 'ändringen i appen skrivs inte över med den äldre läsningen');
+});
+
 test('en trasig version under den första migreras som den första', async () => {
   const db = database();
   await seed(db, [{ path: 'households/noll', data: { memberUids: ['uid-x'], schemaVersion: 0 } }]);

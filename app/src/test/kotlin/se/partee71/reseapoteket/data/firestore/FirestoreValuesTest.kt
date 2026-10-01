@@ -33,6 +33,7 @@ class FirestoreValuesTest {
         assertEquals(DataError.PermissionDenied, error(Code.PERMISSION_DENIED))
         assertEquals(DataError.PermissionDenied, error(Code.UNAUTHENTICATED))
         assertEquals(DataError.Cancelled, error(Code.CANCELLED))
+        assertEquals(DataError.NotFound, error(Code.NOT_FOUND))
         assertEquals(DataError.Unknown, error(Code.INTERNAL))
         assertEquals(DataError.Unknown, firestoreError(IllegalStateException()))
         assertEquals(DataError.UpdateRequired, firestoreError(DataError.UpdateRequired))

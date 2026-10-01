@@ -76,7 +76,7 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
      */
     suspend fun loadFrom(read: suspend () -> Result<T?>, prepare: (T) -> T = { it }) {
         read()
-            .onSuccess { stored -> if (stored == null) loadFailed(DataError.Unknown) else load(prepare(stored)) }
+            .onSuccess { stored -> if (stored == null) loadFailed(DataError.NotFound) else load(prepare(stored)) }
             .onFailure { loadFailed(it as? DataError ?: DataError.Unknown) }
     }
 

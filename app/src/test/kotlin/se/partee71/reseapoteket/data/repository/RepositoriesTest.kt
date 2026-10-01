@@ -19,6 +19,7 @@ import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.HouseholdVersionSource
 import se.partee71.reseapoteket.data.common.dataError
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.datastore.settingsDataStore
@@ -45,7 +46,12 @@ class RepositoriesTest {
     ): Pair<HouseholdSession, DefaultHouseholdRepository> {
         val settings = settings ?: SettingsStore(settingsDataStore(backgroundScope) { folder.newFile("s.preferences_pb") })
             .also { settings = it }
-        val session = HouseholdSession(settings, { flowOf(1) }, backgroundScope)
+        val versions = object : HouseholdVersionSource {
+            override fun schemaVersion(householdId: String) = flowOf(1)
+
+            override fun stamp(householdId: String, version: Int) = Unit
+        }
+        val session = HouseholdSession(settings, versions, backgroundScope)
         return session to DefaultHouseholdRepository(collections, directory, session, settings, clock)
     }
 

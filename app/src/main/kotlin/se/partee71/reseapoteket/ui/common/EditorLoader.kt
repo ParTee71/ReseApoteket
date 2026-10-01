@@ -26,6 +26,8 @@ class EditorLoader<T>(
     }
 
     fun retry() {
+        // Något nytt har inget att läsa om – utan läsning skulle laddningen aldrig ta slut.
+        if (read == null) return
         editor.reload()
         load()
     }

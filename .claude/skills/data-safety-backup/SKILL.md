@@ -38,8 +38,11 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
   ingenting (en gammal app får aldrig skriva över nyare data).
 - **Lägre** → `SchemaMigrator` lyfter dokumenten vid läsning; skrivning sker i nytt format.
   Versionen hör till hushållet, inte till varje dokument, så **varje steg är idempotent** och
-  hushållets `schemaVersion` höjs **bara** av en fullständig migrering av alla dess dokument
-  (`tools/db/migrate.mjs`, i release-ordningen i skill `release`) – aldrig av appen eller en vanlig skrivning.
+  hushållets `schemaVersion` höjs av en fullständig migrering av alla dess dokument
+  (`tools/db/migrate.mjs`, i release-ordningen i skill `release`) – aldrig av en vanlig skrivning.
+  Ändrar inget steg dit några dokument (`SchemaMigrator.Step.UNCHANGED`, `canStamp`) stämplar
+  appen själv hushållet när det öppnas (`HouseholdSession`), så att en äldre app genast ber om
+  uppdatering. Ett steg som ändrar data har `changesData = true` och kräver `migrate.mjs`.
 - Saknas `schemaVersion`, eller är den under `Schema.FIRST_VERSION` (trasigt värde), gäller
   `Schema.FIRST_VERSION` (`Schema.versionOf`, `versionOf` i `lib/schema.mjs`), aldrig "senaste".
 - Höjs versionen: nytt steg i `SchemaMigrator` **och** spegling i `tools/db/migrate.mjs`,

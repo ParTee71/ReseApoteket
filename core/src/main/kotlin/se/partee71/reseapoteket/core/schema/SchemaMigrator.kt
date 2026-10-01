@@ -6,32 +6,52 @@ package se.partee71.reseapoteket.core.schema
  * Versionen hör till hushållet, inte till varje dokument. Därför:
  * - Varje steg ska vara **idempotent** (känna igen redan migrerad data), eftersom samma
  *   dokument kan passera flera gånger innan hushållet stämplats om.
- * - Hushållets `schemaVersion` höjs **bara** av en fullständig migrering av alla hushållets
- *   dokument med `tools/db/migrate.mjs` (appen höjer den aldrig själv), aldrig av en vanlig
- *   skrivning – `HouseholdCodec` skriver tillbaka den version den läste.
+ * - Hushållets `schemaVersion` höjs av en fullständig migrering av alla hushållets dokument
+ *   med `tools/db/migrate.mjs`, aldrig av en vanlig skrivning – `HouseholdCodec` skriver
+ *   tillbaka den version den läste. Ändrar inget steg dit några dokument ([canStamp]) stämplar
+ *   appen själv hushållet när det öppnas, så att en äldre app genast ber om uppdatering i
+ *   stället för att skriva tillbaka ett värde den inte förstår (BCK-5).
  * Varje steg speglas i `tools/db/migrate.mjs` och testas i `SchemaMigratorTest`.
  */
 object SchemaMigrator {
 
-    /** Ett steg från version `n` till `n + 1` för ett dokument i [collection]. */
-    fun interface Step {
-        fun migrate(collection: String, doc: Doc): Doc
+    /**
+     * Ett steg från version `n` till `n + 1` för ett dokument i en samling. [changesData] =
+     * `false` för ett steg som bara gör nya värden möjliga (ett nytt enum-värde) och inte ändrar
+     * några befintliga dokument.
+     */
+    class Step(val changesData: Boolean, private val transform: (collection: String, doc: Doc) -> Doc) {
+        fun migrate(collection: String, doc: Doc): Doc = transform(collection, doc)
+
+        companion object {
+            /** Inget befintligt dokument ändras. */
+            val UNCHANGED = Step(changesData = false) { _, doc -> doc }
+        }
     }
 
     /** Nyckel = versionen steget migrerar *från*. */
     internal val steps: Map<Int, Step> = mapOf(
         // 1 → 2: bara ett nytt enum-värde (POWDER) – inga befintliga dokument ändras.
-        1 to Step { _, doc -> doc },
+        1 to Step.UNCHANGED,
     )
+
+    /**
+     * Om ett hushåll i version [from] kan stämplas med [Schema.CURRENT_VERSION] utan att några
+     * dokument migreras: det är äldre än appen och inget steg dit ändrar data.
+     */
+    fun canStamp(from: Int): Boolean =
+        from < Schema.CURRENT_VERSION && stepsFrom(from).none { it.changesData }
 
     fun migrate(from: Int, collection: String, doc: Doc): Doc {
         require(!Schema.isNewerThanApp(from)) {
             "schemaVersion $from är nyare än appens ${Schema.CURRENT_VERSION} – kan inte migreras bakåt"
         }
-        // En version under den första (trasigt värde) är det första formatet.
-        return (from.coerceAtLeast(Schema.FIRST_VERSION) until Schema.CURRENT_VERSION).fold(doc) { current, version ->
-            val step = checkNotNull(steps[version]) { "Migreringssteg saknas för version $version" }
-            step.migrate(collection, current)
-        }
+        return stepsFrom(from).fold(doc) { current, step -> step.migrate(collection, current) }
     }
+
+    /** Stegen från [from] till [Schema.CURRENT_VERSION]; en version under den första (trasigt värde) är det första formatet. */
+    private fun stepsFrom(from: Int): List<Step> =
+        (from.coerceAtLeast(Schema.FIRST_VERSION) until Schema.CURRENT_VERSION).map { version ->
+            checkNotNull(steps[version]) { "Migreringssteg saknas för version $version" }
+        }
 }
