@@ -252,4 +252,29 @@
     <string name="settings_version_format">Version %s</string>
     <string name="settings_components">Komponenter</string>
     <string name="settings_components_note">Bara i debug-bygget</string>
+    <string name="settings_household">Hushåll</string>
+    <string name="settings_household_name">Hushållets namn</string>
+    <string name="settings_margin_days">Marginaldagar</string>
+    <string name="settings_margin_days_note">Extra dagar som läggs på varje resa, ifall något krånglar</string>
+    <string name="settings_packing">Packlista</string>
+    <string name="settings_move_checked_last">Flytta avprickade sist</string>
+    <string name="settings_move_checked_last_note">Packade rader hamnar sist hos varje person</string>
+    <string name="settings_account">Konto</string>
+    <string name="settings_signed_in">Inloggad med Google</string>
+    <string name="sign_out">Logga ut</string>
+    <string name="sign_out_title">Logga ut?</string>
+    <string name="sign_out_message">Hushållets data finns kvar i molnet. Du loggar in igen med samma Google-konto.</string>
+    <string name="settings_data">Data &amp; backup</string>
+    <string name="settings_sync_title">Sparas i molnet</string>
+    <string name="settings_sync_note">Allt synkas med Firestore och fungerar offline. En krypterad backup tas automatiskt varje vecka.</string>
+    <string name="settings_data_version">Format och version</string>
+    <string name="settings_data_format">Dataformat %1$d · appversion %2$s</string>
+    <string name="settings_export">Exportera som JSON</string>
+    <string name="settings_export_note">Hela hushållet, samma format som backupen</string>
+    <string name="settings_export_busy">Exporterar …</string>
+    <string name="settings_export_chooser">Exportera hushållet</string>
+    <string name="settings_source">Källkod</string>
+    <string name="settings_source_url" translatable="false">https://github.com/ParTee71/ReseApoteket</string>
+    <string name="settings_source_note" translatable="false">github.com/ParTee71/ReseApoteket</string>
+    <string name="household_edit">Hushåll</string>
 </resources>

@@ -45,6 +45,10 @@ data class TripEditKey(val tripId: String? = null) : AppKey
 @Serializable
 data class PackingListKey(val tripId: String) : AppKey
 
+/** Det aktiva hushållets namn – från Inställningar (SET-2). */
+@Serializable
+data object HouseholdEditKey : AppKey
+
 /** Komponentgalleriet – nås bara från Inställningar i debug-bygget. */
 @Serializable
 data object ComponentGalleryKey : AppKey

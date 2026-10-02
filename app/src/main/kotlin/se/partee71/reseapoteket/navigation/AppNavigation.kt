@@ -25,6 +25,7 @@ import se.partee71.reseapoteket.ui.persons.PersonsScreen
 import se.partee71.reseapoteket.ui.regimens.RegimenEditScreen
 import se.partee71.reseapoteket.ui.regimens.RegimenEditViewModel
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
+import se.partee71.reseapoteket.ui.settings.HouseholdEditScreen
 import se.partee71.reseapoteket.ui.settings.SettingsScreen
 import se.partee71.reseapoteket.ui.trips.TripEditScreen
 import se.partee71.reseapoteket.ui.trips.TripEditViewModel
@@ -66,6 +67,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
         }
         entry<SettingsKey> {
             SettingsScreen(
+                onEditHousehold = { backStack.push(HouseholdEditKey) },
                 onOpenGallery = if (BuildConfig.DEBUG) ({ backStack.push(ComponentGalleryKey) }) else null,
                 viewModel = hiltViewModel(tabOwner),
             )
@@ -78,6 +80,9 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onOpenRegimen = { regimen -> backStack.push(RegimenEditKey(key.personId, regimen.kind, regimen.id)) },
                 viewModel = hiltViewModel<PersonDetailViewModel, PersonDetailViewModel.Factory> { it.create(key.personId) },
             )
+        }
+        entry<HouseholdEditKey> { key ->
+            HouseholdEditScreen(onClose = { backStack.popIfTop(key) }, viewModel = hiltViewModel())
         }
         entry<PersonEditKey> { key ->
             PersonEditScreen(

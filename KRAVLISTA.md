@@ -3,7 +3,7 @@
 > Räknar ut hur mycket av familjens mediciner, kosttillskott och apoteksvaror som ska
 > packas inför en resa, och låter familjen pricka av det som plockats fram.
 >
-> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning, hushåll, backup, databasåtkomst, navigering med fyra flikar, tema och komponentkatalog finns; funktionerna för resor och packning kommer i #21–#27.
+> Paket: `se.partee71.reseapoteket` · Språk: svenska · Status: byggskelett (0.1.0) – inloggning, hushåll, backup, databasåtkomst, navigering med fyra flikar, tema och komponentkatalog finns; personer, recept, familjeartiklar, resor, packlistan och inställningarna finns sedan #21–#27.
 
 Så här används listan: skill [`requirements-kravlista`](.claude/skills/requirements-kravlista/SKILL.md).
 Krav märkta *(planerad)* är beslutade men inte byggda; markeringen tas bort i PR:en som
@@ -56,7 +56,7 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 | AUTH-1 | Appen visar inloggningen ("Logga in med Google") tills användaren loggat in med sitt Google-konto; utloggad visas inget annat innehåll. |
 | AUTH-2 | En avbruten inloggning – kontoväljaren stängd – är inget fel och visar inget meddelande. |
 | AUTH-3 | Medan inloggningen och valet av hushåll pågår visar knappen "Loggar in …" och kan inte tryckas; ett fel visas som meddelande ovanför knappen (NFR-5). |
-| AUTH-4 | Utloggning rensar den sparade inloggningen, Firebase-sessionen och det valda hushållet på enheten; är ingen inloggad rensas ett kvarglömt hushållsval alltid, så att nästa konto aldrig hamnar i ett annat kontos hushåll. *(planerad, #27 – knappen i Inställningar; stödet och rensningen finns sedan #16)* |
+| AUTH-4 | Utloggning rensar den sparade inloggningen, Firebase-sessionen och det valda hushållet på enheten; är ingen inloggad rensas ett kvarglömt hushållsval alltid, så att nästa konto aldrig hamnar i ett annat kontos hushåll. Utloggningen görs från Inställningar (SET-4). |
 
 ## 5. Hushåll
 
@@ -145,11 +145,12 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 | ID | Krav |
 |----|------|
 | SET-1 | Tema **ljust**, **mörkt** eller **system**, sparat på enheten; ingen dynamisk färg. |
-| SET-2 | Hushållets namn och **marginaldagar** 0–7 (förval 2) med förklaringen "Extra dagar som läggs på varje resa, ifall något krånglar". *(planerad, #27)* |
-| SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten, förval på (PAK-2). *(valet i Inställningar planerat, #27)* |
-| SET-4 | Kontot visar Google-kontots namn och e-post; **"Logga ut"** kräver bekräftelse (NFR-4) och leder till inloggningen (AUTH-4). *(planerad, #27)* |
-| SET-5 | **Data & backup:** text om synk och veckobackup, `schemaVersion` och appversion; **"Exportera som JSON"** delar hushållets data i samma format som `tools/db export` (BCK-6), bara efter uttrycklig handling. *(planerad, #27)* |
-| SET-6 | **Om:** version och länk till repot; i debug-byggen öppnar "Komponenter" komponentgalleriet. *(planerad, #27 – version och "Komponenter" sedan #20)* |
+| SET-2 | **Hushållet:** namnet ändras i ett eget formulär (NFR-2); **marginaldagar** 0–7 (förval 2) med förklaringen "Extra dagar som läggs på varje resa, ifall något krånglar" ändras med +/− direkt i Inställningar och sparas på en gång. Var och en skriver bara sitt fält, så att en samtidig ändring av det andra står kvar; medlemmar och `schemaVersion` rörs aldrig. |
+| SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten, förval på (PAK-2). |
+| SET-4 | Kontot visar Google-kontots namn och e-post (de sparas eller loggas aldrig); **"Logga ut"** frågar först ("Logga ut?") och leder till inloggningen (AUTH-4). |
+| SET-5 | **Data & backup:** text om synk och veckobackup, dataformat (`schemaVersion`) och appversion; **"Exportera som JSON"** sparar hushållets alla dokument i samma format som `tools/db export` – så att filen kan läsas in med `tools/db import` (BCK-1, BCK-6) – och öppnar Androids delningsmeny, bara efter användarens tryck. Bara den senaste exportfilen finns kvar i appens cache. Recept under en person som saknar eget dokument (bara möjligt via verktygen; appen visar dem aldrig) kommer bara med i veckobackupen. |
+| SET-6 | **Om:** version och länk till källkoden; i debug-byggen öppnar "Komponenter" komponentgalleriet. |
+| SET-7 | Ett fel från en åtgärd i Inställningar (marginaldagar, utloggning, export) visas i kortet där åtgärden gjordes, med samma texter som överallt (NFR-5), och försvinner vid nästa åtgärd. |
 
 ## 14. Datamodell
 
@@ -199,7 +200,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | ID | Krav |
 |----|------|
 | NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). |
-| NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). *(planerad, #27 – användarens egen export; Androids backup och enhetsöverföring avstängda sedan #11, krypterad backup sedan #17)* |
+| NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). Användarens egen export (SET-5) delas bara via Androids delningsmeny och bara exportmappen i cachen kan delas. |
 | NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). |
 | NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats; `master` kör alltid allt. Emulator, lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
 | NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`, `ThemeContrastTest`). |
