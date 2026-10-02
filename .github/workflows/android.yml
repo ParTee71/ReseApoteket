@@ -168,35 +168,9 @@ jobs:
             echo "::notice::tools/db/package.json eller firebase.json saknas – inga rules-tester att köra."
           fi
 
-      - name: Node 22
-        if: steps.present.outputs.present == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: tools/db/package-lock.json
-
-      - name: Java 21 (firebase-tools 15 kräver minst 21 för emulatorn)
-        if: steps.present.outputs.present == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Cache för Firebase-emulatorn
-        if: steps.present.outputs.present == 'true'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/firebase/emulators
-          key: firebase-emulators-${{ hashFiles('tools/db/package-lock.json') }}
-
-      # Bara emulatorn med demo-projekt-ID: inga riktiga Firebase-hemligheter i detta jobb
-      # (skill data-safety-backup). emulators:exec sätter FIRESTORE_EMULATOR_HOST.
       - name: Rules- och rundturstester mot emulatorn
         if: steps.present.outputs.present == 'true'
-        run: |
-          npm ci --prefix tools/db --ignore-scripts
-          npx --prefix tools/db firebase emulators:exec --only firestore --project demo-reseapoteket "npm --prefix tools/db test"
+        uses: ./.github/actions/rules-tests
 
   ci-ok:
     name: ci-ok

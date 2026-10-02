@@ -3,7 +3,7 @@ rules_version = '2';
 // Security rules för ReseApoteket (skill firestore-data-layer, data-privacy-security).
 // All data ligger under households/{hid} och är bara åtkomlig för hushållets medlemmar.
 // Ny samling = ny match-regel med validering + rules-test i samma PR (annars nekas den).
-// Deploy sker manuellt: npx firebase deploy --only firestore:rules (README → Firebase-setup).
+// Deploy från GitHub Actions efter rules-testerna: rules.yml (på begäran) och release.yml (README → Firebase-setup).
 service cloud.firestore {
   match /databases/{database}/documents {
 

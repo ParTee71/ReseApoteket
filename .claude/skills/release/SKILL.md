@@ -14,6 +14,9 @@ Kör stegen i ordning och rapportera efter varje steg. Stanna och förklara om n
   instrumenttester på emulator och `lintDebug` innan bygget – de steg som hålls utanför
   PR-flödet av CI-budgeten (skill `ci-budget`).
 - **Bygg och signering:** i Actions; keystore och lösenord från secrets. Ingen lokal SDK krävs.
+- **Rules:** `release.yml` deployar `firestore.rules` (secret `FIREBASE_RULES_DEPLOYER`) efter
+  grindarna och före bygget – en körning utan publicering provkör bara, men kräver också secreten.
+  En publicering vars `firestore.rules` skiljer sig från `master` stoppas före bygget.
 - **Publicering:** `release.yml` skapar taggen `vX.Y.Z` själv och publicerar en GitHub
   Release med changelog och APK. Två triggers: push av tagg, eller `workflow_dispatch` på
   `master` med `version_name` och `publish_release`.
@@ -54,7 +57,8 @@ Kör v<ny>, eller en annan version?
    byggda funktioner) och att TP-kraven matchar SDK-nivåerna i byggfilen.
 4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt (skill `data-safety-backup`)
    och be användaren göra detta, i den här ordningen, **innan** release-bygget triggas (steg 5):
-   1. deploya `firestore.rules` med den nya `maxSchemaVersion()`;
+   1. deploya `firestore.rules` med den nya `maxSchemaVersion()` – kör `rules.yml` med
+      `deploy: true` (release-bygget deployar dem också, men stämplingen måste vänta på dem);
    2. stämpla hushållen: `node tools/db/migrate.mjs --to <N> --dry-run`, sedan utan `--dry-run`.
    Äldre appar visar då "Uppdatera appen" (HUS-3) redan innan den nya appen kan skriva ett värde
    som de skulle läsa fel och skriva tillbaka. Appen stämplar själv bara när inget steg ändrar

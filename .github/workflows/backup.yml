@@ -24,12 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Node 22
-        uses: actions/setup-node@v4
+      # Bara firebase-admin: inga utvecklingsverktyg i jobbet som har nyckel och lösenfras.
+      - uses: ./.github/actions/setup-tools-db
         with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: tools/db/package-lock.json
+          omit-dev: 'true'
 
       - name: Hemligheter finns
         env:
@@ -44,8 +42,6 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          # Bara firebase-admin: inga utvecklingsverktyg i jobbet som har nyckel och lösenfras.
-          npm ci --prefix tools/db --ignore-scripts --omit=dev
           node tools/db/export.mjs --out tools/db/backup.json
           # Samma kontroll som en återställning gör, utan databas: filen går att importera.
           node tools/db/import.mjs --in tools/db/backup.json --dry-run

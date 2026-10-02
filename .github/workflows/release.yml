@@ -1,6 +1,6 @@
 # Release (skill release). Grindar: alla tester, cpdCheck och dokumentkontroller (CI),
-# instrumenttester och lint + minifierat bygge (Kvalitet). Sedan signerat bygge och
-# GitHub Release. Taggen skapas här – en agentsession kan inte pusha taggar.
+# instrumenttester och lint + minifierat bygge (Kvalitet). Sedan deploy av firestore.rules,
+# signerat bygge och GitHub Release. Taggen skapas här – en agentsession kan inte pusha taggar.
 name: Release
 
 on:
@@ -112,6 +112,15 @@ jobs:
             -destkeystore app/reseapoteket-legacy.jks -deststorepass "$SIGNING_STORE_PASSWORD" \
             -deststoretype pkcs12 -J-Dkeystore.pkcs12.legacy > /dev/null
           mv app/reseapoteket-legacy.jks app/reseapoteket.jks
+
+      # Rules före appen (BCK-5), när alla andra hemligheter finns: grindarna ovan har kört
+      # rules-testerna mot emulatorn. En körning utan publicering kontrollerar bara (--dry-run).
+      - uses: ./.github/actions/setup-tools-db
+
+      - uses: ./.github/actions/deploy-rules
+        with:
+          credentials: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
+          dry-run: ${{ steps.version.outputs.publish == 'true' && 'false' || 'true' }}
 
       - name: Signerat release-bygge
         env:

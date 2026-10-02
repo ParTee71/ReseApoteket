@@ -23,7 +23,10 @@ GitHub Actions-loggar.
   inloggade användare vars uid finns i hushållets `memberUids`.
 - Ny samling = ny rules-rad **och** rules-test i samma ändring (skill
   `firestore-data-layer`). En samling utan rules är ett säkerhetshål eller oåtkomlig.
-- Rules deployas manuellt och medvetet, aldrig automatiskt från en PR.
+- Rules deployas medvetet: av `release.yml` före release-bygget eller av `rules.yml` på begäran
+  (dry-run som standard) – aldrig från en PR och aldrig automatiskt på `master`. Deploynyckeln
+  (`FIREBASE_RULES_DEPLOYER`) får bara rollen Firebase Rules Admin (+ Service Usage Consumer)
+  och stoppas om den hör till ett annat projekt än `reseapoteket`.
 - Appen **kräver inloggning**; ingen data läses eller skrivs utan `request.auth`.
 
 ### 3. Backup och export är krypterade och medvetna
@@ -46,7 +49,7 @@ GitHub Actions-loggar.
 - Git-ignorerade och aldrig i repot: `google-services.json`, `*.jks`/`*.keystore`,
   `local.properties`, service-account-JSON, `tools/db/*.json`-exporter, `*.gpg`.
 - I CI kommer de från GitHub-secrets (`GOOGLE_SERVICES_JSON`, `FIREBASE_SERVICE_ACCOUNT`,
-  `BACKUP_PASSPHRASE`, `SIGNING_*`).
+  `FIREBASE_RULES_DEPLOYER`, `BACKUP_PASSPHRASE`, `SIGNING_*`).
 - I Claude-sessionen kommer `FIREBASE_SERVICE_ACCOUNT` från miljöns inställningar.
   **Be aldrig användaren klistra in en nyckel, token eller lösenfras i chatten**, och
   skriv aldrig ut värdet – kontrollera bara om variabeln är satt.
