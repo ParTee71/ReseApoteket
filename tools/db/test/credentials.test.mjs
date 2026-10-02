@@ -33,6 +33,15 @@ test('en nyckel för ett annat projekt stoppas – aldrig deploy till fel projek
   assert.throws(() => serviceAccountFor(JSON.stringify({ ...key, project_id: 'dagboken-711d2' }), 'NYCKEL', 'reseapoteket'), /dagboken-711d2, inte reseapoteket/);
 });
 
+test('tools/db öppnar inte databasen med en nyckel för ett annat projekt', () => {
+  // Utan NODE_TEST_CONTEXT och emulator: kontrollen sker innan något anslutningsförsök.
+  const env = { PATH: process.env.PATH, FIREBASE_SERVICE_ACCOUNT: JSON.stringify({ ...key, project_id: 'dagboken-711d2' }) };
+  const result = runScript('stats.mjs', [], { env });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /dagboken-711d2, inte reseapoteket/);
+  assert.doesNotMatch(result.stdout + result.stderr, /HEMLIG-TESTNYCKEL/);
+});
+
 test('write-credentials.mjs skriver nyckeln bara för rätt projekt, läsbar bara för ägaren', (t) => {
   const dir = mkdtempSync(path.join(tmpdir(), 'tools-db-key-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));

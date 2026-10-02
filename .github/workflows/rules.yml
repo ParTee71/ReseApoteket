@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
 
+# Två samtidiga deployer kan bara deploya samma rules – deploy-rules kräver masters version.
 concurrency:
   group: rules-deploy
   cancel-in-progress: false

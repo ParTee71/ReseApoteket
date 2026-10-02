@@ -42,10 +42,6 @@ jobs:
   release:
     name: release
     needs: [ci, instrumented, quality]
-    # Samma grupp som rules.yml: två deployer av rules körs aldrig samtidigt.
-    concurrency:
-      group: rules-deploy
-      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
