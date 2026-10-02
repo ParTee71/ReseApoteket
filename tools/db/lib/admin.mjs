@@ -1,10 +1,14 @@
 // Admin SDK mot Firestore – enda stället som initierar (skill db-access, data-safety-backup).
 // Riktig databas: FIREBASE_SERVICE_ACCOUNT (service-account-JSON, rå eller base64; skrivningar tar
-// FIREBASE_SERVICE_ACCOUNT_RW om den finns). Emulator: FIRESTORE_EMULATOR_HOST.
+// FIREBASE_SERVICE_ACCOUNT_RW om den finns), som måste höra till FIREBASE_PROJECT_ID (standard
+// reseapoteket). Emulator: FIRESTORE_EMULATOR_HOST.
 // Testläge (BCK-4): bara emulatorn och ett demo-projekt – aldrig den riktiga databasen.
 import { cert, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { parseServiceAccount } from './credentials.mjs';
+import { serviceAccountFor } from './credentials.mjs';
+
+/** Projektet som nycklarna måste höra till, om inte FIREBASE_PROJECT_ID säger annat. */
+const DEFAULT_PROJECT = 'reseapoteket';
 
 let appCount = 0;
 const newApp = (options) => initializeApp(options, `tools-db-${++appCount}`);
@@ -32,6 +36,6 @@ export function openFirestore({ test = false, write = false, projectId } = {}) {
   if (!process.env[name]) {
     throw new Error(`${name} saknas – lägg in den som miljövariabel i Claude-miljöns inställningar och starta en ny session (README → Utveckling via Claude). Klistra aldrig in nyckeln i chatten.`);
   }
-  const account = parseServiceAccount(process.env[name], name);
+  const account = serviceAccountFor(process.env[name], name, process.env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT);
   return getFirestore(newApp({ credential: cert(account), projectId: account.project_id }));
 }

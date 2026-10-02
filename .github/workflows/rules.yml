@@ -1,6 +1,7 @@
 # Rules på begäran (skill release): rules-testerna mot emulatorn och sedan firestore.rules mot
 # Firebase-projektet – som standard bara en kontroll (--dry-run). Deploy kräver att man kryssar i
-# det. Körs aldrig från en PR eller automatiskt; vid release deployar release.yml.
+# det, och bara från master. Körs aldrig från en PR eller automatiskt; vid release deployar
+# release.yml.
 name: Rules
 
 on:
@@ -25,6 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Deploy bara från master
+        if: inputs.deploy && github.ref != 'refs/heads/master'
+        env:
+          REF: ${{ github.ref_name }}
+        run: |
+          echo "::error::Rules deployas bara från master, inte från $REF – kör utan deploy för en provkörning."
+          exit 1
+
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/rules-tests

@@ -14,6 +14,8 @@ Kör stegen i ordning och rapportera efter varje steg. Stanna och förklara om n
   instrumenttester på emulator och `lintDebug` innan bygget – de steg som hålls utanför
   PR-flödet av CI-budgeten (skill `ci-budget`).
 - **Bygg och signering:** i Actions; keystore och lösenord från secrets. Ingen lokal SDK krävs.
+- **Rules:** `release.yml` deployar `firestore.rules` (secret `FIREBASE_RULES_DEPLOYER`) efter
+  grindarna och före bygget – en körning utan publicering provkör bara, men kräver också secreten.
 - **Publicering:** `release.yml` skapar taggen `vX.Y.Z` själv och publicerar en GitHub
   Release med changelog och APK. Två triggers: push av tagg, eller `workflow_dispatch` på
   `master` med `version_name` och `publish_release`.

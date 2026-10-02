@@ -72,7 +72,7 @@ från nästa session.
 |---|---|---|
 | `FIREBASE_SERVICE_ACCOUNT` | service-account-JSON (rå eller base64) med rollen **Cloud Datastore Viewer** (läs) | för att läsa databasen från sessionen |
 | `FIREBASE_SERVICE_ACCOUNT_RW` | samma, men rollen **Cloud Datastore User** | bara när du uttryckligen vill att Claude ska kunna importera/migrera |
-| `FIREBASE_PROJECT_ID` | projekt-ID | bara om det inte framgår av nyckeln |
+| `FIREBASE_PROJECT_ID` | projekt-ID som nyckeln måste höra till | bara om det inte är `reseapoteket` |
 
 Nyckeln skapas i Google Cloud Console → IAM → Service accounts → Keys. Filens innehåll kan
 läggas in som det är eller base64-kodat (`base64 -w0 nyckel.json`). **Klistra aldrig in en nyckel i chatten**, och checka aldrig in
@@ -132,12 +132,12 @@ chatten (skill [`data-privacy-security`](.claude/skills/data-privacy-security/SK
    - en läsnyckel med rollen **Cloud Datastore Viewer** → miljövariabeln
      `FIREBASE_SERVICE_ACCOUNT` i Claude-miljön (se ovan).
 
-   Nyckelfilens innehåll läggs in som det är (eller base64-kodat). Verktygen stoppar en nyckel
-   som hör till ett annat projekt.
+   Nyckelfilens innehåll läggs in som det är (eller base64-kodat). `tools/db` och deploysteget
+   stoppar en nyckel som hör till ett annat projekt än `reseapoteket`.
 4. **Security rules:** `firestore.rules` deployas av GitHub Actions, alltid efter rules-testerna
    mot emulatorn och aldrig från en PR:
    - **Actions → Rules → Run workflow** (`rules.yml`): provkör (`--dry-run`) som
-     standard; kryssa i **deploy** för att deploya på riktigt.
+     standard; kryssa i **deploy** för att deploya på riktigt (bara från `master`).
    - **Release** (`release.yml`) deployar rules före APK-bygget, så att appen aldrig släpps
      före sina rules.
 

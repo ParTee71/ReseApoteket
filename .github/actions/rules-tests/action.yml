@@ -6,12 +6,7 @@ description: >-
 runs:
   using: composite
   steps:
-    - name: Node 22
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: npm
-        cache-dependency-path: tools/db/package-lock.json
+    - uses: ./.github/actions/setup-tools-db
 
     - name: Java 21 (firebase-tools 15 kräver minst 21 för emulatorn)
       uses: actions/setup-java@v4
@@ -28,6 +23,4 @@ runs:
     # emulators:exec sätter FIRESTORE_EMULATOR_HOST.
     - name: Rules- och rundturstester mot emulatorn
       shell: bash
-      run: |
-        npm ci --prefix tools/db --ignore-scripts
-        npx --prefix tools/db firebase emulators:exec --only firestore --project demo-reseapoteket "npm --prefix tools/db test"
+      run: npx --prefix tools/db firebase emulators:exec --only firestore --project demo-reseapoteket "npm --prefix tools/db test"

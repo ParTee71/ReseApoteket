@@ -1,7 +1,11 @@
 // Nycklar från miljön: rå JSON eller base64, rätt projekt, och värdet syns aldrig i ett fel.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { parseServiceAccount, serviceAccountFor } from '../lib/credentials.mjs';
+import { runScript } from './helpers/run.mjs';
 
 // Syntetisk nyckel – inget riktigt konto.
 const key = { type: 'service_account', project_id: 'reseapoteket', private_key: 'HEMLIG-TESTNYCKEL', client_email: 'x@reseapoteket.iam.gserviceaccount.com' };
@@ -27,4 +31,24 @@ test('tom, trasig eller fel sorts nyckel stoppar utan att visa värdet', () => {
 test('en nyckel för ett annat projekt stoppas – aldrig deploy till fel projekt', () => {
   assert.equal(serviceAccountFor(raw, 'NYCKEL', 'reseapoteket').project_id, 'reseapoteket');
   assert.throws(() => serviceAccountFor(JSON.stringify({ ...key, project_id: 'dagboken-711d2' }), 'NYCKEL', 'reseapoteket'), /dagboken-711d2, inte reseapoteket/);
+});
+
+test('write-credentials.mjs skriver nyckeln bara för rätt projekt, läsbar bara för ägaren', (t) => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'tools-db-key-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const out = path.join(dir, 'key.json');
+  const env = { PATH: process.env.PATH, NYCKEL: Buffer.from(raw).toString('base64') };
+
+  const ok = runScript('write-credentials.mjs', ['--env', 'NYCKEL', '--project', 'reseapoteket', '--out', out], { env });
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.deepEqual(JSON.parse(readFileSync(out, 'utf8')), key);
+  assert.equal(statSync(out).mode & 0o777, 0o600);
+  assert.doesNotMatch(ok.stdout + ok.stderr, /HEMLIG-TESTNYCKEL/);
+
+  const other = path.join(dir, 'other.json');
+  const wrong = runScript('write-credentials.mjs', ['--env', 'NYCKEL', '--project', 'dagboken-711d2', '--out', other], { env });
+  assert.equal(wrong.status, 1);
+  assert.match(wrong.stderr, /fel nyckel/);
+  assert.doesNotMatch(wrong.stdout + wrong.stderr, /HEMLIG-TESTNYCKEL/);
+  assert.throws(() => statSync(other), 'ingen fil för fel projekt');
 });

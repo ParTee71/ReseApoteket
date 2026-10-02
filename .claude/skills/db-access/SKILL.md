@@ -11,7 +11,7 @@ kommer till huvudsessionen.
 
 ## Förutsättningar
 
-- Miljövariabeln `FIREBASE_SERVICE_ACCOUNT` (base64 av service-account-JSON, rollen
+- Miljövariabeln `FIREBASE_SERVICE_ACCOUNT` (service-account-JSON, rå eller base64, rollen
   **Cloud Datastore Viewer**) i Claude-miljöns inställningar. Kontrollera bara **om** den
   finns (`[ -n "$FIREBASE_SERVICE_ACCOUNT" ] && echo satt || echo saknas`) – skriv aldrig
   ut värdet.

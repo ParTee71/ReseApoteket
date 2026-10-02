@@ -42,6 +42,10 @@ jobs:
   release:
     name: release
     needs: [ci, instrumented, quality]
+    # Samma grupp som rules.yml: två deployer av rules körs aldrig samtidigt.
+    concurrency:
+      group: rules-deploy
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -87,13 +91,6 @@ jobs:
             echo "publish=$publish"
           } >> "$GITHUB_OUTPUT"
 
-      # Rules före appen (BCK-5): grindarna ovan har kört rules-testerna mot emulatorn. En körning
-      # utan publicering kontrollerar bara (--dry-run).
-      - uses: ./.github/actions/deploy-rules
-        with:
-          credentials: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
-          dry-run: ${{ steps.version.outputs.publish == 'true' && 'false' || 'true' }}
-
       - uses: ./.github/actions/setup-android
 
       - name: Hemligheter till filer
@@ -119,6 +116,15 @@ jobs:
             -destkeystore app/reseapoteket-legacy.jks -deststorepass "$SIGNING_STORE_PASSWORD" \
             -deststoretype pkcs12 -J-Dkeystore.pkcs12.legacy > /dev/null
           mv app/reseapoteket-legacy.jks app/reseapoteket.jks
+
+      # Rules före appen (BCK-5), när alla andra hemligheter finns: grindarna ovan har kört
+      # rules-testerna mot emulatorn. En körning utan publicering kontrollerar bara (--dry-run).
+      - uses: ./.github/actions/setup-tools-db
+
+      - uses: ./.github/actions/deploy-rules
+        with:
+          credentials: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
+          dry-run: ${{ steps.version.outputs.publish == 'true' && 'false' || 'true' }}
 
       - name: Signerat release-bygge
         env:

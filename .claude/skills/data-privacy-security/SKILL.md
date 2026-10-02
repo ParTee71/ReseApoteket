@@ -49,7 +49,7 @@ GitHub Actions-loggar.
 - Git-ignorerade och aldrig i repot: `google-services.json`, `*.jks`/`*.keystore`,
   `local.properties`, service-account-JSON, `tools/db/*.json`-exporter, `*.gpg`.
 - I CI kommer de från GitHub-secrets (`GOOGLE_SERVICES_JSON`, `FIREBASE_SERVICE_ACCOUNT`,
-  `BACKUP_PASSPHRASE`, `SIGNING_*`).
+  `FIREBASE_RULES_DEPLOYER`, `BACKUP_PASSPHRASE`, `SIGNING_*`).
 - I Claude-sessionen kommer `FIREBASE_SERVICE_ACCOUNT` från miljöns inställningar.
   **Be aldrig användaren klistra in en nyckel, token eller lösenfras i chatten**, och
   skriv aldrig ut värdet – kontrollera bara om variabeln är satt.

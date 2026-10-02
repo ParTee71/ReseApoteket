@@ -2,8 +2,10 @@ name: Deploya firestore.rules
 description: >-
   Deployar firestore.rules till ReseApotekets Firebase-projekt med service-kontot i
   FIREBASE_RULES_DEPLOYER (bara Firebase Rules Admin + Service Usage Consumer). Nyckeln måste
-  höra till projektet, skrivs till en temporär fil och tas bort i samma steg. Kör efter
-  rules-testerna. Kräver att repot redan är utcheckat (skill release).
+  höra till projektet, skrivs till en temporär fil och tas bort i samma steg. En riktig deploy
+  kräver att firestore.rules är samma som på master. Kör efter
+  rules-testerna. Kräver att repot är utcheckat och att setup-tools-db (eller rules-tests, som
+  använder den) redan körts i jobbet (skill release).
 
 inputs:
   credentials:
@@ -21,13 +23,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Node 22
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: npm
-        cache-dependency-path: tools/db/package-lock.json
-
     - name: Deploya rules
       shell: bash
       env:
@@ -40,7 +35,15 @@ runs:
           echo "::error::Secret FIREBASE_RULES_DEPLOYER saknas (README → Firebase-setup)."
           exit 1
         fi
-        npm ci --prefix tools/db --ignore-scripts
+        # Bara rules som finns på master når projektet – inte en featurebranch eller en gammal tagg
+        # (äldre rules kan ha lägre maxSchemaVersion() och neka redan stämplade hushåll, BCK-5).
+        if [ "$DRY_RUN" != "true" ]; then
+          git fetch --no-tags --quiet --depth=1 origin master
+          if ! git diff --quiet FETCH_HEAD -- firestore.rules; then
+            echo "::error::firestore.rules skiljer sig från master – rules deployas bara från master."
+            exit 1
+          fi
+        fi
         key="$RUNNER_TEMP/rules-deployer.json"
         trap 'rm -f "$key"' EXIT
         node tools/db/write-credentials.mjs --env FIREBASE_RULES_DEPLOYER --project "$PROJECT" --out "$key"
