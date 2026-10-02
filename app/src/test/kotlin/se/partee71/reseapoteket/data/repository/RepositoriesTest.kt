@@ -16,6 +16,7 @@ import org.junit.rules.TemporaryFolder
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.Regimen
+import se.partee71.reseapoteket.core.schema.HouseholdCodec
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.common.DataError
@@ -66,6 +67,23 @@ class RepositoriesTest {
         assertEquals(listOf("uid-anna"), household.memberUids)
         assertEquals("Familjen", household.name)
         assertEquals(FixedClock().instant, household.createdAt)
+    }
+
+    @Test
+    fun `hushållet uppdateras fältvis – namn, medlemmar och version står kvar (SET-2)`() = runTest(UnconfinedTestDispatcher()) {
+        val (_, repository) = householdRepository(FakeHouseholdDirectory(collections))
+        collections.store.set("households", "h1", mapOf("name" to "Familjen", "memberUids" to listOf("uid-anna"), "marginDays" to 2L, "schemaVersion" to 2L), merge = false)
+        repository.select("h1")
+        val household = repository.current.first { it != null }!!
+
+        // En äldre kopia med lägre version får aldrig sänka den lagrade.
+        repository.update(household.copy(name = "Annat namn", marginDays = 4, schemaVersion = 1), setOf(HouseholdCodec.MARGIN_DAYS)).getOrThrow()
+
+        val stored = collections.store.read("households", "h1")!!
+        assertEquals(4L, stored["marginDays"])
+        assertEquals("Familjen", stored["name"])
+        assertEquals(listOf("uid-anna"), stored["memberUids"])
+        assertEquals(2L, stored["schemaVersion"])
     }
 
     @Test

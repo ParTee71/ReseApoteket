@@ -11,21 +11,26 @@ import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 
 object HouseholdCodec : DocCodec<Household> {
+    // Fälten som Inställningar skriver var för sig (SET-2) – aldrig memberUids eller schemaVersion.
+    const val NAME = "name"
+    const val MARGIN_DAYS = "marginDays"
+    private const val SCHEMA_VERSION = "schemaVersion"
+
     override fun encode(value: Household): Doc = mapOf(
-        "name" to value.name,
+        NAME to value.name,
         "memberUids" to value.memberUids,
-        "marginDays" to value.marginDays,
-        "schemaVersion" to value.schemaVersion,
+        MARGIN_DAYS to value.marginDays,
+        SCHEMA_VERSION to value.schemaVersion,
         "createdAt" to value.createdAt,
     )
 
     override fun decode(id: String, map: Doc) = Household(
         id = id,
-        name = map.string("name"),
+        name = map.string(NAME),
         memberUids = map.stringList("memberUids"),
-        marginDays = map.int("marginDays", HouseholdSettings.DEFAULT_MARGIN_DAYS),
+        marginDays = map.int(MARGIN_DAYS, HouseholdSettings.DEFAULT_MARGIN_DAYS),
         // Saknad version = första formatet – aldrig "senaste", då skulle migrering hoppas över.
-        schemaVersion = Schema.versionOf(map["schemaVersion"]),
+        schemaVersion = Schema.versionOf(map[SCHEMA_VERSION]),
         createdAt = map.instant("createdAt"),
     )
 }

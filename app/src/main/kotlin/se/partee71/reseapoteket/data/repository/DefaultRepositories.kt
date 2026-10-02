@@ -72,7 +72,12 @@ class DefaultHouseholdRepository @Inject constructor(
         session.select(householdId)
     }
 
-    override suspend fun update(household: Household) = households.upsert(household)
+    /**
+     * Bara [fields] – aldrig versionen, som en äldre kopia skulle kunna sänka. Rules kräver
+     * `schemaVersion` i dokumentet; ett hushåll får den när det skapas, och ett äldre stämplas när
+     * det öppnas (`HouseholdSession`) eller av `tools/db/migrate.mjs`.
+     */
+    override suspend fun update(household: Household, fields: Set<String>) = households.update(household, fields)
 }
 
 class DefaultPersonRepository @Inject constructor(collections: CollectionFactory) :

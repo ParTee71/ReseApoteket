@@ -25,10 +25,10 @@ AppRoot → AuthViewModel.state.gate: Loading | SignedOut | NeedsHousehold | Upd
 ## Key Classes
 
 - **`AuthRepository`** (`data/auth/`) — interface; `GoogleAuthRepository` is the only implementation (bound in `di/AuthModule`). Tests use `FakeAuthRepository`.
-- **`AuthUser(uid)`** — all the app keeps of the user. Never email, name or photo (skill `data-privacy-security`).
+- **`AuthUser(uid, name?, email?)`** — all the app keeps of the user. Name and email are only shown in Settings (SET-4) and are never stored or logged; never the photo (skill `data-privacy-security`).
 - **`authError`** (`data/auth/AuthErrors.kt`) — the one mapping to `DataError`.
 - **`GetSignInWithGoogleOption`** — use this (not `GetGoogleIdOption`) — opens full-page Google account picker
-- **`AuthViewModel`** (`ui/auth/`) — decides what `AppRoot` shows; `SettingsViewModel` only handles sign-out (#27)
+- **`AuthViewModel`** (`ui/auth/`) — decides what `AppRoot` shows; `SettingsViewModel` signs out (SET-4) and shows the account
 - **`EnsureHouseholdUseCase`** (`domain/`) + **`HouseholdDirectory`** (`data/household/`, Firestore implementation in `data/firestore/`)
 - **`R.string.default_web_client_id`** — auto-generated from `google-services.json` by `google-services` plugin. Requires `client_type: 3` in `google-services.json`. When the file is missing (CI without the secret, sessions), a debug-only stub resource provides the string so the code compiles (skill `android-gradle-logic`).
 
@@ -56,7 +56,7 @@ interface AuthRepository {
 
 ## Sign-Out
 
-`AuthRepository.signOut()` (from Settings, behind `ConfirmDialog`, #27) clears the cached credential, the Firebase session and the selected household, so the next user on the device never inherits it.
+`AuthRepository.signOut()` (from Settings, behind `ConfirmDialog`, SET-4) clears the cached credential, the Firebase session and the selected household, so the next user on the device never inherits it.
 
 ## google-services.json Requirements
 

@@ -137,7 +137,8 @@ ReseApoteket/
 │   └── se.partee71.reseapoteket.core
 │       ├── model/                Person, Regimen, DoseSchedule, FamilyItem, QuantityRule, Trip, PackingItem …
 │       ├── engine/               PackingEngine, ReasonFormatter, DoseScheduleFormatter, QuantityRuleFormatter, UnitNames, Texts
-│       └── schema/               DocCodec + fälthjälpare, codecs per modell, Schema, SchemaMigrator
+│       └── schema/               DocCodec + fälthjälpare, codecs per modell, Schema, SchemaMigrator,
+│                                 ExportFormat (samma JSON som tools/db export)
 ├── app/                          Android-appen
 │   └── se.partee71.reseapoteket
 │       ├── data/
@@ -145,8 +146,10 @@ ReseApoteket/
 │       │   │                     HouseholdScope, SyncStatus, läs- och skrivregler (DocumentRules)
 │       │   ├── auth/             AuthRepository → GoogleAuthRepository (Credential Manager + Firebase Auth), authError
 │       │   ├── firestore/        FirestoreCollection<T>, CollectionTable, Paths, FirestoreSyncStatus,
-│       │   │                     Timestamp ↔ Instant, felmappning, FirestoreHouseholdDirectory, FirestoreModule (Hilt)
+│       │   │                     Timestamp ↔ Instant, felmappning, FirestoreHouseholdDirectory, FirestoreModule (Hilt),
+│       │   │                     RawDocuments + HouseholdExporter (appens export längs Paths)
 │       │   ├── household/        HouseholdSession (aktivt hushåll och dess schemaVersion), HouseholdDirectory
+│       │   ├── export/           HouseholdExport, ExportFiles (exportfilen i cachen, delas via FileProvider)
 │       │   ├── repository/       tunna fasader per domän
 │       │   └── datastore/        SettingsStore
 │       ├── domain/               use cases som spänner över flera repositories (EnsureHouseholdUseCase)

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bara exportmappen i cachen delas (SET-5) – inget annat i appens filer blir åtkomligt. -->
+<paths>
+    <cache-path name="exports" path="exports/" />
+</paths>

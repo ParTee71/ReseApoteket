@@ -39,6 +39,7 @@ jobs:
           filters: |
             core:
               - 'core/**'
+              - 'tools/db/test/fixtures/**'
             app:
               - 'app/**'
               - '.claude/skills/shared-ui-components/**'

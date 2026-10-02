@@ -17,7 +17,7 @@ resten med `dorny/paths-filter`.
 <!-- ci-table:start -->
 | Filter | Sökvägar | Körs |
 |---|---|---|
-| `core` | `core/**` | `:core:test` + allt i raden `app` (appen beror på `:core`) |
+| `core` | `core/**`, `tools/db/test/fixtures/**` | `:core:test` + allt i raden `app` (appen beror på `:core`; exportformatets tester läser tools/db:s testdata) |
 | `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:assembleDebugAndroidTest` (kompilerar och dexar instrumenttesterna utan att köra dem) |
 | `tools` | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `tools/db/**`, `app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/Paths.kt` | rules- och rundturstester (Node) mot Firebase-emulatorn, och samlingslistan mot `Paths.kt` |
 | `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan |

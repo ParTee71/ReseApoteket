@@ -19,5 +19,8 @@ data class Household(
 data class HouseholdSettings(val marginDays: Int = DEFAULT_MARGIN_DAYS) {
     companion object {
         const val DEFAULT_MARGIN_DAYS = 2
+
+        /** Det som går att välja i Inställningar (SET-2). */
+        val MARGIN_DAYS_RANGE = 0..7
     }
 }

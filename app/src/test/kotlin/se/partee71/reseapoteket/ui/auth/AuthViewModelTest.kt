@@ -232,8 +232,12 @@ class FakeAuthRepository : AuthRepository {
         return nextSignIn.onSuccess { authState.value = it }
     }
 
+    var nextSignOut: Result<Unit> = Result.success(Unit)
+    var signOutCalls = 0
+        private set
+
     override suspend fun signOut(): Result<Unit> {
-        authState.value = null
-        return Result.success(Unit)
+        signOutCalls++
+        return nextSignOut.onSuccess { authState.value = null }
     }
 }
