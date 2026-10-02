@@ -70,12 +70,12 @@ från nästa session.
 
 | Variabel | Innehåll | När |
 |---|---|---|
-| `FIREBASE_SERVICE_ACCOUNT` | base64 av service-account-JSON med rollen **Cloud Datastore Viewer** (läs) | för att läsa databasen från sessionen |
+| `FIREBASE_SERVICE_ACCOUNT` | service-account-JSON (rå eller base64) med rollen **Cloud Datastore Viewer** (läs) | för att läsa databasen från sessionen |
 | `FIREBASE_SERVICE_ACCOUNT_RW` | samma, men rollen **Cloud Datastore User** | bara när du uttryckligen vill att Claude ska kunna importera/migrera |
 | `FIREBASE_PROJECT_ID` | projekt-ID | bara om det inte framgår av nyckeln |
 
-Nyckeln skapas i Google Cloud Console → IAM → Service accounts → Keys. Koda den med
-`base64 -w0 nyckel.json`. **Klistra aldrig in en nyckel i chatten**, och checka aldrig in
+Nyckeln skapas i Google Cloud Console → IAM → Service accounts → Keys. Filens innehåll kan
+läggas in som det är eller base64-kodat (`base64 -w0 nyckel.json`). **Klistra aldrig in en nyckel i chatten**, och checka aldrig in
 den – den hör bara hemma i miljöns inställningar och i GitHub-secrets.
 
 **Nätverk** – tillåt dessa värdar:
@@ -85,7 +85,7 @@ den – den hör bara hemma i miljöns inställningar och i GitHub-secrets.
 
 ### Läsa databasen från sessionen
 1. Skapa en läsnyckel (rollen **Cloud Datastore Viewer**, Firebase-setup steg 3) och lägg den
-   base64-kodad som miljövariabeln `FIREBASE_SERVICE_ACCOUNT` (tabellen ovan).
+   som miljövariabeln `FIREBASE_SERVICE_ACCOUNT` (tabellen ovan).
 2. Tillåt nätverksvärdarna ovan och starta en **ny** session – hooken installerar `tools/db`
    och talar om att nyckeln är satt.
 3. Fråga Claude ("hur många recept har Anna?") – agenten `db-inspektor` använder
@@ -118,18 +118,31 @@ Görs en gång av dig i Firebase- och GitHub-konsolerna. Inga nycklar hör hemma
 chatten (skill [`data-privacy-security`](.claude/skills/data-privacy-security/SKILL.md)).
 
 1. **Projekt:** skapa Firebase-projektet `reseapoteket` (Spark-planen räcker). Aktivera
-   **Authentication → Google** och **Firestore** i production mode, region `europe-north1`.
+   **Authentication → Google** och **Firestore** i production mode, region `europe-north2` (Stockholm).
 2. **Android-app:** lägg till appen med paketet `se.partee71.reseapoteket` och SHA-1 för både
    debug- och release-nyckeln. Ladda ner `google-services.json` till `app/` (git-ignorerad) och
    lägg innehållet som GitHub-secret `GOOGLE_SERVICES_JSON` (release-bygget skriver filen).
    Utan filen bygger appen ändå, men inloggning fungerar inte.
 3. **Service accounts** (Google Cloud Console → IAM → Service accounts):
    - `reseapoteket-backup` med rollen **Cloud Datastore Viewer** (backupen läser bara) →
-     nyckeln base64-kodad som GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (veckobackupen).
+     nyckeln som GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (veckobackupen).
+   - `reseapoteket-rules` med rollerna **Firebase Rules Admin** och **Service Usage Consumer**
+     (får bara ändra security rules, inte läsa data) → nyckeln som GitHub-secret
+     `FIREBASE_RULES_DEPLOYER`.
    - en läsnyckel med rollen **Cloud Datastore Viewer** → miljövariabeln
      `FIREBASE_SERVICE_ACCOUNT` i Claude-miljön (se ovan).
-4. **Security rules:** `firestore.rules` deployas manuellt och medvetet – aldrig från CI –
-   från din egen dator, inloggad med `npx --prefix tools/db firebase login`:
+
+   Nyckelfilens innehåll läggs in som det är (eller base64-kodat). Verktygen stoppar en nyckel
+   som hör till ett annat projekt.
+4. **Security rules:** `firestore.rules` deployas av GitHub Actions, alltid efter rules-testerna
+   mot emulatorn och aldrig från en PR:
+   - **Actions → Rules → Run workflow** (`rules.yml`): provkör (`--dry-run`) som
+     standard; kryssa i **deploy** för att deploya på riktigt.
+   - **Release** (`release.yml`) deployar rules före APK-bygget, så att appen aldrig släpps
+     före sina rules.
+
+   Reservväg, och för `firestore.indexes.json` (deploynyckeln får inte ändra index): från din
+   egen dator, inloggad med `npx --prefix tools/db firebase login`:
    ```bash
    npm ci --prefix tools/db
    npx --prefix tools/db firebase deploy --only firestore:rules,firestore:indexes --project reseapoteket

@@ -62,6 +62,7 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 | `assembleRelease` (minifierat) | `quality.yml`: veckovis och release |
 | Matrisbyggen, flera API-nivåer | inte alls i dag |
 | Backup | `backup.yml`: veckovis cron |
+| Deploy av `firestore.rules` | `rules.yml`: `workflow_dispatch` (dry-run som standard); `release.yml` före APK-bygget |
 
 ## Tekniker som håller tiden nere
 
@@ -71,7 +72,7 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
   – en ny push avbryter PR:ens förra körning, men `master`-baslinjen och release-grindarna avbryts aldrig.
 - Robolectric-SDK-jar och Firebase-emulatorn cachas.
 - Gemensamma steg i composite actions (`.github/actions/setup-android`, `doc-checks`,
-  `open-issue-on-failure`) – en ändring, alla flöden.
+  `open-issue-on-failure`, `rules-tests`, `deploy-rules`) – en ändring, alla flöden.
 - `:core` utan Android-beroenden kompilerar och testar på sekunder.
 
 ## När du lägger till något

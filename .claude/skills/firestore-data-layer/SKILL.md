@@ -129,7 +129,9 @@ alla samlingar.
   låsa ute sig själv. Rules-testet "appens dokument i codecens form" skriver fixturen genom
   klientens SDK och fångar drift mellan codecs och rules.
 - Ny samling = ny `match` med `valid…`-funktion + rules-test i samma PR.
-- Deploy sker manuellt (`npx --prefix tools/db firebase deploy --only firestore:rules`, README → Firebase-setup), aldrig från CI i en PR.
+- Deploy sker från GitHub Actions: `rules.yml` (manuellt, dry-run som standard) och `release.yml`
+  (före release-bygget), båda efter rules-testerna mot emulatorn – aldrig från en PR. Reservväg:
+  `npx --prefix tools/db firebase deploy --only firestore:rules` (README → Firebase-setup).
 - **Fallgrop:** i `rules_version = '2'` matchar `{document=**}` även noll segment – det skulle
   ge underreglerna makt över hushållsdokumentet. Använd uttryckliga `match /<samling>/{id}`,
   aldrig jokertecken. Rules-testet "hushåll kan inte raderas" fångar det.

@@ -54,7 +54,8 @@ Kör v<ny>, eller en annan version?
    byggda funktioner) och att TP-kraven matchar SDK-nivåerna i byggfilen.
 4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt (skill `data-safety-backup`)
    och be användaren göra detta, i den här ordningen, **innan** release-bygget triggas (steg 5):
-   1. deploya `firestore.rules` med den nya `maxSchemaVersion()`;
+   1. deploya `firestore.rules` med den nya `maxSchemaVersion()` – kör `rules.yml` med
+      `deploy: true` (release-bygget deployar dem också, men stämplingen måste vänta på dem);
    2. stämpla hushållen: `node tools/db/migrate.mjs --to <N> --dry-run`, sedan utan `--dry-run`.
    Äldre appar visar då "Uppdatera appen" (HUS-3) redan innan den nya appen kan skriva ett värde
    som de skulle läsa fel och skriva tillbaka. Appen stämplar själv bara när inget steg ändrar

@@ -48,8 +48,8 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
   `Schema.FIRST_VERSION` (`Schema.versionOf`, `versionOf` i `lib/schema.mjs`), aldrig "senaste".
 - Höjs versionen: nytt steg i `SchemaMigrator` **och** spegling i `tools/db/migrate.mjs`,
   test per steg, och `lib/schema.mjs` samt `maxSchemaVersion()` i `firestore.rules` följer med
-  (ett test jämför konstanterna). De nya rules deployas **före** appen – annars nekas
-  migreringens stämpling.
+  (ett test jämför konstanterna). De nya rules deployas **före** appen (`rules.yml`, och
+  `release.yml` före APK-bygget) – annars nekas migreringens stämpling.
 - De flesta ändringar kräver **ingen** versionshöjning: ett nytt valfritt fält med default
   läses redan av gamla dokument. Höj bara vid betydelseändring (omdöpt fält, ändrad enhet,
   ändrad struktur) **och vid ett nytt enum-värde eller en ny `schedule`/`rule`-variant** –

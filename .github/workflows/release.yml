@@ -1,6 +1,6 @@
 # Release (skill release). Grindar: alla tester, cpdCheck och dokumentkontroller (CI),
-# instrumenttester och lint + minifierat bygge (Kvalitet). Sedan signerat bygge och
-# GitHub Release. Taggen skapas här – en agentsession kan inte pusha taggar.
+# instrumenttester och lint + minifierat bygge (Kvalitet). Sedan deploy av firestore.rules,
+# signerat bygge och GitHub Release. Taggen skapas här – en agentsession kan inte pusha taggar.
 name: Release
 
 on:
@@ -86,6 +86,13 @@ jobs:
             echo "tag=$tag"
             echo "publish=$publish"
           } >> "$GITHUB_OUTPUT"
+
+      # Rules före appen (BCK-5): grindarna ovan har kört rules-testerna mot emulatorn. En körning
+      # utan publicering kontrollerar bara (--dry-run).
+      - uses: ./.github/actions/deploy-rules
+        with:
+          credentials: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
+          dry-run: ${{ steps.version.outputs.publish == 'true' && 'false' || 'true' }}
 
       - uses: ./.github/actions/setup-android
 
