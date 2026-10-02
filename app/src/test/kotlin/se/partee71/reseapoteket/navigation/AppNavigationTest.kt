@@ -25,12 +25,14 @@ class AppNavigationTest {
         FamilyItemEditKey(),
         TripEditKey("t1"),
         PackingListKey("t1"),
+        HouseholdEditKey,
         ComponentGalleryKey,
     ).onEach { key ->
         // Uttömmande: en ny nyckeltyp utan gren här ger ett kompileringsfel.
         when (key) {
             TripsKey, PersonsKey, FamilyItemsKey, SettingsKey, is PersonDetailKey, is PersonEditKey,
-            is RegimenEditKey, is FamilyItemEditKey, is TripEditKey, is PackingListKey, ComponentGalleryKey,
+            is RegimenEditKey, is FamilyItemEditKey, is TripEditKey, is PackingListKey, HouseholdEditKey,
+            ComponentGalleryKey,
             -> Unit
         }
     }

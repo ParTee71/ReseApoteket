@@ -25,7 +25,11 @@ interface HouseholdRepository {
     /** Gör ett befintligt hushåll aktivt (HUS-1); ett obekräftat skapande behövs då inte längre och glöms. */
     suspend fun select(householdId: String)
 
-    suspend fun update(household: Household): Result<Unit>
+    /**
+     * Skriver bara [fields] ur [household] (t.ex. `HouseholdCodec.MARGIN_DAYS`), så att en
+     * samtidig ändring av ett annat fält inte skrivs över; medlemmar och version rörs aldrig.
+     */
+    suspend fun update(household: Household, fields: Set<String>): Result<Unit>
 }
 
 /**

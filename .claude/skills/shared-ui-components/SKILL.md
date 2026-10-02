@@ -112,6 +112,8 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/` |
 | Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument`, `sortForList` i `data/common/DocumentRules.kt` och `writeBlocker` i `HouseholdScope.kt` – används av både `FirestoreCollection` och `FakeCollection` |
 | Inställningar | `SettingsStore` (DataStore) |
+| Hushållets namn och marginaldagar | `HouseholdRepository.update(household, fields)` med `HouseholdCodec.NAME`/`MARGIN_DAYS` – aldrig hela hushållet |
+| Export av hushållet | `HouseholdExport` + `ExportFiles` (`data/export/`), formatet i `ExportFormat` (`:core`) – se skill `firestore-data-layer` |
 | Test-fakes och hjälpare | se skill `testing-strategy` |
 | `tools/db`-logik | `tools/db/lib/` (admin, collections, walk, serialize, cli) |
 | CI-steg | composite actions i `.github/actions/` |

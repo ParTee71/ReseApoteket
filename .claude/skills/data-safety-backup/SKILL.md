@@ -30,6 +30,7 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 | Regler | `firestore.rules` | Bara samlingarna i `collections.mjs`, var och en skyddad av `memberUids` och med typkontroll av kända fält; `schemaVersion` minst 1, kan inte sänkas och höjs högst till `maxSchemaVersion()` |
 | Samlingslista | `tools/db/lib/collections.mjs` | Enda listan export/import/query går igenom; testad mot `Paths` och rules |
 | Backup | `.github/workflows/backup.yml` | Veckovis export, krypterad artifact, 90 dagar |
+| Appens export | `core/.../schema/ExportFormat.kt` + `app/.../data/firestore/HouseholdExporter.kt` | "Exportera som JSON" (SET-5): samma format som `tools/db export` (`serialize.mjs`, `backup.mjs`), läser dokumenten rått längs `Paths` – aldrig via codecarna, så att okända fält följer med |
 
 ## Schemaversion
 
@@ -108,6 +109,7 @@ fält den inte känner till. Den får aldrig radera dem när den sparar:
 | Migrering | `core/src/test/.../schema/SchemaMigratorTest.kt` | varje versionssteg |
 | Rundtur end-to-end | `tools/db/test/roundtrip.test.mjs` **endast mot emulatorn** | seed → export → radera → import → export identisk |
 | Samlingslistan | `tools/db/test/collections.test.mjs` | `collections.mjs` = `Paths` = rules |
+| Appens export = tools/db-formatet | `core/.../schema/ExportFormatTest.kt` och `app/.../data/HouseholdExporterTest.kt` mot `tools/db/test/fixtures/household.json` | varje dokument och värde i rundturens testdata kommer ut exakt som `tools/db export` skriver det, alltså läsbart för `tools/db import` |
 
 Varje persisterat fält ska kunna spåras till minst ett test som **asserterar på fältet**
 med ett icke-default-värde.

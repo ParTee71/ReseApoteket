@@ -8,6 +8,7 @@ import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -33,7 +34,7 @@ class GoogleAuthRepository @Inject constructor(
     private val serverClientId = context.getString(R.string.default_web_client_id)
 
     override val authState: Flow<AuthUser?> = callbackFlow {
-        val listener = FirebaseAuth.AuthStateListener { trySend(it.currentUser?.let { user -> AuthUser(user.uid) }) }
+        val listener = FirebaseAuth.AuthStateListener { trySend(it.currentUser?.toAuthUser()) }
         auth.addAuthStateListener(listener)
         awaitClose { auth.removeAuthStateListener(listener) }
     }.distinctUntilChanged()
@@ -47,9 +48,8 @@ class GoogleAuthRepository @Inject constructor(
             throw DataError.Unknown
         }
         val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
-        val user = auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await().user
+        auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await().user?.toAuthUser()
             ?: throw DataError.Unknown
-        AuthUser(user.uid)
     }
 
     override suspend fun signOut(): Result<Unit> = suspendRunCatching(::authError) {
@@ -65,3 +65,5 @@ class GoogleAuthRepository @Inject constructor(
         credentials.clearCredentialState(ClearCredentialStateRequest())
     }
 }
+
+private fun FirebaseUser.toAuthUser() = AuthUser(uid, displayName?.takeIf { it.isNotBlank() }, email?.takeIf { it.isNotBlank() })

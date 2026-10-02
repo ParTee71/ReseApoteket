@@ -19,6 +19,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.datetime.TimeZone
 import se.partee71.reseapoteket.data.common.HouseholdScope
 import se.partee71.reseapoteket.data.datastore.settingsDataStore
+import se.partee71.reseapoteket.data.export.CacheExportFiles
+import se.partee71.reseapoteket.data.export.ExportFiles
 import se.partee71.reseapoteket.data.household.HouseholdSession
 
 /** Scope som lever lika länge som appen – för delade StateFlows. */
@@ -32,6 +34,9 @@ abstract class AppModule {
 
     @Binds
     abstract fun householdScope(session: HouseholdSession): HouseholdScope
+
+    @Binds
+    abstract fun exportFiles(files: CacheExportFiles): ExportFiles
 
     companion object {
         @Provides

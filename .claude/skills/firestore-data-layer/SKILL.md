@@ -94,8 +94,16 @@ Hushållen en användare är medlem i hämtas med `HouseholdDirectory` (fråga
 ### DI
 `FirestoreModule` ligger i **`data/firestore/`** (inte i `di/`), eftersom `FirebaseFirestore`
 bara får förekomma där. Den ger `FirebaseFirestore` med `PersistentCacheSettings` och binder
-`CollectionFactory`, `SyncStatus`, `HouseholdVersionSource` och `HouseholdDirectory`. Övriga moduler i `di/`
-(`AppModule`: app-scope, klocka, DataStore; `RepositoryModule`).
+`CollectionFactory`, `SyncStatus`, `HouseholdVersionSource`, `HouseholdDirectory`, `RawDocuments` och
+`HouseholdExport`. Övriga moduler i `di/` (`AppModule`: app-scope, klocka, DataStore, `ExportFiles`;
+`RepositoryModule`).
+
+### Export från appen
+"Exportera som JSON" (SET-5) läser hushållets dokument **rått** via `RawDocuments` (aldrig via
+codecarna – okända fält ska med) längs `Paths` i `HouseholdExporter` och skriver dem med
+`ExportFormat` i `:core`, samma format som `tools/db export`. Ny samling → lägg den i
+`HouseholdExporter` också; `HouseholdExporterTest` jämför med `tools/db`:s testdata, som täcker
+alla samlingar.
 
 ## Offline
 
