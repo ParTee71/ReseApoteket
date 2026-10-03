@@ -7,6 +7,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.HouseholdSettings
@@ -371,5 +372,20 @@ class PackingEngineTest {
         assertEquals(true, PackingProgress(2, 2).isComplete)
         assertEquals(false, PackingProgress(1, 2).isComplete)
         assertEquals(false, PackingProgress.NONE.isComplete, "en tom lista är inte packad")
+    }
+
+    @Test
+    fun `packas på resedagen följer från recept och familjeartikel, även vid räkna om (PAK-6)`() {
+        val insulin = Regimen("ins", name = "Insulin", schedule = DoseSchedule.Daily(1, 1), travelDay = true, travelDayTime = LocalTime(7, 30))
+        val toothbrush = FamilyItem("tb", "Tandborste", rule = QuantityRule.PerTraveller(1), travelDay = true)
+        val first = PackingEngine.suggest(trip(7), listOf(anna), mapOf("anna" to listOf(insulin)), listOf(toothbrush), margin2)
+        val byName = first.items.associateBy { it.name }
+        assertEquals(true to LocalTime(7, 30), byName.getValue("Insulin").let { it.travelDay to it.travelDayTime })
+        assertEquals(true to null, byName.getValue("Tandborste").let { it.travelDay to it.travelDayTime })
+        val checked = first.items.map { it.copy(checked = true) }
+        val again = PackingEngine.suggest(trip(7), listOf(anna), mapOf("anna" to listOf(insulin.copy(travelDay = false))), listOf(toothbrush), margin2)
+        val merged = PackingEngine.merge(checked, again).associateBy { it.name }
+        assertEquals(false, merged.getValue("Insulin").travelDay)
+        assertEquals(true, merged.getValue("Insulin").checked)
     }
 }

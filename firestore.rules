@@ -58,6 +58,11 @@ service cloud.firestore {
         && optTime(data, 'createdAt');
     }
 
+    // "Packas på resedagen" (PAK-6) på recept, familjeartikel och packlistans rad; tiden som HH:mm.
+    function validTravelDay(d) {
+      return optBool(d, 'travelDay') && optString(d, 'travelDayTime');
+    }
+
     function validPerson(d) {
       return validListItem(d) && optString(d, 'emoji') && optString(d, 'colorHex');
     }
@@ -65,13 +70,14 @@ service cloud.firestore {
     function validRegimen(d) {
       return validListItem(d)
         && optString(d, 'kind') && optString(d, 'form') && optString(d, 'strength') && optString(d, 'unit')
-        && optInt(d, 'packageSize') && optMap(d, 'schedule') && optString(d, 'notes') && optBool(d, 'active');
+        && optInt(d, 'packageSize') && optMap(d, 'schedule') && optString(d, 'notes') && optBool(d, 'active')
+        && validTravelDay(d);
     }
 
     function validFamilyItem(d) {
       return validListItem(d)
         && optString(d, 'category') && optString(d, 'unit') && optMap(d, 'rule')
-        && optString(d, 'notes') && optBool(d, 'active');
+        && optString(d, 'notes') && optBool(d, 'active') && validTravelDay(d);
     }
 
     function validTrip(d) {
@@ -84,7 +90,8 @@ service cloud.firestore {
       return validListItem(d)
         && optString(d, 'section') && optString(d, 'personId') && optString(d, 'sourceType') && optString(d, 'sourceId')
         && optString(d, 'unit') && optInt(d, 'suggestedQuantity') && optInt(d, 'quantity') && optInt(d, 'packages')
-        && optString(d, 'reason') && optBool(d, 'checked') && optTime(d, 'checkedAt') && optBool(d, 'hidden');
+        && optString(d, 'reason') && optBool(d, 'checked') && optTime(d, 'checkedAt') && optBool(d, 'hidden')
+        && validTravelDay(d);
     }
 
     match /households/{hid} {

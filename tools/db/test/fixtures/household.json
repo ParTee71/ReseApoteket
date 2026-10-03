@@ -20,7 +20,7 @@
       "path": "households/hushall-test/persons/anna/regimens/levaxin",
       "data": {
         "kind": "MEDICINE", "name": "Levaxin", "form": "TABLET", "strength": "50 µg", "unit": "TABLETT",
-        "packageSize": 100, "notes": "På fastande mage", "active": true, "sortOrder": 0, "archived": false,
+        "packageSize": 100, "notes": "På fastande mage", "active": true, "travelDay": true, "travelDayTime": "07:30", "sortOrder": 0, "archived": false,
         "schedule": { "type": "DAILY", "dosesPerDay": 1, "unitsPerDose": 1, "weekdays": null, "intervalDays": null, "asNeededQuantity": null }
       }
     },
@@ -43,7 +43,7 @@
     {
       "path": "households/hushall-test/familyItems/solkram",
       "data": {
-        "name": "Solkräm", "category": "CREAM", "unit": "TUB", "notes": "", "active": true, "sortOrder": 0, "archived": false,
+        "name": "Solkräm", "category": "CREAM", "unit": "TUB", "notes": "", "active": true, "travelDay": false, "travelDayTime": null, "sortOrder": 0, "archived": false,
         "rule": { "type": "PER_DAYS", "quantity": 1, "perDays": 7 }
       }
     },
@@ -69,7 +69,7 @@
       "data": {
         "section": "FAMILY", "personId": null, "sourceType": "MANUAL", "sourceId": null, "name": "Termometer",
         "unit": "ST", "suggestedQuantity": 0, "quantity": 1, "packages": null, "reason": "",
-        "checked": false, "checkedAt": null, "hidden": false, "sortOrder": 1
+        "checked": false, "checkedAt": null, "hidden": false, "travelDay": true, "travelDayTime": null, "sortOrder": 1
       }
     },
     {

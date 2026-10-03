@@ -1,19 +1,31 @@
 package se.partee71.reseapoteket.core.engine
 
 import se.partee71.reseapoteket.core.model.PackingItem
+import se.partee71.reseapoteket.core.model.PackingSection
 import se.partee71.reseapoteket.core.model.PackingSource
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Sortable
 import se.partee71.reseapoteket.core.model.TripStatus
 
+/** Grupperna i packlistan: sektionerna och sist "På resedagen" (PAK-1, PAK-6). */
+enum class PackingGroup { MEDICINE, SUPPLEMENT, FAMILY, TRAVEL_DAY }
+
 /** Packlistans ordning och resans status (PAK-1, PAK-2, PAK-5) – rena funktioner. */
 object PackingList {
+
+    /** Raden packas på resedagen → "På resedagen"; annars dess sektion. */
+    fun group(item: PackingItem): PackingGroup = when {
+        item.travelDay -> PackingGroup.TRAVEL_DAY
+        item.section == PackingSection.MEDICINE -> PackingGroup.MEDICINE
+        item.section == PackingSection.SUPPLEMENT -> PackingGroup.SUPPLEMENT
+        else -> PackingGroup.FAMILY
+    }
 
     /** Raderna som visas, i ordning, och de dolda (PAK-4). */
     data class Arranged(val visible: List<PackingItem>, val hidden: List<PackingItem>)
 
     /**
-     * Ordningen i listan: sektion (Mediciner, Kosttillskott, Övrigt) → person (som i
+     * Ordningen i listan: grupp (Mediciner, Kosttillskott, Övrigt, På resedagen – [group]) → person (som i
      * packförslaget: `sortOrder`, sedan namn i svensk ordning; okända personer och rader utan
      * person sist) → avprickade sist om [checkedLast] (SET-3) → radens `sortOrder`. Dolda rader
      * står för sig, i `sortOrder`.
@@ -24,7 +36,7 @@ object PackingList {
             .mapIndexed { index, person -> person.id to index }
             .toMap()
         fun personRank(item: PackingItem): Int = item.personId?.let { rank[it] ?: rank.size } ?: (rank.size + 1)
-        val order = compareBy<PackingItem> { it.section.ordinal }
+        val order = compareBy<PackingItem> { group(it).ordinal }
             .thenBy(::personRank)
             .thenBy { if (checkedLast) it.checked else false }
             .thenBy { it.sortOrder }

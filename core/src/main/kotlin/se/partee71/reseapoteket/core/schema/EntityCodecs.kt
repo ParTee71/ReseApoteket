@@ -54,6 +54,10 @@ object PersonCodec : DocCodec<Person> {
     )
 }
 
+/** "Packas på resedagen" (PAK-6) – samma fält på recept, familjeartikel och packlistans rad. */
+const val TRAVEL_DAY = "travelDay"
+const val TRAVEL_DAY_TIME = "travelDayTime"
+
 object RegimenCodec : DocCodec<Regimen> {
     override fun encode(value: Regimen): Doc = mapOf(
         "kind" to value.kind.encodeEnum(),
@@ -65,6 +69,8 @@ object RegimenCodec : DocCodec<Regimen> {
         "schedule" to DoseScheduleCodec.encode(value.schedule),
         "notes" to value.notes,
         "active" to value.active,
+        TRAVEL_DAY to value.travelDay,
+        TRAVEL_DAY_TIME to value.travelDayTime.encodeTime(),
         "sortOrder" to value.sortOrder,
         "archived" to value.archived,
     )
@@ -80,6 +86,8 @@ object RegimenCodec : DocCodec<Regimen> {
         schedule = map.nested("schedule", DoseScheduleCodec),
         notes = map.string("notes"),
         active = map.bool("active", default = true),
+        travelDay = map.bool(TRAVEL_DAY),
+        travelDayTime = map.localTime(TRAVEL_DAY_TIME),
         sortOrder = map.int("sortOrder"),
         archived = map.bool("archived"),
     )
@@ -93,6 +101,8 @@ object FamilyItemCodec : DocCodec<FamilyItem> {
         "rule" to QuantityRuleCodec.encode(value.rule),
         "notes" to value.notes,
         "active" to value.active,
+        TRAVEL_DAY to value.travelDay,
+        TRAVEL_DAY_TIME to value.travelDayTime.encodeTime(),
         "sortOrder" to value.sortOrder,
         "archived" to value.archived,
     )
@@ -105,6 +115,8 @@ object FamilyItemCodec : DocCodec<FamilyItem> {
         rule = map.nested("rule", QuantityRuleCodec),
         notes = map.string("notes"),
         active = map.bool("active", default = true),
+        travelDay = map.bool(TRAVEL_DAY),
+        travelDayTime = map.localTime(TRAVEL_DAY_TIME),
         sortOrder = map.int("sortOrder"),
         archived = map.bool("archived"),
     )
