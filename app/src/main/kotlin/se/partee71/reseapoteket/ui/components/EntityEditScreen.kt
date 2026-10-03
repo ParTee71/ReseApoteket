@@ -25,7 +25,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -78,13 +78,13 @@ fun EntityEditScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val close by rememberUpdatedState(onClose)
     val saved by rememberUpdatedState(onSaved)
-    val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 EditorEffect.Done -> saved()
                 // Egen coroutine: en visad snackbar får inte hålla tillbaka nästa händelse.
-                is EditorEffect.Failed -> launch { snackbar.showSnackbar(context.getString(effect.error.toMessage())) }
+                is EditorEffect.Failed -> launch { snackbar.showSnackbar(resources.getString(effect.error.toMessage())) }
             }
         }
     }

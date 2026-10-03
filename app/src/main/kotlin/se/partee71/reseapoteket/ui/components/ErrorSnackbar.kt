@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.toMessage
 
@@ -15,11 +15,11 @@ import se.partee71.reseapoteket.ui.common.toMessage
  */
 @Composable
 internal fun ErrorSnackbar(error: DataError?, hostState: SnackbarHostState, onShown: () -> Unit) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val shown by rememberUpdatedState(onShown)
     LaunchedEffect(error) {
         if (error == null) return@LaunchedEffect
-        hostState.showSnackbar(context.getString(error.toMessage()))
+        hostState.showSnackbar(resources.getString(error.toMessage()))
         shown()
     }
 }
