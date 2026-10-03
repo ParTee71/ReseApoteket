@@ -25,6 +25,7 @@ import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.components.UndoRequest
 
 /** Familjeartiklarna (FAM-1–4) mot `FakeCollection` – ramarnas beteende testas i ramarnas tester. */
@@ -167,5 +168,18 @@ class FamilyItemViewModelsTest {
         assertEquals(mapOf(rule to R.string.rule_min_one), errors(QuantityRule.PerDays(1, 0)))
         assertEquals(emptyMap(), errors(QuantityRule.PerDays(1, 7)))
         assertEquals(emptyMap(), errors(QuantityRule.Unknown("framtida")))
+    }
+
+    @Test
+    fun `en artikel som packas på resedagen sparas med valet (PAK-6)`() = runTest {
+        val vm = editor()
+        vm.effects.test {
+            vm.onEvent(FamilyItemEditEvent.Name("Tandborste"))
+            vm.onEvent(FamilyItemEditEvent.TravelDay(TravelDayChange(true, null)))
+            vm.onEvent(FamilyItemEditEvent.Save)
+            assertEquals(EditorEffect.Done, awaitItem())
+        }
+        val saved = items.getAll().getOrThrow().single()
+        assertEquals(true to null, saved.travelDay to saved.travelDayTime)
     }
 }

@@ -190,6 +190,13 @@ class CatalogScreenshotTest {
                 DateField("Startdatum", null, {}, error = "Välj ett startdatum")
             }
         }
+        captureLightAndDark("TravelDayField_lagen") {
+            Sheet {
+                TravelDayField(false, null, {})
+                TravelDayField(true, null, {})
+                TravelDayField(true, LocalTime(8, 30), {})
+            }
+        }
         captureLightAndDark("TimeField_lagen") {
             Sheet {
                 TimeField("Tid", LocalTime(7, 0), {})

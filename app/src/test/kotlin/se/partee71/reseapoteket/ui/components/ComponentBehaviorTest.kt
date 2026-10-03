@@ -204,6 +204,27 @@ class ComponentBehaviorTest {
     }
 
     @Test
+    fun `packas på resedagen - växeln, resedagens morgon som förval och egen tid som kan tas bort (PAK-6)`() {
+        var travelDay by mutableStateOf(false)
+        var time by mutableStateOf<LocalTime?>(null)
+        show {
+            CompositionLocalProvider(LocalTravelDayMorning provides LocalTime(6, 45)) {
+                TravelDayField(travelDay, time, { travelDay = it.on; time = it.ownTime })
+            }
+        }
+        rule.onNodeWithContentDescription("Påminn kl., 06:45", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("Packas på resedagen").performClick()
+        assertTrue(travelDay)
+        rule.onNodeWithContentDescription("Påminn kl., 06:45", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Använd resedagens morgon").assertDoesNotExist()
+        rule.runOnIdle { time = LocalTime(7, 30) }
+        rule.onNodeWithContentDescription("Påminn kl., 07:30", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Använd resedagens morgon").performClick()
+        assertEquals(null, time)
+        assertTrue(travelDay)
+    }
+
+    @Test
     fun `valchips och segmentval rapporterar valet`() {
         var chip = 0
         var segment by mutableStateOf(2)

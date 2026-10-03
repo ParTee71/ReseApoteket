@@ -1,5 +1,7 @@
 package se.partee71.reseapoteket.core.model
 
+import kotlinx.datetime.LocalTime
+
 /**
  * `households/{hid}/persons/{pid}/regimens/{rid}` – ett recept eller ett kosttillskott.
  * Platt modell: medicinens uppgifter ligger på receptet, inget separat register.
@@ -16,6 +18,9 @@ data class Regimen(
     val schedule: DoseSchedule = DoseSchedule.Unknown(),
     val notes: String = "",
     val active: Boolean = true,
+    /** Packas på resedagen (PAK-6): samlas sist i packlistan; [travelDayTime] är en egen påminnelsetid. */
+    val travelDay: Boolean = false,
+    val travelDayTime: LocalTime? = null,
     override val sortOrder: Int = 0,
     override val archived: Boolean = false,
 ) : Identified, Sortable, Archivable

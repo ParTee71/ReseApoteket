@@ -8,6 +8,7 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import org.junit.Rule
 import org.junit.Test
@@ -25,6 +26,7 @@ import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 
 /** Receptformuläret (REC-1–5) mot `FakeCollection` – ramens beteende testas i ramens tester. */
 class RegimenViewModelsTest {
@@ -217,5 +219,19 @@ class RegimenViewModelsTest {
         val vm = viewModel("r1")
         vm.onEvent(RegimenEditEvent.Name("Något annat"))
         assertEquals(levaxin, vm.stored.value)
+    }
+
+    @Test
+    fun `packas på resedagen med egen tid sparas, och tiden släpps när valet stängs av (PAK-6)`() = runTest {
+        anna.upsert(levaxin)
+        val vm = viewModel("r1")
+        vm.onEvent(RegimenEditEvent.TravelDay(TravelDayChange(true, LocalTime(7, 30))))
+        vm.effects.test {
+            vm.onEvent(RegimenEditEvent.Save)
+            assertEquals(EditorEffect.Done, awaitItem())
+        }
+        assertEquals(levaxin.copy(travelDay = true, travelDayTime = LocalTime(7, 30)), anna.get("r1").getOrThrow())
+        vm.onEvent(RegimenEditEvent.TravelDay(TravelDayChange(false, LocalTime(7, 30))))
+        assertEquals(false to null, vm.state.value.value.let { it.travelDay to it.travelDayTime })
     }
 }

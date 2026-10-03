@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.core.schema
 import kotlin.time.Instant
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.isoDayNumber
 
 // Delade fälthjälpare – det ENDA stället där ett dokuments värden tolkas och skrivs.
@@ -35,6 +36,21 @@ inline fun <reified E : Enum<E>> Doc.enum(key: String, default: E): E =
 /** Datum utan tid lagras som ISO-sträng (`yyyy-MM-dd`); ogiltigt → `null`. */
 fun Doc.localDate(key: String): LocalDate? =
     (this[key] as? String)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+/** "Packas på resedagen" (PAK-6) – samma fältnamn på recept, familjeartikel och packlistans rad. */
+const val TRAVEL_DAY = "travelDay"
+const val TRAVEL_DAY_TIME = "travelDayTime"
+
+/**
+ * Klockslag lagras som `HH:mm`; ogiltigt, saknat eller i annat format (även från en nyare app)
+ * → `null`, som skrivs vid nästa sparning (skill data-safety-backup).
+ */
+fun Doc.localTime(key: String): LocalTime? =
+    (this[key] as? String)?.takeIf { TIME.matches(it) }?.let { LocalTime(it.take(2).toInt(), it.takeLast(2).toInt()) }
+
+private val TIME = Regex("([01][0-9]|2[0-3]):[0-5][0-9]")
+
+fun LocalTime?.encodeTime(): String? = this?.let { "%02d:%02d".format(java.util.Locale.ROOT, it.hour, it.minute) }
 
 /** Tidpunkt; `:app` översätter Firestores `Timestamp` till [Instant] innan decode. */
 fun Doc.instant(key: String): Instant? = this[key] as? Instant

@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import se.partee71.reseapoteket.core.engine.Reminder
-import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.core.engine.ReminderPlanner
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 
@@ -60,8 +59,8 @@ class ReminderRunner @Inject constructor(
     }
 
     /** "Senare" i en notis: visar samma påminnelse igen om den fortfarande gäller. */
-    suspend fun showAgain(tripId: String, kind: ReminderKind) {
-        read()?.firstOrNull { it.tripId == tripId && it.kind == kind }?.let(notifier::show)
+    suspend fun showAgain(key: String) {
+        read()?.firstOrNull { it.key == key }?.let(notifier::show)
     }
 
     /**

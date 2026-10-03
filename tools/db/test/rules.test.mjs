@@ -126,6 +126,16 @@ test('kända fält med fel typ nekas, men null, saknade och okända fält är ti
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Levaxin', packageSize: null, schedule: { type: 'DAILY' } }));
 });
 
+test('packas på resedagen: sant/falskt och klockslag som text på recept, familjeartikel och rad (PAK-6)', async () => {
+  const anna = db('anna');
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Insulin', travelDay: true, travelDayTime: '07:30' }));
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'familyItems', 'f1'), { name: 'Tandborste', travelDay: true, travelDayTime: null }));
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'Laddare', travelDay: false }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r2'), { name: 'Insulin', travelDay: 'ja' }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'familyItems', 'f2'), { name: 'Tandborste', travelDayTime: 730 }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i2'), { name: 'Laddare', travelDay: 1 }));
+});
+
 test('schemaVersion är minst 1, kan inte sänkas och inte skruvas upp förbi den högsta (BCK-5)', async () => {
   await assertFails(setDoc(doc(db('cecilia'), 'households', 'h8'), { memberUids: ['cecilia'], schemaVersion: 0 }));
   await assertFails(updateDoc(doc(db('anna'), 'households', HID), { schemaVersion: 0 }));

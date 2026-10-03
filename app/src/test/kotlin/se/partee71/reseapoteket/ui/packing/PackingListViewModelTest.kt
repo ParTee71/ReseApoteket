@@ -8,9 +8,11 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import org.junit.Rule
 import org.junit.Test
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.FamilyItem
@@ -43,6 +45,7 @@ import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.components.UndoRequest
 
 /** Packlistan (PAK-1–5) mot `FakeCollection`; ordningen och statusen testas i `:core`. */
@@ -87,7 +90,7 @@ class PackingListViewModelTest {
         val header = vm.header.value!!
         assertEquals(PackingProgress(0, 3), header.progress)
         assertEquals(listOf("Anna", "Erik"), header.travellers.map { it.name })
-        assertEquals(PackingProgress(0, 2), header.sections[PackingSection.MEDICINE])
+        assertEquals(PackingProgress(0, 2), header.groups[PackingGroup.MEDICINE])
     }
 
     @Test
@@ -272,6 +275,19 @@ class PackingListViewModelTest {
         assertTrue(vm.row("Levaxin").item.checked)
         assertEquals(12, vm.row("Levaxin").item.quantity, "1 × (10 + 2) dagar")
         assertTrue(vm.rows().any { it.item.name == "Laddare" })
+    }
+
+    @Test
+    fun `en egen rad som packas på resedagen hamnar sist i På resedagen med egen räknare (PAK-6)`() = runTest {
+        seed()
+        val vm = viewModel()
+        vm.onEvent(PackingListEvent.Add)
+        vm.onEvent(PackingListEvent.AddName("Laddare"))
+        vm.onEvent(PackingListEvent.AddTravelDay(TravelDayChange(true, LocalTime(8, 30))))
+        vm.onEvent(PackingListEvent.AddSave)
+        val last = vm.rows().last { !it.item.hidden }.item
+        assertEquals("Laddare" to LocalTime(8, 30), last.name to last.travelDayTime)
+        assertEquals(PackingProgress(0, 1), vm.header.value!!.groups[PackingGroup.TRAVEL_DAY])
     }
 }
 

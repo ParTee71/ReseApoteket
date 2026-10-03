@@ -24,7 +24,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
@@ -54,14 +53,13 @@ class ReminderSnoozeAndSyncTest {
     @Test
     fun `Senare tar bort notisen och schemalägger samma påminnelse om en timme`() {
         val manager = context.getSystemService(NotificationManager::class.java)
-        val id = ReminderNotifier.notificationId("gc", ReminderKind.DAY_BEFORE)
+        val id = ReminderNotifier.notificationId("gc/DAY_BEFORE/18:00")
         manager.notify(id, NotificationCompat.Builder(context, ReminderNotifier.CHANNEL).setSmallIcon(R.drawable.ic_luggage).build())
         val intent = Intent(context, ReminderSnoozeReceiver::class.java)
-            .putExtra(ReminderSnoozeReceiver.EXTRA_TRIP_ID, "gc")
-            .putExtra(ReminderSnoozeReceiver.EXTRA_KIND, "DAY_BEFORE")
+            .putExtra(ReminderSnoozeReceiver.EXTRA_KEY, "gc/DAY_BEFORE/18:00")
         ReminderSnoozeReceiver().onReceive(context, intent)
         assertEquals(emptyList(), shadowOf(manager).allNotifications)
-        assertEquals(1, waiting("${ReminderScheduler.SNOOZE_PREFIX}gc/DAY_BEFORE").size)
+        assertEquals(1, waiting("${ReminderScheduler.SNOOZE_PREFIX}gc/DAY_BEFORE/18:00").size)
     }
 
     @Test

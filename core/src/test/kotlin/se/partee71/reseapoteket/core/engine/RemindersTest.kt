@@ -113,4 +113,31 @@ class RemindersTest {
         assertEquals(LocalDateTime(2026, 10, 25, 6, 0).toInstant(TimeZone.UTC), travelDay.at.toInstant(zone))
         assertNull(ReminderPlanner.next(planned, travelDay.at.toInstant(zone), zone))
     }
+
+    @Test
+    fun `resedagens poster - morgonen listar de utan egen tid, en egen tid ger en egen påminnelse (PAK-6)`() {
+        val rows = listOf(
+            PackingItem("a", name = "Alvedon"),
+            PackingItem("b", name = "Tandborste", travelDay = true),
+            PackingItem("c", name = "Insulin", travelDay = true, travelDayTime = LocalTime(7, 0)),
+            PackingItem("d", name = "Laddare", travelDay = true, travelDayTime = LocalTime(8, 30)),
+            PackingItem("e", name = "Packad", travelDay = true, checked = true),
+            PackingItem("f", name = "Dold", travelDay = true, hidden = true),
+        )
+        val planned = plan(granCanaria, packing = mapOf("gc" to rows))
+        val travelDay = planned.filter { it.kind == ReminderKind.TRAVEL_DAY }
+        assertEquals(
+            listOf(at(2026, 10, 3, 7) to listOf("Tandborste", "Insulin"), at(2026, 10, 3, 8, 30) to listOf("Laddare")),
+            travelDay.map { it.at to it.travelDayItems },
+        )
+        assertEquals(listOf("Tandborste", "Insulin", "Laddare"), planned.single { it.kind == ReminderKind.DAY_BEFORE }.travelDayItems)
+        assertEquals(2, travelDay.map { it.key }.toSet().size)
+    }
+
+    @Test
+    fun `avstängd Resedagens morgon stänger även påminnelserna med egen tid (PÅM-5)`() {
+        val rows = listOf(PackingItem("d", name = "Laddare", travelDay = true, travelDayTime = LocalTime(8, 30)))
+        val off = settings.with(ReminderKind.TRAVEL_DAY, ReminderSetting(false, LocalTime(7, 0), 0))
+        assertEquals(emptyList(), plan(granCanaria, packing = mapOf("gc" to rows), with = off).filter { it.kind == ReminderKind.TRAVEL_DAY })
+    }
 }

@@ -60,6 +60,8 @@ object PackingItemCodec : DocCodec<PackingItem> {
         CHECKED to value.checked,
         CHECKED_AT to value.checkedAt,
         HIDDEN to value.hidden,
+        TRAVEL_DAY to value.travelDay,
+        TRAVEL_DAY_TIME to value.travelDayTime.encodeTime(),
         "sortOrder" to value.sortOrder,
     )
 
@@ -78,6 +80,8 @@ object PackingItemCodec : DocCodec<PackingItem> {
         checked = map.bool(CHECKED),
         checkedAt = map.instant(CHECKED_AT),
         hidden = map.bool(HIDDEN),
+        travelDay = map.bool(TRAVEL_DAY),
+        travelDayTime = map.localTime(TRAVEL_DAY_TIME),
         sortOrder = map.int("sortOrder"),
     )
 }

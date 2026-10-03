@@ -44,16 +44,18 @@ import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.components.AppTextField
 import se.partee71.reseapoteket.ui.components.ChoiceChips
-import se.partee71.reseapoteket.ui.components.ExampleChips
 import se.partee71.reseapoteket.ui.components.DeleteAction
 import se.partee71.reseapoteket.ui.components.DoseScheduleRow
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
+import se.partee71.reseapoteket.ui.components.ExampleChips
 import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.SwitchRow
+import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.components.kindLabel
 
 /** REC-1, REC-2: namnet är obligatoriskt och doseringen ska gå att räkna på. */
@@ -96,6 +98,9 @@ sealed interface RegimenEditEvent {
     data class Notes(val notes: String) : RegimenEditEvent
 
     data class Active(val active: Boolean) : RegimenEditEvent
+
+    /** Packas på resedagen och ev. egen tid (PAK-6). */
+    data class TravelDay(val change: TravelDayChange) : RegimenEditEvent
 
     data object Save : RegimenEditEvent
 
@@ -170,6 +175,7 @@ class RegimenEditViewModel @AssistedInject constructor(
             }
             is RegimenEditEvent.Notes -> editor.update { it.copy(notes = event.notes) }
             is RegimenEditEvent.Active -> editor.update { it.copy(active = event.active) }
+            is RegimenEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
             RegimenEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
             RegimenEditEvent.Delete -> viewModelScope.launch { editor.run { collection.delete(editor.value.id) } }
             RegimenEditEvent.Retry -> loader.retry()
@@ -272,6 +278,7 @@ fun RegimenEditContent(
             helper = stringResource(R.string.regimen_package_size_helper),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
+        TravelDayField(regimen.travelDay, regimen.travelDayTime, { onEvent(RegimenEditEvent.TravelDay(it)) })
         AppTextField(regimen.notes, { onEvent(RegimenEditEvent.Notes(it)) }, stringResource(R.string.notes), singleLine = false)
         SwitchRow(
             stringResource(R.string.active),

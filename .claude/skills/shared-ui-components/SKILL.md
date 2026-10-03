@@ -60,7 +60,8 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Segmentval (t.ex. tema) | `AppSegmentedChoice` | M3 segmentknappar |
 | Meny (arkivera/radera m.m.) | `AppMenu` | M3 rullgardinsmeny |
 | Datumfält | `DateField` | `AppTextField` + M3 datumväljare |
-| Tidsfält | `TimeField` | samma yta som `DateField` + M3 tidsväljare (24 timmar) |
+| Tidsfält | `TimeField` | samma yta som `DateField` + M3 tidsväljare (24 timmar); valfri `helper` |
+| Packas på resedagen (recept, kosttillskott, familjeartikel, egen rad) | `TravelDayField` | `SwitchRow` + `TimeField`; resedagens morgon (`LocalTravelDayMorning`, telefonens tid) tills en egen tid väljs |
 | Horisontell rad av chips | `ChipRow` | horisontell lista av `PersonChip`/`AppFilterChip` |
 | Förhandsvisning (mängd, nästa påminnelse) | `PackingPreview` | `ReasonFormatter` i `:core`; samma ruta för "Nästa påminnelse" |
 

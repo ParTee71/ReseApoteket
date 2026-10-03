@@ -200,6 +200,8 @@ object PackingEngine {
         quantity = line.quantity,
         packages = line.packages,
         reason = line.reason,
+        travelDay = regimen.travelDay,
+        travelDayTime = regimen.travelDayTime,
     ) to line
 
     private fun familyItem(item: FamilyItem, line: PackingLine) = PackingItem(
@@ -212,11 +214,13 @@ object PackingEngine {
         suggestedQuantity = line.quantity,
         quantity = line.quantity,
         reason = line.reason,
+        travelDay = item.travelDay,
+        travelDayTime = item.travelDayTime,
     ) to line
 
     /**
      * "Räkna om" (RES-4): matchar på (`sourceType`, `sourceId`, `personId`). En omatchad rad
-     * får nytt förslag; en manuellt ändrad mängd (med sina förpackningar), `checked`, `checkedAt`
+     * får nytt förslag, och "packas på resedagen" följer källan (PAK-6); en manuellt ändrad mängd (med sina förpackningar), `checked`, `checkedAt`
      * och `hidden` behålls. Rader som försvunnit ur förslaget – och dubbletter av samma nyckel –
      * tas bort om de inte är avprickade; avprickade behålls och får förklaringen
      * [Texts.NO_LONGER_SUGGESTED]. Egna (`MANUAL`) rader rörs aldrig. Resultatet har entydig

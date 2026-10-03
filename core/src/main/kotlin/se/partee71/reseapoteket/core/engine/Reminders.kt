@@ -55,7 +55,15 @@ data class Reminder(
     val startDate: LocalDate,
     val at: LocalDateTime,
     val progress: PackingProgress,
-)
+    /**
+     * Oprickade rader som packas på resedagen (PAK-6): för dagen före alla, för resedagen de
+     * som påminns om vid just den här tiden.
+     */
+    val travelDayItems: List<String> = emptyList(),
+) {
+    /** Samma påminnelse för samma resa och tid – en notis ersätter sin förra, "Senare" hittar den igen. */
+    val key: String get() = "$tripId/${kind.name}/${at.time}"
+}
 
 /**
  * Vilka påminnelser som ska komma (PÅM-2–6). Rena funktioner: resor, packlistor, inställningar
@@ -67,8 +75,10 @@ object ReminderPlanner {
     /** Alla påminnelser som gäller just nu, tidigast först. */
     fun plan(trips: List<Trip>, packing: Map<String, List<PackingItem>>, settings: ReminderSettings): List<Reminder> =
         trips.filter { remindsAbout(it, settings) }.flatMap { trip ->
-            val progress = PackingEngine.progress(packing[trip.id].orEmpty())
-            ReminderKind.entries.mapNotNull { kind -> reminder(kind, trip, progress, settings) }
+            val items = packing[trip.id].orEmpty()
+            val progress = PackingEngine.progress(items)
+            val travelDay = items.filter { it.travelDay && !it.hidden && !it.checked }
+            ReminderKind.entries.flatMap { kind -> reminders(kind, trip, progress, travelDay, settings) }
         }.sortedBy { it.at }
 
     /** PÅM-1: en resa som planeras, har startdatum och där någon av telefonens personer reser. */
@@ -90,20 +100,36 @@ object ReminderPlanner {
     fun next(planned: List<Reminder>, now: Instant, zone: TimeZone): Instant? =
         planned.map { it.at.toInstant(zone) }.filter { it > now }.minOrNull()
 
-    private fun reminder(kind: ReminderKind, trip: Trip, progress: PackingProgress, settings: ReminderSettings): Reminder? {
+    /**
+     * En påminnelse av [kind] för resan – för resedagen även en per egen tid bland raderna som
+     * packas då (PAK-6, PÅM-5). Rader med egen tid samma som morgonens kommer i morgonens påminnelse.
+     */
+    private fun reminders(
+        kind: ReminderKind,
+        trip: Trip,
+        progress: PackingProgress,
+        travelDay: List<PackingItem>,
+        settings: ReminderSettings,
+    ): List<Reminder> {
         val setting = settings[kind]
-        val start = trip.startDate ?: return null
+        val start = trip.startDate ?: return emptyList()
         val applies = when (kind) {
             ReminderKind.NO_LIST -> progress.total == 0
             else -> progress.total > 0 && !progress.isComplete
         }
-        if (!setting.enabled || !applies) return null
+        if (!setting.enabled || !applies) return emptyList()
         val daysBefore = when (kind) {
             ReminderKind.DAY_BEFORE -> 1
             ReminderKind.TRAVEL_DAY -> 0
             else -> setting.daysBefore.coerceIn(ReminderSettings.DAYS_BEFORE)
         }
         val date = start.minus(DatePeriod(days = daysBefore))
-        return Reminder(kind, trip.id, trip.name, start, LocalDateTime(date, setting.time), progress)
+        fun at(time: LocalTime, names: List<String>) = Reminder(kind, trip.id, trip.name, start, LocalDateTime(date, time), progress, names)
+        if (kind != ReminderKind.TRAVEL_DAY) {
+            return listOf(at(setting.time, if (kind == ReminderKind.DAY_BEFORE) travelDay.map { it.name } else emptyList()))
+        }
+        val byTime = travelDay.groupBy { it.travelDayTime ?: setting.time }
+        val morning = at(setting.time, byTime[setting.time].orEmpty().map { it.name })
+        return listOf(morning) + byTime.filterKeys { it != setting.time }.map { (time, rows) -> at(time, rows.map { it.name }) }
     }
 }

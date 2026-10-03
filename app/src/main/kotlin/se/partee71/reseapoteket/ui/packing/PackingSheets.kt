@@ -25,6 +25,7 @@ import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
 import se.partee71.reseapoteket.ui.components.QuantityStepper
+import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppTypography
 
@@ -78,6 +79,7 @@ internal fun AddItemSheet(state: EditorUiState<PackingItem>, travellers: List<Pe
         LabeledGroup(stringResource(R.string.packing_how_many)) {
             QuantityStepper(item.quantity, { onEvent(PackingListEvent.AddQuantity(it)) }, UnitNames.name(item.quantity, item.unit), range = ManualItemValidator.QUANTITY_RANGE)
         }
+        TravelDayField(item.travelDay, item.travelDayTime, { onEvent(PackingListEvent.AddTravelDay(it)) })
         AppButton(stringResource(R.string.add), { onEvent(PackingListEvent.AddSave) }, Modifier.fillMaxWidth(), enabled = state.canSave, loading = state.saving)
     }
 }

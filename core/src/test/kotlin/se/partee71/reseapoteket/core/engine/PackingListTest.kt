@@ -67,4 +67,18 @@ class PackingListTest {
         assertEquals(false, PackingList.isChanged(PackingItem("e", sourceType = PackingSource.MANUAL, quantity = 3)))
         assertEquals("1 tub", PackingList.amount(PackingItem("s", sourceType = PackingSource.FAMILY_ITEM, unit = ItemUnit.TUB, suggestedQuantity = 1, quantity = 1)))
     }
+
+    @Test
+    fun `det som packas på resedagen står sist, efter Övrigt, och dolt står ändå för sig (PAK-6)`() {
+        val travel = listOf(
+            PackingItem("tandborste", section = PackingSection.FAMILY, travelDay = true, sortOrder = 0),
+            PackingItem("anna-insulin", section = PackingSection.MEDICINE, personId = "anna", travelDay = true, sortOrder = 1),
+            PackingItem("dold-laddare", section = PackingSection.FAMILY, travelDay = true, hidden = true, sortOrder = 2),
+        )
+        val arranged = PackingList.arrange(items + travel, listOf(anna, erik), checkedLast = false)
+        assertEquals(listOf("anna-insulin", "tandborste"), arranged.visible.takeLast(2).map { it.id })
+        assertEquals(PackingGroup.TRAVEL_DAY, PackingList.group(travel[0]))
+        assertEquals(PackingGroup.MEDICINE, PackingList.group(items[1]))
+        assertEquals(listOf("dold-laddare", "plaster"), arranged.hidden.map { it.id })
+    }
 }

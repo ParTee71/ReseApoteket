@@ -12,7 +12,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlin.time.toJavaDuration
-import se.partee71.reseapoteket.core.engine.ReminderKind
 
 /**
  * Schemalägger [ReminderWorker] med WorkManager (PÅM-6): ett jobb till nästa genomgång, och ett
@@ -29,13 +28,13 @@ class ReminderScheduler @Inject constructor(@ApplicationContext context: Context
         work.enqueueUniqueWork(CHECK, ExistingWorkPolicy.REPLACE, request)
     }
 
-    /** "Senare": samma påminnelse igen om [SNOOZE]. Bara resans ID och typen sparas i jobbet. */
-    fun snooze(tripId: String, kind: ReminderKind) {
+    /** "Senare": samma påminnelse igen om [SNOOZE]. Bara påminnelsens nyckel (resans ID, typ, tid) sparas i jobbet. */
+    fun snooze(key: String) {
         val request = OneTimeWorkRequestBuilder<ReminderWorker>()
             .setInitialDelay(SNOOZE.toJavaDuration())
-            .setInputData(workDataOf(ReminderWorker.TRIP_ID to tripId, ReminderWorker.KIND to kind.name))
+            .setInputData(workDataOf(ReminderWorker.KEY to key))
             .build()
-        work.enqueueUniqueWork("$SNOOZE_PREFIX$tripId/${kind.name}", ExistingWorkPolicy.REPLACE, request)
+        work.enqueueUniqueWork("$SNOOZE_PREFIX$key", ExistingWorkPolicy.REPLACE, request)
     }
 
     private fun delayUntil(at: Instant): java.time.Duration = (at - clock.now()).coerceAtLeast(Duration.ZERO).toJavaDuration()

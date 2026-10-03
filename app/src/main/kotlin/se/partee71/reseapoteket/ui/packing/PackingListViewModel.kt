@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.DoseScheduleFormatter
 import se.partee71.reseapoteket.core.engine.PackingEngine
+import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.model.ItemUnit
@@ -52,17 +53,18 @@ import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.common.Validator
 
 /** En rad i packlistan: raden, personen den hör till och doseringen i kort form ("1/dag", PAK-2). */
 data class PackingRow(val item: PackingItem, val person: Person? = null, val schedule: String? = null)
 
-/** Rubrikområdet: resan, resenärerna och packat, totalt och per sektion (PAK-1). */
+/** Rubrikområdet: resan, resenärerna och packat, totalt och per grupp (PAK-1, PAK-6). */
 data class PackingHeader(
     val trip: Trip,
     val travellers: List<Person>,
     val progress: PackingProgress,
-    val sections: Map<PackingSection, PackingProgress>,
+    val groups: Map<PackingGroup, PackingProgress>,
 )
 
 /** En egen rad (PAK-4): namn krävs, och en person för mediciner och kosttillskott. */
@@ -115,6 +117,8 @@ sealed interface PackingListEvent {
     data class AddPerson(val personId: String) : PackingListEvent
 
     data class AddQuantity(val quantity: Int) : PackingListEvent
+
+    data class AddTravelDay(val change: TravelDayChange) : PackingListEvent
 
     data object AddSave : PackingListEvent
 }
@@ -171,7 +175,7 @@ class PackingListViewModel @AssistedInject constructor(
                 trip = it,
                 travellers = it.travellerIds.mapNotNull { id -> all.firstOrNull { person -> person.id == id } },
                 progress = PackingEngine.progress(items),
-                sections = PackingSection.entries.associateWith { section -> PackingEngine.progress(shown.filter { item -> item.section == section }) },
+                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) },
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -268,6 +272,7 @@ class PackingListViewModel @AssistedInject constructor(
             }
             is PackingListEvent.AddPerson -> editNew(ManualItemValidator.PERSON) { it.copy(personId = event.personId) }
             is PackingListEvent.AddQuantity -> editNew { it.copy(quantity = event.quantity, suggestedQuantity = event.quantity) }
+            is PackingListEvent.AddTravelDay -> editNew { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
             PackingListEvent.AddSave -> addSave()
         }
     }
