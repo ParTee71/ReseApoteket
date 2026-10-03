@@ -184,8 +184,15 @@ class SettingsViewModel @Inject constructor(
 }
 
 @Composable
-fun SettingsScreen(onEditHousehold: () -> Unit, onOpenGallery: (() -> Unit)?, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onEditHousehold: () -> Unit,
+    onOpenGallery: (() -> Unit)?,
+    viewModel: SettingsViewModel = hiltViewModel(),
+    remindersViewModel: RemindersViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val reminders by remindersViewModel.state.collectAsStateWithLifecycle()
+    val access = rememberNotificationAccess()
     val context = LocalContext.current
     val chooserTitle = stringResource(R.string.settings_export_chooser)
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -194,7 +201,9 @@ fun SettingsScreen(onEditHousehold: () -> Unit, onOpenGallery: (() -> Unit)?, vi
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { collectShares(viewModel, context, chooserTitle) }
     }
-    SettingsContent(state, viewModel::onEvent, BuildConfig.VERSION_NAME, onEditHousehold, onOpenGallery)
+    SettingsContent(state, viewModel::onEvent, BuildConfig.VERSION_NAME, onEditHousehold, onOpenGallery) {
+        RemindersCard(reminders, remindersViewModel::onEvent, access.allowed, access.ask, access.openSettings)
+    }
 }
 
 /** Delningsmenyn för varje exportfil – bara på användarens tryck, och bara den filen får läsas (SET-5). */
@@ -213,7 +222,10 @@ private suspend fun collectShares(viewModel: SettingsViewModel, context: Context
 /** Temaalternativen i den ordning de visas: Ljust · Mörkt · System. */
 private val THEME_OPTIONS = listOf(ThemeMode.Light to R.string.theme_light, ThemeMode.Dark to R.string.theme_dark, ThemeMode.System to R.string.theme_system)
 
-/** @param onOpenGallery "Komponenter" – bara i debug-bygget, annars `null`. */
+/**
+ * @param onOpenGallery "Komponenter" – bara i debug-bygget, annars `null`.
+ * @param reminders kortet Påminnelser (PÅM-1), efter Packlista.
+ */
 @Composable
 fun SettingsContent(
     state: SettingsUiState,
@@ -222,6 +234,7 @@ fun SettingsContent(
     onEditHousehold: () -> Unit,
     onOpenGallery: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    reminders: (@Composable () -> Unit)? = null,
 ) {
     var confirmSignOut by rememberSaveable { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
@@ -261,6 +274,10 @@ fun SettingsContent(
                     { onEvent(SettingsEvent.SetMoveCheckedLast(it)) },
                     subtitle = stringResource(R.string.settings_move_checked_last_note),
                 )
+            }
+            reminders?.let {
+                GroupLabel(stringResource(R.string.reminders_title))
+                it()
             }
             GroupLabel(stringResource(R.string.settings_appearance))
             ApotekCard {

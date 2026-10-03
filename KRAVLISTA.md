@@ -152,7 +152,19 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 | SET-6 | **Om:** version och länk till källkoden; i debug-byggen öppnar "Komponenter" komponentgalleriet. |
 | SET-7 | Ett fel från en åtgärd i Inställningar (marginaldagar, utloggning, export) visas i kortet där åtgärden gjordes, med samma texter som överallt (NFR-5), och försvinner vid nästa åtgärd. |
 
-## 14. Datamodell
+## 14. Påminnelser
+
+| ID | Krav |
+|----|------|
+| PÅM-1 | **Inställningar → Påminnelser** (efter Packlista): "Påminn mig om resor för" med personchips – telefonen påminner bara om resor där någon vald person reser, som planeras (inte packad, klar eller arkiverad) och har startdatum. Utan vald person kommer inga påminnelser. Arkiverade personer räknas inte. Valen och varje påminnelses inställningar sparas **på telefonen**, inte i hushållet. |
+| PÅM-2 | **Ingen packlista än:** om resan saknar packlista – förval 7 dagar före kl. 18:00. Notisen: "Fjällen om 7 dagar" och "Ingen packlista än. Öppna resan så räknar appen ut vad ni ska packa." |
+| PÅM-3 | **Dags att packa:** om packlistan inte är klar – förval 3 dagar före kl. 18:00. Notisen: "Dags att packa för Gran Canaria" och "7 av 16 kvar att packa." |
+| PÅM-4 | **Dagen före avresan:** kl. 18:00 kvällen före om något är kvar – "Gran Canaria i morgon" och "3 saker kvar att packa." |
+| PÅM-5 | **Resedagens morgon:** kl. 07:00 avresedagen om något är kvar – "Resedag – packa det sista" och "1 sak kvar att packa." |
+| PÅM-6 | Varje påminnelse har växel och tid; Ingen packlista än och Dags att packa även dagar före (1–30). Raden visar "3 dagar före · 18:00", "18:00" eller "Av"; tryck på raden öppnar ett blad med växel, dagar före, tid och **Nästa påminnelse** (datum, tid och resa). Påminnelserna räknas om när resor, packlistor eller inställningarna ändras, och minst var sjätte timme; de schemaläggs på telefonen och överlever omstart och uppdatering. En påminnelse som är mer än 6 timmar gammal när telefonen hinner visa den skickas inte i efterhand, en ändrad inställning visar aldrig en påminnelse vars tid redan passerat, och samma påminnelse visas bara en gång. |
+| PÅM-7 | Notiserna kommer i kanalen "Påminnelser inför resan". **Låsskärmen visar bara** "Påminnelse inför resan" – aldrig resans innehåll. Tryck öppnar resans packlista överst i fliken Resor (det som redan var öppet där ligger kvar under); **"Senare"** visar samma påminnelse igen om en timme om den fortfarande gäller. Behörigheten att visa notiser frågas när användaren väljer en person eller slår på en påminnelse; är notiser avstängda visar kortet "Notiser är avstängda" med **"Slå på"**, som öppnar appens notisinställningar. |
+
+## 15. Datamodell
 
 Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det som ska gälla.
 
@@ -167,7 +179,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | DAT-7 | Datum utan tid lagras som `yyyy-MM-dd`; tidpunkter som Firestore-tidsstämplar. |
 | DAT-8 | Formerna för recept och kosttillskott är tablett, kapsel, flytande, pulver, inhalator, droppar, plåster och annat. Pulver kom i `schemaVersion` 2; inga befintliga dokument ändras av migreringen från 1. |
 
-## 15. Backup och export
+## 16. Backup och export
 
 | ID | Krav |
 |----|------|
@@ -182,7 +194,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 ---
 
-## 16. Icke-funktionella krav
+## 17. Icke-funktionella krav
 
 ### Gemensamma beteenden (gäller alla skärmar – funktionskraven refererar hit)
 
@@ -215,10 +227,10 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 
 ---
 
-## 17. Framtida
+## 18. Framtida
 
 | ID | Krav |
 |----|------|
-| FUT-1 | Påminnelser inför resa och när det är dags att packa. |
+| FUT-1 | ~~Påminnelser inför resa och när det är dags att packa.~~ *(borttaget – byggt som PÅM-1–7, #78)* |
 | FUT-2 | Dela hushållet med fler Google-konton. |
 | FUT-3 | Slå upp mediciner via streckkod eller FASS. |

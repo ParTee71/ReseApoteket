@@ -129,6 +129,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.work.runtime) // påminnelser inför resan (PÅM-6)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
@@ -141,6 +142,7 @@ dependencies {
     testImplementation(libs.konsist)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.androidx.work.testing)
 
     constraints {
         // AGP låser androidTest till appens versioner. När ett testberoende kräver en nyare

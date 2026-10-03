@@ -37,6 +37,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -173,6 +174,33 @@ class ComponentBehaviorTest {
         rule.onNodeWithText("OK").performClick()
         assertEquals(1, changes)
         assertEquals(LocalDate(2026, 12, 19), date)
+    }
+
+    @Test
+    fun `tidsfältet öppnar väljaren och OK behåller vald tid`() {
+        var time by mutableStateOf(LocalTime(18, 0))
+        var changes = 0
+        show { TimeField("Tid", time, { time = it; changes++ }) }
+        rule.onNodeWithContentDescription("Tid, 18:00").assertIsDisplayed().performClick()
+        rule.onNodeWithText("OK").performClick()
+        assertEquals(1, changes)
+        assertEquals(LocalTime(18, 0), time)
+        rule.onNodeWithContentDescription("Tid, 18:00").performClick()
+        rule.onNodeWithText("Avbryt").performClick()
+        assertEquals(1, changes)
+    }
+
+    @Test
+    fun `växelrad med egen tryckåtgärd öppnar raden och växlar med växeln`() {
+        var on by mutableStateOf(true)
+        var opened = 0
+        show { SwitchRow("Dags att packa", on, { on = it }, subtitle = "3 dagar före · 18:00", onClick = { opened++ }) }
+        rule.onNodeWithText("Dags att packa").performClick()
+        assertEquals(1, opened)
+        assertTrue(on)
+        rule.onNodeWithContentDescription("Dags att packa").assert(SemanticsMatcher.expectValue(SemanticsProperties.ToggleableState, ToggleableState.On)).performClick()
+        assertFalse(on)
+        assertEquals(1, opened)
     }
 
     @Test

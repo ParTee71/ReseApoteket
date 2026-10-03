@@ -50,6 +50,15 @@ class AppBackStack internal constructor(current: TopLevelKey, stacks: Map<TopLev
     }
 
     /**
+     * Resans packlista överst i fliken Resor – det en påminnelse öppnar (PÅM-7). Det som redan var
+     * öppet där (t.ex. ett formulär med osparade ändringar) ligger kvar under och nås med tillbaka.
+     */
+    fun openPackingList(tripId: String) {
+        currentTab = start
+        push(PackingListKey(tripId))
+    }
+
+    /**
      * Stänger [key] om den är den översta skärmen – det en skärm anropar när den stänger sig
      * själv. Ett andra anrop (dubbeltryck, eller "klar" efter "släng ändringar") stänger då
      * inte skärmen under (NAV-2).

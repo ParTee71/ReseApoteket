@@ -3,9 +3,10 @@ package se.partee71.reseapoteket.ui.common
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.toJavaLocalDate
 
-/** Det enda sättet att visa och konvertera datum i UI. */
+/** Det enda sättet att visa och konvertera datum och tider i UI. */
 object DateFormat {
     private val swedish = Locale.forLanguageTag("sv-SE")
     private val display = DateTimeFormatter.ofPattern("EEE d MMM yyyy", swedish)
@@ -17,6 +18,9 @@ object DateFormat {
 
     /** "2 okt" – i förvalda namn ("Resa 2 okt"). */
     fun short(date: LocalDate): String = short.format(date.toJavaLocalDate()).replace(".", "")
+
+    /** "07:00" – 24 timmar, alltid två siffror. */
+    fun time(time: LocalTime): String = "%02d:%02d".format(Locale.ROOT, time.hour, time.minute)
 
     /** Midnatt UTC, som Material-datumväljaren räknar. */
     fun toEpochMillis(date: LocalDate): Long = date.toEpochDays().toLong() * DAY_MILLIS

@@ -26,6 +26,7 @@
     <string name="error_unknown">Något gick fel. Försök igen.</string>
     <!-- Återkommande texter – används av ramarna och komponenterna, en gång (regel 4) -->
     <string name="save">Spara</string>
+    <string name="done">Klar</string>
     <string name="cancel">Avbryt</string>
     <string name="ok">OK</string>
     <string name="back">Tillbaka</string>
@@ -54,6 +55,7 @@
     <string name="decrease_format">Minska %s</string>
     <string name="increase_format">Öka %s</string>
     <string name="pick_date">Välj datum</string>
+    <string name="pick_time">Välj tid</string>
     <string name="packed_of_format">av %d packat</string>
     <string name="expanded">Utfälld</string>
     <string name="collapsed">Hopfälld</string>
@@ -96,6 +98,54 @@
     <string name="sync_pending_description">Ändringar väntar på att synkas</string>
     <string name="sync_pending_explained">Ändringarna är sparade på telefonen och skickas när det finns nät.</string>
     <string name="sync_write_rejected">En ändring kunde inte sparas och har ångrats. %1$s</string>
+
+    <!-- Påminnelser (PÅM-1–7) -->
+    <string name="reminders_title">Påminnelser</string>
+    <string name="reminders_persons">Påminn mig om resor för</string>
+    <string name="reminders_persons_note">Bara resor där någon av dessa reser. Gäller den här telefonen.</string>
+    <string name="reminder_no_list">Ingen packlista än</string>
+    <string name="reminder_time_to_pack">Dags att packa</string>
+    <string name="reminder_day_before">Dagen före avresan</string>
+    <string name="reminder_travel_day">Resedagens morgon</string>
+    <string name="reminder_no_list_note">En påminnelse om resan saknar packlista.</string>
+    <string name="reminder_time_to_pack_note">En påminnelse om packlistan inte är klar.</string>
+    <string name="reminder_day_before_note">Kvällen före, om något är kvar att packa.</string>
+    <string name="reminder_travel_day_note">På morgonen avresedagen, om något är kvar att packa.</string>
+    <string name="reminder_off">Av</string>
+    <string name="reminder_at">%1$s · %2$s</string>
+    <string name="reminder_days_before_label">Dagar före avresan</string>
+    <string name="reminder_time_label">Tid</string>
+    <string name="reminder_next">Nästa påminnelse</string>
+    <string name="reminder_next_none">Ingen resa just nu</string>
+    <string name="reminder_next_at">%1$s kl. %2$s</string>
+    <string name="reminder_next_trip">%1$s · %2$s reser</string>
+    <string name="reminder_open_settings">Ändra påminnelsen</string>
+    <string name="reminders_blocked">Notiser är avstängda</string>
+    <string name="reminders_blocked_note">Slå på dem för att få påminnelserna.</string>
+    <string name="reminders_enable">Slå på</string>
+    <string name="reminder_channel">Påminnelser inför resan</string>
+    <string name="reminder_channel_note">Ingen packlista än, dags att packa, dagen före och resedagen.</string>
+    <string name="reminder_public_title">Påminnelse inför resan</string>
+    <string name="reminder_public_text">Lås upp för att se mer.</string>
+    <string name="reminder_snooze">Senare</string>
+    <string name="reminder_open_list">Öppna packlistan</string>
+    <string name="reminder_time_to_pack_title">Dags att packa för %1$s</string>
+    <string name="reminder_time_to_pack_text">%1$d av %2$d kvar att packa.</string>
+    <string name="reminder_day_before_title">%1$s i morgon</string>
+    <string name="reminder_travel_day_title">Resedag – packa det sista</string>
+    <string name="reminder_no_list_text">Ingen packlista än. Öppna resan så räknar appen ut vad ni ska packa.</string>
+    <plurals name="reminder_no_list_title">
+        <item quantity="one">%1$s om %2$d dag</item>
+        <item quantity="other">%1$s om %2$d dagar</item>
+    </plurals>
+    <plurals name="reminder_days_before">
+        <item quantity="one">%d dag före</item>
+        <item quantity="other">%d dagar före</item>
+    </plurals>
+    <plurals name="reminder_left">
+        <item quantity="one">%d sak kvar att packa.</item>
+        <item quantity="other">%d saker kvar att packa.</item>
+    </plurals>
 
     <!-- Tomma flikar -->
     <string name="trips_empty_title">Inga resor än</string>

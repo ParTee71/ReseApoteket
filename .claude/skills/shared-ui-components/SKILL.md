@@ -56,12 +56,13 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Meddelande | `AppSnackbarHost` | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
 | Firande | `Confetti` | egen `Canvas`, inget bibliotek |
 | Avdelare | `AppDivider` | M3-avdelare med temats färg och tjocklek |
-| Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel |
+| Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel; med `onClick` är växeln en egen kontroll och raden öppnar detaljer (som `CheckRow`) |
 | Segmentval (t.ex. tema) | `AppSegmentedChoice` | M3 segmentknappar |
 | Meny (arkivera/radera m.m.) | `AppMenu` | M3 rullgardinsmeny |
 | Datumfält | `DateField` | `AppTextField` + M3 datumväljare |
+| Tidsfält | `TimeField` | samma yta som `DateField` + M3 tidsväljare (24 timmar) |
 | Horisontell rad av chips | `ChipRow` | horisontell lista av `PersonChip`/`AppFilterChip` |
-| Förhandsvisning av mängd | `PackingPreview` | `ReasonFormatter` i `:core` |
+| Förhandsvisning (mängd, nästa påminnelse) | `PackingPreview` | `ReasonFormatter` i `:core`; samma ruta för "Nästa påminnelse" |
 
 ## Beteende: interaktionsmönster → enda tillåtna ram
 
@@ -110,6 +111,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
 | Aktivt hushåll | `HouseholdSession` i `data/household/` (`HouseholdScope`) |
+| Påminnelser (plan, genomgång, notiser, schemaläggning) | `ReminderPlanner` i `:core`; `reminders/` i appen (`ReminderSource`, `ReminderRunner`, `ReminderNotifier`, `ReminderScheduler`) – skill `firestore-data-layer` för läsningen |
 | Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/`; för UI:t `SyncViewModel` (`ui/sync/`) → `AppNavHost` (indikatorn via `LocalSyncIndicator`, nekad skrivning som meddelande ovanför verktygsraden) |
 | Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument`, `sortForList` i `data/common/DocumentRules.kt` och `writeBlocker` i `HouseholdScope.kt` – används av både `FirestoreCollection` och `FakeCollection` |
 | Inställningar | `SettingsStore` (DataStore) |

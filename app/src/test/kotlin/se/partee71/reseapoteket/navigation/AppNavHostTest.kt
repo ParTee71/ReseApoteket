@@ -155,6 +155,22 @@ class AppNavHostTest {
         rule.onNodeWithText("Ändringarna är sparade på telefonen och skickas när det finns nät.").assertDoesNotExist()
     }
 
+    @Test
+    fun `en påminnelse öppnar resans packlista och släpps sedan (PÅM-7)`() {
+        var trip by mutableStateOf<String?>(null)
+        var opened = 0
+        rule.setContent {
+            ReseApoteketTheme {
+                OpenTripEffect(backStack, trip) { trip = null; opened++ }
+                AppNavHost(backStack, { key -> NavEntry(key) { Text("Skärm: $key") } })
+            }
+        }
+        rule.runOnIdle { backStack.select(PersonsKey) }
+        trip = "gc"
+        rule.onNodeWithText("Skärm: PackingListKey(tripId=gc)").assertIsDisplayed()
+        rule.runOnIdle { assertEquals(1, opened) }
+    }
+
     private companion object {
         const val SHOWN_MILLIS = 500L
         const val LONG_SNACKBAR_MILLIS = 11_000L

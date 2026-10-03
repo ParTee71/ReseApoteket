@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
@@ -138,6 +139,7 @@ private fun Rows() {
         CheckRow("Ventoline", false, {}, subtitle = "1 st", onClick = {}, accent = AppColors.person(1), trailing = { InfoPill("vid behov", tone = Tone.Blue) })
         AppDivider()
         SwitchRow("Flytta avprickade sist", sorted, { sorted = it }, subtitle = "I packlistan")
+        SwitchRow("Dags att packa", sorted, { sorted = it }, subtitle = "3 dagar före · 18:00", onClick = {})
     }
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         InfoPill("Mediciner")
@@ -164,6 +166,8 @@ private fun Fields() {
     AppTextField(name, { name = it }, "Namn", helper = "Visas i packlistan")
     AppTextField("", {}, "Namn", error = "Ange ett namn")
     DateField("Startdatum", date, { date = it })
+    var time by remember { mutableStateOf(LocalTime(18, 0)) }
+    TimeField("Tid", time, { time = it })
     LabeledGroup("Form") {
         ChoiceChips(listOf(0, 1, 2, 3), form, { form = it }, { listOf("Tablett", "Kapsel", "Flytande", "Inhalator")[it] })
     }

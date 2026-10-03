@@ -29,6 +29,7 @@ KRAVLISTA.md består av numrerade avsnitt med tabeller `| ID | Krav |`. Varje kr
 | `BER` | Beräkning (packförslag) |
 | `PAK` | Packlista |
 | `SET` | Inställningar |
+| `PÅM` | Påminnelser |
 | `DAT` | Datamodell |
 | `BCK` | Backup och export |
 | `NFR` | Icke-funktionella krav |
