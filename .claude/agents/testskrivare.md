@@ -32,8 +32,8 @@ Du skriver tester för ReseApoteket.
   `ComponentGallery`.
 - Tester mot Firestore skrivs bara mot Firebase-emulatorn (`demo-reseapoteket`), aldrig mot
   den riktiga databasen.
-- Kör det som går att köra i sessionen (`./gradlew :core:test`, `node --test …`) och
-  rapportera resultatet ärligt.
+- Kör de berörda kontrollerna i sessionen (skill `testing-strategy`, "Innan du anser dig
+  klar") och rapportera resultatet ärligt.
 
 ## Rapport
 
