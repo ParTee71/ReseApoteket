@@ -49,10 +49,12 @@ class AppBackStack internal constructor(current: TopLevelKey, stacks: Map<TopLev
         if (stack.last() != key) stack.add(key)
     }
 
-    /** Resans packlista direkt ovanpå fliken Resor – det en påminnelse öppnar (PÅM-7). */
+    /**
+     * Resans packlista överst i fliken Resor – det en påminnelse öppnar (PÅM-7). Det som redan var
+     * öppet där (t.ex. ett formulär med osparade ändringar) ligger kvar under och nås med tillbaka.
+     */
     fun openPackingList(tripId: String) {
         currentTab = start
-        stack(start).removeRange(1, stack(start).size)
         push(PackingListKey(tripId))
     }
 

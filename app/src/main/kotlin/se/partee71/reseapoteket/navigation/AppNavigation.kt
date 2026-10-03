@@ -48,13 +48,18 @@ fun AppNavigation(
     val activity = LocalActivity.current
     val tabOwner = checkNotNull(LocalViewModelStoreOwner.current) { "AppNavigation kräver en ViewModelStoreOwner" }
     val entries = remember(backStack, tabOwner) { appEntries(backStack, tabOwner) }
-    // En påminnelse öppnar resans packlista från fliken Resor (PÅM-7).
-    LaunchedEffect(openTrip) {
-        if (openTrip == null) return@LaunchedEffect
-        backStack.openPackingList(openTrip)
-        onTripOpened()
-    }
+    OpenTripEffect(backStack, openTrip, onTripOpened)
     AppNavHost(backStack, entries, modifier, onExit = { activity?.finish() }, sync = sync, onSyncEvent = syncViewModel::onEvent)
+}
+
+/** En påminnelse öppnar resans packlista i fliken Resor (PÅM-7); [onOpened] släpper begäran. */
+@Composable
+fun OpenTripEffect(backStack: AppBackStack, tripId: String?, onOpened: () -> Unit) {
+    LaunchedEffect(tripId) {
+        if (tripId == null) return@LaunchedEffect
+        backStack.openPackingList(tripId)
+        onOpened()
+    }
 }
 
 /**

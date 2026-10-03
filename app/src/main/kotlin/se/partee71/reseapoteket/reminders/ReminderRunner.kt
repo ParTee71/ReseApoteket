@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.reminders
 
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
@@ -8,7 +9,9 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import se.partee71.reseapoteket.core.engine.Reminder
@@ -26,8 +29,11 @@ class ReminderRunner @Inject constructor(
     private val settings: SettingsStore,
     private val notifier: ReminderNotifier,
     private val clock: Clock,
-    private val zone: TimeZone,
+    // Telefonens tidszon läses vid varje genomgång – den byts när man reser.
+    private val zones: Provider<TimeZone>,
 ) {
+    private val zone: TimeZone get() = zones.get()
+
     /**
      * Visar förfallna påminnelser och ger tiden för nästa genomgång. Första gången skickas inget
      * som redan passerat; går underlaget inte att läsa (t.ex. utloggad) försöker den igen senare.
@@ -35,10 +41,22 @@ class ReminderRunner @Inject constructor(
     suspend fun run(): Instant {
         val now = clock.now()
         val planned = read() ?: return now + RETRY
-        val since = checkedUntil()
-        ReminderPlanner.due(planned, since, now, zone, GRACE).forEach(notifier::show)
-        settings.setRemindersCheckedUntil(now)
+        val due = ReminderPlanner.due(planned, checkedUntil(), now, zone, GRACE)
+        // Visade påminnelser och hur långt genomgången kommit hör ihop: ett ersatt jobb får inte
+        // avbryta mellan dem, då visas samma påminnelse igen nästa gång.
+        withContext(NonCancellable) {
+            due.forEach(notifier::show)
+            settings.setRemindersCheckedUntil(now)
+        }
         return nextCheck(planned, checkedUntil = now, now = now)
+    }
+
+    /** När en genomgång som fallerat försöks igen. */
+    fun retryAt(): Instant = clock.now() + RETRY
+
+    /** Inställningarna ändrades: det som redan passerat ska inte visas för att tiden flyttades bakåt (PÅM-6). */
+    suspend fun settingsChanged() {
+        settings.setRemindersCheckedUntil(clock.now())
     }
 
     /** "Senare" i en notis: visar samma påminnelse igen om den fortfarande gäller. */
@@ -67,8 +85,11 @@ class ReminderRunner @Inject constructor(
         }
 
     companion object {
-        /** En påminnelse som är äldre än så här när telefonen hinner köra skickas inte (PÅM-6). */
-        val GRACE = 2.hours
+        /**
+         * En påminnelse som är äldre än så här när telefonen hinner köra skickas inte (PÅM-6).
+         * Generöst, eftersom Android kan skjuta upp bakgrundsjobb i flera timmar när telefonen vilar.
+         */
+        val GRACE = 6.hours
 
         /** Hur ofta planen räknas om även utan påminnelse – resor ändras på andra telefoner. */
         val REFRESH = 6.hours

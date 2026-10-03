@@ -27,6 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.engine.Reminder
@@ -42,6 +43,8 @@ import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.repository.DefaultPackingRepository
 import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultTripRepository
+import se.partee71.reseapoteket.reminders.ReminderNotifier
+import se.partee71.reseapoteket.reminders.ReminderRunner
 import se.partee71.reseapoteket.reminders.ReminderSource
 import se.partee71.reseapoteket.testing.FakeDataStore
 import se.partee71.reseapoteket.testing.MainDispatcherRule
@@ -67,7 +70,10 @@ class RemindersTest {
     private val settings = SettingsStore(FakeDataStore())
 
     // FixedClock = mån 21 sep 2026.
-    private fun viewModel() = RemindersViewModel(persons, ReminderSource(trips, packing, settings), settings, FixedClock(), TimeZone.UTC)
+    private val source = ReminderSource(trips, packing, persons, settings)
+    private val runner = ReminderRunner(source, settings, ReminderNotifier(RuntimeEnvironment.getApplication()), FixedClock()) { TimeZone.UTC }
+
+    private fun viewModel() = RemindersViewModel(persons, source, settings, runner, FixedClock(), TimeZone.UTC)
 
     private val people = listOf(
         Person("anna", "Anna", "🦊", sortOrder = 0),
@@ -110,6 +116,8 @@ class RemindersTest {
         val saved = settings.reminderSettings.first()
         assertEquals(setOf("lova"), saved.personIds)
         assertEquals(changed, saved[ReminderKind.TIME_TO_PACK])
+        // En ändring visar inte påminnelser som redan passerat (PÅM-6).
+        assertEquals(FixedClock().instant, settings.remindersCheckedUntil.first())
     }
 
     private fun show(state: RemindersUiState, allowed: Boolean = true, onEvent: (RemindersEvent) -> Unit = {}, onAsk: () -> Unit = {}, onSettings: () -> Unit = {}) =

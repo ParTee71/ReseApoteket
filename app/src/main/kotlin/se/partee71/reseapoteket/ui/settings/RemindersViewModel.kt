@@ -22,6 +22,7 @@ import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.data.common.withFallback
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.repository.PersonRepository
+import se.partee71.reseapoteket.reminders.ReminderRunner
 import se.partee71.reseapoteket.reminders.ReminderSource
 import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
 
@@ -44,6 +45,7 @@ class RemindersViewModel @Inject constructor(
     persons: PersonRepository,
     source: ReminderSource,
     private val settings: SettingsStore,
+    private val runner: ReminderRunner,
     private val clock: Clock,
     private val zone: TimeZone,
 ) : ViewModel() {
@@ -68,6 +70,7 @@ class RemindersViewModel @Inject constructor(
                 }
                 is RemindersEvent.Change -> settings.setReminder(event.kind, event.setting)
             }
+            runner.settingsChanged()
         }
     }
 }

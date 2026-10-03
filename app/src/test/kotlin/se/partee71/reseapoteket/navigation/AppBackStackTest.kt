@@ -98,15 +98,15 @@ class AppBackStackTest {
     }
 
     @Test
-    fun `en påminnelse öppnar packlistan direkt ovanpå Resor (PÅM-7)`() {
+    fun `en påminnelse öppnar packlistan överst i Resor, det som var öppet ligger kvar under (PÅM-7)`() {
         val stack = AppBackStack()
         stack.push(TripEditKey())
         stack.select(PersonsKey)
         stack.push(PersonDetailKey("anna"))
         stack.openPackingList("gc")
-        assertEquals(listOf(TripsKey, PackingListKey("gc")), stack.entries)
+        assertEquals(listOf(TripsKey, TripEditKey(), PackingListKey("gc")), stack.entries)
         assertEquals(TripsKey, stack.currentTab)
         stack.select(PersonsKey)
-        assertEquals(listOf(TripsKey, PackingListKey("gc"), PersonsKey, PersonDetailKey("anna")), stack.entries)
+        assertEquals(listOf(TripsKey, TripEditKey(), PackingListKey("gc"), PersonsKey, PersonDetailKey("anna")), stack.entries)
     }
 }
