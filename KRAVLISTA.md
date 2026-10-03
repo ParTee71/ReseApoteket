@@ -210,6 +210,8 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-15 | Dokumentationen kontrolleras i varje PR: CI-tabellen mot filtren, relativa länkar, nämnda skills och agenter, och hooktestet. |
 | NFR-16 | Data i Firestore nås bara av inloggade medlemmar i hushållet (en användare kan lista just de hushåll där den själv är medlem): allt ligger under `households/{hid}`, ett hushåll skapas med skaparen som enda medlem, har alltid minst en medlem och medlemslistan kan inte ändras från appen (delning: FUT-2), raderas aldrig från appen och har en `schemaVersion` som heltal (BCK-5). Bara samlingarna i DAT-1 kan läsas och skrivas, och kända fält med fel typ nekas (saknade, tomma och okända fält är tillåtna, DAT-5). Reglerna testas mot Firebase-emulatorn (`tools/db/test/rules.test.mjs`) och deployas efter testerna från GitHub Actions – på begäran (som standard bara en provkörning) och vid release före appen, aldrig från en PR. |
 | NFR-17 | Release-APK:n heter `ReseApoteket-<version>-<ÅÅÅÅMMDD-HHMM>.apk` – appens namn, versionen och byggtiden i UTC (`release.yml`). |
+| NFR-18 | Textfältens tangentbord börjar med stor bokstav (första ordet i varje mening); sifferfält visar siffertangentbordet. |
+| NFR-19 | Appikonen är en resväska med apotekskors i krämvitt på terrakotta – en adaptiv ikon som också fungerar som enfärgad temaikon (Android 13+). |
 
 ---
 
