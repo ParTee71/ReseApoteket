@@ -6,8 +6,9 @@ description: ReseApotekets CI-regel (regel 5) — en PR får kosta högst ca 8 A
 # CI-budget
 
 **Regel:** PR-flödet ska ta högst ca **8 minuter** på varm cache (`timeout-minutes: 15`
-som skyddsnät). Dyra steg körs inte per PR. Tester körs bara när koden de testar har
-ändrats. `master` kör alltid allt.
+som skyddsnät) – plus instrumenttesterna (ca 9 min) när en PR rör koden de testar
+(användarens beslut 2026-10-03). Övriga dyra steg körs inte per PR. Tester körs bara när koden
+de testar har ändrats. `master` kör allt utom instrumenttesterna (PR:en har kört dem).
 
 ## Vad som körs när (enda källan för denna tabell)
 
@@ -18,9 +19,10 @@ resten med `dorny/paths-filter`.
 | Filter | Sökvägar | Körs |
 |---|---|---|
 | `core` | `core/**`, `tools/db/test/fixtures/**` | `:core:test` + allt i raden `app` (appen beror på `:core`; exportformatets tester läser tools/db:s testdata) |
-| `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:assembleDebugAndroidTest` (kompilerar och dexar instrumenttesterna utan att köra dem) |
+| `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:assembleDebugAndroidTest` (kompilerar och dexar instrumenttesterna utan att köra dem – utom när filtret `instrumented` kör dem) |
 | `tools` | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `tools/db/**`, `app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/Paths.kt` | rules- och rundturstester (Node) mot Firebase-emulatorn, och samlingslistan mot `Paths.kt` |
-| `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan |
+| `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan utom instrumenttesterna (de har egna sökvägar) |
+| `instrumented` | `app/src/**`, `core/src/**`, `*.gradle.kts`, `app/build.gradle.kts`, `core/build.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `firestore.rules`, `firebase.json`, `tools/db/package-lock.json`, `.github/workflows/instrumented.yml`, `.github/actions/setup-android/**` | instrumenttesterna på Android-emulator (`instrumented.yml`), bara i PR; då hoppar `gradle` över `assembleDebugAndroidTest`. `release.yml` kör dem inte igen om dessa sökvägar är oförändrade sedan en PR där de var gröna |
 | – | allt annat (`*.md`, `.claude/**`) | bara `changes` med dokumentkontroller |
 <!-- ci-table:end -->
 
@@ -32,7 +34,8 @@ resten med `dorny/paths-filter`.
   att oförändrade testtasks blir `FROM-CACHE`/`UP-TO-DATE` även inom en modul. Det kräver
   deterministiska tester (regel 2).
 - **Firebase-emulatorn är inte Android-emulatorn.** Den kräver Java 21 och `firebase-tools`,
-  tar ca 1–2 minuter med cache och körs bara i jobbet `rules` (filter `tools`). Android-emulatorn körs aldrig per PR.
+  tar ca 1–2 minuter med cache och körs bara i jobbet `rules` (filter `tools`). Android-emulatorn
+  körs bara i jobbet `instrumented` (filter `instrumented`).
 - **Node ≥ 22** pinnas i alla jobb som kör `node --test` (globmönster kräver Node 21+).
 - **Hoppade jobb rapporterar ingen status.** Därför är jobbet `ci-ok`
   (`needs: [changes, gradle, rules]`, `if: always()`) det enda obligatoriska statuskravet.
@@ -45,7 +48,9 @@ resten med `dorny/paths-filter`.
 - **`release.yml`** kör inget två gånger: en snabb `gate` kontrollerar version, secrets och CI-resultatet på
   commiten (master-pushen) i stället för att köra om det – och stoppar allt innan något dyrt startar;
   lint och det signerade minifierade bygget går i en Gradle-körning
-  (`build`), parallellt med `instrumented.yml` (`workflow_call`); rules deployas bara om de
+  (`build`), parallellt med `instrumented.yml` (`workflow_call`) – som hoppas över när koden
+  redan testats grönt i en PR (`.github/scripts/instrumented-paths.mjs`; har en annan PR ändrat
+  samma sökvägar sedan dess körs de igen); rules deployas bara om de
   ändrats sedan förra releasen. Ett fallerat jobb körs om ensamt, aldrig hela releasen.
 - **`quality.yml`** (veckovis) hoppar över om master inte ändrats sedan senaste gröna
   kvalitets- eller releasekörning.
@@ -65,7 +70,6 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 
 | Steg | Var det körs i stället |
 |---|---|
-| Instrumenttester på Android-emulator (inkl. `CollectionContract` mot riktig `FirestoreCollection`) | `instrumented.yml`: `workflow_dispatch` och release; körs på begäran före merge när `data/firestore/` ändrats |
 | `lintDebug` | `quality.yml`: veckovis när master ändrats; vid release `lintRelease` i `release.yml` |
 | `assembleRelease` (minifierat) | `quality.yml`: veckovis när master ändrats; vid release det signerade bygget i `release.yml` |
 | Matrisbyggen, flera API-nivåer | inte alls i dag |
@@ -95,6 +99,6 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 
 - `paths-ignore` på workflow-nivå (dokumentändringar skulle då aldrig kontrolleras).
 - Göra `gradle` eller `rules` till obligatoriska statuskrav (hoppade jobb blockerar PR:en).
-- Köra emulator "bara den här gången" i PR-flödet.
+- Köra emulatorn i en PR som inte rör filtret `instrumented`, eller "bara den här gången".
 - Kopiera setup-steg mellan workflows i stället för en composite action.
 - Höja timeouten i stället för att hitta orsaken till att det blev långsamt.

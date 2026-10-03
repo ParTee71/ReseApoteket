@@ -202,7 +202,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-7 | Samma typ av element ser ut och beter sig likadant överallt; kontrolleras automatiskt (skill `shared-ui-components`). |
 | NFR-8 | Hälsodata och personuppgifter loggas aldrig och lämnar bara appen via Firestore, den krypterade backupen och användarens egen export – aldrig via Androids backup eller enhetsöverföring (skill `data-privacy-security`). Användarens egen export (SET-5) delas bara via Androids delningsmeny och bara exportmappen i cachen kan delas. |
 | NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). |
-| NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats; `master` kör alltid allt. Emulator, lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
+| NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats, plus instrumenttesterna på Android-emulator när den rör koden de testar; `master` kör allt utom instrumenttesterna, och en release kör dem bara för kod som inte redan testats grönt i en PR. Lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
 | NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`, `ThemeContrastTest`). |
 | NFR-12 | Release-bygget är minifierat; det byggs och lintas vid varje release (`release.yml`) och veckovis när master ändrats (`quality.yml`). |
 | NFR-13 | Skärmdumpar (ljust och mörkt) jämförs mot incheckade referensbilder i varje PR som rör appen; en oväntad skillnad fäller PR:en och diffbilden sparas (skill `testing-strategy`). |

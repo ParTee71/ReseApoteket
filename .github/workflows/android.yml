@@ -27,6 +27,7 @@ jobs:
       run_core: ${{ steps.decide.outputs.run_core }}
       run_app: ${{ steps.decide.outputs.run_app }}
       run_tools: ${{ steps.decide.outputs.run_tools }}
+      run_instrumented: ${{ steps.decide.outputs.run_instrumented }}
     steps:
       - uses: actions/checkout@v4
 
@@ -54,6 +55,20 @@ jobs:
               - 'gradle.properties'
               - 'build-logic/**'
               - '.github/**'
+            instrumented:
+              - 'app/src/**'
+              - 'core/src/**'
+              - '*.gradle.kts'
+              - 'app/build.gradle.kts'
+              - 'core/build.gradle.kts'
+              - 'gradle/**'
+              - 'gradle.properties'
+              - 'build-logic/**'
+              - 'firestore.rules'
+              - 'firebase.json'
+              - 'tools/db/package-lock.json'
+              - '.github/workflows/instrumented.yml'
+              - '.github/actions/setup-android/**'
 
       - name: Vad körs
         id: decide
@@ -63,21 +78,27 @@ jobs:
           APP: ${{ steps.filter.outputs.app }}
           TOOLS: ${{ steps.filter.outputs.tools }}
           BUILD: ${{ steps.filter.outputs.build }}
+          INSTRUMENTED: ${{ steps.filter.outputs.instrumented }}
         run: |
           set -euo pipefail
+          # Instrumenttesterna (Android-emulator) bara i PR:er som rör koden de testar – inte på
+          # master: PR:en har redan kört dem, och release.yml hoppar över oförändrad kod.
+          instrumented=false
           if [ "$EVENT" != "pull_request" ]; then
-            core=true; app=true; tools=true; why="$EVENT – allt körs (baslinje och cache)"
+            core=true; app=true; tools=true; why="$EVENT – allt körs utom instrumenttesterna (baslinje och cache)"
           else
             core=false; app=false; tools=false
+            if [ "$INSTRUMENTED" = true ]; then instrumented=true; fi
             if [ "$CORE" = true ] || [ "$BUILD" = true ]; then core=true; fi
             if [ "$CORE" = true ] || [ "$APP" = true ] || [ "$BUILD" = true ]; then app=true; fi
             if [ "$TOOLS" = true ] || [ "$BUILD" = true ]; then tools=true; fi
-            why="PR – filter: core=$CORE app=$APP tools=$TOOLS build=$BUILD"
+            why="PR – filter: core=$CORE app=$APP tools=$TOOLS build=$BUILD instrumented=$INSTRUMENTED"
           fi
           {
             echo "run_core=$core"
             echo "run_app=$app"
             echo "run_tools=$tools"
+            echo "run_instrumented=$instrumented"
           } >> "$GITHUB_OUTPUT"
           {
             echo "### Vad körs"
@@ -88,6 +109,7 @@ jobs:
             echo "| \`:core:test\` | $core |"
             echo "| app-tester, skärmdumpar, \`cpdCheck\` | $app |"
             echo "| rules/rundtur mot Firebase-emulatorn | $tools |"
+            echo "| instrumenttester på Android-emulator | $instrumented |"
             echo "| dokumentkontroller | true |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -107,11 +129,14 @@ jobs:
         env:
           RUN_CORE: ${{ needs.changes.outputs.run_core }}
           RUN_APP: ${{ needs.changes.outputs.run_app }}
+          RUN_INSTRUMENTED: ${{ needs.changes.outputs.run_instrumented }}
         run: |
           set -euo pipefail
           tasks=(cpdCheck)
           if [ "$RUN_CORE" = true ]; then tasks+=(:core:test); fi
-          if [ "$RUN_APP" = true ]; then tasks+=(:app:testDebugUnitTest :app:verifyRoborazziDebug :app:assembleDebugAndroidTest); fi
+          if [ "$RUN_APP" = true ]; then tasks+=(:app:testDebugUnitTest :app:verifyRoborazziDebug); fi
+          # Kompilera instrumenttesterna bara när jobbet instrumented inte redan bygger och kör dem.
+          if [ "$RUN_APP" = true ] && [ "$RUN_INSTRUMENTED" != true ]; then tasks+=(:app:assembleDebugAndroidTest); fi
           echo "### Gradle" >> "$GITHUB_STEP_SUMMARY"
           echo "\`./gradlew ${tasks[*]}\`" >> "$GITHUB_STEP_SUMMARY"
           ./gradlew --configuration-cache --continue "${tasks[@]}"
@@ -171,9 +196,14 @@ jobs:
         if: steps.present.outputs.present == 'true'
         uses: ./.github/actions/rules-tests
 
+  instrumented:
+    needs: changes
+    if: needs.changes.outputs.run_instrumented == 'true'
+    uses: ./.github/workflows/instrumented.yml
+
   ci-ok:
     name: ci-ok
-    needs: [changes, gradle, rules]
+    needs: [changes, gradle, rules, instrumented]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
