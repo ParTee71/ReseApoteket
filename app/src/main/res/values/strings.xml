@@ -54,6 +54,7 @@
     <string name="decrease_format">Minska %s</string>
     <string name="increase_format">Öka %s</string>
     <string name="pick_date">Välj datum</string>
+    <string name="pick_time">Välj tid</string>
     <string name="packed_of_format">av %d packat</string>
     <string name="expanded">Utfälld</string>
     <string name="collapsed">Hopfälld</string>

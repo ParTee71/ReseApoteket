@@ -2,8 +2,6 @@
 
 package se.partee71.reseapoteket.ui.components
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -16,11 +14,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import kotlinx.datetime.LocalDate
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.DateFormat
@@ -39,27 +32,15 @@ fun DateField(
     error: String? = null,
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
-    val pickLabel = stringResource(R.string.pick_date)
-    val shown = date?.let(DateFormat::display).orEmpty()
-    val description = listOf(label, shown.ifEmpty { pickLabel }, error.orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
-    Box(modifier) {
-        // Fältet visar bara värdet; ytan ovanpå är det enda som tar emot tryck och fokus.
-        AppTextField(
-            value = shown,
-            onValueChange = {},
-            label = label,
-            modifier = Modifier.focusProperties { canFocus = false }.clearAndSetSemantics {},
-            error = error,
-            readOnly = true,
-            trailingIcon = R.drawable.ic_calendar,
-        )
-        Box(
-            Modifier
-                .matchParentSize()
-                .clickable(role = Role.Button, onClickLabel = pickLabel) { picking = true }
-                .semantics { contentDescription = description },
-        )
-    }
+    PickerField(
+        label = label,
+        shown = date?.let(DateFormat::display).orEmpty(),
+        pickLabel = stringResource(R.string.pick_date),
+        icon = R.drawable.ic_calendar,
+        onPick = { picking = true },
+        modifier = modifier,
+        error = error,
+    )
     if (picking) {
         val state = rememberDatePickerState(initialSelectedDateMillis = date?.let(DateFormat::toEpochMillis))
         DatePickerDialog(

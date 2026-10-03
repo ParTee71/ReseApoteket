@@ -56,10 +56,11 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Meddelande | `AppSnackbarHost` | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
 | Firande | `Confetti` | egen `Canvas`, inget bibliotek |
 | Avdelare | `AppDivider` | M3-avdelare med temats färg och tjocklek |
-| Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel |
+| Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel; med `onClick` är växeln en egen kontroll och raden öppnar detaljer (som `CheckRow`) |
 | Segmentval (t.ex. tema) | `AppSegmentedChoice` | M3 segmentknappar |
 | Meny (arkivera/radera m.m.) | `AppMenu` | M3 rullgardinsmeny |
 | Datumfält | `DateField` | `AppTextField` + M3 datumväljare |
+| Tidsfält | `TimeField` | samma yta som `DateField` + M3 tidsväljare (24 timmar) |
 | Horisontell rad av chips | `ChipRow` | horisontell lista av `PersonChip`/`AppFilterChip` |
 | Förhandsvisning av mängd | `PackingPreview` | `ReasonFormatter` i `:core` |
 

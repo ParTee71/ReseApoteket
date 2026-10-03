@@ -14,6 +14,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -104,6 +105,7 @@ class CatalogScreenshotTest {
                 ApotekCard {
                     SwitchRow("Flytta avprickade sist", true, {}, subtitle = "I packlistan")
                     SwitchRow("Visa arkiverade", false, {})
+                    SwitchRow("Dags att packa", true, {}, subtitle = "3 dagar före · 18:00", onClick = {})
                 }
             }
         }
@@ -186,6 +188,12 @@ class CatalogScreenshotTest {
             Sheet {
                 DateField("Startdatum", LocalDate(2026, 12, 19), {})
                 DateField("Startdatum", null, {}, error = "Välj ett startdatum")
+            }
+        }
+        captureLightAndDark("TimeField_lagen") {
+            Sheet {
+                TimeField("Tid", LocalTime(7, 0), {})
+                TimeField("Påminn kl.", LocalTime(18, 30), {}, error = "Välj en tid")
             }
         }
         captureLightAndDark("AppFilterChip_val") {
