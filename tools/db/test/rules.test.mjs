@@ -51,6 +51,8 @@ test('icke-medlem nekas läsning och skrivning', async () => {
   await assertFails(updateDoc(doc(db('bertil'), 'households', HID), { name: 'Kapat' }));
   await assertFails(getDoc(doc(db('bertil'), 'households', HID, 'persons', 'p1')));
   await assertFails(setDoc(doc(db('bertil'), 'households', HID, 'persons', 'p9'), { name: 'X' }));
+  // Ett hushåll som inte finns nekas också – sessionen väljer då bort det (HUS-5).
+  await assertFails(getDoc(doc(db('anna'), 'households', 'finns-inte')));
 });
 
 test('inloggningens fråga: egna hushåll kan listas, andras och alla inte', async () => {

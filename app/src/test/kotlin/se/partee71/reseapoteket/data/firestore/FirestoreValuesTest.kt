@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.FirebaseFirestoreException.Code
 import kotlin.test.assertEquals
+import kotlinx.coroutines.CancellationException
 import kotlin.time.Instant
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,6 +38,16 @@ class FirestoreValuesTest {
         assertEquals(DataError.Unknown, error(Code.INTERNAL))
         assertEquals(DataError.Unknown, firestoreError(IllegalStateException()))
         assertEquals(DataError.UpdateRequired, firestoreError(DataError.UpdateRequired))
+    }
+
+    @Test
+    fun `ett fel som snapshots() lindat in i ett avbrott mappas efter sin orsak`() {
+        val denied = FirebaseFirestoreException("nekad", Code.PERMISSION_DENIED)
+        val wrapped = CancellationException("Error getting DocumentReference snapshot", denied)
+        assertEquals(Code.PERMISSION_DENIED, wrapped.firestoreCode())
+        assertEquals(DataError.PermissionDenied, firestoreError(wrapped))
+        assertEquals(null, CancellationException("avbrutet").firestoreCode())
+        assertEquals(DataError.Unknown, firestoreError(CancellationException("avbrutet")))
     }
 
     @Test
