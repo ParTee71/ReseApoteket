@@ -80,7 +80,7 @@ Firebase-beroenden och testas med JUnit på sekunder, även i en session utan An
 **3. JVM-först-tester med skärmdumpar.**
 Compose-UI testas med Robolectric i `testDebugUnitTest`. Roborazzi tar skärmdumpar av
 varje delad komponent och skärm; referensbilder checkas in och diffas i PR:en. Android-emulatorn
-körs bara på begäran och i release-flödet.
+körs i PR:er som rör koden den testar, och vid release bara för kod som inte redan testats där.
 
 **4. Material 3 Expressive.**
 Expressive-tema och -rörelse (fjädrande), och Expressive-komponenter bakom våra delade
@@ -103,9 +103,9 @@ med `import.mjs`. Samma verktyg ger sessionen läsåtkomst.
 *Övervägt:* Firestores schemalagda backups kräver Blaze-planen (betalkort) – kan bytas till senare.
 
 **7. CI-budget.**
-Tester körs bara när koden de testar ändrats; lint, minifierat release-bygge och
-Android-emulatorn körs veckovis, på begäran och vid release. Firebase-emulatorn körs i PR
-bara när rules eller `tools/db` ändrats. Mål under 8 minuter per PR.
+Tester körs bara när koden de testar ändrats; lint och minifierat release-bygge körs veckovis,
+på begäran och vid release. Android-emulatorn körs i PR:er som rör koden den testar, Firebase-
+emulatorn när rules eller `tools/db` ändrats. Mål under 8 minuter per PR, plus emulatorn (skill `ci-budget`).
 
 **8. Enhetligt och utan dubbelkod, maskinkontrollerat.**
 En komponent per elementtyp, en ram per interaktionsmönster, en byggsten per sorts

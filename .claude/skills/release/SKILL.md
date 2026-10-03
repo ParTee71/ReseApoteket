@@ -12,7 +12,8 @@ Kör stegen i ordning och rapportera efter varje steg. Stanna och förklara om n
 
 - **Snålt med Actions-minuter (skill `ci-budget`):** `release.yml` kör bara det som inte redan
   körts. `build` gör lint och det signerade, minifierade bygget i en Gradle-körning, parallellt
-  med instrumenttesterna (`instrumented`). `publish` körs när båda är gröna och kräver att CI
+  med instrumenttesterna (`instrumented`) – som hoppas över när samma kod redan testats grönt i
+  en PR. `publish` körs när båda är gröna och kräver att CI
   redan är grönt på commiten (master-pushen har kört alla tester, `cpdCheck` och
   dokumentkontroller – de körs inte om). Är CI inte klart än: kör om bara `publish`-jobbet.
 - **Bygg och signering:** i Actions; keystore och lösenord från secrets. Ingen lokal SDK krävs.

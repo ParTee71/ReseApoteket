@@ -2,7 +2,8 @@
 # - gate (sekunder): master, version, secrets och att CI redan är grönt på commiten – master-
 #   pushen har kört alla tester och dokumentkontroller; de körs inte om här. Fel stoppar allt.
 # - build: lint och det signerade, minifierade bygget i samma Gradle-körning – parallellt med
-# - instrumented: instrumenttesterna på emulator.
+# - instrumented: instrumenttesterna på emulator – bara om koden de testar inte redan testats
+#   grönt i en PR (filtret instrumented i android.yml, oförändrat sedan PR:ens commit).
 # - publish: när båda är gröna – deployar firestore.rules bara om de ändrats sedan förra
 #   releasen, skapar taggen och GitHub Release.
 # Taggen skapas här – en agentsession kan inte pusha taggar.
@@ -38,9 +39,11 @@ jobs:
     permissions:
       contents: read
       checks: read
+      actions: read # PR-körningarnas resultat (instrumenttester)
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       publish: ${{ steps.version.outputs.publish }}
+      run_instrumented: ${{ steps.instrumented.outputs.run }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -109,6 +112,31 @@ jobs:
             echo "::error::CI på $GITHUB_SHA är inte grönt ($result). Vänta tills CI på master är klart och starta releasen igen."
             exit 1
           fi
+
+      # Instrumenttesterna körs i PR:en; samma kod behöver inte testas igen. Jämför bara de
+      # sökvägar som startar dem (en källa: filtret instrumented i android.yml).
+      - name: Redan instrumenttestat i en PR?
+        id: instrumented
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mapfile -t paths < <(node .github/scripts/instrumented-paths.mjs)
+          run=true
+          shas="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/android.yml/runs?event=pull_request&status=success&per_page=15" \
+            --jq '.workflow_runs[].head_sha')" || { echo "::warning::Kunde inte läsa PR-körningarna – instrumenttesterna körs."; shas=""; }
+          for sha in $shas; do
+            git cat-file -e "$sha^{commit}" 2>/dev/null || continue
+            green="$(gh api -X GET "repos/$GITHUB_REPOSITORY/commits/$sha/check-runs" -f check_name='instrumented / instrumented' \
+              --jq '[.check_runs[] | select(.conclusion == "success")] | length')"
+            [ "$green" -gt 0 ] || continue
+            if git diff --quiet "$sha" "$GITHUB_SHA" -- "${paths[@]}"; then
+              run=false
+              echo "Instrumenttesterna var gröna i PR-commiten $sha och koden är oförändrad – körs inte igen." >> "$GITHUB_STEP_SUMMARY"
+              break
+            fi
+          done
+          echo "run=$run" >> "$GITHUB_OUTPUT"
 
   build:
     name: build
@@ -203,12 +231,17 @@ jobs:
 
   instrumented:
     needs: gate
+    if: needs.gate.outputs.run_instrumented == 'true'
     uses: ./.github/workflows/instrumented.yml
 
   publish:
     name: publish
     needs: [gate, build, instrumented]
-    if: needs.gate.outputs.publish == 'true'
+    # Hoppade instrumenttester (redan gröna i PR:en) stoppar inte publiceringen; fallerade gör det.
+    if: >-
+      !cancelled() && needs.gate.outputs.publish == 'true'
+      && needs.build.result == 'success'
+      && (needs.instrumented.result == 'success' || needs.instrumented.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

@@ -44,8 +44,9 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
   - ny rad i `ui-allowlist.txt` eller höjd CPD-tröskel utan motivering;
   - ny komponent utan rad i tabellen i `shared-ui-components`.
 - **Regel 5 CI-budget:** nytt steg i PR-flödet, nytt beroende eller plugin utan angiven
-  byggtidseffekt, Android-emulator/lint/release-bygge i PR-flödet (Firebase-emulatorn i
-  jobbet `rules`, filter `tools`, är tillåten), `paths-ignore` på
+  byggtidseffekt, lint/release-bygge i PR-flödet, Android-emulatorn utanför jobbet
+  `instrumented` (filter `instrumented`; Firebase-emulatorn i jobbet `rules`, filter `tools`, är
+  tillåten), `paths-ignore` på
   workflow-nivå, tabellen i `ci-budget` och filtren i `android.yml` ur synk.
 - **Process:** GUI-ändring utan godkänd mockup-länk i issuet eller utan skärmdumpar i PR:en.
 - **Integritet:** loggning av receptdata eller PII, hemligheter eller nycklar i diffen,

@@ -26,7 +26,7 @@ Krav: NFR-serien i KRAVLISTA.md.
 | Skärmdump | `app/src/test` + `app/src/test/screenshots/` | Roborazzi | `app` |
 | Security rules + rundtur | `tools/db/test` | `node --test`, `@firebase/rules-unit-testing`, Firebase-emulatorn | `tools` |
 | Dokumentkontroller + hooktest | `.github/scripts/`, `.claude/hooks/test/` | `node --test` | alltid |
-| Instrument (inkl. `CollectionContract` mot riktig `FirestoreCollection`) | `app/src/androidTest` | Android-emulator + Firebase-emulatorn | inte i PR |
+| Instrument (inkl. `CollectionContract` mot riktig `FirestoreCollection`) | `app/src/androidTest` | Android-emulator + Firebase-emulatorn | i PR som rör koden de testar (filter `instrumented`, skill `ci-budget`) |
 
 Vilka sökvägar som sätter vilket filter, och vad som körs på `master`, står i skill
 `ci-budget` (enda källan). **Selektiv körning ändrar inte kravet på att skriva
@@ -40,7 +40,7 @@ kod ändras.
 | `PackingEngine`, formatterare, validering | `:core`-test med kantfallen från skill `packing-engine` |
 | Modell/codec | `assertCodecRoundTrip` + tolerans-hjälparna (skill `data-safety-backup`) |
 | ViewModel | Initialt state, varje event → nytt state, fel-state; Turbine; `MainDispatcherRule` |
-| Repository | Mot `FakeCollection<T>`; ändras `FirestoreCollection` → utöka `CollectionContract` och kör instrumenttesterna på begäran före merge |
+| Repository | Mot `FakeCollection<T>`; ändras `FirestoreCollection` → utöka `CollectionContract` – instrumenttesterna körs i PR:en |
 | Skärm som använder en ram | `runListScreenContract` / `runEditScreenContract` + bara det unika |
 | Delad komponent/ram | Robolectric-test, skärmdump ljust + mörkt, plats i `ComponentGallery` |
 | `firestore.rules` | Rules-test: medlem, icke-medlem, oautentiserad |
@@ -121,7 +121,7 @@ node --test '.claude/hooks/test/*.test.mjs'           # hooktest, alltid
 **Kör kontrollerna lokalt innan varje push** – sessionen har Android SDK och Firebase-emulatorn,
 och en röd CI-runda är det dyraste som finns (skill `ci-budget`). Sätt `LC_ALL=C.UTF-8` (testnamn
 med å/ä/ö) och kör en Gradle-körning i taget. Bara instrumenttesterna kräver Android-emulator
-och körs i Actions (`instrumented.yml`). Går ett kommando inte att köra (nät, SDK saknas):
+och körs i Actions (`instrumented.yml`, i PR:er som rör koden de testar). Går ett kommando inte att köra (nät, SDK saknas):
 säg det i PR:en. Vid rött CI – låt agenten `ci-doktor` diagnostisera.
 
 ## Anti-mönster

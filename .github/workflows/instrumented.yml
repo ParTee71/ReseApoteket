@@ -1,5 +1,6 @@
-# Instrumenttester på Android-emulator – aldrig per PR (skill ci-budget). Körs på begäran,
-# t.ex. före merge när data/firestore/ ändrats, och som grind i release.yml.
+# Instrumenttester på Android-emulator (skill ci-budget): i PR:er som rör koden de testar
+# (android.yml, filtret instrumented), på begäran, och i release.yml när koden inte redan
+# testats grönt i en PR.
 name: Instrumenttester
 
 on:
