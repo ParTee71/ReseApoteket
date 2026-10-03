@@ -5,10 +5,12 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -325,5 +327,36 @@ class ComponentBehaviorTest {
         show { AppIconButton(R.drawable.ic_arrow_back, "Tillbaka", { clicks++ }) }
         rule.onNodeWithContentDescription("Tillbaka").performClick()
         assertEquals(1, clicks)
+    }
+
+    @Test
+    fun `en klickbar pill är en knapp med 48 dp tryckyta`() {
+        var clicks = 0
+        show { InfoPill("Väntar på synk", icon = R.drawable.ic_cloud_upload, onClick = { clicks++ }) }
+        rule.onNodeWithText("Väntar på synk")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
+            .assertTouchHeightIsEqualTo(48.dp)
+            .performClick()
+        assertEquals(1, clicks)
+    }
+
+    @Test
+    fun `toppraden visar synkindikatorn bara när ändringar väntar (NFR-6)`() {
+        var indicator by mutableStateOf(SyncIndicator())
+        var clicks = 0
+        show {
+            CompositionLocalProvider(LocalSyncIndicator provides indicator) {
+                AppTopBar("Resor") { AppIconButton(R.drawable.ic_more_vert, "Fler val", {}) }
+            }
+        }
+        rule.onNodeWithContentDescription("Ändringar väntar på att synkas").assertDoesNotExist()
+        indicator = SyncIndicator(pending = true) { clicks++ }
+        rule.onNodeWithContentDescription("Ändringar väntar på att synkas")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+            .performClick()
+        assertEquals(1, clicks)
+        rule.onNodeWithContentDescription("Fler val").assertIsDisplayed()
+        indicator = SyncIndicator()
+        rule.onNodeWithContentDescription("Ändringar väntar på att synkas").assertDoesNotExist()
     }
 }

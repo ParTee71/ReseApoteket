@@ -193,7 +193,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-3 | **Arkivera/dölj** sker med svep och kan ångras i 5 sekunder; samma åtgärd finns för TalkBack. Lämnar man skärmen under tiden är åtgärden klar – meddelandet visas inte igen. |
 | NFR-4 | **Permanent radering** kräver alltid bekräftelse. |
 | NFR-5 | **Felmeddelanden** har samma svenska formuleringar överallt; varje fel från datalagret har en egen text. Något som inte finns längre (raderat på en annan enhet) visas som det, utan "Försök igen". |
-| NFR-6 | En **synkindikator** visas när ändringar väntar på att skickas; skrivningar som servern senare nekar visas som meddelande. *(planerad, saknar ännu issue – synkläget finns sedan #15)* |
+| NFR-6 | En **synkindikator** "Väntar på synk" står i toppraden på alla skärmar när en ändring väntat minst 2 s på att nå servern (online syns den aldrig) och försvinner när allt nått fram; tryck förklarar att ändringarna är sparade på telefonen och skickas när det finns nät, och TalkBack meddelar när den dyker upp. En skrivning som servern senare nekar (och som därför ångrats) visas som meddelande "En ändring kunde inte sparas och har ångrats." med orsaken (NFR-5) – även om den kom medan appen låg i bakgrunden. |
 
 ### Kvalitet, integritet och tester
 

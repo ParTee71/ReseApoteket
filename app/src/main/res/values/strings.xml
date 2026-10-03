@@ -91,6 +91,12 @@
     <string name="tab_family_items">Familjeartiklar</string>
     <string name="tab_settings">Inställningar</string>
 
+    <!-- Synk (NFR-6) -->
+    <string name="sync_pending">Väntar på synk</string>
+    <string name="sync_pending_description">Ändringar väntar på att synkas</string>
+    <string name="sync_pending_explained">Ändringarna är sparade på telefonen och skickas när det finns nät.</string>
+    <string name="sync_write_rejected">En ändring kunde inte sparas och har ångrats. %1$s</string>
+
     <!-- Tomma flikar -->
     <string name="trips_empty_title">Inga resor än</string>
     <string name="trips_empty_message">Lägg till en resa så räknar appen ut vad ni ska packa.</string>

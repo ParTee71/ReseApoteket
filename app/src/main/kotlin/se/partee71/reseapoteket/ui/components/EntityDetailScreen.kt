@@ -54,7 +54,7 @@ fun <T> EntityDetailScreen(
     content: @Composable ColumnScope.(T) -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
-    ErrorSnackbar(error, snackbar, onErrorShown)
+    ErrorSnackbar(error, snackbar, onShown = onErrorShown)
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,

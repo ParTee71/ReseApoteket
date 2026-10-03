@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -142,6 +144,7 @@ private fun Rows() {
         InfoPill("Kosttillskott", tone = Tone.Green)
         InfoPill("Övrigt", tone = Tone.Blue)
     }
+    InfoPill(stringResource(R.string.sync_pending), tone = Tone.Blue, icon = R.drawable.ic_cloud_upload, onClick = {})
     ChipRow {
         listOf("🦊", "🐻", "🐰", "🦉", "🐯", "🐢", "🦄", "🐧").forEachIndexed { i, emoji -> PersonAvatar(emoji, AppColors.person(i)) }
     }
@@ -209,6 +212,9 @@ private fun Progress() {
         selectedIndex = tab,
         onSelect = { tab = it },
     )
+    CompositionLocalProvider(LocalSyncIndicator provides SyncIndicator(pending = true)) {
+        AppTopBar("Gran Canaria", size = TopBarSize.Small, onBack = {})
+    }
 }
 
 @Composable
