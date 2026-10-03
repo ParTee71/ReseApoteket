@@ -115,6 +115,11 @@ test('kända fält med fel typ nekas, men null, saknade och okända fält är ti
   await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't1'), { name: 'Kreta', days: 'abc' }));
   await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'X', checked: 'ja' }));
   await assertFails(updateDoc(doc(anna, 'households', HID), { marginDays: 'två' }));
+  // Vid create kontrolleras alla fält – även listor, tider och familjeartiklar.
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h9'), { memberUids: ['cecilia'], schemaVersion: 1, marginDays: 'två' }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't2'), { name: 'Kreta', travellerIds: 'p1' }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't2'), { name: 'Kreta', createdAt: '2026-10-03' }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'familyItems', 'f2'), { name: 'Solkräm', rule: 'en' }));
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'persons', 'p2'), { name: 'Bo', emoji: null, framtidaFalt: { a: 1 } }));
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Levaxin', packageSize: null, schedule: { type: 'DAILY' } }));
 });
