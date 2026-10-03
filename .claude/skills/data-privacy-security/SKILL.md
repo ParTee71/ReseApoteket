@@ -23,7 +23,7 @@ GitHub Actions-loggar.
   inloggade användare vars uid finns i hushållets `memberUids`.
 - Ny samling = ny rules-rad **och** rules-test i samma ändring (skill
   `firestore-data-layer`). En samling utan rules är ett säkerhetshål eller oåtkomlig.
-- Rules deployas medvetet: av `release.yml` före release-bygget eller av `rules.yml` på begäran
+- Rules deployas medvetet: av `release.yml` före publiceringen eller av `rules.yml` på begäran
   (dry-run som standard) – aldrig från en PR och aldrig automatiskt på `master`. Deploynyckeln
   (`FIREBASE_RULES_DEPLOYER`) får bara rollen Firebase Rules Admin (+ Service Usage Consumer)
   och stoppas om den hör till ett annat projekt än `reseapoteket`.
@@ -65,8 +65,8 @@ fält och dokument frågan gäller – inga fulla dumpar i chatten.
 ### 6. Release ska minifieras
 `isMinifyEnabled = true` + `isShrinkResources = true` på release. Bibliotek som kräver
 keep-regler (kotlinx.serialization, Firestore-modeller, Hilt) får regler i
-`app/proguard-rules.pro`. Minifierat bygge verifieras i veckoflödet `quality.yml` och i
-release – inte per PR (skill `ci-budget`).
+`app/proguard-rules.pro`. Minifierat bygge verifieras i veckoflödet `quality.yml` (när master ändrats) och av
+release-bygget – inte per PR (skill `ci-budget`).
 
 ### 7. Behörigheter och autentisering
 - Enda behörighet i dag: `INTERNET`. Nya behörigheter bara vid tydligt behov

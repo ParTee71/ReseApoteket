@@ -138,8 +138,8 @@ chatten (skill [`data-privacy-security`](.claude/skills/data-privacy-security/SK
    mot emulatorn och aldrig från en PR:
    - **Actions → Rules → Run workflow** (`rules.yml`): provkör (`--dry-run`) som
      standard; kryssa i **deploy** för att deploya på riktigt (bara från `master`).
-   - **Release** (`release.yml`) deployar rules före APK-bygget, så att appen aldrig släpps
-     före sina rules.
+   - **Release** (`release.yml`) deployar rules före publiceringen när de ändrats sedan förra
+     releasen, så att appen aldrig släpps före sina rules.
 
    Reservväg, och för `firestore.indexes.json` (deploynyckeln får inte ändra index): från din
    egen dator, inloggad med `npx --prefix tools/db firebase login`:
