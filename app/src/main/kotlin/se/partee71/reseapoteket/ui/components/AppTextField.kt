@@ -11,13 +11,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppShapes
 import se.partee71.reseapoteket.ui.theme.AppTypography
 
 /**
  * Det enda textfältet: etikett, och under fältet antingen [error] (röd, läses av TalkBack som
- * fel) eller [helper]. Fält i formulär får sina fel från `EditorState`.
+ * fel) eller [helper]. Fält i formulär får sina fel från `EditorState`. Tangentbordet börjar
+ * med stor bokstav (NFR-18); ett fält som anger egna [keyboardOptions], t.ex. siffror, styr själv.
  */
 @Composable
 fun AppTextField(
@@ -31,7 +33,7 @@ fun AppTextField(
     readOnly: Boolean = false,
     enabled: Boolean = true,
     @DrawableRes trailingIcon: Int? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
 ) {
     val card = AppColors.extended.card
     OutlinedTextField(

@@ -1,10 +1,14 @@
 package se.partee71.reseapoteket.ui.components
 
+import android.text.InputType
+import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -55,6 +59,20 @@ class ComponentBehaviorTest {
     }
 
     private val tablets: (Int) -> String = { if (it == 1) "tablett" else "tabletter" }
+
+    @Test
+    fun `textfältets tangentbord börjar med stor bokstav (NFR-18)`() {
+        lateinit var view: View
+        show {
+            view = LocalView.current
+            AppTextField("", {}, "Namn")
+        }
+        rule.onNodeWithText("Namn").performClick()
+        rule.waitForIdle()
+        val info = EditorInfo()
+        rule.runOnIdle { view.onCreateInputConnection(info) }
+        assertTrue(info.inputType and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES != 0, "inputType=${info.inputType}")
+    }
 
     @Test
     fun `kryssraden växlar med tryck på hela raden och läses som kryssruta`() {

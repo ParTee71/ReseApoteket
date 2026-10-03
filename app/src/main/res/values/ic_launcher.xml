@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Appikonens färger: temats primary (terrakotta) och background (kräm) i ui/theme/AppColors.
+     Resurser måste vara XML; AppIconTest håller dem lika med temat. -->
+<resources>
+    <color name="ic_launcher_background">#BF4A2A</color>
+    <color name="ic_launcher_symbol">#FFF4EE</color>
+</resources>
