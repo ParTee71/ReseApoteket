@@ -27,7 +27,7 @@ service cloud.firestore {
     // oförändrad, DAT-6) får inte göra dokumentet omöjligt att spara. Saknat fält eller null är
     // tillåtet (codecen har ett standardvärde, DAT-5) och okända fält får finnas (nyare appar).
     function written() {
-      return resource == null ? request.resource.data.keys() : request.resource.data.diff(resource.data).affectedKeys();
+      return resource == null ? request.resource.data.keys().toSet() : request.resource.data.diff(resource.data).affectedKeys();
     }
     function unchecked(d, k) { return !(k in written()) || d.get(k, null) == null; }
     function optInt(d, k) { return unchecked(d, k) || d[k] is int; }
