@@ -8,8 +8,10 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -17,11 +19,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.datastore.ThemeMode
 import se.partee71.reseapoteket.reminders.ReminderSync
 import se.partee71.reseapoteket.ui.AppRoot
+import se.partee71.reseapoteket.ui.components.LocalTravelDayMorning
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
 @AndroidEntryPoint
@@ -56,8 +61,13 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
             }
             val trip by openTrip.collectAsStateWithLifecycle()
+            // Resedagens morgon visas där något packas på resedagen (PAK-6).
+            val morning by remember { settings.reminderSettings.map { it[ReminderKind.TRAVEL_DAY].time } }
+                .collectAsStateWithLifecycle(initialValue = LocalTravelDayMorning.current)
             ReseApoteketTheme(darkTheme = dark) {
-                AppRoot(openTrip = trip, onTripOpened = { openTrip.value = null })
+                CompositionLocalProvider(LocalTravelDayMorning provides morning) {
+                    AppRoot(openTrip = trip, onTripOpened = { openTrip.value = null })
+                }
             }
         }
     }

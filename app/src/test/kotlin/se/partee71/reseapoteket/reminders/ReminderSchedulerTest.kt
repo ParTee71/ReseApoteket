@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.data.FixedClock
 
 /** Schemaläggningen med WorkManager (PÅM-6): ett jobb till nästa genomgång, ett per "Senare". */
@@ -48,9 +47,9 @@ class ReminderSchedulerTest {
     }
 
     @Test
-    fun `Senare väntar en timme och sparar bara resans ID och typen`() {
-        ReminderScheduler(context, clock).snooze("gc", ReminderKind.DAY_BEFORE)
-        val work = waiting("${ReminderScheduler.SNOOZE_PREFIX}gc/DAY_BEFORE").single()
+    fun `Senare väntar en timme och sparar bara påminnelsens nyckel`() {
+        ReminderScheduler(context, clock).snooze("gc/DAY_BEFORE/18:00")
+        val work = waiting("${ReminderScheduler.SNOOZE_PREFIX}gc/DAY_BEFORE/18:00").single()
         assertEquals(1.hours.inWholeMilliseconds, work.initialDelayMillis)
     }
 }

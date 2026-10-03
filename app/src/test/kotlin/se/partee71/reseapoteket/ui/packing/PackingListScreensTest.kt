@@ -17,11 +17,15 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import kotlin.test.assertEquals
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import org.robolectric.annotation.Config
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.core.engine.PackingEngine
+import se.partee71.reseapoteket.core.engine.PackingGroup
+import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.PackingItem
@@ -84,7 +88,7 @@ class PackingListScreensTest {
             trip.copy(status = status),
             listOf(anna, erik, lova, gunnar),
             PackingEngine.progress(items),
-            PackingSection.entries.associateWith { section -> PackingEngine.progress(shown.filter { it.section == section }) },
+            PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { PackingList.group(it) == group }) },
         )
     }
 
@@ -163,6 +167,19 @@ class PackingListScreensTest {
         rule.onNodeWithText("Räkna om").performClick()
         assertEquals(1, edits)
         assertEquals(listOf<PackingListEvent>(PackingListEvent.Recount), events)
+    }
+
+    @Test
+    @Config(qualifiers = "w390dp-h1300dp-xxhdpi")
+    fun `skärmdump - På resedagen sist i listan med tiderna (PAK-6)`() {
+        val travelDay = listOf(
+            rows[0],
+            rows[2],
+            PackingRow(med("insulin", anna, "Insulin NovoRapid", 1, ItemUnit.ST).copy(travelDay = true), anna),
+            PackingRow(other("tandborste", "Tandborste", 4, ItemUnit.ST).copy(travelDay = true)),
+            PackingRow(other("laddare", "Laddare", 2, ItemUnit.ST, manual = true).copy(travelDay = true, travelDayTime = LocalTime(8, 30))),
+        )
+        captureLightAndDark("PackingListScreen_resedag") { PackingListContent(ListUiState.Content(travelDay), header(travelDay), {}, {}, {}) }
     }
 
     @Test

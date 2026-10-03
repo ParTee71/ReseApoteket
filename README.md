@@ -31,6 +31,7 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Packlistan: pricka av per sektion och person, ändra mängd, lägg till egna rader, dölj med svep och ångra, och konfetti när allt är packat (PAK).
 - Inställningar: hushållets namn och marginaldagar, "Flytta avprickade sist", tema, konto med utloggning, och export av hushållet som JSON i samma format som backupen (SET).
 - Påminnelser inför resan: ingen packlista än, dags att packa, dagen före och resedagens morgon – för de personer telefonen valt, med egna tider (PÅM).
+- Packas på resedagen: det som används till sista morgonen samlas sist i packlistan och påminns om på resedagens morgon eller vid en egen tid (PAK-6).
 - Komponentkatalogen och ramarna för listor och redigering; i debug-bygget visar Inställningar → Komponenter alla delar.
 
 ## Kom igång (Android Studio)

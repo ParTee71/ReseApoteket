@@ -10,7 +10,6 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
-import se.partee71.reseapoteket.core.engine.ReminderKind
 
 /**
  * Bakgrundsjobbet bakom påminnelserna (PÅM-6): går igenom dem och schemalägger nästa
@@ -35,8 +34,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
     }
 
     companion object {
-        const val TRIP_ID = "tripId"
-        const val KIND = "kind"
+        const val KEY = "key"
 
         /**
          * Det jobbet gör, utan Android: "Senare" visar sin påminnelse igen; annars gås påminnelserna
@@ -46,14 +44,13 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         suspend fun perform(
             input: Data,
             run: suspend () -> Instant,
-            showAgain: suspend (String, ReminderKind) -> Unit,
+            showAgain: suspend (String) -> Unit,
             checkAt: (Instant) -> Unit,
             retryAt: () -> Instant,
         ) {
-            val tripId = input.getString(TRIP_ID)
-            val kind = input.getString(KIND)?.let { name -> ReminderKind.entries.firstOrNull { it.name == name } }
-            if (tripId != null && kind != null) {
-                showAgain(tripId, kind)
+            val key = input.getString(KEY)
+            if (key != null) {
+                showAgain(key)
                 return
             }
             val next = try {

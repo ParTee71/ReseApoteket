@@ -168,4 +168,17 @@ class FamilyItemViewModelsTest {
         assertEquals(emptyMap(), errors(QuantityRule.PerDays(1, 7)))
         assertEquals(emptyMap(), errors(QuantityRule.Unknown("framtida")))
     }
+
+    @Test
+    fun `en artikel som packas på resedagen sparas med valet (PAK-6)`() = runTest {
+        val vm = editor()
+        vm.effects.test {
+            vm.onEvent(FamilyItemEditEvent.Name("Tandborste"))
+            vm.onEvent(FamilyItemEditEvent.TravelDay(true, null))
+            vm.onEvent(FamilyItemEditEvent.Save)
+            assertEquals(EditorEffect.Done, awaitItem())
+        }
+        val saved = items.getAll().getOrThrow().single()
+        assertEquals(true to null, saved.travelDay to saved.travelDayTime)
+    }
 }

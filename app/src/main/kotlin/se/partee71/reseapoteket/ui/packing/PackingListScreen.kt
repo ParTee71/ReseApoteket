@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.model.PackingItem
@@ -41,6 +42,7 @@ import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.ListGroup
 import se.partee71.reseapoteket.ui.components.ListSubgroup
+import se.partee71.reseapoteket.ui.components.LocalTravelDayMorning
 import se.partee71.reseapoteket.ui.components.StackedAvatar
 import se.partee71.reseapoteket.ui.components.SuitcaseProgress
 import se.partee71.reseapoteket.ui.components.SwipeToHide
@@ -87,7 +89,7 @@ fun PackingListContent(
     celebrations: Flow<Unit> = emptyFlow(),
     sheetError: DataError? = null,
 ) {
-    val groups = sectionGroups(header?.sections.orEmpty())
+    val groups = packingGroups(header?.groups.orEmpty())
     val progress = header?.progress ?: PackingProgress.NONE
     var confetti by remember { mutableStateOf(false) }
     LaunchedEffect(celebrations) { celebrations.collect { confetti = true } }
@@ -108,7 +110,7 @@ fun PackingListContent(
                 AppMenuItem(stringResource(R.string.packing_recount), { onEvent(PackingListEvent.AskRecount) }, R.drawable.ic_refresh),
                 AppMenuItem(stringResource(R.string.packing_hide_checked), { onEvent(PackingListEvent.HideChecked) }, R.drawable.ic_visibility_off),
             ),
-            group = { row -> groups.getValue(if (row.item.hidden) null else row.item.section) },
+            group = { row -> groups.getValue(if (row.item.hidden) null else PackingList.group(row.item)) },
             archive = archive,
             subtitle = header?.let { subtitle(it) },
             onBack = onBack,
@@ -149,16 +151,26 @@ private fun subtitle(header: PackingHeader): String {
     return listOfNotNull(trip.startDate?.let(DateFormat::display), days, travellers).joinToString(" · ")
 }
 
-/** Rubrik per sektion med packat/totalt; "Dolda" (`null`) sist och hopfälld (PAK-1, PAK-4). */
+/**
+ * Rubrik per grupp med packat/totalt; "På resedagen" efter Övrigt och "Dolda" (`null`) sist och
+ * hopfälld (PAK-1, PAK-4, PAK-6).
+ */
 @Composable
-private fun sectionGroups(progress: Map<PackingSection, PackingProgress>): Map<PackingSection?, ListGroup> {
-    fun count(section: PackingSection) = progress[section]?.let { "${it.packed} / ${it.total}" }
-    val medicines = ListGroup(stringResource(R.string.packing_medicines), R.drawable.ic_medication, Tone.Primary, count(PackingSection.MEDICINE))
-    val supplements = ListGroup(stringResource(R.string.packing_supplements), R.drawable.ic_eco, Tone.Green, count(PackingSection.SUPPLEMENT))
-    val other = ListGroup(stringResource(R.string.packing_other), R.drawable.ic_box, Tone.Blue, count(PackingSection.FAMILY), columns = 2)
+private fun packingGroups(progress: Map<PackingGroup, PackingProgress>): Map<PackingGroup?, ListGroup> {
+    fun count(group: PackingGroup) = progress[group]?.let { "${it.packed} / ${it.total}" }
+    val medicines = ListGroup(stringResource(R.string.packing_medicines), R.drawable.ic_medication, Tone.Primary, count(PackingGroup.MEDICINE))
+    val supplements = ListGroup(stringResource(R.string.packing_supplements), R.drawable.ic_eco, Tone.Green, count(PackingGroup.SUPPLEMENT))
+    val other = ListGroup(stringResource(R.string.packing_other), R.drawable.ic_box, Tone.Blue, count(PackingGroup.FAMILY), columns = 2)
+    val travelDay = ListGroup(stringResource(R.string.packing_travel_day), R.drawable.ic_sun, Tone.Primary, count(PackingGroup.TRAVEL_DAY))
     val hidden = ListGroup(stringResource(R.string.packing_hidden), R.drawable.ic_visibility_off, Tone.Primary, collapsible = true)
-    return remember(medicines, supplements, other, hidden) {
-        mapOf(PackingSection.MEDICINE to medicines, PackingSection.SUPPLEMENT to supplements, PackingSection.FAMILY to other, null to hidden)
+    return remember(medicines, supplements, other, travelDay, hidden) {
+        mapOf(
+            PackingGroup.MEDICINE to medicines,
+            PackingGroup.SUPPLEMENT to supplements,
+            PackingGroup.FAMILY to other,
+            PackingGroup.TRAVEL_DAY to travelDay,
+            null to hidden,
+        )
     }
 }
 
@@ -185,6 +197,8 @@ private fun PackingRowView(row: PackingRow, onEvent: (PackingListEvent) -> Unit,
             trailing = {
                 when {
                     PackingList.isChanged(item) -> InfoPill(stringResource(R.string.packing_changed))
+                    // Resedagens rader visar när de packas: egen tid eller resedagens morgon (PAK-6).
+                    item.travelDay -> InfoPill(DateFormat.time(item.travelDayTime ?: LocalTravelDayMorning.current))
                     row.schedule != null -> InfoPill(row.schedule, tone = Tone.Blue)
                 }
             },

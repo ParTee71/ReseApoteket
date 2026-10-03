@@ -20,13 +20,13 @@ Tabellen visar det motorn använder. Fullständiga fält och lagring: `ARKITEKTU
 
 | Modell | Innehåll |
 |---|---|
-| `Regimen` | `kind` (`MEDICINE`/`SUPPLEMENT`), namn, form, styrka, `unit`, `packageSize?`, `schedule`, `active`, `archived` |
+| `Regimen` | `kind` (`MEDICINE`/`SUPPLEMENT`), namn, form, styrka, `unit`, `packageSize?`, `schedule`, `active`, `travelDay`, `travelDayTime?`, `archived` |
 | `DoseSchedule` | sealed: `Daily(dosesPerDay, unitsPerDose)`, `Weekdays(days: Set<DayOfWeek>, unitsPerDose)`, `IntervalDays(intervalDays, unitsPerDose)`, `AsNeeded(quantity)`, `Unknown` |
-| `FamilyItem` | namn, kategori, `unit`, `rule`, `active`, `archived` |
+| `FamilyItem` | namn, kategori, `unit`, `rule`, `active`, `travelDay`, `travelDayTime?`, `archived` |
 | `QuantityRule` | sealed: `Fixed(quantity)`, `PerTraveller(quantity)`, `PerDays(quantity, perDays)`, `Unknown` |
 | `Trip` | `startDate: LocalDate?` (saknas → `Weekdays` ger varning), `days`, `travellerIds` |
 | `HouseholdSettings` | `marginDays` (default 2) |
-| `PackingItem` | sektion, `personId?`, `sourceType` (`REGIMEN`/`FAMILY_ITEM`/`MANUAL`), `sourceId?`, namn, `unit`, `suggestedQuantity`, `quantity`, `packages?`, `reason`, `checked`, `checkedAt?`, `hidden` |
+| `PackingItem` | sektion, `personId?`, `sourceType` (`REGIMEN`/`FAMILY_ITEM`/`MANUAL`), `sourceId?`, namn, `unit`, `suggestedQuantity`, `quantity`, `packages?`, `reason`, `checked`, `checkedAt?`, `hidden`, `travelDay`, `travelDayTime?` (följer källan vid ny lista och "Räkna om", PAK-6) |
 
 ## API
 

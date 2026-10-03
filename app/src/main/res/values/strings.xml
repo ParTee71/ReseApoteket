@@ -99,6 +99,18 @@
     <string name="sync_pending_explained">Ändringarna är sparade på telefonen och skickas när det finns nät.</string>
     <string name="sync_write_rejected">En ändring kunde inte sparas och har ångrats. %1$s</string>
 
+    <!-- Packas på resedagen (PAK-6) -->
+    <string name="travel_day">Packas på resedagen</string>
+    <string name="travel_day_note">Används till sista morgonen</string>
+    <string name="travel_day_time">Påminn kl.</string>
+    <string name="travel_day_time_morning">Resedagens morgon – välj en egen tid om det behövs</string>
+    <string name="travel_day_time_own">Egen tid för just den här</string>
+    <string name="travel_day_use_morning">Använd resedagens morgon</string>
+    <string name="packing_travel_day">På resedagen</string>
+    <string name="reminder_travel_day_items">Packa nu: %1$s.</string>
+    <string name="reminder_day_before_with_morning">%1$s Och %2$d packas på morgonen.</string>
+    <string name="reminder_day_before_only_morning">Allt annat är packat – %1$d packas på morgonen.</string>
+
     <!-- Påminnelser (PÅM-1–7) -->
     <string name="reminders_title">Påminnelser</string>
     <string name="reminders_persons">Påminn mig om resor för</string>

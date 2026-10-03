@@ -219,18 +219,18 @@ households/{hid}/persons/{pid}/regimens/{rid}
   strength ("500 mg"), unit, packageSize?,
   schedule: { type: DAILY|WEEKDAYS|INTERVAL|AS_NEEDED,
               dosesPerDay?, unitsPerDose?, weekdays?: [1..7], intervalDays?, asNeededQuantity? },
-  notes, active, sortOrder, archived
+  notes, active, travelDay, travelDayTime? ("HH:mm"), sortOrder, archived
 households/{hid}/familyItems/{fid}
   name, category: CREAM|PLASTER|TOOL|OTHER, unit,
   rule: { type: FIXED|PER_TRAVELLER|PER_DAYS, quantity, perDays? },
-  notes, active, sortOrder, archived
+  notes, active, travelDay, travelDayTime? ("HH:mm"), sortOrder, archived
 households/{hid}/trips/{tid}
   name, startDate (yyyy-MM-dd), days, travellerIds: [pid], status: PLANNING|PACKED|DONE,
   createdAt, updatedAt, archived
 households/{hid}/trips/{tid}/packingItems/{iid}
   section: MEDICINE|SUPPLEMENT|FAMILY, personId?, sourceType: REGIMEN|FAMILY_ITEM|MANUAL,
   sourceId?, name, unit, suggestedQuantity, quantity, packages?, reason,
-  checked, checkedAt?, hidden, sortOrder
+  checked, checkedAt?, hidden, travelDay, travelDayTime? ("HH:mm"), sortOrder
 ```
 
 `unit` är `TABLETT|KAPSEL|ML|DOS|PUFF|ST|TUB` överallt (`ItemUnit`).

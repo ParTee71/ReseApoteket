@@ -24,6 +24,7 @@ internal fun PickerField(
     onPick: () -> Unit,
     modifier: Modifier = Modifier,
     error: String? = null,
+    helper: String? = null,
 ) {
     val description = listOf(label, shown.ifEmpty { pickLabel }, error.orEmpty()).filter { it.isNotEmpty() }.joinToString(", ")
     Box(modifier) {
@@ -34,6 +35,7 @@ internal fun PickerField(
             label = label,
             modifier = Modifier.focusProperties { canFocus = false }.clearAndSetSemantics {},
             error = error,
+            helper = helper,
             readOnly = true,
             trailingIcon = icon,
         )

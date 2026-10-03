@@ -31,6 +31,7 @@ fun TimeField(
     onTimeChange: (LocalTime) -> Unit,
     modifier: Modifier = Modifier,
     error: String? = null,
+    helper: String? = null,
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
     val pickLabel = stringResource(R.string.pick_time)
@@ -42,6 +43,7 @@ fun TimeField(
         onPick = { picking = true },
         modifier = modifier,
         error = error,
+        helper = helper,
     )
     if (picking) {
         val state = rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)

@@ -41,8 +41,25 @@ fun Resources.reminderText(reminder: Reminder): ReminderText {
             getString(R.string.reminder_time_to_pack_title, reminder.tripName),
             getString(R.string.reminder_time_to_pack_text, left, reminder.progress.total),
         )
-        ReminderKind.DAY_BEFORE -> ReminderText(getString(R.string.reminder_day_before_title, reminder.tripName), getQuantityString(R.plurals.reminder_left, left, left))
-        ReminderKind.TRAVEL_DAY -> ReminderText(getString(R.string.reminder_travel_day_title), getQuantityString(R.plurals.reminder_left, left, left))
+        ReminderKind.DAY_BEFORE -> {
+            // Det som packas på resedagen nämns för sig (PAK-6).
+            val morning = reminder.travelDayItems.size
+            val rest = left - morning
+            val text = when {
+                morning == 0 -> getQuantityString(R.plurals.reminder_left, left, left)
+                rest == 0 -> getString(R.string.reminder_day_before_only_morning, morning)
+                else -> getString(R.string.reminder_day_before_with_morning, getQuantityString(R.plurals.reminder_left, rest, rest), morning)
+            }
+            ReminderText(getString(R.string.reminder_day_before_title, reminder.tripName), text)
+        }
+        ReminderKind.TRAVEL_DAY -> ReminderText(
+            getString(R.string.reminder_travel_day_title),
+            if (reminder.travelDayItems.isEmpty()) {
+                getQuantityString(R.plurals.reminder_left, left, left)
+            } else {
+                getString(R.string.reminder_travel_day_items, reminder.travelDayItems.joinToString(", "))
+            },
+        )
     }
 }
 
@@ -63,7 +80,7 @@ class ReminderNotifier @Inject constructor(@ApplicationContext private val conte
                 .setDescription(context.getString(R.string.reminder_channel_note))
                 .build(),
         )
-        val id = notificationId(reminder.tripId, reminder.kind)
+        val id = notificationId(reminder.key)
         try {
             manager.notify(id, build(reminder, id))
         } catch (_: SecurityException) {
@@ -101,15 +118,14 @@ class ReminderNotifier @Inject constructor(@ApplicationContext private val conte
 
     private fun snooze(reminder: Reminder, id: Int): PendingIntent {
         val intent = Intent(context, ReminderSnoozeReceiver::class.java)
-            .putExtra(ReminderSnoozeReceiver.EXTRA_TRIP_ID, reminder.tripId)
-            .putExtra(ReminderSnoozeReceiver.EXTRA_KIND, reminder.kind.name)
+            .putExtra(ReminderSnoozeReceiver.EXTRA_KEY, reminder.key)
         return PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
     companion object {
         const val CHANNEL = "trip_reminders"
 
-        /** Samma resa och påminnelse ersätter sin förra notis i stället för att lägga till en ny. */
-        fun notificationId(tripId: String, kind: ReminderKind): Int = "$tripId/${kind.name}".hashCode()
+        /** Samma påminnelse ([Reminder.key]) ersätter sin förra notis i stället för att lägga till en ny. */
+        fun notificationId(key: String): Int = key.hashCode()
     }
 }

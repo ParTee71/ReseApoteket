@@ -6,7 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import se.partee71.reseapoteket.core.engine.ReminderKind
 
 /** Vad bakgrundsjobbet gör (PÅM-6, PÅM-7): genomgång och nästa tid, eller "Senare". */
 class ReminderWorkerTest {
@@ -14,10 +13,10 @@ class ReminderWorkerTest {
     private val next = Instant.fromEpochSeconds(1_790_100_000)
     private val retry = Instant.fromEpochSeconds(1_790_001_800)
     private val scheduled = mutableListOf<Instant>()
-    private val shownAgain = mutableListOf<Pair<String, ReminderKind>>()
+    private val shownAgain = mutableListOf<String>()
 
     private suspend fun perform(input: Data, run: suspend () -> Instant) =
-        ReminderWorker.perform(input, run, { trip, kind -> shownAgain += trip to kind }, { scheduled += it }, { retry })
+        ReminderWorker.perform(input, run, { key -> shownAgain += key }, { scheduled += it }, { retry })
 
     @Test
     fun `en genomgång schemalägger nästa`() = runTest {
@@ -34,14 +33,9 @@ class ReminderWorkerTest {
 
     @Test
     fun `Senare visar sin påminnelse igen och schemalägger inget`() = runTest {
-        perform(workDataOf(ReminderWorker.TRIP_ID to "gc", ReminderWorker.KIND to "DAY_BEFORE")) { error("ska inte köras") }
-        assertEquals(listOf("gc" to ReminderKind.DAY_BEFORE), shownAgain)
+        perform(workDataOf(ReminderWorker.KEY to "gc/DAY_BEFORE/18:00")) { error("ska inte köras") }
+        assertEquals(listOf("gc/DAY_BEFORE/18:00"), shownAgain)
         assertEquals(emptyList(), scheduled)
     }
 
-    @Test
-    fun `en okänd typ från en äldre app ger en vanlig genomgång`() = runTest {
-        perform(workDataOf(ReminderWorker.TRIP_ID to "gc", ReminderWorker.KIND to "PÅ_STATIONEN")) { next }
-        assertEquals(listOf(next), scheduled)
-    }
 }

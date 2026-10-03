@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import org.junit.Before
@@ -164,11 +165,37 @@ class ReminderRunnerTest {
     @Test
     fun `Senare visar samma påminnelse igen om den fortfarande gäller`() = runTest {
         seed(packed = 1, total = 3)
-        runner.showAgain("gc", ReminderKind.DAY_BEFORE)
+        runner.showAgain("gc/DAY_BEFORE/18:00")
         assertEquals("Gran Canaria i morgon", notifications.single().extras.getString(Notification.EXTRA_TITLE))
         assertEquals("2 saker kvar att packa.", notifications.single().extras.getString(Notification.EXTRA_TEXT))
-        runner.showAgain("gc", ReminderKind.NO_LIST)
+        runner.showAgain("gc/NO_LIST/18:00")
         assertEquals(1, notifications.size)
+    }
+
+    @Test
+    fun `dagen före nämner det som packas på morgonen, resedagen listar det (PAK-6)`() {
+        val resources = application.resources
+        val dayBefore = Reminder(
+            ReminderKind.DAY_BEFORE, "gc", "Gran Canaria", LocalDate(2026, 10, 3), LocalDateTime(2026, 10, 2, 18, 0),
+            PackingProgress(10, 15), travelDayItems = listOf("Tandborste", "Insulin"),
+        )
+        assertEquals("3 saker kvar att packa. Och 2 packas på morgonen.", resources.reminderText(dayBefore).text)
+        assertEquals("Allt annat är packat – 2 packas på morgonen.", resources.reminderText(dayBefore.copy(progress = PackingProgress(13, 15))).text)
+        val morning = dayBefore.copy(kind = ReminderKind.TRAVEL_DAY, at = LocalDateTime(2026, 10, 3, 7, 0))
+        assertEquals("Packa nu: Tandborste, Insulin.", resources.reminderText(morning).text)
+    }
+
+    @Test
+    fun `en egen tid på resedagen får en egen notis som Senare hittar igen (PAK-6)`() = runTest {
+        seed(packed = 0, total = 2)
+        packing.forTrip("gc").upsert(PackingItem("laddare", name = "Laddare", travelDay = true, travelDayTime = LocalTime(8, 30)))
+        clock.now = at(2026, 10, 3, 6, 0)
+        runner.run()
+        clock.now = at(2026, 10, 3, 8, 31)
+        runner.run()
+        assertEquals(listOf("3 saker kvar att packa.", "Packa nu: Laddare."), notifications.map { it.extras.getString(Notification.EXTRA_TEXT) })
+        runner.showAgain("gc/TRAVEL_DAY/08:30")
+        assertEquals(2, notifications.size, "samma notis ersätts")
     }
 
     @Test
