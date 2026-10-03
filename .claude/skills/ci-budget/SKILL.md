@@ -42,8 +42,16 @@ resten med `dorny/paths-filter`.
   Roborazzi-diffar och CPD-rapporten vid fel, länkade i jobbsammanfattningen.
 - **`rules`** hoppar över (med en notis) om `tools/db/package.json` eller `firebase.json`
   saknas.
-- **`release.yml`** anropar `android.yml`, `instrumented.yml` och `quality.yml`
-  (`workflow_call`) som grindar – samma jobb, ingen kopia.
+- **`release.yml`** kör inget två gånger: en snabb `gate` kontrollerar version, secrets och CI-resultatet på
+  commiten (master-pushen) i stället för att köra om det – och stoppar allt innan något dyrt startar;
+  lint och det signerade minifierade bygget går i en Gradle-körning
+  (`build`), parallellt med `instrumented.yml` (`workflow_call`); rules deployas bara om de
+  ändrats sedan förra releasen. Ett fallerat jobb körs om ensamt, aldrig hela releasen.
+- **`quality.yml`** (veckovis) hoppar över om master inte ändrats sedan senaste gröna
+  kvalitets- eller releasekörning.
+- **Versionen** står i `version.properties` (utanför filtren): en release-PR kör bara `changes`.
+- Varje jobb debiteras uppåt till hel minut – slå ihop korta steg i ett jobb hellre än att
+  lägga till jobb.
 
 ### Dokumentdrift
 `.github/scripts/check-ci-table.mjs` läser tabellen mellan `ci-table`-markeringarna och
@@ -58,11 +66,11 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 | Steg | Var det körs i stället |
 |---|---|
 | Instrumenttester på Android-emulator (inkl. `CollectionContract` mot riktig `FirestoreCollection`) | `instrumented.yml`: `workflow_dispatch` och release; körs på begäran före merge när `data/firestore/` ändrats |
-| `lintDebug` | `quality.yml`: veckovis och release |
-| `assembleRelease` (minifierat) | `quality.yml`: veckovis och release |
+| `lintDebug` | `quality.yml`: veckovis när master ändrats; vid release `lintRelease` i `release.yml` |
+| `assembleRelease` (minifierat) | `quality.yml`: veckovis när master ändrats; vid release det signerade bygget i `release.yml` |
 | Matrisbyggen, flera API-nivåer | inte alls i dag |
 | Backup | `backup.yml`: veckovis cron |
-| Deploy av `firestore.rules` | `rules.yml`: `workflow_dispatch` (dry-run som standard, deploy bara från `master`); `release.yml` före APK-bygget |
+| Deploy av `firestore.rules` | `rules.yml`: `workflow_dispatch` (dry-run som standard, deploy bara från `master`); `release.yml` före publiceringen, bara om de ändrats sedan förra releasen |
 
 ## Tekniker som håller tiden nere
 

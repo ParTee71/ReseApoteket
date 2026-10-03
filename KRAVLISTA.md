@@ -204,7 +204,7 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 | NFR-9 | Tester finns på varje berörd nivå; flaky tester räknas som buggar (skill `testing-strategy`). |
 | NFR-10 | En PR kostar högst ca 8 Actions-minuter och kör bara tester för det som ändrats; `master` kör alltid allt. Emulator, lint och release-bygge körs på begäran, veckovis och vid release (skill `ci-budget`). |
 | NFR-11 | Gränssnittet fungerar med TalkBack och stor text; text har kontrast minst 4,5:1 (skill `accessibility-compose`, `ThemeContrastTest`). |
-| NFR-12 | Release-bygget är minifierat; det byggs veckovis och före varje release (`quality.yml`). |
+| NFR-12 | Release-bygget är minifierat; det byggs och lintas vid varje release (`release.yml`) och veckovis när master ändrats (`quality.yml`). |
 | NFR-13 | Skärmdumpar (ljust och mörkt) jämförs mot incheckade referensbilder i varje PR som rör appen; en oväntad skillnad fäller PR:en och diffbilden sparas (skill `testing-strategy`). |
 | NFR-14 | Kopierad kod fäller bygget (`cpdCheck`, skill `shared-ui-components`). |
 | NFR-15 | Dokumentationen kontrolleras i varje PR: CI-tabellen mot filtren, relativa länkar, nämnda skills och agenter, och hooktestet. |

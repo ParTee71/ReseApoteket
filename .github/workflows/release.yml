@@ -1,6 +1,11 @@
-# Release (skill release). Grindar: alla tester, cpdCheck och dokumentkontroller (CI),
-# instrumenttester och lint + minifierat bygge (Kvalitet). Sedan deploy av firestore.rules,
-# signerat bygge och GitHub Release. Taggen skapas här – en agentsession kan inte pusha taggar.
+# Release (skill release), byggd för få Actions-minuter (skill ci-budget):
+# - gate (sekunder): master, version, secrets och att CI redan är grönt på commiten – master-
+#   pushen har kört alla tester och dokumentkontroller; de körs inte om här. Fel stoppar allt.
+# - build: lint och det signerade, minifierade bygget i samma Gradle-körning – parallellt med
+# - instrumented: instrumenttesterna på emulator.
+# - publish: när båda är gröna – deployar firestore.rules bara om de ändrats sedan förra
+#   releasen, skapar taggen och GitHub Release.
+# Taggen skapas här – en agentsession kan inte pusha taggar.
 name: Release
 
 on:
@@ -9,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: 'Version utan v, t.ex. 0.2.0 – måste vara samma som versionName i app/build.gradle.kts'
+        description: 'Version utan v, t.ex. 0.2.0 – måste vara samma som versionName i version.properties'
         required: true
         type: string
       publish_release:
@@ -20,32 +25,22 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
-  issues: write
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  ci:
-    uses: ./.github/workflows/android.yml
-
-  instrumented:
-    uses: ./.github/workflows/instrumented.yml
-
-  quality:
-    uses: ./.github/workflows/quality.yml
-    with:
-      open_issue: false
-
-  release:
-    name: release
-    needs: [ci, instrumented, quality]
+  gate:
+    name: gate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     permissions:
-      contents: write # skapa taggen och GitHub Release
+      contents: read
+      checks: read
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      publish: ${{ steps.version.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,14 +62,14 @@ jobs:
             echo "::error::Commiten $GITHUB_SHA ligger inte på master – release görs bara från master (skill release)."
             exit 1
           fi
-          in_build="$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | cut -d'"' -f2)"
+          in_build="$(sed -n 's/^versionName=//p' version.properties)"
           if [ "$EVENT" = "push" ]; then
             version="${REF_NAME#v}"; publish=true
           else
             version="$INPUT_VERSION"; publish="$PUBLISH"
           fi
           if [ "$version" != "$in_build" ]; then
-            echo "::error::Versionen $version skiljer sig från versionName $in_build i app/build.gradle.kts – gör release-commiten först (skill release)."
+            echo "::error::Versionen $version skiljer sig från versionName $in_build i version.properties – gör release-commiten först (skill release)."
             exit 1
           fi
           tag="v$version"
@@ -86,6 +81,44 @@ jobs:
             echo "tag=$tag"
             echo "publish=$publish"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Secrets finns
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          FIREBASE_RULES_DEPLOYER: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
+        run: |
+          for name in GOOGLE_SERVICES_JSON SIGNING_KEYSTORE_BASE64 SIGNING_STORE_PASSWORD SIGNING_KEY_ALIAS SIGNING_KEY_PASSWORD FIREBASE_RULES_DEPLOYER; do
+            if [ -z "${!name}" ]; then echo "::error::Secret $name saknas – krävs för en release."; exit 1; fi
+          done
+
+      # Tester, cpdCheck, rules-tester och dokumentkontroller har redan körts av CI på samma
+      # commit (master-pushen) – kontrollera resultatet i stället för att köra om dem. Starta
+      # releasen först när CI på master är klart (skill release); annars stannar den här.
+      - name: CI grönt på commiten
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          result="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=ci-ok" \
+            --jq '[.check_runs[] | select(.app.slug == "github-actions")][0] | "\(.status) \(.conclusion)"')"
+          if [ "$result" != "completed success" ]; then
+            echo "::error::CI på $GITHUB_SHA är inte grönt ($result). Vänta tills CI på master är klart och starta releasen igen."
+            exit 1
+          fi
+
+  build:
+    name: build
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      apk: ${{ steps.apk.outputs.name }}
+    steps:
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-android
 
@@ -113,21 +146,22 @@ jobs:
             -deststoretype pkcs12 -J-Dkeystore.pkcs12.legacy > /dev/null
           mv app/reseapoteket-legacy.jks app/reseapoteket.jks
 
-      # Rules före appen (BCK-5), när alla andra hemligheter finns: grindarna ovan har kört
-      # rules-testerna mot emulatorn. En körning utan publicering kontrollerar bara (--dry-run).
-      - uses: ./.github/actions/setup-tools-db
-
-      - uses: ./.github/actions/deploy-rules
-        with:
-          credentials: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
-          dry-run: ${{ steps.version.outputs.publish == 'true' && 'false' || 'true' }}
-
-      - name: Signerat release-bygge
+      # Lint på release-varianten återanvänder bygget i samma körning; det minifierade bygget
+      # är samtidigt beviset att R8 fungerar (NFR-12) – inget eget kvalitetsbygge vid release.
+      - name: Lint och signerat release-bygge
         env:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: ./gradlew :app:assembleRelease
+        run: ./gradlew --continue :app:lintRelease :app:assembleRelease
+
+      - name: Lintrapport
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint
+          path: app/build/reports/lint-results-release.*
+          if-no-files-found: ignore
 
       # Byggfilen signerar bara när alla uppgifter finns – publicera aldrig en osignerad APK.
       - name: Kontrollera signaturen
@@ -143,32 +177,81 @@ jobs:
       - name: Namnge APK:n
         id: apk
         env:
-          TAG: ${{ steps.version.outputs.tag }}
+          TAG: ${{ needs.gate.outputs.tag }}
         run: |
           set -euo pipefail
           apks=(app/build/outputs/apk/release/*.apk)
           if [ "${#apks[@]}" -ne 1 ]; then echo "::error::Väntade en APK, fick ${#apks[@]}"; exit 1; fi
           name="ReseApoteket-${TAG#v}-$(date -u +%Y%m%d-%H%M).apk"
           cp "${apks[0]}" "$RUNNER_TEMP/$name"
-          echo "path=$RUNNER_TEMP/$name" >> "$GITHUB_OUTPUT"
+          {
+            echo "path=$RUNNER_TEMP/$name"
+            echo "name=$name"
+          } >> "$GITHUB_OUTPUT"
 
       - name: APK som artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reseapoteket-${{ steps.version.outputs.tag }}
+          name: reseapoteket-${{ needs.gate.outputs.tag }}
           path: ${{ steps.apk.outputs.path }}
-          retention-days: 30
-
-      - name: GitHub Release
-        if: steps.version.outputs.publish == 'true'
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2 – pinnad: körs med contents: write
-        with:
-          name: ReseApoteket ${{ steps.version.outputs.tag }}
-          tag_name: ${{ steps.version.outputs.tag }}
-          target_commitish: ${{ github.sha }}
-          generate_release_notes: true
-          files: ${{ steps.apk.outputs.path }}
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Ta bort hemligheter
         if: always()
         run: rm -f app/reseapoteket.jks app/google-services.json
+
+  instrumented:
+    needs: gate
+    uses: ./.github/workflows/instrumented.yml
+
+  publish:
+    name: publish
+    needs: [gate, build, instrumented]
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # skapa taggen och GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Rules före appen (BCK-5), men bara när de ändrats sedan förra releasen.
+      - name: Ändrade rules?
+        id: rules
+        env:
+          TAG: ${{ needs.gate.outputs.tag }}
+        run: |
+          set -euo pipefail
+          prev="$(git describe --tags --abbrev=0 --match 'v*' --exclude "$TAG" 2>/dev/null || true)"
+          if [ -n "$prev" ] && git diff --quiet "$prev" HEAD -- firestore.rules; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "firestore.rules oförändrade sedan $prev – ingen deploy." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.rules.outputs.changed == 'true'
+        uses: ./.github/actions/setup-tools-db
+
+      - if: steps.rules.outputs.changed == 'true'
+        uses: ./.github/actions/deploy-rules
+        with:
+          credentials: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
+          dry-run: 'false'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: reseapoteket-${{ needs.gate.outputs.tag }}
+          path: ${{ runner.temp }}/apk
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2 – pinnad: körs med contents: write
+        with:
+          name: ReseApoteket ${{ needs.gate.outputs.tag }}
+          tag_name: ${{ needs.gate.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: ${{ runner.temp }}/apk/${{ needs.build.outputs.apk }}

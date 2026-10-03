@@ -1,6 +1,6 @@
 ---
 name: release
-description: ReseApotekets release-flöde — föreslå versionshöjning, bekräfta, uppdatera app/build.gradle.kts och README, landa release-commiten på master och trigga release.yml via workflow_dispatch så att GitHub Actions kör grindarna (tester, lint, instrumenttester), skapar taggen, bygger den signerade APK:n och publicerar en GitHub Release. CI-först (fungerar från telefonen). Använd BARA när användaren uttryckligen ber om en release. Trigger-ord: release, släpp, ny version, publicera, versionshöjning, bygg APK.
+description: ReseApotekets release-flöde — föreslå versionshöjning, bekräfta, uppdatera version.properties och README, landa release-commiten på master och trigga release.yml via workflow_dispatch så att GitHub Actions kör grindarna (tester, lint, instrumenttester), skapar taggen, bygger den signerade APK:n och publicerar en GitHub Release. CI-först (fungerar från telefonen). Använd BARA när användaren uttryckligen ber om en release. Trigger-ord: release, släpp, ny version, publicera, versionshöjning, bygg APK.
 ---
 
 # Release
@@ -10,13 +10,20 @@ Kör stegen i ordning och rapportera efter varje steg. Stanna och förklara om n
 
 ## Hur en release går till
 
-- **Grindar:** `release.yml` kör alla tester, `cpdCheck`, dokumentkontroller,
-  instrumenttester på emulator och `lintDebug` innan bygget – de steg som hålls utanför
-  PR-flödet av CI-budgeten (skill `ci-budget`).
+- **Snålt med Actions-minuter (skill `ci-budget`):** `release.yml` kör bara det som inte redan
+  körts. `build` gör lint och det signerade, minifierade bygget i en Gradle-körning, parallellt
+  med instrumenttesterna (`instrumented`). `publish` körs när båda är gröna och kräver att CI
+  redan är grönt på commiten (master-pushen har kört alla tester, `cpdCheck` och
+  dokumentkontroller – de körs inte om). Är CI inte klart än: kör om bara `publish`-jobbet.
 - **Bygg och signering:** i Actions; keystore och lösenord från secrets. Ingen lokal SDK krävs.
-- **Rules:** `release.yml` deployar `firestore.rules` (secret `FIREBASE_RULES_DEPLOYER`) efter
-  grindarna och före bygget – en körning utan publicering provkör bara, men kräver också secreten.
-  En publicering vars `firestore.rules` skiljer sig från `master` stoppas före bygget.
+- **Rules:** `publish` deployar `firestore.rules` (secret `FIREBASE_RULES_DEPLOYER`) före
+  GitHub Release – bara om de ändrats sedan förra releasen. En publicering vars
+  `firestore.rules` skiljer sig från `master` stoppas.
+- **Ett fallerat jobb:** kör om bara det (`rerun_failed_jobs`), aldrig hela releasen.
+- **Starta releasen först när CI på `master` är grönt** för merge-commiten – annars stoppar
+  `gate` den direkt (det kostar sekunder, inte emulatorminuter).
+- Rules jämförs mot förra `v*`-taggen. Skapades en tagg utan att `publish` lyckades, kör
+  `rules.yml` med `deploy: true` om rules ändrats.
 - **Publicering:** `release.yml` skapar taggen `vX.Y.Z` själv och publicerar en GitHub
   Release med changelog och APK. Två triggers: push av tagg, eller `workflow_dispatch` på
   `master` med `version_name` och `publish_release`.
@@ -26,7 +33,7 @@ Kör stegen i ordning och rapportera efter varje steg. Stanna och förklara om n
 
 ## Steg 1 – Nuvarande version
 
-Läs `versionCode` och `versionName` i `app/build.gradle.kts`.
+Läs `versionCode` och `versionName` i `version.properties`.
 
 ## Steg 2 – Föreslå versionshöjning
 
@@ -51,14 +58,15 @@ Kör v<ny>, eller en annan version?
 
 ## Steg 3 – Uppdatera version, README och krav
 
-1. `app/build.gradle.kts`: `versionCode` och `versionName`.
+1. `version.properties`: `versionCode` och `versionName`. Filen ligger utanför CI-filtren, så
+   release-PR:en kör bara dokumentkontrollerna (README ändras också).
 2. README "Versionshistorik": ny rad för `<ny>` med användarsynliga ändringar och `(#NN)`-referenser.
 3. Kontrollera att KRAVLISTA.md speglar det som släpps (inga kvarvarande `*(planerad)*` för
    byggda funktioner) och att TP-kraven matchar SDK-nivåerna i byggfilen.
 4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt (skill `data-safety-backup`)
    och be användaren göra detta, i den här ordningen, **innan** release-bygget triggas (steg 5):
    1. deploya `firestore.rules` med den nya `maxSchemaVersion()` – kör `rules.yml` med
-      `deploy: true` (release-bygget deployar dem också, men stämplingen måste vänta på dem);
+      `deploy: true` (`publish` deployar dem också, men stämplingen måste vänta på dem);
    2. stämpla hushållen: `node tools/db/migrate.mjs --to <N> --dry-run`, sedan utan `--dry-run`.
    Äldre appar visar då "Uppdatera appen" (HUS-3) redan innan den nya appen kan skriva ett värde
    som de skulle läsa fel och skriva tillbaka. Appen stämplar själv bara när inget steg ändrar
