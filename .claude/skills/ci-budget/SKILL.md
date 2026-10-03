@@ -88,7 +88,8 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 - **Nytt beroende eller plugin:** ange uppmätt byggtidseffekt i PR-beskrivningen.
 - **Ny testnivå eller nytt verktyg:** lägg det i rätt filter; aldrig ovillkorligt i `gradle`.
 - **Över budget:** eget issue med mätning och förslag – inte en tyst höjning av timeouten.
-- **Lokalt:** kör bara modulen du ändrat, som CI gör. Aldrig `./gradlew test` av vana.
+- **Lokalt före push** (skill `testing-strategy`): de kontroller ändringen berör, aldrig
+  `./gradlew test` av vana. Lokala körningar kostar inga Actions-minuter – en röd CI-runda gör det.
 
 ## Anti-mönster
 

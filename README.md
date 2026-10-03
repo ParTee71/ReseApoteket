@@ -96,7 +96,8 @@ Verktygen läser bara och sparar inget på disk. Se skill
 [`db-access`](.claude/skills/db-access/SKILL.md).
 
 ### Tester och CI
-Tester körs i GitHub Actions när en PR öppnas. Bara det som berörs av ändringen körs; vad
+Claude kör testerna lokalt i sessionen före push; GitHub Actions bekräftar när en PR öppnas.
+Bara det som berörs av ändringen körs; vad
 som körs när, och vilka flöden som bara körs på begäran, står i skill
 [`ci-budget`](.claude/skills/ci-budget/SKILL.md).
 

@@ -9,10 +9,8 @@ Motsvarigheten till `refine-issue`: driver en ändring från issue till PR enlig
 reglerna i [CLAUDE.md](../../../CLAUDE.md). Hoppa inte över steg – reglerna är definitionen
 av klart.
 
-> **Tester körs i GitHub Actions.** Från telefonen/webben finns normalt ingen Android SDK:
-> resonera om korrekthet, skriv testerna, pusha och låt Actions köra dem. `./gradlew :core:test`
-> och Node-testerna i `.claude/hooks/test` och `.github/scripts` kan köras i sessionen – gör det.
-> Tester i `tools/db` körs bara mot Firebase-emulatorn, aldrig mot den riktiga databasen.
+> **Tester körs lokalt före push, CI bekräftar** (skill `testing-strategy`, "Innan du anser dig
+> klar"). Tester i `tools/db` körs bara mot Firebase-emulatorn, aldrig mot den riktiga databasen.
 
 ## Steg 0 – Föregående PR och branch (alltid först)
 
@@ -102,6 +100,7 @@ granskning sett.
 - Konventionella meddelanden, gärna svenska: `feat(packlista): …`, `fix(berakning): …`,
   `test(...)`, `docs(...)`, `chore(...)`. Små, sammanhängande commits. `Closes #N` i den
   sista. Avsluta med de commit-trailers som sessionen anger.
+- Kör kontrollerna lokalt (skill `testing-strategy`) och pusha först när de är gröna.
 - `git push -u origin <branch>` (försök igen med backoff vid nätverksfel).
 
 ## Steg 10 – Pull request och bevakning

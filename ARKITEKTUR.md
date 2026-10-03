@@ -29,7 +29,8 @@ Krav som styr arkitekturen:
 - **Automatisk backup.**
 - **Tester på alla nivåer**, men **låg kostnad i GitHub Actions**.
 - **Enkelt, stilfullt, lite kul och tydligt gränssnitt.**
-- Utvecklas i huvudsak med Claude Code, ofta från telefonen utan Android SDK.
+- Utvecklas i huvudsak med Claude Code, ofta från telefonen; sessionen kör testerna lokalt
+  före push, bara instrumenttesterna körs i Actions (skill `testing-strategy`).
 
 Utgångspunkten var systerprojektet Dagboken (Kotlin, Compose + Material 3, MVVM, Hilt,
 Room, DataStore, Firebase Auth, backup till Google Drive, emulatortester i CI).

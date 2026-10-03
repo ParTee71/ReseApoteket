@@ -112,13 +112,17 @@ koden i båda riktningar, och att varje publik komponent har skärmdumpar och en
 ```bash
 ./gradlew :core:test                                  # om core/ ändrats
 ./gradlew :app:testDebugUnitTest :app:verifyRoborazziDebug cpdCheck   # om app/ eller core/ ändrats
+./gradlew :app:lintDebug :app:assembleRelease         # om manifest, resurser, proguard eller byggfiler ändrats
 firebase emulators:exec --only firestore "node --test 'tools/db/test/*.test.mjs'"  # om tools/db/ eller rules ändrats – bara mot emulatorn
 node --test '.github/scripts/*.test.mjs'              # dokumentkontroller, alltid
 node --test '.claude/hooks/test/*.test.mjs'           # hooktest, alltid
 ```
 
-Från telefonen går Gradle normalt inte att köra: skriv testerna, pusha och låt Actions
-köra dem. Vid rött – låt agenten `ci-doktor` diagnostisera.
+**Kör kontrollerna lokalt innan varje push** – sessionen har Android SDK och Firebase-emulatorn,
+och en röd CI-runda är det dyraste som finns (skill `ci-budget`). Sätt `LC_ALL=C.UTF-8` (testnamn
+med å/ä/ö) och kör en Gradle-körning i taget. Bara instrumenttesterna kräver Android-emulator
+och körs i Actions (`instrumented.yml`). Går ett kommando inte att köra (nät, SDK saknas):
+säg det i PR:en. Vid rött CI – låt agenten `ci-doktor` diagnostisera.
 
 ## Anti-mönster
 

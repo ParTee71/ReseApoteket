@@ -137,7 +137,8 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
   stängd/pausad av användaren). Gäller `implement-issue` och manuellt arbete.
 - **Kontrollera mergen via GitHub** (`pull_request_read`) innan nästa issue påbörjas –
   inte via antagande. Först när den är mergad startas arbetsbranchen om från `origin/master`.
-- PR:er går mot `master`. Tester körs i GitHub Actions – pusha branchen och öppna PR:en.
+- PR:er går mot `master`. Kör testerna lokalt först (skill **testing-strategy**), pusha sedan –
+  GitHub Actions bekräftar.
 - **Prenumerera automatiskt** på PR-aktivitet (`subscribe_pr_activity`) så fort en PR
   skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
   granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `ci-doktor`
@@ -156,9 +157,8 @@ node tools/db/stats.mjs                 # databasöversikt (kräver FIREBASE_SER
 node tools/db/query.mjs persons         # läs en samling
 ```
 
-Kör bara den modul du ändrat, som CI gör. I fjärr-/telefonsessioner kan `./gradlew :core:test`
-provas (kräver nätverk till Gradle och Maven); allt som kräver Android SDK körs i Actions.
-Kommandona gäller även lokalt i Android Studio.
+Kör det du ändrat lokalt innan varje push – även i fjärr-/telefonsessioner (skill
+**testing-strategy**, "Innan du anser dig klar"). Kommandona gäller även i Android Studio.
 
 ## Arkitektur i korthet
 
