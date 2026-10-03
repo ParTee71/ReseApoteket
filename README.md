@@ -192,4 +192,5 @@ Versionen höjs bara vid release (skill [`release`](.claude/skills/release/SKILL
 
 | Version | Innehåll |
 |---|---|
-| 0.1.0 | Skelett: byggsystem, CI, datamodell och datalager (#11–#15), inloggning och hushåll (#16), backup (#17), databasåtkomst från sessionen (#18). Ingen release publicerad ännu. |
+| 0.1.0 | Skelett: byggsystem, CI, datamodell och datalager (#11–#15), inloggning och hushåll (#16), backup (#17), databasåtkomst från sessionen (#18). Aldrig publicerad. |
+| 0.2.0 | Första releasen. Expressive-tema och navigering (#20); personer (#21), recept med dosering (#22), kosttillskott (#23) och familjeartiklar med mängdregler (#24); resor med packförslag (#25) och packlista med avprickning (#26); inställningar, konto och export (#27). Stabilare hushållssession, navigering och rules (#50–#52); rules deployas från Actions (#64). |
