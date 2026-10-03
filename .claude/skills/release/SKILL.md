@@ -96,7 +96,7 @@ Släppt:  ReseApoteket v<ny>  (versionCode <ny>)
 Commit:  Release v<ny> på master
 Tagg:    v<ny> (skapad av release.yml)
 CI:      <länk / status>
-GitHub:  <Release-länk> (signerad APK bifogad)
+GitHub:  <Release-länk> (signerad ReseApoteket-<ny>-<ÅÅÅÅMMDD-HHMM>.apk, NFR-17)
 ```
 
 ## Reserv – bygga lokalt i Android Studio
