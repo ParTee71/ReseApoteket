@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.toMessage
@@ -21,11 +22,12 @@ import se.partee71.reseapoteket.ui.theme.Spacing
 @Composable
 fun SignInScreen(state: AuthUiState, onEvent: (AuthEvent) -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbar = remember { SnackbarHostState() }
     val error = state.error
     LaunchedEffect(error) {
         if (error != null) {
-            snackbar.showSnackbar(context.getString(error.toMessage()))
+            snackbar.showSnackbar(resources.getString(error.toMessage()))
             onEvent(AuthEvent.ErrorShown)
         }
     }

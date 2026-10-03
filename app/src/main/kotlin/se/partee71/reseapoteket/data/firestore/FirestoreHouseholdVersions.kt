@@ -1,7 +1,6 @@
 package se.partee71.reseapoteket.data.firestore
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.FirebaseFirestoreException.Code
 import com.google.firebase.firestore.snapshots
 import javax.inject.Inject
@@ -28,7 +27,7 @@ class FirestoreHouseholdVersions @Inject constructor(private val db: FirebaseFir
         db.document(Paths.household(householdId)).snapshots()
             .map { doc -> Schema.versionOf(doc.get("schemaVersion")) }
             .catch { error ->
-                throw if (error is FirebaseFirestoreException && error.code == Code.PERMISSION_DENIED) DataError.PermissionDenied else error
+                throw if (error.firestoreCode() == Code.PERMISSION_DENIED) DataError.PermissionDenied else error
             }
             .retryWithBackoff(first = 2.seconds, max = 60.seconds, retryOn = { it != DataError.PermissionDenied })
 

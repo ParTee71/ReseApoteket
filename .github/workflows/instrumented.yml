@@ -67,10 +67,31 @@ jobs:
           emulator-options: -no-window -no-boot-anim -no-snapshot -camera-back none -gpu swiftshader_indirect
           script: npx --prefix tools/db firebase emulators:exec --only firestore,auth --project demo-reseapoteket "./gradlew --configuration-cache :app:connectedDebugAndroidTest"
 
+      # connectedDebugAndroidTest skriver inga testnamn i loggen – fallerade tester och deras första
+      # rader syns här och i jobbsammanfattningen, utan att artifacten behöver laddas ner.
+      - name: Fallerade tester
+        if: failure()
+        shell: python3 {0}
+        run: |
+          import glob, os, xml.etree.ElementTree as ET
+          lines = []
+          for path in glob.glob('app/build/outputs/androidTest-results/connected/**/*.xml', recursive=True):
+              for case in ET.parse(path).iter('testcase'):
+                  for bad in case.findall('failure') + case.findall('error'):
+                      name = f"{case.get('classname')}.{case.get('name')}"
+                      print(f"::error title=Instrumenttest::{name}")
+                      detail = (bad.text or bad.get('message') or '').strip().splitlines()[:25]
+                      print('\n'.join(detail))
+                      lines += [f"### {name}", "```", *detail, "```"]
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('\n'.join(lines or ['Inga testresultat hittades.']) + '\n')
+
       - name: Testrapport
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: instrumenttester
-          path: app/build/reports/androidTests/connected/
+          path: |
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/
           if-no-files-found: ignore

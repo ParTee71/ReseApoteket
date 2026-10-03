@@ -10,8 +10,10 @@ plugins {
 }
 
 // google-services.json är hemlig och git-ignorerad. Saknas den (PR-bygge, session) byggs
-// appen ändå: debug får stubbad Firebase-konfiguration (demo-projekt) från src/authStub
-// (se android.sourceSets), så att appen kompilerar och startar – inloggning fungerar inte där.
+// appen ändå: debug och release får stubbad Firebase-konfiguration (demo-projekt) från
+// src/authStub (se android.sourceSets), så att appen kompilerar och startar – inloggning fungerar
+// inte där. Release-stubben behövs för quality.yml:s minifierade bygge; release.yml skriver alltid
+// den riktiga filen före bygget.
 private val hasGoogleServices = file("google-services.json").exists()
 if (hasGoogleServices) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
@@ -64,7 +66,10 @@ android {
     }
 
     sourceSets {
-        if (!hasGoogleServices) getByName("debug").res.directories += "src/authStub/res"
+        if (!hasGoogleServices) {
+            getByName("debug").res.directories += "src/authStub/res"
+            getByName("release").res.directories += "src/authStub/res"
+        }
         // Kontraktstester som körs både i JVM (mot fakes) och på enhet (mot Firebase-emulatorn).
         getByName("test").kotlin.directories += "src/sharedTest/kotlin"
         getByName("androidTest").kotlin.directories += "src/sharedTest/kotlin"

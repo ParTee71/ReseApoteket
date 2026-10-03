@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +20,12 @@ class AppLaunchTest {
     @Test
     fun startskarmen_visas() {
         val appName = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.app_name)
+        // Temat (DataStore) och inloggningen läses asynkront – det väntar inte Compose in av sig självt.
+        compose.waitUntil(START_TIMEOUT_MS) { compose.onAllNodes(hasText(appName)).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText(appName).assertIsDisplayed()
+    }
+
+    private companion object {
+        const val START_TIMEOUT_MS = 10_000L
     }
 }
