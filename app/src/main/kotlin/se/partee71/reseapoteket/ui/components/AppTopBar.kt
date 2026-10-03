@@ -2,7 +2,12 @@
 
 package se.partee71.reseapoteket.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -14,11 +19,15 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.reseapoteket.ui.theme.Tone
 
 enum class TopBarSize {
     /** Toppnivåskärm: stor rundad rubrik som krymper vid rullning. */
@@ -28,9 +37,17 @@ enum class TopBarSize {
     Small,
 }
 
+/** Synkindikatorn (NFR-6): [pending] när ändringar väntat på servern; [onClick] förklarar den. */
+@Immutable
+data class SyncIndicator(val pending: Boolean = false, val onClick: () -> Unit = {})
+
+/** Sätts av navigationen; utan den visas ingen indikator (t.ex. i tester och galleriet). */
+val LocalSyncIndicator = compositionLocalOf { SyncIndicator() }
+
 /**
  * Skärmrubriken. [onBack] ger en tillbakaknapp; [actions] står till höger (t.ex. `AppMenu`).
  * [scrollBehavior] kopplas av ramarna (`EntityListScreen`, `EntityEditScreen`).
+ * Före [actions] står synkindikatorn när [LocalSyncIndicator] säger att ändringar väntar.
  */
 @Composable
 fun AppTopBar(
@@ -48,13 +65,18 @@ fun AppTopBar(
         onBack?.let { AppIconButton(R.drawable.ic_arrow_back, stringResource(R.string.back), it, variant = IconButtonVariant.Tonal) }
     }
     val heading = Modifier.semantics { heading() }
+    val sync = LocalSyncIndicator.current
+    val allActions: @Composable RowScope.() -> Unit = {
+        SyncPill(sync)
+        actions()
+    }
     when (size) {
         TopBarSize.Large -> LargeFlexibleTopAppBar(
             title = { Text(title, style = AppTypography.screenTitle, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = heading) },
             modifier = modifier,
             subtitle = subtitle?.let { { Text(it, style = AppTypography.itemSubtitle) } },
             navigationIcon = navigation,
-            actions = actions,
+            actions = allActions,
             colors = colors,
             scrollBehavior = scrollBehavior,
         )
@@ -62,9 +84,26 @@ fun AppTopBar(
             title = { Text(title, style = AppTypography.sectionTitle, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = heading) },
             modifier = modifier,
             navigationIcon = navigation,
-            actions = actions,
+            actions = allActions,
             colors = colors,
             scrollBehavior = scrollBehavior,
+        )
+    }
+}
+
+@Composable
+private fun RowScope.SyncPill(sync: SyncIndicator) {
+    val description = stringResource(R.string.sync_pending_description)
+    AnimatedVisibility(sync.pending, enter = fadeIn(), exit = fadeOut()) {
+        InfoPill(
+            stringResource(R.string.sync_pending),
+            Modifier.semantics {
+                contentDescription = description
+                liveRegion = LiveRegionMode.Polite
+            },
+            tone = Tone.Blue,
+            icon = R.drawable.ic_cloud_upload,
+            onClick = sync.onClick,
         )
     }
 }

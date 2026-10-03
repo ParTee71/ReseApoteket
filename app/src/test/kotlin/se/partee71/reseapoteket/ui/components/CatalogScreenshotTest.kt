@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -115,6 +116,9 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("InfoPill_toner") {
             Sheet { Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) { InfoPill("Mediciner"); InfoPill("Kosttillskott", tone = Tone.Green); InfoPill("Övrigt", tone = Tone.Blue) } }
+        }
+        captureLightAndDark("InfoPill_ikon_klickbar") {
+            Sheet { InfoPill("Väntar på synk", tone = Tone.Blue, icon = R.drawable.ic_cloud_upload, onClick = {}) }
         }
         captureLightAndDark("PersonAvatar_farger") {
             Sheet {
@@ -275,6 +279,14 @@ class CatalogScreenshotTest {
             Column(Modifier.background(MaterialTheme.colorScheme.background)) {
                 AppTopBar("Resor") { AppMenu(emptyList()) }
                 AppTopBar("Solkräm", size = TopBarSize.Small, onBack = {}) { AppButton("Spara", {}, compact = true) }
+            }
+        }
+        captureLightAndDark("AppTopBar_synk") {
+            CompositionLocalProvider(LocalSyncIndicator provides SyncIndicator(pending = true)) {
+                Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                    AppTopBar("Resor") { AppMenu(emptyList()) }
+                    AppTopBar("Gran Canaria", size = TopBarSize.Small, onBack = {}) { AppIconButton(R.drawable.ic_edit, "Redigera", {}) }
+                }
             }
         }
         captureLightAndDark("AppFloatingToolbar_resor") {

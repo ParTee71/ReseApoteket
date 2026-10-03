@@ -34,10 +34,10 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
 | Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet, valfri `helper` under och fältfel (`error`, `FieldError`) |
 | Fel under ett fält eller i en panel | `FieldError` | Felfärg, läses som fel; ett skrivfel i ett bottom sheet visas via `AppBottomSheet(error)` |
-| Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter |
+| Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter; visar synkindikatorn (`InfoPill` med moln) före `actions` när `LocalSyncIndicator` säger att ändringar väntar (NFR-6) |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
-| Etikett/pill | `InfoPill` | `AppShapes.pill` |
+| Etikett/pill | `InfoPill` | `AppShapes.pill`; `icon` före texten, `onClick` gör den till en knapp med 48 dp tryckyta |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` | M3 filterchip |
 | Ett val bland några (form, enhet, kategori) | `ChoiceChips` | `ChipRow` + en `AppFilterChip` per alternativ |
@@ -93,9 +93,10 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Detaljtillstånd | `Flow<T?>.asDetailUiState()` → `DetailUiState<T>`, och `DetailLoader` (med "Försök igen") för en detaljskärms ViewModel, i `ui/common/` |
 | ViewModel med nyckel | Hilt assisted injection: `@HiltViewModel(assistedFactory = …)` + `hiltViewModel<VM, VM.Factory> { it.create(key.…) }` i `appEntries` (ARKITEKTUR → Verifierade API:er) |
 | Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |
+| Visa först efter en fördröjning (indikatorer som inte ska blinka) | `Flow<Boolean>.shownAfter(delay)` i `ui/common/` |
 | Navigation | `AppKey`, `AppBackStack`, `AppNavHost`, `Transitions` i `navigation/` |
 | Feltyp | `DataError` (`Offline`, `PermissionDenied`, `Cancelled`, `UpdateRequired`, `SignInRejected`, `NoHousehold`, `NotFound`, `Unknown`) i `data/common/` |
-| Fel till text | `DataError.toMessage()` i `ui/common/`; `NotFound` (raderat) visas utan "Försök igen" |
+| Fel till text | `DataError.toMessage()` i `ui/common/`; `NotFound` (raderat) visas utan "Försök igen"; som meddelande via `ErrorSnackbar` (`template` sätter felet i ett sammanhang) |
 | Arkivera | `Archivable` + `FirestoreCollection.setArchived` |
 | Skriva bara vissa fält (resans status, en rads avprickning) | `EntityCollection.update(item, fields)` / `updateAll` (atomärt) med fältnamnen som konstanter i codecen (`TripCodec.STATUS`, `PackingItemCodec.CHECKED`); se skill `firestore-data-layer` |
 | Beräkningar | `PackingEngine` i `:core` |
@@ -109,7 +110,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Resultat av suspend-anrop | `suspendRunCatching` i `data/common/` (används av `FirestoreCollection` och `AuthRepository`) |
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
 | Aktivt hushåll | `HouseholdSession` i `data/household/` (`HouseholdScope`) |
-| Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/` |
+| Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/`; för UI:t `SyncViewModel` (`ui/sync/`) → `AppNavHost` (indikatorn via `LocalSyncIndicator`, nekad skrivning som meddelande ovanför verktygsraden) |
 | Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument`, `sortForList` i `data/common/DocumentRules.kt` och `writeBlocker` i `HouseholdScope.kt` – används av både `FirestoreCollection` och `FakeCollection` |
 | Inställningar | `SettingsStore` (DataStore) |
 | Hushållets namn och marginaldagar | `HouseholdRepository.update(household, fields)` med `HouseholdCodec.NAME`/`MARGIN_DAYS` – aldrig hela hushållet |
