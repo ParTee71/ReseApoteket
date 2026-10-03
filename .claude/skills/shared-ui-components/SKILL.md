@@ -53,7 +53,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Tomt tillstånd | `EmptyState` | ikon + text + `AppButton` |
 | Bekräftelse | `ConfirmDialog` | M3 dialog, `destructive`-parameter |
 | Bottom sheet | `AppBottomSheet` | M3 modal sheet |
-| Meddelande | `AppSnackbarHost` | M3 snackbar |
+| Meddelande | `AppSnackbarHost` | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
 | Firande | `Confetti` | egen `Canvas`, inget bibliotek |
 | Avdelare | `AppDivider` | M3-avdelare med temats färg och tjocklek |
 | Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel |

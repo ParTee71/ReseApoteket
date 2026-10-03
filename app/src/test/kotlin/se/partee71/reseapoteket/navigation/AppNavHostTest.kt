@@ -136,6 +136,25 @@ class AppNavHostTest {
         assertEquals(listOf<SyncEvent>(SyncEvent.WriteErrorShown), events)
     }
 
+    @Test
+    fun `tryck på synkindikatorn stänger inte ett felmeddelande som visas`() {
+        rule.mainClock.autoAdvance = false
+        rule.setContent {
+            ReseApoteketTheme {
+                AppNavHost(
+                    backStack,
+                    { key -> NavEntry(key) { AppTopBar("Resor") } },
+                    sync = SyncUiState(pending = true, writeError = DataError.PermissionDenied),
+                )
+            }
+        }
+        rule.mainClock.advanceTimeBy(SHOWN_MILLIS)
+        rule.onNodeWithContentDescription("Ändringar väntar på att synkas").performClick()
+        rule.mainClock.advanceTimeBy(SHOWN_MILLIS)
+        rule.onNodeWithText("En ändring kunde inte sparas och har ångrats. Du har inte behörighet till det här hushållet.").assertIsDisplayed()
+        rule.onNodeWithText("Ändringarna är sparade på telefonen och skickas när det finns nät.").assertDoesNotExist()
+    }
+
     private companion object {
         const val SHOWN_MILLIS = 500L
         const val LONG_SNACKBAR_MILLIS = 11_000L

@@ -63,9 +63,9 @@ fun AppNavHost(
     val resources = LocalResources.current
     val indicator = remember(sync.pending, resources) {
         SyncIndicator(sync.pending) {
-            scope.launch {
-                messages.currentSnackbarData?.dismiss()
-                messages.showSnackbar(resources.getString(R.string.sync_pending_explained))
+            // Ett meddelande som redan visas (t.ex. en nekad skrivning) får stå kvar; upprepade tryck köar inget.
+            if (messages.currentSnackbarData == null) {
+                scope.launch { messages.showSnackbar(resources.getString(R.string.sync_pending_explained)) }
             }
         }
     }
