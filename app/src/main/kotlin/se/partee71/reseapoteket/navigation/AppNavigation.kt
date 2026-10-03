@@ -2,11 +2,13 @@ package se.partee71.reseapoteket.navigation
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.entryProvider
@@ -27,18 +29,20 @@ import se.partee71.reseapoteket.ui.regimens.RegimenEditViewModel
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
 import se.partee71.reseapoteket.ui.settings.HouseholdEditScreen
 import se.partee71.reseapoteket.ui.settings.SettingsScreen
+import se.partee71.reseapoteket.ui.sync.SyncViewModel
 import se.partee71.reseapoteket.ui.trips.TripEditScreen
 import se.partee71.reseapoteket.ui.trips.TripEditViewModel
 import se.partee71.reseapoteket.ui.trips.TripsScreen
 
-/** Appens innehåll efter inloggning: fyra flikar med egna back stackar. */
+/** Appens innehåll efter inloggning: fyra flikar med egna back stackar och synkläget (NFR-6). */
 @Composable
-fun AppNavigation(modifier: Modifier = Modifier) {
+fun AppNavigation(modifier: Modifier = Modifier, syncViewModel: SyncViewModel = hiltViewModel()) {
+    val sync by syncViewModel.state.collectAsStateWithLifecycle()
     val backStack = rememberAppBackStack()
     val activity = LocalActivity.current
     val tabOwner = checkNotNull(LocalViewModelStoreOwner.current) { "AppNavigation kräver en ViewModelStoreOwner" }
     val entries = remember(backStack, tabOwner) { appEntries(backStack, tabOwner) }
-    AppNavHost(backStack, entries, modifier, onExit = { activity?.finish() })
+    AppNavHost(backStack, entries, modifier, onExit = { activity?.finish() }, sync = sync, onSyncEvent = syncViewModel::onEvent)
 }
 
 /**

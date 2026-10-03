@@ -155,12 +155,13 @@ ReseApoteket/
 │       │   └── datastore/        SettingsStore
 │       ├── domain/               use cases som spänner över flera repositories (EnsureHouseholdUseCase)
 │       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
-│       ├── navigation/           Navigation 3: AppKey, AppBackStack (en stack per flik), AppNavHost, Transitions
+│       ├── navigation/           Navigation 3: AppKey, AppBackStack (en stack per flik), AppNavHost (+ synkindikator och appens meddelanden), Transitions
 │       └── ui/
 │           ├── theme/            Expressive-tema, AppColors, AppTypography, AppShapes, Spacing
 │           ├── components/       delade komponenter och skärmramar, ComponentGallery
-│           ├── common/           ListUiState, ListLoader, EditorState, Validator, DateFormat, DataError.toMessage()
+│           ├── common/           ListUiState, ListLoader, EditorState, Validator, DateFormat, DataError.toMessage(), shownAfter
 │           ├── auth/             AuthViewModel (vad appen visar), SignInScreen, UpdateRequiredScreen
+│           ├── sync/             SyncViewModel (synkläget för UI:t, NFR-6)
 │           └── persons/ regimens/ familyitems/ trips/ packing/ settings/
 ├── tools/db/                     Node: query, get, stats, export, import, migrate + lib/ + tester
 ├── firestore.rules               security rules

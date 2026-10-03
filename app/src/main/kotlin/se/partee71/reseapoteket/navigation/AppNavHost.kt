@@ -9,30 +9,43 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.components.AppFloatingToolbar
+import se.partee71.reseapoteket.ui.components.AppSnackbarHost
+import se.partee71.reseapoteket.ui.components.ErrorSnackbar
 import se.partee71.reseapoteket.ui.components.FloatingToolbarClearance
 import se.partee71.reseapoteket.ui.components.LocalBottomClearance
+import se.partee71.reseapoteket.ui.components.LocalSyncIndicator
+import se.partee71.reseapoteket.ui.components.SyncIndicator
 import se.partee71.reseapoteket.ui.components.ToolbarItem
+import se.partee71.reseapoteket.ui.sync.SyncEvent
+import se.partee71.reseapoteket.ui.sync.SyncUiState
 import se.partee71.reseapoteket.ui.theme.Spacing
 
 /**
  * Navigationsramen: `NavDisplay` med [Transitions] och den flytande verktygsraden, som bara
  * syns i en fliks rot. Skärmarna kommer från [entryProvider] (`appEntries` i appen); flikarnas
  * ViewModels hör till aktiviteten (se `appEntries`), så att de också överlever flikbyten.
+ * [sync] ger synkindikatorn i varje skärms toppbar och meddelandet om en nekad skrivning
+ * (NFR-6), i appens gemensamma meddelandeyta ovanför verktygsraden.
  */
 @Composable
 fun AppNavHost(
@@ -40,10 +53,25 @@ fun AppNavHost(
     entryProvider: (AppKey) -> NavEntry<AppKey>,
     modifier: Modifier = Modifier,
     onExit: () -> Unit = {},
+    sync: SyncUiState = SyncUiState(),
+    onSyncEvent: (SyncEvent) -> Unit = {},
 ) {
     val toolbar = toolbarItems()
+    val clearance = if (backStack.atTopLevel) FloatingToolbarClearance else 0.dp
+    val messages = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val resources = LocalResources.current
+    val indicator = remember(sync.pending, resources) {
+        SyncIndicator(sync.pending) {
+            scope.launch {
+                messages.currentSnackbarData?.dismiss()
+                messages.showSnackbar(resources.getString(R.string.sync_pending_explained))
+            }
+        }
+    }
+    ErrorSnackbar(sync.writeError, messages, R.string.sync_write_rejected, SnackbarDuration.Long) { onSyncEvent(SyncEvent.WriteErrorShown) }
     Box(modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalBottomClearance provides if (backStack.atTopLevel) FloatingToolbarClearance else 0.dp) {
+        CompositionLocalProvider(LocalBottomClearance provides clearance, LocalSyncIndicator provides indicator) {
             NavDisplay(
                 backStack = backStack.entries,
                 onBack = { if (!backStack.pop()) onExit() },
@@ -69,6 +97,7 @@ fun AppNavHost(
                 onSelect = { backStack.select(TOP_LEVEL[it]) },
             )
         }
+        AppSnackbarHost(messages, Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = clearance))
     }
 }
 

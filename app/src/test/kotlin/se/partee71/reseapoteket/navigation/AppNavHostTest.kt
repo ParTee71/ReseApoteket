@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -19,6 +20,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.ui.components.AppTopBar
+import se.partee71.reseapoteket.ui.sync.SyncEvent
+import se.partee71.reseapoteket.ui.sync.SyncUiState
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
 /** Navigationsramen: verktygsraden i flikarnas rot, dold på undersidor (NAV-1). */
@@ -93,5 +98,46 @@ class AppNavHostTest {
         rule.onNodeWithContentDescription("Personer").assertDoesNotExist()
         rule.runOnIdle { backStack.pop() }
         rule.onNodeWithContentDescription("Personer").assertIsDisplayed()
+    }
+
+    @Test
+    fun `synkindikatorn syns i skärmens toppbar och förklarar sig vid tryck (NFR-6)`() {
+        var sync by mutableStateOf(SyncUiState())
+        rule.setContent {
+            ReseApoteketTheme {
+                AppNavHost(backStack, { key -> NavEntry(key) { AppTopBar("Resor") } }, sync = sync)
+            }
+        }
+        rule.onNodeWithContentDescription("Ändringar väntar på att synkas").assertDoesNotExist()
+        sync = SyncUiState(pending = true)
+        rule.onNodeWithContentDescription("Ändringar väntar på att synkas").performClick()
+        rule.onNodeWithText("Ändringarna är sparade på telefonen och skickas när det finns nät.").assertIsDisplayed()
+    }
+
+    @Test
+    fun `en nekad skrivning visas med orsaken och släpps sedan (NFR-6)`() {
+        val events = mutableListOf<SyncEvent>()
+        rule.mainClock.autoAdvance = false
+        rule.setContent {
+            ReseApoteketTheme {
+                AppNavHost(
+                    backStack,
+                    { key -> NavEntry(key) { Text("Skärm: ${key::class.simpleName}") } },
+                    sync = SyncUiState(writeError = DataError.PermissionDenied),
+                    onSyncEvent = { events += it },
+                )
+            }
+        }
+        rule.mainClock.advanceTimeBy(SHOWN_MILLIS)
+        rule.onNodeWithText("En ändring kunde inte sparas och har ångrats. Du har inte behörighet till det här hushållet.").assertIsDisplayed()
+        assertEquals(emptyList(), events)
+        rule.mainClock.advanceTimeBy(LONG_SNACKBAR_MILLIS)
+        rule.waitForIdle()
+        assertEquals(listOf<SyncEvent>(SyncEvent.WriteErrorShown), events)
+    }
+
+    private companion object {
+        const val SHOWN_MILLIS = 500L
+        const val LONG_SNACKBAR_MILLIS = 11_000L
     }
 }
