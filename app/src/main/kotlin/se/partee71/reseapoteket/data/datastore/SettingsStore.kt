@@ -7,8 +7,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
@@ -21,6 +23,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.LocalTime
+import se.partee71.reseapoteket.core.engine.ReminderKind
+import se.partee71.reseapoteket.core.engine.ReminderSetting
+import se.partee71.reseapoteket.core.engine.ReminderSettings
 import se.partee71.reseapoteket.data.common.retryWithBackoff
 
 /** Temaval i Inställningar (SET-1). Lagras med namnet; ett okänt namn ger [System]. */
@@ -113,7 +119,56 @@ class SettingsStore @Inject constructor(private val store: DataStore<Preferences
         store.edit { it[MOVE_CHECKED_LAST] = on }
     }
 
+    /**
+     * Telefonens påminnelser (PÅM-1): personerna och varje påminnelses inställning. Det som inte
+     * ändrats – eller som är lagrat med ett ogiltigt värde – får förvalet ur [ReminderSettings].
+     */
+    val reminderSettings: Flow<ReminderSettings> = preferences.map { prefs ->
+        ReminderKind.entries.fold(ReminderSettings(prefs[REMINDER_PERSONS].orEmpty())) { settings, kind ->
+            val default = settings[kind]
+            val minutes = prefs[reminderTime(kind)]?.takeIf { it in 0 until MINUTES_PER_DAY }
+            val days = prefs[reminderDays(kind)]?.takeIf { it in ReminderSettings.DAYS_BEFORE }
+            settings.with(
+                kind,
+                ReminderSetting(
+                    enabled = prefs[reminderEnabled(kind)] ?: default.enabled,
+                    time = minutes?.let { LocalTime(it / 60, it % 60) } ?: default.time,
+                    daysBefore = days ?: default.daysBefore,
+                ),
+            )
+        }
+    }
+
+    suspend fun setReminderPersons(personIds: Set<String>) {
+        store.edit { it[REMINDER_PERSONS] = personIds }
+    }
+
+    suspend fun setReminder(kind: ReminderKind, setting: ReminderSetting) {
+        store.edit {
+            it[reminderEnabled(kind)] = setting.enabled
+            it[reminderTime(kind)] = setting.time.hour * 60 + setting.time.minute
+            it[reminderDays(kind)] = setting.daysBefore
+        }
+    }
+
+    /** Hur långt påminnelserna gåtts igenom – inget före det skickas igen (PÅM-6). */
+    val remindersCheckedUntil: Flow<Instant?> = preferences.map { prefs -> prefs[REMINDERS_CHECKED]?.let(Instant::fromEpochMilliseconds) }
+
+    suspend fun setRemindersCheckedUntil(at: Instant) {
+        store.edit { it[REMINDERS_CHECKED] = at.toEpochMilliseconds() }
+    }
+
     private companion object {
+        const val MINUTES_PER_DAY = 24 * 60
+        val REMINDER_PERSONS = stringSetPreferencesKey("reminderPersons")
+        val REMINDERS_CHECKED = longPreferencesKey("remindersCheckedUntil")
+
+        fun reminderEnabled(kind: ReminderKind) = booleanPreferencesKey("reminder.${kind.name}.enabled")
+
+        fun reminderTime(kind: ReminderKind) = intPreferencesKey("reminder.${kind.name}.minutes")
+
+        fun reminderDays(kind: ReminderKind) = intPreferencesKey("reminder.${kind.name}.daysBefore")
+
         val ACTIVE_HOUSEHOLD = stringPreferencesKey("activeHouseholdId")
         val PENDING_ID = stringPreferencesKey("pendingHouseholdId")
         val PENDING_OWNER = stringPreferencesKey("pendingHouseholdOwner")

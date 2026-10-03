@@ -49,6 +49,13 @@ class AppBackStack internal constructor(current: TopLevelKey, stacks: Map<TopLev
         if (stack.last() != key) stack.add(key)
     }
 
+    /** Resans packlista direkt ovanpå fliken Resor – det en påminnelse öppnar (PÅM-7). */
+    fun openPackingList(tripId: String) {
+        currentTab = start
+        stack(start).removeRange(1, stack(start).size)
+        push(PackingListKey(tripId))
+    }
+
     /**
      * Stänger [key] om den är den översta skärmen – det en skärm anropar när den stänger sig
      * själv. Ett andra anrop (dubbeltryck, eller "klar" efter "släng ändringar") stänger då

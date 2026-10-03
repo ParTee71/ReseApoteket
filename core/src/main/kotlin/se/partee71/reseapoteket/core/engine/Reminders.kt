@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.core.engine
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -24,7 +25,7 @@ data class ReminderSetting(val enabled: Boolean, val time: LocalTime, val daysBe
  */
 data class ReminderSettings(
     val personIds: Set<String> = emptySet(),
-    private val byKind: Map<ReminderKind, ReminderSetting> = emptyMap(),
+    private val byKind: Map<ReminderKind, ReminderSetting> = DEFAULTS,
 ) {
     operator fun get(kind: ReminderKind): ReminderSetting = byKind[kind] ?: DEFAULTS.getValue(kind)
 
@@ -47,7 +48,14 @@ data class ReminderSettings(
 }
 
 /** En planerad påminnelse för en resa, med packläget när den räknades ut. */
-data class Reminder(val kind: ReminderKind, val tripId: String, val tripName: String, val at: LocalDateTime, val progress: PackingProgress)
+data class Reminder(
+    val kind: ReminderKind,
+    val tripId: String,
+    val tripName: String,
+    val startDate: LocalDate,
+    val at: LocalDateTime,
+    val progress: PackingProgress,
+)
 
 /**
  * Vilka påminnelser som ska komma (PÅM-2–6). Rena funktioner: resor, packlistor, inställningar
@@ -96,6 +104,6 @@ object ReminderPlanner {
             else -> setting.daysBefore.coerceIn(ReminderSettings.DAYS_BEFORE)
         }
         val date = start.minus(DatePeriod(days = daysBefore))
-        return Reminder(kind, trip.id, trip.name, LocalDateTime(date, setting.time), progress)
+        return Reminder(kind, trip.id, trip.name, start, LocalDateTime(date, setting.time), progress)
     }
 }

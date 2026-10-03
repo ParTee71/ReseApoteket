@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Påminnelser inför resan (PÅM-7); frågas först när användaren slår på en påminnelse. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".ReseApoteketApplication"
@@ -23,6 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- "Senare" i en påminnelse (PÅM-7) – bara appens egna notiser når den. -->
+        <receiver
+            android:name=".reminders.ReminderSnoozeReceiver"
+            android:exported="false" />
 
         <!-- "Exportera som JSON" (SET-5): delningsmenyn får läsa exportfilen, och bara den. -->
         <provider

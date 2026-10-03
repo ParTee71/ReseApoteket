@@ -96,4 +96,17 @@ class AppBackStackTest {
 
         assertEquals(listOf(TripsKey, PersonsKey, PersonDetailKey("p1")), stack.entries)
     }
+
+    @Test
+    fun `en påminnelse öppnar packlistan direkt ovanpå Resor (PÅM-7)`() {
+        val stack = AppBackStack()
+        stack.push(TripEditKey())
+        stack.select(PersonsKey)
+        stack.push(PersonDetailKey("anna"))
+        stack.openPackingList("gc")
+        assertEquals(listOf(TripsKey, PackingListKey("gc")), stack.entries)
+        assertEquals(TripsKey, stack.currentTab)
+        stack.select(PersonsKey)
+        assertEquals(listOf(TripsKey, PackingListKey("gc"), PersonsKey, PersonDetailKey("anna")), stack.entries)
+    }
 }

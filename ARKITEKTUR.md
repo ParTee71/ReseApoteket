@@ -137,7 +137,8 @@ ReseApoteket/
 ├── core/                         ren Kotlin/JVM – inga Android- eller Firebase-beroenden
 │   └── se.partee71.reseapoteket.core
 │       ├── model/                Person, Regimen, DoseSchedule, FamilyItem, QuantityRule, Trip, PackingItem …
-│       ├── engine/               PackingEngine, ReasonFormatter, DoseScheduleFormatter, QuantityRuleFormatter, UnitNames, Texts
+│       ├── engine/               PackingEngine, ReasonFormatter, DoseScheduleFormatter, QuantityRuleFormatter, UnitNames, Texts,
+│       │                         ReminderPlanner (vilka påminnelser som kommer och när)
 │       └── schema/               DocCodec + fälthjälpare, codecs per modell, Schema, SchemaMigrator,
 │                                 ExportFormat (samma JSON som tools/db export)
 ├── app/                          Android-appen
@@ -152,7 +153,10 @@ ReseApoteket/
 │       │   ├── household/        HouseholdSession (aktivt hushåll och dess schemaVersion), HouseholdDirectory
 │       │   ├── export/           HouseholdExport, ExportFiles (exportfilen i cachen, delas via FileProvider)
 │       │   ├── repository/       tunna fasader per domän
-│       │   └── datastore/        SettingsStore
+│       │   └── datastore/        SettingsStore (även telefonens påminnelser)
+│       ├── reminders/            påminnelserna (PÅM): ReminderSource (plan ur resor, listor, inställningar), ReminderRunner,
+│       │                         ReminderNotifier (privat notis), ReminderScheduler + ReminderWorker (WorkManager),
+│       │                         ReminderSync (medan appen syns), ReminderSnoozeReceiver ("Senare")
 │       ├── domain/               use cases som spänner över flera repositories (EnsureHouseholdUseCase)
 │       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
 │       ├── navigation/           Navigation 3: AppKey, AppBackStack (en stack per flik), AppNavHost (+ synkindikator och appens meddelanden), Transitions
@@ -310,6 +314,7 @@ Beslutad och uppmätt i #11.
 | Java | 17 | `sourceCompatibility`/`targetCompatibility` och Kotlins `jvmTarget`; ingen toolchain, så en nyare JDK (t.ex. 21) fungerar för att bygga |
 | Robolectric / Roborazzi / Konsist | 4.17 / 1.76.0 / 0.17.3 | Robolectric-SDK och skärmmått i `app/src/test/resources/robolectric.properties` |
 | PMD (CPD) | 7.28.0 | se `cpdCheck` nedan |
+| WorkManager | 2.12.0 | påminnelserna (#78); inget Hilt-work – workern hämtar sina beroenden via en `@EntryPoint` |
 
 **Gemensam byggkonfiguration** står på ett ställe: rotens `build.gradle.kts` (`subprojects {}`):
 Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten) och testloggning

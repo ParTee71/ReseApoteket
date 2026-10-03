@@ -2,6 +2,7 @@ package se.partee71.reseapoteket.navigation
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -34,14 +35,25 @@ import se.partee71.reseapoteket.ui.trips.TripEditScreen
 import se.partee71.reseapoteket.ui.trips.TripEditViewModel
 import se.partee71.reseapoteket.ui.trips.TripsScreen
 
-/** Appens innehåll efter inloggning: fyra flikar med egna back stackar och synkläget (NFR-6). */
+/** Appens innehåll efter inloggning: fyra flikar med egna back stackar, synkläget (NFR-6) och resan en påminnelse öppnar. */
 @Composable
-fun AppNavigation(modifier: Modifier = Modifier, syncViewModel: SyncViewModel = hiltViewModel()) {
+fun AppNavigation(
+    modifier: Modifier = Modifier,
+    openTrip: String? = null,
+    onTripOpened: () -> Unit = {},
+    syncViewModel: SyncViewModel = hiltViewModel(),
+) {
     val sync by syncViewModel.state.collectAsStateWithLifecycle()
     val backStack = rememberAppBackStack()
     val activity = LocalActivity.current
     val tabOwner = checkNotNull(LocalViewModelStoreOwner.current) { "AppNavigation kräver en ViewModelStoreOwner" }
     val entries = remember(backStack, tabOwner) { appEntries(backStack, tabOwner) }
+    // En påminnelse öppnar resans packlista från fliken Resor (PÅM-7).
+    LaunchedEffect(openTrip) {
+        if (openTrip == null) return@LaunchedEffect
+        backStack.openPackingList(openTrip)
+        onTripOpened()
+    }
     AppNavHost(backStack, entries, modifier, onExit = { activity?.finish() }, sync = sync, onSyncEvent = syncViewModel::onEvent)
 }
 
@@ -74,6 +86,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onEditHousehold = { backStack.push(HouseholdEditKey) },
                 onOpenGallery = if (BuildConfig.DEBUG) ({ backStack.push(ComponentGalleryKey) }) else null,
                 viewModel = hiltViewModel(tabOwner),
+                remindersViewModel = hiltViewModel(tabOwner),
             )
         }
         entry<PersonDetailKey> { key ->

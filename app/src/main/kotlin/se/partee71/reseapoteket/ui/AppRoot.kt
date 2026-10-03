@@ -18,11 +18,19 @@ import se.partee71.reseapoteket.ui.auth.SignInScreen
 import se.partee71.reseapoteket.ui.auth.UpdateRequiredScreen
 import se.partee71.reseapoteket.ui.components.AppLoading
 
-/** Appens rot: inloggningen styr vad som visas (AUTH-1). */
+/**
+ * Appens rot: inloggningen styr vad som visas (AUTH-1). [openTrip] är en resa som en påminnelse
+ * öppnar (PÅM-7) – den visas när appen är inloggad, och [onTripOpened] släpper den.
+ */
 @Composable
-fun AppRoot(modifier: Modifier = Modifier, viewModel: AuthViewModel = hiltViewModel()) {
+fun AppRoot(
+    modifier: Modifier = Modifier,
+    openTrip: String? = null,
+    onTripOpened: () -> Unit = {},
+    viewModel: AuthViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    AppRootContent(state, viewModel::onEvent, modifier)
+    AppRootContent(state, viewModel::onEvent, modifier) { AppNavigation(openTrip = openTrip, onTripOpened = onTripOpened) }
 }
 
 /** Appens bakgrund sätts här, en gång; skärmarna ritar ovanpå den. */

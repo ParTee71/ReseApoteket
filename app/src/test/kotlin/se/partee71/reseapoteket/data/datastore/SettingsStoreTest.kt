@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.data.datastore
 
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
@@ -10,12 +11,16 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalTime
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import se.partee71.reseapoteket.core.engine.ReminderKind
+import se.partee71.reseapoteket.core.engine.ReminderSetting
+import se.partee71.reseapoteket.core.engine.ReminderSettings
 import se.partee71.reseapoteket.testing.FakeDataStore
 
-/** Enhetens inställningar: tema (SET-1), valt hushåll (HUS-4) och ett obekräftat hushåll (HUS-2). */
+/** Enhetens inställningar: tema (SET-1), valt hushåll (HUS-4), ett obekräftat hushåll (HUS-2) och påminnelserna (PÅM-1). */
 class SettingsStoreTest {
 
     @get:Rule
@@ -37,6 +42,37 @@ class SettingsStoreTest {
         assertEquals(true, settings.moveCheckedLast.first())
         settings.setMoveCheckedLast(false)
         assertEquals(false, settings.moveCheckedLast.first())
+    }
+
+    @Test
+    fun `påminnelserna har förval tills användaren ändrar dem (PÅM-1)`() = runTest {
+        val settings = SettingsStore(dataStore())
+        assertEquals(ReminderSettings(), settings.reminderSettings.first())
+        settings.setReminderPersons(setOf("anna", "lova"))
+        val changed = ReminderSetting(false, LocalTime(20, 15), 5)
+        settings.setReminder(ReminderKind.TIME_TO_PACK, changed)
+        val read = settings.reminderSettings.first()
+        assertEquals(setOf("anna", "lova"), read.personIds)
+        assertEquals(changed, read[ReminderKind.TIME_TO_PACK])
+        assertEquals(ReminderSettings.DEFAULTS[ReminderKind.NO_LIST], read[ReminderKind.NO_LIST])
+    }
+
+    @Test
+    fun `ogiltiga lagrade tider och dagar ger förvalet`() = runTest {
+        val store = dataStore()
+        store.edit {
+            it[intPreferencesKey("reminder.TIME_TO_PACK.minutes")] = 5_000
+            it[intPreferencesKey("reminder.TIME_TO_PACK.daysBefore")] = 0
+        }
+        assertEquals(ReminderSettings.DEFAULTS[ReminderKind.TIME_TO_PACK], SettingsStore(store).reminderSettings.first()[ReminderKind.TIME_TO_PACK])
+    }
+
+    @Test
+    fun `hur långt påminnelserna gåtts igenom sparas`() = runTest {
+        val settings = SettingsStore(dataStore())
+        assertNull(settings.remindersCheckedUntil.first())
+        settings.setRemindersCheckedUntil(Instant.fromEpochMilliseconds(1_790_000_000_000))
+        assertEquals(Instant.fromEpochMilliseconds(1_790_000_000_000), settings.remindersCheckedUntil.first())
     }
 
     @Test
