@@ -1,6 +1,8 @@
 package se.partee71.reseapoteket.ui.packing
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +49,7 @@ import se.partee71.reseapoteket.ui.components.StackedAvatar
 import se.partee71.reseapoteket.ui.components.SuitcaseProgress
 import se.partee71.reseapoteket.ui.components.SwipeToHide
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.reseapoteket.ui.theme.Spacing
 import se.partee71.reseapoteket.ui.theme.Tone
 
 /** Packlistan för en resa (PAK-1–5); pennan öppnar resans formulär (RES-1). */
@@ -194,17 +197,29 @@ private fun PackingRowView(row: PackingRow, onEvent: (PackingListEvent) -> Unit,
             { onEvent(PackingListEvent.Check(item.id, it)) },
             swipe,
             subtitle = amount,
-            trailing = {
-                when {
-                    PackingList.isChanged(item) -> InfoPill(stringResource(R.string.packing_changed))
-                    // Resedagens rader visar när de packas: egen tid eller resedagens morgon (PAK-6).
-                    item.travelDay -> InfoPill(DateFormat.time(item.travelDayTime ?: LocalTravelDayMorning.current))
-                    row.schedule != null -> InfoPill(row.schedule, tone = Tone.Blue)
-                }
-            },
+            trailing = labels(row),
             onClick = { onEvent(PackingListEvent.Open(item.id)) },
             onClickLabel = stringResource(R.string.packing_edit_quantity),
             accent = row.person?.takeIf { item.section != PackingSection.FAMILY }?.let { AppColors.person(it.colorHex) },
         )
+    }
+}
+
+/**
+ * Etiketterna på en rad: ändrad mängd eller dosering (PAK-2) och, för det som packas på
+ * resedagen, när (egen tid eller resedagens morgon, PAK-6). Utan etikett ingen yta alls.
+ */
+private fun labels(row: PackingRow): (@Composable () -> Unit)? {
+    val item = row.item
+    val changed = PackingList.isChanged(item)
+    if (!changed && row.schedule == null && !item.travelDay) return null
+    return {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            when {
+                changed -> InfoPill(stringResource(R.string.packing_changed))
+                row.schedule != null -> InfoPill(row.schedule, tone = Tone.Blue)
+            }
+            if (item.travelDay) InfoPill(DateFormat.time(item.travelDayTime ?: LocalTravelDayMorning.current))
+        }
     }
 }

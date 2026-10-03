@@ -138,6 +138,9 @@ Rundturstestet raderar och importerar data. Därför:
   serialiserar `Timestamp` som `{ "__ts": iso }`.
 - **`null` vs saknat fält:** codecen skriver alla kända fält, även `null`, och `decode`
   behandlar `null` som saknat. Se *Skrivningar bevarar okända fält*.
+- **Klockslag** (`travelDayTime`) lagras som `HH:mm` (`Doc.localTime`/`encodeTime`). Ett annat
+  format – t.ex. sekunder från en framtida app – läses som "ingen egen tid" och skrivs som `null`
+  vid nästa sparning. Byts formatet: höj `schemaVersion` och migrera, ändra aldrig formatet tyst.
 - **Arrays av ID:n** (`travellerIds`, `memberUids`) – ordningen bevaras i rundturen.
 - **Heltal vs decimaltal:** JSON skiljer dem inte åt – ett decimaltal med heltalsvärde (`2.0`)
   kommer tillbaka från en rundtur som heltal (`2`). Fälthjälparna i `:core` läser alla `Number`,

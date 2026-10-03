@@ -79,7 +79,7 @@ internal fun AddItemSheet(state: EditorUiState<PackingItem>, travellers: List<Pe
         LabeledGroup(stringResource(R.string.packing_how_many)) {
             QuantityStepper(item.quantity, { onEvent(PackingListEvent.AddQuantity(it)) }, UnitNames.name(item.quantity, item.unit), range = ManualItemValidator.QUANTITY_RANGE)
         }
-        TravelDayField(item.travelDay, item.travelDayTime, { on, time -> onEvent(PackingListEvent.AddTravelDay(on, time)) })
+        TravelDayField(item.travelDay, item.travelDayTime, { onEvent(PackingListEvent.AddTravelDay(it)) })
         AppButton(stringResource(R.string.add), { onEvent(PackingListEvent.AddSave) }, Modifier.fillMaxWidth(), enabled = state.canSave, loading = state.saving)
     }
 }

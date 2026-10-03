@@ -192,9 +192,9 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("TravelDayField_lagen") {
             Sheet {
-                TravelDayField(false, null, { _, _ -> })
-                TravelDayField(true, null, { _, _ -> })
-                TravelDayField(true, LocalTime(8, 30), { _, _ -> })
+                TravelDayField(false, null, {})
+                TravelDayField(true, null, {})
+                TravelDayField(true, LocalTime(8, 30), {})
             }
         }
         captureLightAndDark("TimeField_lagen") {

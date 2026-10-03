@@ -10,6 +10,7 @@ import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.core.engine.ReminderSettings
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.theme.Spacing
 
 /** Telefonens tid för "Resedagens morgon" (PÅM-5) – sätts av appen; förvalet utan den. */
@@ -20,22 +21,22 @@ val LocalTravelDayMorning = compositionLocalOf { ReminderSettings.DEFAULTS.getVa
  * och, när den är på, tiden påminnelsen kommer – resedagens morgon tills en egen tid väljs.
  */
 @Composable
-fun TravelDayField(travelDay: Boolean, time: LocalTime?, onChange: (Boolean, LocalTime?) -> Unit, modifier: Modifier = Modifier) {
+fun TravelDayField(travelDay: Boolean, time: LocalTime?, onChange: (TravelDayChange) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         SwitchRow(
             stringResource(R.string.travel_day),
             travelDay,
-            { onChange(it, time) },
+            { onChange(TravelDayChange(it, time)) },
             subtitle = stringResource(R.string.travel_day_note),
         )
         if (travelDay) {
             TimeField(
                 stringResource(R.string.travel_day_time),
                 time ?: LocalTravelDayMorning.current,
-                { onChange(true, it) },
+                { onChange(TravelDayChange(true, it)) },
                 helper = stringResource(if (time == null) R.string.travel_day_time_morning else R.string.travel_day_time_own),
             )
-            if (time != null) AppButton(stringResource(R.string.travel_day_use_morning), { onChange(true, null) }, variant = ButtonVariant.Text, compact = true)
+            if (time != null) AppButton(stringResource(R.string.travel_day_use_morning), { onChange(TravelDayChange(true, null)) }, variant = ButtonVariant.Text, compact = true)
         }
     }
 }

@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import se.partee71.reseapoteket.R
@@ -45,6 +44,7 @@ import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.components.AppTextField
 import se.partee71.reseapoteket.ui.components.ChoiceChips
@@ -100,7 +100,7 @@ sealed interface RegimenEditEvent {
     data class Active(val active: Boolean) : RegimenEditEvent
 
     /** Packas på resedagen och ev. egen tid (PAK-6). */
-    data class TravelDay(val on: Boolean, val time: LocalTime?) : RegimenEditEvent
+    data class TravelDay(val change: TravelDayChange) : RegimenEditEvent
 
     data object Save : RegimenEditEvent
 
@@ -175,7 +175,7 @@ class RegimenEditViewModel @AssistedInject constructor(
             }
             is RegimenEditEvent.Notes -> editor.update { it.copy(notes = event.notes) }
             is RegimenEditEvent.Active -> editor.update { it.copy(active = event.active) }
-            is RegimenEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.on, travelDayTime = event.time.takeIf { event.on }) }
+            is RegimenEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
             RegimenEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
             RegimenEditEvent.Delete -> viewModelScope.launch { editor.run { collection.delete(editor.value.id) } }
             RegimenEditEvent.Retry -> loader.retry()
@@ -278,7 +278,7 @@ fun RegimenEditContent(
             helper = stringResource(R.string.regimen_package_size_helper),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        TravelDayField(regimen.travelDay, regimen.travelDayTime, { on, time -> onEvent(RegimenEditEvent.TravelDay(on, time)) })
+        TravelDayField(regimen.travelDay, regimen.travelDayTime, { onEvent(RegimenEditEvent.TravelDay(it)) })
         AppTextField(regimen.notes, { onEvent(RegimenEditEvent.Notes(it)) }, stringResource(R.string.notes), singleLine = false)
         SwitchRow(
             stringResource(R.string.active),

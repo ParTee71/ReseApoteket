@@ -54,10 +54,6 @@ object PersonCodec : DocCodec<Person> {
     )
 }
 
-/** "Packas på resedagen" (PAK-6) – samma fält på recept, familjeartikel och packlistans rad. */
-const val TRAVEL_DAY = "travelDay"
-const val TRAVEL_DAY_TIME = "travelDayTime"
-
 object RegimenCodec : DocCodec<Regimen> {
     override fun encode(value: Regimen): Doc = mapOf(
         "kind" to value.kind.encodeEnum(),

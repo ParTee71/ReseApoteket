@@ -133,4 +133,11 @@ class RemindersTest {
         assertEquals(listOf("Tandborste", "Insulin", "Laddare"), planned.single { it.kind == ReminderKind.DAY_BEFORE }.travelDayItems)
         assertEquals(2, travelDay.map { it.key }.toSet().size)
     }
+
+    @Test
+    fun `avstängd Resedagens morgon stänger även påminnelserna med egen tid (PÅM-5)`() {
+        val rows = listOf(PackingItem("d", name = "Laddare", travelDay = true, travelDayTime = LocalTime(8, 30)))
+        val off = settings.with(ReminderKind.TRAVEL_DAY, ReminderSetting(false, LocalTime(7, 0), 0))
+        assertEquals(emptyList(), plan(granCanaria, packing = mapOf("gc" to rows), with = off).filter { it.kind == ReminderKind.TRAVEL_DAY })
+    }
 }

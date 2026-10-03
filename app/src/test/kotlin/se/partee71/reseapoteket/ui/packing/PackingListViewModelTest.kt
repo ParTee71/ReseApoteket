@@ -45,6 +45,7 @@ import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.components.UndoRequest
 
 /** Packlistan (PAK-1–5) mot `FakeCollection`; ordningen och statusen testas i `:core`. */
@@ -282,7 +283,7 @@ class PackingListViewModelTest {
         val vm = viewModel()
         vm.onEvent(PackingListEvent.Add)
         vm.onEvent(PackingListEvent.AddName("Laddare"))
-        vm.onEvent(PackingListEvent.AddTravelDay(true, LocalTime(8, 30)))
+        vm.onEvent(PackingListEvent.AddTravelDay(TravelDayChange(true, LocalTime(8, 30))))
         vm.onEvent(PackingListEvent.AddSave)
         val last = vm.rows().last { !it.item.hidden }.item
         assertEquals("Laddare" to LocalTime(8, 30), last.name to last.travelDayTime)

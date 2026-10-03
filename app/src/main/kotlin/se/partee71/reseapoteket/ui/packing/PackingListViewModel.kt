@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.DoseScheduleFormatter
 import se.partee71.reseapoteket.core.engine.PackingEngine
@@ -54,6 +53,7 @@ import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.common.Validator
 
 /** En rad i packlistan: raden, personen den hör till och doseringen i kort form ("1/dag", PAK-2). */
@@ -118,7 +118,7 @@ sealed interface PackingListEvent {
 
     data class AddQuantity(val quantity: Int) : PackingListEvent
 
-    data class AddTravelDay(val on: Boolean, val time: LocalTime?) : PackingListEvent
+    data class AddTravelDay(val change: TravelDayChange) : PackingListEvent
 
     data object AddSave : PackingListEvent
 }
@@ -272,7 +272,7 @@ class PackingListViewModel @AssistedInject constructor(
             }
             is PackingListEvent.AddPerson -> editNew(ManualItemValidator.PERSON) { it.copy(personId = event.personId) }
             is PackingListEvent.AddQuantity -> editNew { it.copy(quantity = event.quantity, suggestedQuantity = event.quantity) }
-            is PackingListEvent.AddTravelDay -> editNew { it.copy(travelDay = event.on, travelDayTime = event.time.takeIf { event.on }) }
+            is PackingListEvent.AddTravelDay -> editNew { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
             PackingListEvent.AddSave -> addSave()
         }
     }

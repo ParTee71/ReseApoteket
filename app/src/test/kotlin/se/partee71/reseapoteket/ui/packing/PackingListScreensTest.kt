@@ -175,7 +175,7 @@ class PackingListScreensTest {
         val travelDay = listOf(
             rows[0],
             rows[2],
-            PackingRow(med("insulin", anna, "Insulin NovoRapid", 1, ItemUnit.ST).copy(travelDay = true), anna),
+            PackingRow(med("insulin", anna, "Insulin NovoRapid", 1, ItemUnit.ST).copy(travelDay = true), anna, "3/dag"),
             PackingRow(other("tandborste", "Tandborste", 4, ItemUnit.ST).copy(travelDay = true)),
             PackingRow(other("laddare", "Laddare", 2, ItemUnit.ST, manual = true).copy(travelDay = true, travelDayTime = LocalTime(8, 30))),
         )

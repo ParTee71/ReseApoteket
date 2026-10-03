@@ -37,7 +37,14 @@ inline fun <reified E : Enum<E>> Doc.enum(key: String, default: E): E =
 fun Doc.localDate(key: String): LocalDate? =
     (this[key] as? String)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
-/** Klockslag lagras som `HH:mm`; ogiltigt eller saknat → `null`. */
+/** "Packas på resedagen" (PAK-6) – samma fältnamn på recept, familjeartikel och packlistans rad. */
+const val TRAVEL_DAY = "travelDay"
+const val TRAVEL_DAY_TIME = "travelDayTime"
+
+/**
+ * Klockslag lagras som `HH:mm`; ogiltigt, saknat eller i annat format (även från en nyare app)
+ * → `null`, som skrivs vid nästa sparning (skill data-safety-backup).
+ */
 fun Doc.localTime(key: String): LocalTime? =
     (this[key] as? String)?.takeIf { TIME.matches(it) }?.let { LocalTime(it.take(2).toInt(), it.takeLast(2).toInt()) }
 

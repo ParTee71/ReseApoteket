@@ -32,6 +32,13 @@ class ReminderWorkerTest {
     }
 
     @Test
+    fun `ett jobb utan nyckel – även ett "Senare" från en äldre app – ger en vanlig genomgång`() = runTest {
+        perform(workDataOf("tripId" to "gc", "kind" to "DAY_BEFORE")) { next }
+        assertEquals(listOf(next), scheduled)
+        assertEquals(emptyList(), shownAgain)
+    }
+
+    @Test
     fun `Senare visar sin påminnelse igen och schemalägger inget`() = runTest {
         perform(workDataOf(ReminderWorker.KEY to "gc/DAY_BEFORE/18:00")) { error("ska inte köras") }
         assertEquals(listOf("gc/DAY_BEFORE/18:00"), shownAgain)

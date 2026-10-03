@@ -170,7 +170,7 @@ private fun Fields() {
     TimeField("Tid", time, { time = it })
     var travelDay by remember { mutableStateOf(true) }
     var travelTime by remember { mutableStateOf<LocalTime?>(null) }
-    TravelDayField(travelDay, travelTime, { on, at -> travelDay = on; travelTime = at })
+    TravelDayField(travelDay, travelTime, { travelDay = it.on; travelTime = it.ownTime })
     LabeledGroup("Form") {
         ChoiceChips(listOf(0, 1, 2, 3), form, { form = it }, { listOf("Tablett", "Kapsel", "Flytande", "Inhalator")[it] })
     }

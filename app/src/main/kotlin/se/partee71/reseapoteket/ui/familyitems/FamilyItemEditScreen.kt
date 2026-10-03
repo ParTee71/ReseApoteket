@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingEngine
 import se.partee71.reseapoteket.core.engine.PackingPreviewText
@@ -39,6 +38,7 @@ import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
+import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.components.AppTextField
 import se.partee71.reseapoteket.ui.components.ChoiceChips
@@ -82,7 +82,7 @@ sealed interface FamilyItemEditEvent {
     data class Active(val active: Boolean) : FamilyItemEditEvent
 
     /** Packas på resedagen och ev. egen tid (PAK-6). */
-    data class TravelDay(val on: Boolean, val time: LocalTime?) : FamilyItemEditEvent
+    data class TravelDay(val change: TravelDayChange) : FamilyItemEditEvent
 
     data object Save : FamilyItemEditEvent
 
@@ -148,7 +148,7 @@ class FamilyItemEditViewModel @AssistedInject constructor(
             is FamilyItemEditEvent.Rule -> editor.update(FamilyItemValidator.RULE) { it.copy(rule = event.rule) }
             is FamilyItemEditEvent.Notes -> editor.update { it.copy(notes = event.notes) }
             is FamilyItemEditEvent.Active -> editor.update { it.copy(active = event.active) }
-            is FamilyItemEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.on, travelDayTime = event.time.takeIf { event.on }) }
+            is FamilyItemEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
             FamilyItemEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
             FamilyItemEditEvent.Archive -> setArchived(true)
             FamilyItemEditEvent.Restore -> setArchived(false)
@@ -221,7 +221,7 @@ fun FamilyItemEditContent(
             )
         }
         preview?.let { PackingPreview(it.context, it.quantity, reason = it.reason) }
-        TravelDayField(item.travelDay, item.travelDayTime, { on, time -> onEvent(FamilyItemEditEvent.TravelDay(on, time)) })
+        TravelDayField(item.travelDay, item.travelDayTime, { onEvent(FamilyItemEditEvent.TravelDay(it)) })
         AppTextField(item.notes, { onEvent(FamilyItemEditEvent.Notes(it)) }, stringResource(R.string.notes), singleLine = false)
         SwitchRow(
             stringResource(R.string.active),

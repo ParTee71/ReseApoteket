@@ -194,6 +194,12 @@ class ReminderRunnerTest {
         clock.now = at(2026, 10, 3, 8, 31)
         runner.run()
         assertEquals(listOf("3 saker kvar att packa.", "Packa nu: Laddare."), notifications.map { it.extras.getString(Notification.EXTRA_TEXT) })
+        assertEquals(
+            listOf("Påminnelse inför resan"),
+            notifications.map { it.publicVersion.extras.getString(Notification.EXTRA_TITLE) }.distinct(),
+            "låsskärmen visar aldrig vad som ska packas",
+        )
+        assertEquals(false, notifications.any { it.publicVersion.extras.getString(Notification.EXTRA_TEXT).orEmpty().contains("Laddare") })
         runner.showAgain("gc/TRAVEL_DAY/08:30")
         assertEquals(2, notifications.size, "samma notis ersätts")
     }

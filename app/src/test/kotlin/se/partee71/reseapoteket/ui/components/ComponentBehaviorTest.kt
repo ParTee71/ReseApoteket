@@ -209,7 +209,7 @@ class ComponentBehaviorTest {
         var time by mutableStateOf<LocalTime?>(null)
         show {
             CompositionLocalProvider(LocalTravelDayMorning provides LocalTime(6, 45)) {
-                TravelDayField(travelDay, time, { on, at -> travelDay = on; time = at })
+                TravelDayField(travelDay, time, { travelDay = it.on; time = it.ownTime })
             }
         }
         rule.onNodeWithContentDescription("Påminn kl., 06:45", substring = true).assertDoesNotExist()
