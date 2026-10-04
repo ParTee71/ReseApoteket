@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.annotation.VisibleForTesting
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -39,6 +40,11 @@ class MainActivity : ComponentActivity() {
 
     /** Resan som en påminnelse öppnar (PÅM-7), tills navigationen visat den. */
     private val openTrip = MutableStateFlow<String?>(null)
+
+    /** Den senaste resa som en länk faktiskt öppnade – för instrumenttestet av [TripLink]. */
+    @VisibleForTesting
+    internal var linkedTrip: String? = null
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +87,10 @@ class MainActivity : ComponentActivity() {
 
     /** Bara notisens egen länk öppnar en resa ([TripLink]). */
     private fun takeTrip(intent: Intent) {
-        TripLink.tripId(intent)?.let { openTrip.value = it }
+        TripLink.tripId(intent)?.let {
+            linkedTrip = it
+            openTrip.value = it
+        }
         TripLink.consume(intent)
     }
 }
