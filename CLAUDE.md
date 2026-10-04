@@ -213,6 +213,12 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 | `refine-issue` | Förfina en idé till ett planerat issue (med Design och Återbruk). |
 | `implement-issue` | Genomföra ett issue hela vägen till PR enligt reglerna (med merge-kontroll först). |
 | `release` | Endast vid uttrycklig release. |
+| `firebase-security-rules-auditor` | *Googles (Firebase).* Granska `firestore.rules` – vid varje rules-ändring, före FUT-2. |
+| `android-intent-security` | *Googles (Android).* Granska exporterade komponenter, notisers och delningens Intents. |
+| `navigation-3` | *Googles (Android).* Referens för Navigation 3: djuplänkar, flera stackar, scener. |
+
+Googles skills är oförändrade kopior (källa, commit och licens i deras `SOURCE.md`); där de
+krockar med projektets regler gäller projektets.
 
 > Reglerna gäller både i Claude-appen på telefonen och i Claude i Android Studio – båda
 > läser denna fil och `.claude/`.

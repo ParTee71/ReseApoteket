@@ -39,9 +39,10 @@ description: >
 | StateFlow, `stateIn`, `combine`, effekter | `kotlin-flows` |
 | Coroutines i ViewModel, avbrytning | `kotlin-coroutines` |
 | Skärmdumpar, Robolectric, kontraktstester | `testing-strategy` |
+| Navigation 3: djuplänkar, flera stackar, scener, villkorad navigering (Googles referens; vår `AppBackStack` och `navigation/Transitions` går före) | `navigation-3` |
 
-Allt annat (state, side effects, prestanda, listor, modifiers, animation, Navigation 3)
-besvaras med principerna nedan.
+Allt annat (state, side effects, prestanda, listor, modifiers, animation) besvaras med
+principerna nedan.
 
 ## Workflow
 
