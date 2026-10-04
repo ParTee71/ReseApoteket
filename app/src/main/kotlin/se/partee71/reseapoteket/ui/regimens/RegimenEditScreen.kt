@@ -175,10 +175,10 @@ class RegimenEditViewModel @AssistedInject constructor(
     private val picked = MutableStateFlow<MedicineEntry?>(null)
 
     /**
-     * Förslagen ur Läkemedelsverkets lista under namnfältet (REC-6, REC-7) – bara för något nytt;
-     * formuläret visar dem där sorten har uppslag ([RegimenEditorConfig.medicineLookup]).
+     * Förslagen ur Läkemedelsverkets lista under namnfältet (REC-6, REC-7) – bara för något nytt av
+     * en sort med uppslag ([RegimenEditorConfig.medicineLookup], samma flagga som formuläret läser).
      */
-    val lookup: StateFlow<MedicineLookup> = if (!isNew) {
+    val lookup: StateFlow<MedicineLookup> = if (!isNew || !RegimenKindConfig.of(kind).editor.medicineLookup) {
         MutableStateFlow(MedicineLookup())
     } else {
         combine(editor.state.map { it.value }.distinctUntilChanged(), picked, flow { emit(medicines.catalog()) }) { regimen, entry, catalog ->

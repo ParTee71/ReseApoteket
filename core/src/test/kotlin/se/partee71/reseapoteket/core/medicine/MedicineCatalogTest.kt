@@ -115,6 +115,14 @@ class MedicineCatalogTest {
             "Nässpray, lösning" to MedicineForm.OTHER,
             "Kräm" to MedicineForm.OTHER,
             "Suppositorium" to MedicineForm.OTHER,
+            // Verkliga former ur Läkemedelsverkets lista 2026-10-04, där ordningen avgör.
+            "Vaginaltablett" to MedicineForm.TABLET,
+            "Granulat till orala droppar, suspension" to MedicineForm.DROPS,
+            "Pulver till oral lösning i dospåse" to MedicineForm.POWDER,
+            "Injektionsvätska, suspension, förfylld spruta" to MedicineForm.OTHER,
+            "Ögondroppar, suspension" to MedicineForm.DROPS,
+            "Medicinskt plåster" to MedicineForm.PATCH,
+            "Medicinsk gas, komprimerad" to MedicineForm.OTHER,
             "Något helt nytt" to MedicineForm.OTHER,
         )
         assertEquals(expected, expected.mapValues { (text, _) -> MedicineForms.of(text) })

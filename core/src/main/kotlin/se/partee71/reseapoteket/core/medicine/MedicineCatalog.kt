@@ -87,7 +87,7 @@ class MedicineCatalog(val updated: LocalDate?, val entries: List<MedicineEntry>)
     }
 }
 
-/** Enheten ett nytt recept med formen räknas i – samma som formulärets förval för ett nytt recept. */
+/** Enheten ett recept med formen räknas i när det fylls i från listan (REC-7) – formuläret byter annars aldrig enhet vid formbyte. */
 val MedicineForm.defaultUnit: ItemUnit
     get() = when (this) {
         MedicineForm.TABLET -> ItemUnit.TABLETT

@@ -263,10 +263,13 @@ class RegimenViewModelsTest {
     }
 
     @Test
-    fun `ett befintligt recept söker inte i läkemedelslistan`() = runTest {
+    fun `ett befintligt recept eller ett kosttillskott söker inte i läkemedelslistan`() = runTest {
         anna.upsert(levaxin)
         val vm = viewModel("r1")
         vm.onEvent(RegimenEditEvent.Name("Alvedon"))
         assertEquals(MedicineLookup(), vm.lookup.value)
+        val supplement = viewModel(kind = RegimenKind.SUPPLEMENT)
+        supplement.onEvent(RegimenEditEvent.Name("Alvedon"))
+        assertEquals(MedicineLookup(), supplement.lookup.value)
     }
 }

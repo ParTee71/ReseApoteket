@@ -17,9 +17,9 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTouchHeightIsEqualTo
 import androidx.compose.ui.test.assertTouchWidthIsEqualTo
@@ -203,6 +203,19 @@ class ComponentBehaviorTest {
         text = "Alvedon"
         rule.onNodeWithText("Alvedon forte 1 g").assertDoesNotExist()
         rule.onNodeWithText("Från listan").assertDoesNotExist()
+    }
+
+    @Test
+    fun `en markering utanför titeln klipps eller ignoreras i stället för att krascha`() {
+        show {
+            Column {
+                ItemRow("Ipren", titleHighlight = 2..40)
+                ItemRow("Alvedon", titleHighlight = -3..1)
+                ItemRow("Levaxin", titleHighlight = 4..2)
+                ItemRow("Zyrtec", titleHighlight = 10..12)
+            }
+        }
+        listOf("Ipren", "Alvedon", "Levaxin", "Zyrtec").forEach { rule.onNodeWithText(it).assertIsDisplayed() }
     }
 
     @Test

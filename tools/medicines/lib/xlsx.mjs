@@ -1,5 +1,6 @@
 // Läser första bladet i en .xlsx utan beroenden: zip-katalogen, inflate och cellernas XML.
-// Räcker för Läkemedelsverkets listor (textceller, ev. delade strängar); inte en allmän Excel-läsare.
+// Räcker för Läkemedelsverkets listor (textceller, ev. delade strängar); inte en allmän Excel-läsare:
+// bara lagrade och deflate-komprimerade filer, inte zip64 (arkiv över 4 GB eller 65 535 filer).
 import { inflateRawSync } from 'node:zlib';
 
 /** Filerna i ett zip-arkiv som namn → Buffer (bara lagrade och deflate-komprimerade). */
