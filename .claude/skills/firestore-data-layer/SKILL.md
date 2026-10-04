@@ -129,6 +129,8 @@ alla samlingar.
   låsa ute sig själv. Rules-testet "appens dokument i codecens form" skriver fixturen genom
   klientens SDK och fångar drift mellan codecs och rules.
 - Ny samling = ny `match` med `valid…`-funktion + rules-test i samma PR.
+- Varje rules-ändring granskas med Googles skill `firebase-security-rules-auditor` (rättigheter,
+  create mot update, typer, storlek, `hasOnly`); dess fynd blir rules-tester. Våra regler ovan går före.
 - Deploy sker från GitHub Actions: `rules.yml` (manuellt, dry-run som standard) och `release.yml`
   (före publiceringen, när de ändrats), båda efter rules-testerna mot emulatorn – aldrig från en PR. Reservväg:
   `npx --prefix tools/db firebase deploy --only firestore:rules` (README → Firebase-setup).

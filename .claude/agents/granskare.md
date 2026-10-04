@@ -50,7 +50,9 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
   workflow-nivå, tabellen i `ci-budget` och filtren i `android.yml` ur synk.
 - **Process:** GUI-ändring utan godkänd mockup-länk i issuet eller utan skärmdumpar i PR:en.
 - **Integritet:** loggning av receptdata eller PII, hemligheter eller nycklar i diffen,
-  bredare behörigheter.
+  bredare behörigheter. Rör diffen `firestore.rules`: gå igenom Googles skill
+  `firebase-security-rules-auditor`. Rör den manifestet, extras, `PendingIntent` eller delning:
+  gå igenom Googles skill `android-intent-security`.
 
 ## Rapport (exakt detta format)
 
