@@ -17,7 +17,7 @@ inför en resa, och låter er pricka av det som plockats fram.
 
 Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 
-**Finns i dag (0.4.0):**
+**Finns i dag (0.4.1):**
 - Inloggning med Google-konto; hushållet skapas automatiskt vid första inloggningen (AUTH, HUS).
 - Data i Cloud Firestore som fungerar offline och synkas när nätet är tillbaka (ÖV-5).
 - "Uppdatera appen" om hushållets data sparats av en nyare appversion (HUS-3).
@@ -200,3 +200,4 @@ Versionen höjs bara vid release (skill [`release`](.claude/skills/release/SKILL
 | 0.2.0 | Första releasen. Expressive-tema och navigering (#20); personer (#21), recept med dosering (#22), kosttillskott (#23) och familjeartiklar med mängdregler (#24); resor med packförslag (#25) och packlista med avprickning (#26); inställningar, konto och export (#27). Stabilare hushållssession, navigering och rules (#50–#52); rules deployas från Actions (#64). |
 | 0.3.0 | Egen appikon – resväska med apotekskors, även som enfärgad temaikon (#70); textfälten börjar med stor bokstav (#70); APK:n heter `ReseApoteket-<version>-<tidsstämpel>.apk` (#69). |
 | 0.4.0 | Påminnelser inför resan – ingen packlista än, dags att packa, dagen före och resedagens morgon, per telefon och person med egna tider (#78, PÅM); "Packas på resedagen" med egen sektion i packlistan och påminnelse på morgonen eller vid egen tid (#79, PAK-6); synkindikator när ändringar väntar eller nätet saknas (#75, NFR-6); nytt recept föreslår läkemedel ur Läkemedelsverkets lista och fyller i namn, styrka, form och enhet (#82, REC-6–7). |
+| 0.4.1 | Säkerhetshärdning: storleksgränser och föräldrakontroll i databasreglerna, och textfälten med samma tak (#87); bara påminnelsens egen länk öppnar en resa, en resa som inte finns visar "Det finns inte längre", och en delad export rensas ur telefonen efter en timme (#88). |
