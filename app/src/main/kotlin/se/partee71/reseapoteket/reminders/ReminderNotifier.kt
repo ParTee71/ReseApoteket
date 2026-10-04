@@ -27,8 +27,8 @@ fun Context.canPostNotifications(): Boolean =
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
 
 /**
- * Rubrik och text för en påminnelse (PÅM-2–5): resans namn och antal, och för resedagen namnen på
- * det som packas då (PAK-6). Bara i den privata versionen – på låsskärmen syns en neutral text (PÅM-7).
+ * Rubrik och text för en påminnelse (PÅM-2–5): resans namn och antal, och för resedagen antalet som
+ * packas då (PAK-6) – aldrig vad. Bara i den privata versionen – på låsskärmen syns en neutral text (PÅM-7).
  */
 data class ReminderText(val title: String, val text: String)
 
@@ -45,7 +45,7 @@ fun Resources.reminderText(reminder: Reminder): ReminderText {
         )
         ReminderKind.DAY_BEFORE -> {
             // Det som packas på resedagen nämns för sig (PAK-6).
-            val morning = reminder.travelDayItems.size
+            val morning = reminder.travelDayCount
             val rest = left - morning
             val text = when {
                 morning == 0 -> getQuantityString(R.plurals.reminder_left, left, left)
@@ -56,10 +56,10 @@ fun Resources.reminderText(reminder: Reminder): ReminderText {
         }
         ReminderKind.TRAVEL_DAY -> ReminderText(
             getString(R.string.reminder_travel_day_title),
-            if (reminder.travelDayItems.isEmpty()) {
+            if (reminder.travelDayCount == 0) {
                 getQuantityString(R.plurals.reminder_left, left, left)
             } else {
-                getString(R.string.reminder_travel_day_items, reminder.travelDayItems.joinToString(", "))
+                getQuantityString(R.plurals.reminder_travel_day_now, reminder.travelDayCount, reminder.travelDayCount)
             },
         )
     }

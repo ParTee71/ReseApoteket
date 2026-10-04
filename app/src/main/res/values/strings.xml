@@ -107,7 +107,6 @@
     <string name="travel_day_time_own">Egen tid för just den här</string>
     <string name="travel_day_use_morning">Använd resedagens morgon</string>
     <string name="packing_travel_day">På resedagen</string>
-    <string name="reminder_travel_day_items">Packa nu: %1$s.</string>
     <string name="reminder_day_before_with_morning">%1$s Och %2$d packas på morgonen.</string>
     <string name="reminder_day_before_only_morning">Allt annat är packat – %1$d packas på morgonen.</string>
 
@@ -157,6 +156,10 @@
     <plurals name="reminder_left">
         <item quantity="one">%d sak kvar att packa.</item>
         <item quantity="other">%d saker kvar att packa.</item>
+    </plurals>
+    <plurals name="reminder_travel_day_now">
+        <item quantity="one">%d sak att packa nu.</item>
+        <item quantity="other">%d saker att packa nu.</item>
     </plurals>
 
     <!-- Tomma flikar -->

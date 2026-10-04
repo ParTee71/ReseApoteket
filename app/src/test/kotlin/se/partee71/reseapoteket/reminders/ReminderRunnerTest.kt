@@ -178,16 +178,17 @@ class ReminderRunnerTest {
     }
 
     @Test
-    fun `dagen före nämner det som packas på morgonen, resedagen listar det (PAK-6)`() {
+    fun `dagen före nämner det som packas på morgonen, resedagen räknar det utan namn (PAK-6, PÅM-5)`() {
         val resources = application.resources
         val dayBefore = Reminder(
             ReminderKind.DAY_BEFORE, "gc", "Gran Canaria", LocalDate(2026, 10, 3), LocalDateTime(2026, 10, 2, 18, 0),
-            PackingProgress(10, 15), travelDayItems = listOf("Tandborste", "Insulin"),
+            PackingProgress(10, 15), travelDayCount = 2,
         )
         assertEquals("3 saker kvar att packa. Och 2 packas på morgonen.", resources.reminderText(dayBefore).text)
         assertEquals("Allt annat är packat – 2 packas på morgonen.", resources.reminderText(dayBefore.copy(progress = PackingProgress(13, 15))).text)
         val morning = dayBefore.copy(kind = ReminderKind.TRAVEL_DAY, at = LocalDateTime(2026, 10, 3, 7, 0))
-        assertEquals("Packa nu: Tandborste, Insulin.", resources.reminderText(morning).text)
+        assertEquals("2 saker att packa nu.", resources.reminderText(morning).text)
+        assertEquals("1 sak att packa nu.", resources.reminderText(morning.copy(travelDayCount = 1)).text)
     }
 
     @Test
@@ -198,7 +199,7 @@ class ReminderRunnerTest {
         runner.run()
         clock.now = at(2026, 10, 3, 8, 31)
         runner.run()
-        assertEquals(listOf("3 saker kvar att packa.", "Packa nu: Laddare."), notifications.map { it.extras.getString(Notification.EXTRA_TEXT) })
+        assertEquals(listOf("3 saker kvar att packa.", "1 sak att packa nu."), notifications.map { it.extras.getString(Notification.EXTRA_TEXT) })
         assertEquals(
             listOf("Påminnelse inför resan"),
             notifications.map { it.publicVersion.extras.getString(Notification.EXTRA_TITLE) }.distinct(),

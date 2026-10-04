@@ -115,7 +115,7 @@ class RemindersTest {
     }
 
     @Test
-    fun `resedagens poster - morgonen listar de utan egen tid, en egen tid ger en egen påminnelse (PAK-6)`() {
+    fun `resedagens poster - morgonen räknar de utan egen tid, en egen tid ger en egen påminnelse (PAK-6)`() {
         val rows = listOf(
             PackingItem("a", name = "Alvedon"),
             PackingItem("b", name = "Tandborste", travelDay = true),
@@ -127,10 +127,10 @@ class RemindersTest {
         val planned = plan(granCanaria, packing = mapOf("gc" to rows))
         val travelDay = planned.filter { it.kind == ReminderKind.TRAVEL_DAY }
         assertEquals(
-            listOf(at(2026, 10, 3, 7) to listOf("Tandborste", "Insulin"), at(2026, 10, 3, 8, 30) to listOf("Laddare")),
-            travelDay.map { it.at to it.travelDayItems },
+            listOf(at(2026, 10, 3, 7) to 2, at(2026, 10, 3, 8, 30) to 1),
+            travelDay.map { it.at to it.travelDayCount },
         )
-        assertEquals(listOf("Tandborste", "Insulin", "Laddare"), planned.single { it.kind == ReminderKind.DAY_BEFORE }.travelDayItems)
+        assertEquals(3, planned.single { it.kind == ReminderKind.DAY_BEFORE }.travelDayCount)
         assertEquals(2, travelDay.map { it.key }.toSet().size)
     }
 
