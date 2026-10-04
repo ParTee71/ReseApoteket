@@ -1,5 +1,8 @@
 package se.partee71.reseapoteket.ui.regimens
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -18,12 +21,17 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingEngine
+import se.partee71.reseapoteket.core.medicine.MedicineCatalog
+import se.partee71.reseapoteket.core.medicine.MedicineLookup
+import se.partee71.reseapoteket.core.medicine.fillFrom
+import se.partee71.reseapoteket.core.medicine.lookup
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.HouseholdSettings
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.MedicineForm
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
+import se.partee71.reseapoteket.testing.FakeMedicines
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -163,6 +171,59 @@ class RegimenScreensTest {
         val omega = Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", MedicineForm.TABLET, "10 µg", ItemUnit.TABLETT, null, DoseSchedule.Daily(1, 1))
         captureLightAndDark("RegimenEditScreen_kosttillskott_nytt") {
             RegimenEditContent(supplements, true, EditorUiState(omega, isDirty = true), preview(omega), emptyFlow(), {}, {})
+        }
+    }
+
+    private val catalog = MedicineCatalog.parse(FakeMedicines.SAMPLE)
+    private val searching = Regimen("n1", name = "alved", form = MedicineForm.TABLET, unit = ItemUnit.TABLETT, schedule = DoseSchedule.Daily())
+
+    @Test
+    fun `nytt recept – förslag under namnet, ett tryck väljer läkemedlet (REC-6, REC-7)`() {
+        val events = mutableListOf<RegimenEditEvent>()
+        val lookup = catalog.lookup(searching, null)
+        rule.setContent {
+            ReseApoteketTheme { RegimenEditContent(config, true, EditorUiState(searching), preview(searching), emptyFlow(), { events += it }, {}, lookup = lookup) }
+        }
+        rule.onNodeWithText("Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns").assertIsDisplayed()
+        rule.onNodeWithContentDescription("4 förslag").assertExists()
+        rule.onNodeWithText("Alvedon forte 1 g").performClick()
+        assertEquals(RegimenEditEvent.PickMedicine(lookup.suggestions[3].entry), events.single())
+    }
+
+    @Test
+    fun `ingen träff och ifyllt visas under namnet (REC-6, REC-7)`() {
+        var lookup by mutableStateOf(MedicineLookup(noMatch = true))
+        rule.setContent {
+            ReseApoteketTheme { RegimenEditContent(config, true, EditorUiState(searching), preview(searching), emptyFlow(), {}, {}, lookup = lookup) }
+        }
+        rule.onNodeWithText("Inget i Läkemedelsverkets lista heter så. Namnet sparas som du skrev det.").assertIsDisplayed()
+        lookup = MedicineLookup(filled = true)
+        rule.onNodeWithText("Inget i Läkemedelsverkets lista heter så. Namnet sparas som du skrev det.").assertDoesNotExist()
+        rule.onNodeWithText("Ifyllt från Läkemedelsverket – ändra fritt").assertIsDisplayed()
+    }
+
+    @Test
+    fun `inga förslag för kosttillskott eller när ett recept redigeras`() {
+        val lookup = catalog.lookup(searching, null)
+        var kind by mutableStateOf(supplements to true)
+        rule.setContent {
+            ReseApoteketTheme { RegimenEditContent(kind.first, kind.second, EditorUiState(searching), preview(searching), emptyFlow(), {}, {}, lookup = lookup) }
+        }
+        rule.onNodeWithText("Alvedon forte 1 g").assertDoesNotExist()
+        kind = config to false
+        rule.onNodeWithText("Alvedon forte 1 g").assertDoesNotExist()
+    }
+
+    @Test
+    @Config(qualifiers = "w390dp-h1100dp-xxhdpi")
+    fun `skärmdumpar – förslag och ifyllt`() {
+        captureLightAndDark("RegimenEditScreen_forslag") {
+            RegimenEditContent(config, true, EditorUiState(searching), preview(searching), emptyFlow(), {}, {}, lookup = catalog.lookup(searching, null))
+        }
+        val alvedon = catalog.entries[1]
+        val filled = searching.fillFrom(alvedon)
+        captureLightAndDark("RegimenEditScreen_ifyllt") {
+            RegimenEditContent(config, true, EditorUiState(filled, isDirty = true), preview(filled), emptyFlow(), {}, {}, lookup = catalog.lookup(filled, alvedon))
         }
     }
 }

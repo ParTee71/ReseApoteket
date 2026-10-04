@@ -26,7 +26,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Ikonknapp | `AppIconButton` | M3 ikonknapp, min 48 dp |
 | Split-knapp "Lägg till ▾" | `AddSplitButton` | Expressive split-knapp |
 | Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing`; `tone` färgar ytan (grönt när allt är packat) |
-| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat) |
+| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat), `titleHighlight` färgmarkerar en del av titeln (sökträff) |
 | Resenärer på en resa | `AvatarStack` | överlappande `PersonAvatar` (Small) med ring; TalkBack läser namnen |
 | Pausbar rad (recept, kosttillskott, familjeartikel) | `PausableRow` | `ItemRow` + typ som `InfoPill`; pausad nedtonad med "Pausat" |
 | Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss; med `onClick` är krysset en egen knapp (läses med namn och mängd) och raden öppnar detaljer; `accent` = personens färg |
@@ -37,6 +37,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter; visar synkindikatorn (`InfoPill` med moln) före `actions` när `LocalSyncIndicator` säger att ändringar väntar (NFR-6) |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
+| Textfält med förslag (läkemedelslistan, REC-6) | `SuggestionField` | `AppTextField` + kort med en `ItemRow` per `Suggestion` (matchningen färgmarkerad via `titleHighlight`) och valfri källrad; antalet läses upp; anroparen bestämmer vad ett val fyller i |
 | Etikett/pill | `InfoPill` | `AppShapes.pill`; `icon` före texten, `onClick` gör den till en knapp med 48 dp tryckyta |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` | M3 filterchip |

@@ -4,6 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import se.partee71.reseapoteket.data.medicines.AssetMedicineRepository
+import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.DefaultFamilyItemRepository
 import se.partee71.reseapoteket.data.repository.DefaultHouseholdRepository
 import se.partee71.reseapoteket.data.repository.DefaultPackingRepository
@@ -31,4 +33,6 @@ abstract class RepositoryModule {
     @Binds abstract fun trips(repository: DefaultTripRepository): TripRepository
 
     @Binds abstract fun packing(repository: DefaultPackingRepository): PackingRepository
+
+    @Binds abstract fun medicines(repository: AssetMedicineRepository): MedicineRepository
 }

@@ -40,6 +40,7 @@ data class RegimenKindConfig(
                 strength = R.string.regimen_strength,
                 strengthHelper = R.string.regimen_strength_helper,
                 forms = MedicineForm.entries,
+                medicineLookup = true,
             ),
         )
 
@@ -65,6 +66,8 @@ data class RegimenKindConfig(
 /**
  * Formulärets sort-specifika delar (REC-1, KOS-1–3): rubriker, etiketten för styrkan ("Styrka"
  * eller "Dos"), formerna i visningsordning och snabbval som fyller i namnet för något nytt.
+ * [medicineLookup]: namnfältet i något nytt föreslår ur Läkemedelsverkets lista (REC-6) –
+ * bara recept, kosttillskott finns inte där.
  */
 data class RegimenEditorConfig(
     @param:StringRes val newTitle: Int,
@@ -74,6 +77,7 @@ data class RegimenEditorConfig(
     @param:StringRes val strengthHelper: Int,
     val forms: List<MedicineForm>,
     val suggestions: List<Int> = emptyList(),
+    val medicineLookup: Boolean = false,
 )
 
 /** Formens namn i formuläret: "Tablett", "Flytande". */

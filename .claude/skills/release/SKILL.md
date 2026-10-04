@@ -60,11 +60,16 @@ Kör v<ny>, eller en annan version?
 ## Steg 3 – Uppdatera version, README och krav
 
 1. `version.properties`: `versionCode` och `versionName`. Filen ligger utanför CI-filtren, så
-   release-PR:en kör bara dokumentkontrollerna (README ändras också).
+   release-PR:en kör bara dokumentkontrollerna (README ändras också) – utom när
+   läkemedelslistan har uppdaterats (punkt 3).
 2. README "Versionshistorik": ny rad för `<ny>` med användarsynliga ändringar och `(#NN)`-referenser.
-3. Kontrollera att KRAVLISTA.md speglar det som släpps (inga kvarvarande `*(planerad)*` för
+3. Läkemedelslistan (REC-6): `node tools/medicines/build.mjs` hämtar Läkemedelsverkets lista och
+   skriver `app/src/main/assets/medicines.tsv` (stoppar hellre än skriver en trasig lista).
+   Ändrades filen följer den med i release-PR:en – den kör då app-testerna och
+   instrumenttesterna (sökvägen ligger under `app/src/`), annars bara dokumentkontrollerna.
+4. Kontrollera att KRAVLISTA.md speglar det som släpps (inga kvarvarande `*(planerad)*` för
    byggda funktioner) och att TP-kraven matchar SDK-nivåerna i byggfilen.
-4. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt (skill `data-safety-backup`)
+5. Har `schemaVersion` höjts sedan förra releasen: nämn det tydligt (skill `data-safety-backup`)
    och be användaren göra detta, i den här ordningen, **innan** release-bygget triggas (steg 5):
    1. deploya `firestore.rules` med den nya `maxSchemaVersion()` – kör `rules.yml` med
       `deploy: true` (`publish` deployar dem också, men stämplingen måste vänta på dem);
