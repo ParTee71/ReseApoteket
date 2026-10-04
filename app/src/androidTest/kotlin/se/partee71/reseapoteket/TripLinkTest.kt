@@ -6,7 +6,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.test.assertSame
 import org.junit.Test
 import org.junit.runner.RunWith
 import se.partee71.reseapoteket.reminders.TripLink
@@ -41,26 +40,15 @@ class TripLinkTest {
 
     @Test
     fun notisens_alias_nar_appen_nar_den_redan_ar_igang() {
+        // onNewIntent levereras direkt till den körande aktiviteten – deterministiskt, utan att
+        // systemet startar en ny task (som lämnar den första instansen pausad).
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            lateinit var started: MainActivity
-            scenario.onActivity { started = it }
-            context.startActivity(link("kreta"))
-            // Starten går via systemet – vänta tills länken nått aktiviteten, med en övre gräns.
-            val deadline = System.currentTimeMillis() + TIMEOUT_MS
-            var linked: String? = null
-            while (linked == null && System.currentTimeMillis() < deadline) {
-                InstrumentationRegistry.getInstrumentation().waitForIdleSync()
-                scenario.onActivity { linked = it.linkedTrip }
-            }
-            scenario.onActivity {
-                assertSame(started, it)
-                assertEquals("kreta", it.linkedTrip)
-                assertEquals(TripLink.ALIAS, it.intent.component?.className)
+            scenario.onActivity { activity ->
+                assertNull(activity.linkedTrip)
+                InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(activity, link("kreta"))
+                assertEquals("kreta", activity.linkedTrip)
+                assertEquals(TripLink.ALIAS, activity.intent.component?.className)
             }
         }
-    }
-
-    private companion object {
-        const val TIMEOUT_MS = 10_000L
     }
 }
