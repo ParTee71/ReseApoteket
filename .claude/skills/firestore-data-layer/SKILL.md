@@ -129,6 +129,11 @@ alla samlingar.
   låsa ute sig själv. Rules-testet "appens dokument i codecens form" skriver fixturen genom
   klientens SDK och fångar drift mellan codecs och rules.
 - Ny samling = ny `match` med `valid…`-funktion + rules-test i samma PR.
+- **Storlek (NFR-16):** text via `shortText`/`longText` (tak `maxShort()`/`maxLong()` = `TextLimits`
+  i `:core`, hålls lika av `schema.test.mjs`), listor via `shortList`, antal fält via `fieldCount` –
+  som typerna bara på fält som skrivs (DAT-6). `AppTextField` har samma tak.
+- **Förälder:** ett dokument i en undersamling (recept, packrad) skapas bara under en förälder
+  som finns (`existsAfter`, så att föräldern får skapas i samma batch). Ny undersamling → samma kontroll.
 - Varje rules-ändring granskas med Googles skill `firebase-security-rules-auditor` (rättigheter,
   create mot update, typer, storlek, `hasOnly`); dess fynd blir rules-tester. Våra regler ovan går före.
 - Deploy sker från GitHub Actions: `rules.yml` (manuellt, dry-run som standard) och `release.yml`

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import se.partee71.reseapoteket.core.schema.TextLimits
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppShapes
 import se.partee71.reseapoteket.ui.theme.AppTypography
@@ -20,6 +21,9 @@ import se.partee71.reseapoteket.ui.theme.AppTypography
  * Det enda textfältet: etikett, och under fältet antingen [error] (röd, läses av TalkBack som
  * fel) eller [helper]. Fält i formulär får sina fel från `EditorState`. Tangentbordet börjar
  * med stor bokstav (NFR-18); ett fält som anger egna [keyboardOptions], t.ex. siffror, styr själv.
+ * Texten växer inte förbi [maxLength] – samma tak som rules har (NFR-16); en inklistring som
+ * skulle gå över ignoreras hellre än kapas mitt i. En lagrad längre text (från verktygen) kortas
+ * aldrig av, men måste kortas under taket för att gå att spara.
  */
 @Composable
 fun AppTextField(
@@ -34,11 +38,12 @@ fun AppTextField(
     enabled: Boolean = true,
     @DrawableRes trailingIcon: Int? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+    maxLength: Int = if (singleLine) TextLimits.SHORT else TextLimits.LONG,
 ) {
     val card = AppColors.extended.card
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = { if (it.length <= maxLength || it.length < value.length) onValueChange(it) },
         modifier = modifier.fillMaxWidth(),
         enabled = enabled,
         readOnly = readOnly,

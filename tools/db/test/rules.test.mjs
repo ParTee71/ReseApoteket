@@ -2,7 +2,7 @@
 import { after, before, beforeEach, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { readFileSync } from 'node:fs';
-import { Timestamp, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { Timestamp, collection, collectionGroup, deleteDoc, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { CURRENT_VERSION } from '../lib/schema.mjs';
 import { rulesTestEnvironment } from './helpers/emulator.mjs';
 
@@ -42,7 +42,7 @@ test('medlem läser och skriver hushållet och allt under det', async () => {
   await assertSucceeds(getDoc(doc(db('anna'), 'households', HID)));
   await assertSucceeds(updateDoc(doc(db('anna'), 'households', HID), { name: 'Resegänget' }));
   await assertSucceeds(getDoc(doc(db('anna'), 'households', HID, 'persons', 'p1')));
-  await assertSucceeds(setDoc(doc(db('anna'), 'households', HID, 'persons', 'p2', 'regimens', 'r1'), { name: 'Levaxin' }));
+  await assertSucceeds(setDoc(doc(db('anna'), 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Levaxin' }));
   await assertSucceeds(deleteDoc(doc(db('anna'), 'households', HID, 'persons', 'p1')));
 });
 
@@ -115,7 +115,8 @@ test('kända fält med fel typ nekas, men null, saknade och okända fält är ti
   await assertFails(setDoc(doc(anna, 'households', HID, 'persons', 'p2'), { name: 'Bo', sortOrder: 'först' }));
   await assertFails(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Levaxin', schedule: 'dagligen' }));
   await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't1'), { name: 'Kreta', days: 'abc' }));
-  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'X', checked: 'ja' }));
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't3'), { name: 'Rhodos' }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't3', 'packingItems', 'i1'), { name: 'X', checked: 'ja' }));
   await assertFails(updateDoc(doc(anna, 'households', HID), { marginDays: 'två' }));
   // Vid create kontrolleras alla fält – även listor, tider och familjeartiklar.
   await assertFails(setDoc(doc(db('cecilia'), 'households', 'h9'), { memberUids: ['cecilia'], schemaVersion: 1, marginDays: 'två' }));
@@ -128,6 +129,7 @@ test('kända fält med fel typ nekas, men null, saknade och okända fält är ti
 
 test('packas på resedagen: sant/falskt och klockslag som text på recept, familjeartikel och rad (PAK-6)', async () => {
   const anna = db('anna');
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1'), { name: 'Kreta' }));
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Insulin', travelDay: true, travelDayTime: '07:30' }));
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'familyItems', 'f1'), { name: 'Tandborste', travelDay: true, travelDayTime: null }));
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'Laddare', travelDay: false }));
@@ -169,10 +171,122 @@ test('appens dokument i codecens form (alla fält, null och tidsstämplar) godta
   const [first, ...rest] = documents;
   // Fixturens hushåll med Anna som enda medlem, så att hon får skapa det; sedan resten som hon.
   await assertSucceeds(setDoc(doc(anna, first.path), toClient({ ...first.data, memberUids: ['anna'] })));
-  for (const { path, data } of rest) await assertSucceeds(setDoc(doc(anna, path), toClient(data)));
+  // Fixturen har recept under en person utan eget dokument (för exportens skull, SET-5) – appen
+  // skapar alltid personen först, och ett recept kan bara skapas under en person som finns.
+  const paths = new Set(documents.map((d) => d.path));
+  for (const { path, data } of rest) {
+    const parent = path.split('/').slice(0, -2).join('/');
+    if (parent.split('/').length > 2 && !paths.has(parent)) {
+      await assertSucceeds(setDoc(doc(anna, parent), { name: parent.split('/').at(-1) }));
+      paths.add(parent);
+    }
+    await assertSucceeds(setDoc(doc(anna, path), toClient(data)));
+  }
 });
 
 test('allt utanför households är stängt', async () => {
   await assertFails(getDoc(doc(db('anna'), 'users', 'anna')));
   await assertFails(setDoc(doc(db('anna'), 'annat', 'x'), { a: 1 }));
+});
+
+const long = (n) => 'x'.repeat(n);
+
+test('för långa texter, för många fält och för långa listor nekas (NFR-16)', async () => {
+  const anna = db('anna');
+  const person = (id) => doc(anna, 'households', HID, 'persons', id);
+  await assertSucceeds(setDoc(person('p2'), { name: long(200) }));
+  await assertFails(setDoc(person('p3'), { name: long(201) }));
+  await assertFails(updateDoc(person('p1'), { name: long(201) }));
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Levaxin', notes: long(2000) }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r2'), { name: 'Levaxin', notes: long(2001) }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'persons', 'p1', 'regimens', 'r3'), { name: 'Levaxin', strength: long(201) }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'familyItems', 'f1'), { name: 'Solkräm', notes: long(2001) }));
+  await assertFails(updateDoc(doc(db('anna'), 'households', HID), { name: long(201) }));
+  const fields = (n) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`f${i}`, i]));
+  await assertSucceeds(setDoc(person('p4'), { name: 'Bo', ...fields(39) }));
+  await assertFails(setDoc(person('p5'), { name: 'Bo', ...fields(40) }));
+  await assertSucceeds(setDoc(person('p6'), { name: 'Bo', ...fields(38) }));
+  await assertSucceeds(updateDoc(person('p6'), { extra: 1 }), 'växer till 40 fält');
+  await assertFails(updateDoc(person('p6'), { extra2: 2 }), 'växer till 41 fält');
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1'), { name: 'Kreta', travellerIds: Array.from({ length: 50 }, (_, i) => `p${i}`) }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't2'), { name: 'Kreta', travellerIds: Array.from({ length: 51 }, (_, i) => `p${i}`) }));
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'Solkräm', reason: long(2000) }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i2'), { name: 'Solkräm', reason: long(2001) }));
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h2'), { memberUids: ['cecilia'], schemaVersion: 1, name: long(201) }));
+  await assertFails(setDoc(doc(db('cecilia'), 'households', 'h3'), { memberUids: ['cecilia'], schemaVersion: 1, ...fields(40) }));
+});
+
+test('ett lagrat för stort värde eller många fält hindrar inte att andra fält sparas (DAT-6)', async () => {
+  const fields = Object.fromEntries(Array.from({ length: 45 }, (_, i) => [`f${i}`, i]));
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Gammal', notes: long(5000), archived: false, ...fields });
+  });
+  const regimen = doc(db('anna'), 'households', HID, 'persons', 'p1', 'regimens', 'r1');
+  await assertSucceeds(setDoc(regimen, { archived: true }, { merge: true }));
+  await assertFails(setDoc(regimen, { notes: long(2001) }, { merge: true }));
+  await assertFails(setDoc(regimen, { nyttFalt: 1 }, { merge: true }), 'fler fält än förut');
+});
+
+test('recept och packrader skapas bara under en person eller resa som finns', async () => {
+  const anna = db('anna');
+  await assertFails(setDoc(doc(anna, 'households', HID, 'persons', 'p9', 'regimens', 'r1'), { name: 'Levaxin' }));
+  await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't9', 'packingItems', 'i1'), { name: 'Solkräm' }));
+  // Föräldern får skapas i samma batch.
+  const batch = writeBatch(anna);
+  batch.set(doc(anna, 'households', HID, 'persons', 'p2'), { name: 'Bo' });
+  batch.set(doc(anna, 'households', HID, 'persons', 'p2', 'regimens', 'r1'), { name: 'Levaxin' });
+  await assertSucceeds(batch.commit());
+  // En befintlig rad under en borttagen resa kan fortfarande ändras (t.ex. döljas).
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'households', HID, 'trips', 'borta', 'packingItems', 'i1'), { name: 'Kvar' });
+  });
+  await assertSucceeds(updateDoc(doc(anna, 'households', HID, 'trips', 'borta', 'packingItems', 'i1'), { hidden: true }));
+});
+
+test('en hel packlista sparas i en batch under resan', async () => {
+  const anna = db('anna');
+  await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1'), { name: 'Kreta' }));
+  const batch = writeBatch(anna);
+  for (let i = 0; i < 60; i++) {
+    batch.set(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', `i${i}`), {
+      name: `Rad ${i}`, section: 'MEDICINES', personId: 'p1', sourceType: 'REGIMEN', sourceId: `r${i}`, unit: 'TABLETT',
+      suggestedQuantity: 9, quantity: 9, packages: 1, reason: '1 × 7 dagar + 2', checked: false, hidden: false, sortOrder: i, archived: false,
+    });
+  }
+  await assertSucceeds(batch.commit());
+});
+
+test('icke-medlem och oautentiserad nekas ändring och radering överallt under hushållet', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const admin = ctx.firestore();
+    await setDoc(doc(admin, 'households', HID, 'persons', 'p1', 'regimens', 'r1'), { name: 'Levaxin' });
+    await setDoc(doc(admin, 'households', HID, 'familyItems', 'f1'), { name: 'Solkräm' });
+    await setDoc(doc(admin, 'households', HID, 'trips', 't1'), { name: 'Kreta' });
+    await setDoc(doc(admin, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'Solkräm' });
+  });
+  const paths = [
+    ['persons', 'p1'], ['persons', 'p1', 'regimens', 'r1'], ['familyItems', 'f1'], ['trips', 't1'], ['trips', 't1', 'packingItems', 'i1'],
+  ];
+  for (const uid of ['bertil', null]) {
+    const store = db(uid);
+    for (const path of paths) {
+      const ref = doc(store, 'households', HID, ...path);
+      await assertFails(getDoc(ref));
+      await assertFails(updateDoc(ref, { name: 'Kapat' }));
+      await assertFails(setDoc(ref, { name: 'Kapat' }));
+      await assertFails(deleteDoc(ref));
+    }
+  }
+});
+
+test('inga frågor över alla hushåll: collectionGroup och array-contains-any nekas', async () => {
+  for (const group of ['persons', 'regimens', 'familyItems', 'trips', 'packingItems']) {
+    await assertFails(getDocs(collectionGroup(db('anna'), group)));
+  }
+  await assertFails(getDocs(query(collection(db('bertil'), 'households'), where('memberUids', 'array-contains-any', ['anna', 'bertil']))));
+  await assertFails(getDocs(query(collection(db('anna'), 'households'), where('memberUids', 'array-contains-any', ['anna', 'bertil']))));
+});
+
+test('memberUids kan inte tas bort', async () => {
+  await assertFails(updateDoc(doc(db('anna'), 'households', HID), { memberUids: deleteField() }));
 });

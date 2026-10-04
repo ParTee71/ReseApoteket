@@ -70,6 +70,11 @@ abstract class CollectionContract {
 
     private fun contract(block: suspend () -> Unit) = runBlocking { withTimeout(TIMEOUT_MS) { block() } }
 
+    /** Recepten ligger under personen p1 – rules låter ett recept skapas bara under en person som finns. */
+    private suspend fun withPerson() {
+        persons.upsert(Person("p1", "Anna")).getOrThrow()
+    }
+
     private suspend fun <T> Flow<T>.awaitMatching(predicate: (T) -> Boolean): T = first(predicate)
 
     @Test
@@ -130,6 +135,7 @@ abstract class CollectionContract {
 
     @Test
     fun update_ersatter_en_map_helt_och_skriver_alltid_updatedAt() = contract {
+        withPerson()
         regimens.upsert(Regimen("r", name = "Levaxin", schedule = DoseSchedule.Daily(2, 1))).getOrThrow()
         regimens.update(Regimen("r", name = "Annat namn", schedule = DoseSchedule.AsNeeded(10)), setOf("schedule")).getOrThrow()
         val updated = regimens.observe("r").awaitMatching { it?.schedule is DoseSchedule.AsNeeded }!!
@@ -164,6 +170,7 @@ abstract class CollectionContract {
 
     @Test
     fun tomt_valfritt_falt_forsvinner_vid_upsert() = contract {
+        withPerson()
         regimens.upsert(Regimen("r1", name = "Levaxin", packageSize = 100)).getOrThrow()
         regimens.upsert(Regimen("r1", name = "Levaxin", packageSize = null)).getOrThrow()
         assertNull(regimens.observe("r1").awaitMatching { it?.packageSize == null }?.packageSize)
@@ -172,6 +179,7 @@ abstract class CollectionContract {
 
     @Test
     fun okand_dosering_fran_en_nyare_app_bevaras_nar_andra_falt_andras() = contract {
+        withPerson()
         val newer = mapOf("type" to "VID_FULLMANE", "fas" to 3L)
         env.writeRaw(regimensPath, "r1", mapOf("name" to "Nytt", "schedule" to newer))
         val regimen = regimens.observe("r1").awaitMatching { it != null }!!
@@ -183,6 +191,7 @@ abstract class CollectionContract {
 
     @Test
     fun byte_fran_okand_till_kand_dosering_sparar_den_kanda() = contract {
+        withPerson()
         env.writeRaw(regimensPath, "r1", mapOf("name" to "Nytt", "schedule" to mapOf("type" to "VID_FULLMANE")))
         val regimen = regimens.observe("r1").awaitMatching { it != null }!!
         regimens.upsert(regimen.copy(schedule = DoseSchedule.Daily(dosesPerDay = 2))).getOrThrow()
