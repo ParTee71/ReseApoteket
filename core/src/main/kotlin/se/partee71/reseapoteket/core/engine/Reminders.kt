@@ -56,10 +56,10 @@ data class Reminder(
     val at: LocalDateTime,
     val progress: PackingProgress,
     /**
-     * Oprickade rader som packas på resedagen (PAK-6): för dagen före alla, för resedagen de
-     * som påminns om vid just den här tiden.
+     * Antal oprickade rader som packas på resedagen (PAK-6): för dagen före alla, för resedagen de
+     * som påminns om vid just den här tiden. Bara antalet – namnen hamnar aldrig i en notis (PÅM-5).
      */
-    val travelDayItems: List<String> = emptyList(),
+    val travelDayCount: Int = 0,
 ) {
     /** Samma påminnelse för samma resa och tid – en notis ersätter sin förra, "Senare" hittar den igen. */
     val key: String get() = "$tripId/${kind.name}/${at.time}"
@@ -124,12 +124,12 @@ object ReminderPlanner {
             else -> setting.daysBefore.coerceIn(ReminderSettings.DAYS_BEFORE)
         }
         val date = start.minus(DatePeriod(days = daysBefore))
-        fun at(time: LocalTime, names: List<String>) = Reminder(kind, trip.id, trip.name, start, LocalDateTime(date, time), progress, names)
+        fun at(time: LocalTime, count: Int) = Reminder(kind, trip.id, trip.name, start, LocalDateTime(date, time), progress, count)
         if (kind != ReminderKind.TRAVEL_DAY) {
-            return listOf(at(setting.time, if (kind == ReminderKind.DAY_BEFORE) travelDay.map { it.name } else emptyList()))
+            return listOf(at(setting.time, if (kind == ReminderKind.DAY_BEFORE) travelDay.size else 0))
         }
         val byTime = travelDay.groupBy { it.travelDayTime ?: setting.time }
-        val morning = at(setting.time, byTime[setting.time].orEmpty().map { it.name })
-        return listOf(morning) + byTime.filterKeys { it != setting.time }.map { (time, rows) -> at(time, rows.map { it.name }) }
+        val morning = at(setting.time, byTime[setting.time].orEmpty().size)
+        return listOf(morning) + byTime.filterKeys { it != setting.time }.map { (time, rows) -> at(time, rows.size) }
     }
 }

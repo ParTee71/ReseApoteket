@@ -48,5 +48,14 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/export_paths" />
         </provider>
+
+        <!-- Firebase Auths webbinloggning och reCAPTCHA (NFR-8): inloggningen går via Credential Manager
+             och signInWithCredential, så aktiviteterna används inte och ska inte kunna startas av andra appar. -->
+        <activity
+            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+            tools:node="remove" />
     </application>
 </manifest>
