@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -151,7 +152,10 @@ class PackingListViewModel @AssistedInject constructor(
     /** Svep döljer en rad och kan ångras – samma mekanik som arkivering i listorna (NFR-3). */
     val hiding = ArchiveActions(viewModelScope, ::setHidden, R.string.hidden_format)
 
-    val trip: StateFlow<Trip?> = trips.observe(tripId).withFallback(null).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    /** Resan som den senast lästs – [Read.trip] `null` om den inte finns; `null` innan den lästs eller vid läsfel. */
+    private val tripRead: StateFlow<Read?> = trips.observe(tripId).map { Read(it) }.withFallback(null).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val trip: StateFlow<Trip?> = tripRead.map { it?.trip }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val people: Flow<List<Person>> = persons.observe().withFallback(emptyList())
 
@@ -165,7 +169,15 @@ class PackingListViewModel @AssistedInject constructor(
             }
 
     private val loader = ListLoader(rows, viewModelScope)
-    val state = loader.state
+
+    /**
+     * Listan – eller "finns inte längre" om resan saknas (raderad, eller en okänd resa i en
+     * länk): då går inget att lägga till under den. Ett läsfel på resan räknas inte som saknad.
+     */
+    val state: StateFlow<ListUiState<PackingRow>> =
+        combine(loader.state, tripRead) { list, read ->
+            if (read != null && read.trip == null) ListUiState.Error(DataError.NotFound) else list
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, ListUiState.Loading)
 
     val header: StateFlow<PackingHeader?> = combine(trip, state, people) { trip, list, all ->
         trip?.let {
@@ -367,3 +379,6 @@ class PackingListViewModel @AssistedInject constructor(
         }
     }
 }
+
+/** En läsning av resan – skiljer "finns inte" ([trip] `null`) från "inte läst än". */
+private data class Read(val trip: Trip?)

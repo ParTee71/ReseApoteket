@@ -16,7 +16,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.datetime.daysUntil
-import se.partee71.reseapoteket.MainActivity
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.Reminder
 import se.partee71.reseapoteket.core.engine.ReminderKind
@@ -27,7 +26,10 @@ fun Context.canPostNotifications(): Boolean =
         (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
 
-/** Rubrik och text för en påminnelse (PÅM-2–5) – bara resans namn och antal, aldrig vad som ska packas. */
+/**
+ * Rubrik och text för en påminnelse (PÅM-2–5): resans namn och antal, och för resedagen namnen på
+ * det som packas då (PAK-6). Bara i den privata versionen – på låsskärmen syns en neutral text (PÅM-7).
+ */
 data class ReminderText(val title: String, val text: String)
 
 fun Resources.reminderText(reminder: Reminder): ReminderText {
@@ -110,8 +112,7 @@ class ReminderNotifier @Inject constructor(@ApplicationContext private val conte
     }
 
     private fun openTrip(tripId: String, id: Int): PendingIntent {
-        val intent = Intent(context, MainActivity::class.java)
-            .putExtra(MainActivity.EXTRA_TRIP_ID, tripId)
+        val intent = TripLink.intent(context, tripId)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         return PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }

@@ -118,8 +118,11 @@ fun PackingListContent(
             subtitle = header?.let { subtitle(it) },
             onBack = onBack,
             actions = {
-                header?.let { h -> AvatarStack(h.travellers.map { StackedAvatar(it.emoji, AppColors.person(it.colorHex), it.name) }) }
-                AppIconButton(R.drawable.ic_edit, stringResource(R.string.trip_edit), onEditTrip)
+                // Utan resa (inte läst än, eller finns inte) finns inget att ändra.
+                header?.let { h ->
+                    AvatarStack(h.travellers.map { StackedAvatar(it.emoji, AppColors.person(it.colorHex), it.name) })
+                    AppIconButton(R.drawable.ic_edit, stringResource(R.string.trip_edit), onEditTrip)
+                }
             },
             header = header?.let {
                 {

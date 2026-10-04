@@ -183,6 +183,20 @@ class PackingListScreensTest {
     }
 
     @Test
+    fun `en resa som inte finns visar finns inte längre utan Försök igen och Lägg till (#88)`() {
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Error(DataError.NotFound), null, {}, {}, {}) } }
+        rule.onNodeWithText("Det finns inte längre – det kan ha raderats på en annan enhet.").assertIsDisplayed()
+        rule.onNodeWithText("Försök igen").assertDoesNotExist()
+        rule.onNodeWithText("Lägg till").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Redigera resa").assertDoesNotExist()
+    }
+
+    @Test
+    fun `skärmdump - resan finns inte (#88)`() {
+        captureLightAndDark("PackingListScreen_finns_inte") { PackingListContent(ListUiState.Error(DataError.NotFound), null, {}, {}, {}) }
+    }
+
+    @Test
     fun `skärmdumpar - delvis, allt packat och nyskapad`() {
         captureLightAndDark("PackingListScreen_delvis") { PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}) }
         captureLightAndDark("PackingListScreen_klar") {

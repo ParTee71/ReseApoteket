@@ -26,6 +26,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Påminnelsens länk till en resa (PÅM-7): bara appens egna notiser når aliaset, och bara
+             via det läser MainActivity resan (reminders/TripLink). -->
+        <activity-alias
+            android:name=".OpenTripFromReminder"
+            android:exported="false"
+            android:targetActivity=".MainActivity" />
+
         <!-- "Senare" i en påminnelse (PÅM-7) – bara appens egna notiser når den. -->
         <receiver
             android:name=".reminders.ReminderSnoozeReceiver"

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.annotation.VisibleForTesting
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,6 +26,7 @@ import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.datastore.ThemeMode
 import se.partee71.reseapoteket.reminders.ReminderSync
+import se.partee71.reseapoteket.reminders.TripLink
 import se.partee71.reseapoteket.ui.AppRoot
 import se.partee71.reseapoteket.ui.components.LocalTravelDayMorning
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
@@ -38,6 +40,11 @@ class MainActivity : ComponentActivity() {
 
     /** Resan som en påminnelse öppnar (PÅM-7), tills navigationen visat den. */
     private val openTrip = MutableStateFlow<String?>(null)
+
+    /** Den senaste resa som en länk faktiskt öppnade – för instrumenttestet av [TripLink]. */
+    @VisibleForTesting
+    internal var linkedTrip: String? = null
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,15 +81,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         takeTrip(intent)
     }
 
+    /** Bara notisens egen länk öppnar en resa ([TripLink]). */
     private fun takeTrip(intent: Intent) {
-        intent.getStringExtra(EXTRA_TRIP_ID)?.let { openTrip.value = it }
-        intent.removeExtra(EXTRA_TRIP_ID)
-    }
-
-    companion object {
-        const val EXTRA_TRIP_ID = "se.partee71.reseapoteket.TRIP_ID"
+        TripLink.tripId(intent)?.let {
+            linkedTrip = it
+            openTrip.value = it
+        }
+        TripLink.consume(intent)
     }
 }
