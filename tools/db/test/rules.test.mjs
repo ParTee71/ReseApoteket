@@ -205,6 +205,9 @@ test('för långa texter, för många fält och för långa listor nekas (NFR-16
   const fields = (n) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`f${i}`, i]));
   await assertSucceeds(setDoc(person('p4'), { name: 'Bo', ...fields(39) }));
   await assertFails(setDoc(person('p5'), { name: 'Bo', ...fields(40) }));
+  await assertSucceeds(setDoc(person('p6'), { name: 'Bo', ...fields(38) }));
+  await assertSucceeds(updateDoc(person('p6'), { extra: 1 }), 'växer till 40 fält');
+  await assertFails(updateDoc(person('p6'), { extra2: 2 }), 'växer till 41 fält');
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1'), { name: 'Kreta', travellerIds: Array.from({ length: 50 }, (_, i) => `p${i}`) }));
   await assertFails(setDoc(doc(anna, 'households', HID, 'trips', 't2'), { name: 'Kreta', travellerIds: Array.from({ length: 51 }, (_, i) => `p${i}`) }));
   await assertSucceeds(setDoc(doc(anna, 'households', HID, 'trips', 't1', 'packingItems', 'i1'), { name: 'Solkräm', reason: long(2000) }));
