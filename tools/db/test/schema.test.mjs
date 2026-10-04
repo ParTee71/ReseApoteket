@@ -33,3 +33,12 @@ test('versionOf: saknad eller trasig version (under den första) är den första
   assert.equal(versionOf({ schemaVersion: CURRENT_VERSION + 1 }), CURRENT_VERSION + 1);
   assert.ok(schemaKt.includes('coerceAtLeast(FIRST_VERSION)'), 'Schema.versionOf ska ha samma golv');
 });
+
+test('textgränserna i rules är desamma som TextLimits i :core (NFR-16)', () => {
+  const limitsKt = readRepoFile(`${schemaDir}/TextLimits.kt`);
+  const kotlin = (name) => Number(limitsKt.match(new RegExp(`const val ${name} = (\\d+)`))[1]);
+  const rules = readRepoFile('firestore.rules');
+  const rule = (name) => Number(rules.match(new RegExp(`function ${name}\\(\\) \\{ return (\\d+); \\}`))[1]);
+  assert.equal(rule('maxShort'), kotlin('SHORT'));
+  assert.equal(rule('maxLong'), kotlin('LONG'));
+});

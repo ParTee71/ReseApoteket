@@ -37,6 +37,18 @@ service cloud.firestore {
     function optList(d, k) { return unchecked(d, k) || d[k] is list; }
     function optTime(d, k) { return unchecked(d, k) || d[k] is timestamp; }
 
+    // Storleksgränser (NFR-16) – skyddar hushållets kvot. Som typerna kontrolleras de bara på fält
+    // som skrivs, så att ett redan lagrat för stort värde inte låser dokumentet (DAT-6).
+    // maxShort/maxLong är TextLimits.SHORT/LONG i :core (test/schema.test.mjs håller dem lika).
+    function maxShort() { return 200; }
+    function maxLong() { return 2000; }
+    function maxFields() { return 40; }
+    function shortText(d, k) { return optString(d, k) && (unchecked(d, k) || d[k].size() <= maxShort()); }
+    function longText(d, k) { return optString(d, k) && (unchecked(d, k) || d[k].size() <= maxLong()); }
+    function shortList(d, k, n) { return optList(d, k) && (unchecked(d, k) || d[k].size() <= n); }
+    // Fler fält än maxFields() bara om dokumentet redan hade så många (från en nyare app eller verktygen).
+    function fieldCount(d) { return d.size() <= maxFields() || (resource != null && d.size() <= resource.data.size()); }
+
     // Den lagrade versionen; saknas den eller är den inget heltal gäller den första (BCK-5).
     function storedVersion() {
       return resource.data.get('schemaVersion', 1) is int ? resource.data.get('schemaVersion', 1) : 1;
@@ -44,53 +56,55 @@ service cloud.firestore {
 
     // name, sortOrder och archived finns på alla listobjekt (DAT-4).
     function validListItem(d) {
-      return optString(d, 'name') && optInt(d, 'sortOrder') && optBool(d, 'archived');
+      return fieldCount(d) && shortText(d, 'name') && optInt(d, 'sortOrder') && optBool(d, 'archived');
     }
 
     // Ett hushåll har alltid minst en medlem och en schemaVersion som är ett heltal från 1 (BCK-5).
     function validHousehold(data) {
-      return data.memberUids is list
+      return fieldCount(data)
+        && data.memberUids is list
         && data.memberUids.size() > 0
+        && data.memberUids.size() <= 20
         && data.schemaVersion is int
         && data.schemaVersion >= 1
-        && optString(data, 'name')
+        && shortText(data, 'name')
         && optInt(data, 'marginDays')
         && optTime(data, 'createdAt');
     }
 
     // "Packas på resedagen" (PAK-6) på recept, familjeartikel och packlistans rad; tiden som HH:mm.
     function validTravelDay(d) {
-      return optBool(d, 'travelDay') && optString(d, 'travelDayTime');
+      return optBool(d, 'travelDay') && shortText(d, 'travelDayTime');
     }
 
     function validPerson(d) {
-      return validListItem(d) && optString(d, 'emoji') && optString(d, 'colorHex');
+      return validListItem(d) && shortText(d, 'emoji') && shortText(d, 'colorHex');
     }
 
     function validRegimen(d) {
       return validListItem(d)
-        && optString(d, 'kind') && optString(d, 'form') && optString(d, 'strength') && optString(d, 'unit')
-        && optInt(d, 'packageSize') && optMap(d, 'schedule') && optString(d, 'notes') && optBool(d, 'active')
+        && shortText(d, 'kind') && shortText(d, 'form') && shortText(d, 'strength') && shortText(d, 'unit')
+        && optInt(d, 'packageSize') && optMap(d, 'schedule') && longText(d, 'notes') && optBool(d, 'active')
         && validTravelDay(d);
     }
 
     function validFamilyItem(d) {
       return validListItem(d)
-        && optString(d, 'category') && optString(d, 'unit') && optMap(d, 'rule')
-        && optString(d, 'notes') && optBool(d, 'active') && validTravelDay(d);
+        && shortText(d, 'category') && shortText(d, 'unit') && optMap(d, 'rule')
+        && longText(d, 'notes') && optBool(d, 'active') && validTravelDay(d);
     }
 
     function validTrip(d) {
       return validListItem(d)
-        && optString(d, 'startDate') && optInt(d, 'days') && optList(d, 'travellerIds') && optString(d, 'status')
+        && shortText(d, 'startDate') && optInt(d, 'days') && shortList(d, 'travellerIds', 50) && shortText(d, 'status')
         && optTime(d, 'createdAt') && optTime(d, 'updatedAt');
     }
 
     function validPackingItem(d) {
       return validListItem(d)
-        && optString(d, 'section') && optString(d, 'personId') && optString(d, 'sourceType') && optString(d, 'sourceId')
-        && optString(d, 'unit') && optInt(d, 'suggestedQuantity') && optInt(d, 'quantity') && optInt(d, 'packages')
-        && optString(d, 'reason') && optBool(d, 'checked') && optTime(d, 'checkedAt') && optBool(d, 'hidden')
+        && shortText(d, 'section') && shortText(d, 'personId') && shortText(d, 'sourceType') && shortText(d, 'sourceId')
+        && shortText(d, 'unit') && optInt(d, 'suggestedQuantity') && optInt(d, 'quantity') && optInt(d, 'packages')
+        && longText(d, 'reason') && optBool(d, 'checked') && optTime(d, 'checkedAt') && optBool(d, 'hidden')
         && validTravelDay(d);
     }
 
@@ -122,9 +136,13 @@ service cloud.firestore {
         allow read, delete: if isMember(hid);
         allow create, update: if isMember(hid) && validPerson(request.resource.data);
 
+        // Ett recept skapas bara under en person som finns – annars vore det hälsodata som appen
+        // varken visar, exporterar eller kan radera (SET-5). existsAfter: personen får skapas i samma batch.
         match /regimens/{rid} {
           allow read, delete: if isMember(hid);
-          allow create, update: if isMember(hid) && validRegimen(request.resource.data);
+          allow create: if isMember(hid) && validRegimen(request.resource.data)
+            && existsAfter(/databases/$(database)/documents/households/$(hid)/persons/$(pid));
+          allow update: if isMember(hid) && validRegimen(request.resource.data);
         }
       }
 
@@ -137,9 +155,12 @@ service cloud.firestore {
         allow read, delete: if isMember(hid);
         allow create, update: if isMember(hid) && validTrip(request.resource.data);
 
+        // En packrad skapas bara under en resa som finns (som recepten ovan).
         match /packingItems/{iid} {
           allow read, delete: if isMember(hid);
-          allow create, update: if isMember(hid) && validPackingItem(request.resource.data);
+          allow create: if isMember(hid) && validPackingItem(request.resource.data)
+            && existsAfter(/databases/$(database)/documents/households/$(hid)/trips/$(tid));
+          allow update: if isMember(hid) && validPackingItem(request.resource.data);
         }
       }
     }

@@ -29,6 +29,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
@@ -45,6 +47,7 @@ import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
+import se.partee71.reseapoteket.core.schema.TextLimits
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
@@ -75,6 +78,24 @@ class ComponentBehaviorTest {
         val info = EditorInfo()
         rule.runOnIdle { view.onCreateInputConnection(info) }
         assertTrue(info.inputType and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES != 0, "inputType=${info.inputType}")
+    }
+
+    @Test
+    fun `textfältet växer inte förbi taket men en lagrad längre text går att korta (NFR-16)`() {
+        var text by mutableStateOf("x".repeat(TextLimits.SHORT))
+        var notes by mutableStateOf("y".repeat(TextLimits.LONG + 5))
+        show {
+            Column {
+                AppTextField(text, { text = it }, "Namn")
+                AppTextField(notes, { notes = it }, "Anteckning", singleLine = false)
+            }
+        }
+        rule.onNodeWithText("Namn").performTextInput("z")
+        assertEquals(TextLimits.SHORT, text.length)
+        rule.onNodeWithText("Anteckning").performTextReplacement("y".repeat(TextLimits.LONG + 4))
+        assertEquals(TextLimits.LONG + 4, notes.length, "kortare är tillåtet, inget kapas")
+        rule.onNodeWithText("Anteckning").performTextReplacement("kort")
+        assertEquals("kort", notes)
     }
 
     @Test
