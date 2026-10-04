@@ -165,6 +165,16 @@ private fun Fields() {
     val selected = remember { mutableStateOf(setOf("Anna", "Erik")) }
     AppTextField(name, { name = it }, "Namn", helper = "Visas i packlistan")
     AppTextField("", {}, "Namn", error = "Ange ett namn")
+    var medicine by remember { mutableStateOf("Alved") }
+    SuggestionField(
+        medicine,
+        { medicine = it },
+        "Namn",
+        suggestions = listOf(Suggestion("Alvedon 500 mg", "Filmdragerad tablett", 0..4), Suggestion("Alvedon forte 1 g", "Filmdragerad tablett", 0..4))
+            .takeIf { medicine == "Alved" }.orEmpty(),
+        onPick = { medicine = "Alvedon" },
+        footer = "Från Läkemedelsverkets lista",
+    )
     DateField("Startdatum", date, { date = it })
     var time by remember { mutableStateOf(LocalTime(18, 0)) }
     TimeField("Tid", time, { time = it })

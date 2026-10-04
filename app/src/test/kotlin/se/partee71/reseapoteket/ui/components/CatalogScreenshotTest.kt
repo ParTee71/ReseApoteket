@@ -116,6 +116,18 @@ class CatalogScreenshotTest {
                 SectionHeader("Övrigt", count = "3", tone = Tone.Blue)
             }
         }
+        captureLightAndDark("SuggestionField_forslag") {
+            Sheet {
+                SuggestionField(
+                    "Alved",
+                    {},
+                    "Namn",
+                    listOf(Suggestion("Alvedon 500 mg", "Filmdragerad tablett", 0..4), Suggestion("Alvedon forte 1 g", "Filmdragerad tablett", 0..4)),
+                    {},
+                    footer = "Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns",
+                )
+            }
+        }
         captureLightAndDark("InfoPill_toner") {
             Sheet { Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) { InfoPill("Mediciner"); InfoPill("Kosttillskott", tone = Tone.Green); InfoPill("Övrigt", tone = Tone.Blue) } }
         }

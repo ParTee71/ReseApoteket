@@ -21,6 +21,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,7 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * [navigates] visar en pil längst till höger (efter [trailing]) – raden öppnar en annan skärm.
  * [inactive] tonar ner hela raden, för det som finns men inte räknas med (ett pausat recept).
  * [below] står under titel och undertext över hela radens bredd (resenärer och packat på en resa).
+ * [titleHighlight] färgmarkerar en del av titeln – det man sökt på i ett [SuggestionField].
  */
 @Composable
 fun ItemRow(
@@ -52,6 +56,7 @@ fun ItemRow(
     navigates: Boolean = false,
     inactive: Boolean = false,
     below: (@Composable () -> Unit)? = null,
+    titleHighlight: IntRange? = null,
 ) {
     val end: (@Composable () -> Unit)? = if (navigates) {
         {
@@ -72,6 +77,7 @@ fun ItemRow(
         done = done,
         accent = accent,
         below = below,
+        titleHighlight = titleHighlight,
     )
 }
 
@@ -88,6 +94,7 @@ internal fun ItemRowLayout(
     done: Boolean = false,
     accent: Color? = null,
     below: (@Composable () -> Unit)? = null,
+    titleHighlight: IntRange? = null,
 ) {
     val tint = AppColors.extended.rowTint
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
@@ -107,7 +114,7 @@ internal fun ItemRowLayout(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 val decoration = if (done) TextDecoration.LineThrough else null
                 Text(
-                    title,
+                    highlighted(title, titleHighlight),
                     style = AppTypography.itemTitle,
                     color = if (done) muted else MaterialTheme.colorScheme.onSurface,
                     textDecoration = decoration,
@@ -130,3 +137,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAccent(color: C
 private val MIN_HEIGHT = 56.dp
 private val ACCENT_WIDTH = 4.dp
 private const val INACTIVE_ALPHA = 0.55f
+
+/** [text] med [range] i primärfärgen; utan (eller med ett ogiltigt) intervall bara texten. */
+@Composable
+private fun highlighted(text: String, range: IntRange?): AnnotatedString {
+    val clipped = range?.let { it.first.coerceAtLeast(0)..it.last.coerceAtMost(text.lastIndex) }?.takeUnless { it.isEmpty() }
+        ?: return AnnotatedString(text)
+    return buildAnnotatedString {
+        append(text)
+        addStyle(SpanStyle(color = MaterialTheme.colorScheme.primary), clipped.first, clipped.last + 1)
+    }
+}

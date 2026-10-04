@@ -191,6 +191,21 @@ class ComponentBehaviorTest {
     }
 
     @Test
+    fun `förslagsfältet visar förslagen med antal, och ett tryck väljer rätt förslag (REC-6)`() {
+        var text by mutableStateOf("alv")
+        var picked = -1
+        val suggestions = listOf(Suggestion("Alvedon 500 mg", "Filmdragerad tablett", 0..2), Suggestion("Alvedon forte 1 g", "Filmdragerad tablett", 0..2))
+        show { SuggestionField(text, { text = it }, "Namn", suggestions.takeIf { text == "alv" }.orEmpty(), { picked = it }, footer = "Från listan") }
+        rule.onNodeWithContentDescription("2 förslag").assertExists()
+        rule.onNodeWithText("Från listan").assertIsDisplayed()
+        rule.onNodeWithText("Alvedon forte 1 g").performClick()
+        assertEquals(1, picked)
+        text = "Alvedon"
+        rule.onNodeWithText("Alvedon forte 1 g").assertDoesNotExist()
+        rule.onNodeWithText("Från listan").assertDoesNotExist()
+    }
+
+    @Test
     fun `växelrad med egen tryckåtgärd öppnar raden och växlar med växeln`() {
         var on by mutableStateOf(true)
         var opened = 0
