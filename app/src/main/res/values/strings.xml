@@ -248,6 +248,13 @@
     <string name="regimen_dose">Dos</string>
     <string name="regimen_dose_helper">Till exempel 10 µg eller 1000 mg</string>
     <string name="regimen_suggestions">Snabbval</string>
+    <string name="medicine_lookup_source">Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns</string>
+    <string name="medicine_lookup_no_match">Inget i Läkemedelsverkets lista heter så. Namnet sparas som du skrev det.</string>
+    <string name="medicine_lookup_filled">Ifyllt från Läkemedelsverket – ändra fritt</string>
+    <plurals name="suggestions_count">
+        <item quantity="one">%d förslag</item>
+        <item quantity="other">%d förslag</item>
+    </plurals>
     <string name="regimen_suggestions_note">Fyller i namnet – resten väljer du själv</string>
     <string name="suggestion_vitamin_d">D-vitamin</string>
     <string name="suggestion_omega3">Omega-3</string>
@@ -317,6 +324,8 @@
     <string name="theme_dark">Mörkt</string>
     <string name="theme_system">System</string>
     <string name="settings_about">Om</string>
+    <string name="settings_medicines">Läkemedelslista</string>
+    <string name="settings_medicines_note">Läkemedelsverket, %1$s · CC BY 4.0</string>
     <string name="settings_version_format">Version %s</string>
     <string name="settings_components">Komponenter</string>
     <string name="settings_components_note">Bara i debug-bygget</string>

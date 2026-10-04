@@ -20,7 +20,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +39,7 @@ import se.partee71.reseapoteket.data.datastore.ThemeMode
 import se.partee71.reseapoteket.data.export.ExportFiles
 import se.partee71.reseapoteket.data.export.HouseholdExport
 import se.partee71.reseapoteket.testing.FakeDataStore
+import se.partee71.reseapoteket.testing.FakeMedicines
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.testing.captureLightAndDark
@@ -70,7 +73,7 @@ class SettingsTest {
         override suspend fun save(name: String, text: String): Result<String> = saveResult.also { saved += name }
     }
 
-    private fun viewModel() = SettingsViewModel(settings, households, auth, export, files, FixedClock(), TimeZone.UTC)
+    private fun viewModel() = SettingsViewModel(settings, households, auth, export, files, FixedClock(), TimeZone.UTC, FakeMedicines())
 
     private val state = SettingsUiState(svensson, anna, ThemeMode.System, moveCheckedLast = true)
 
@@ -117,7 +120,7 @@ class SettingsTest {
         val slow = object : HouseholdExport {
             override suspend fun export() = done.await()
         }
-        val vm = SettingsViewModel(settings, households, auth, slow, files, FixedClock(), TimeZone.UTC)
+        val vm = SettingsViewModel(settings, households, auth, slow, files, FixedClock(), TimeZone.UTC, FakeMedicines())
         vm.state.test {
             awaitItem()
             vm.onEvent(SettingsEvent.Export)
@@ -218,6 +221,14 @@ class SettingsTest {
         scrollTo("Komponenter")
         rule.onNodeWithText("Komponenter").performClick()
         assertEquals(1, opened)
+    }
+
+    @Test
+    fun `läkemedelslistans datum och källa står under Om (REC-6)`() = runTest {
+        assertEquals(LocalDate(2026, 10, 4), viewModel().medicinesUpdated.first { it != null })
+        rule.setContent { ReseApoteketTheme { SettingsContent(state, {}, "0.1.0", {}, null, medicinesUpdated = LocalDate(2026, 10, 4)) } }
+        scrollTo("Läkemedelsverket, sön 4 okt 2026 · CC BY 4.0")
+        rule.onNodeWithText("Läkemedelsverket, sön 4 okt 2026 · CC BY 4.0").assertIsDisplayed()
     }
 
     @Test

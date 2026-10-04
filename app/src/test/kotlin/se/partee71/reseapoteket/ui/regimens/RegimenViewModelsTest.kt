@@ -13,6 +13,7 @@ import kotlinx.datetime.TimeZone
 import org.junit.Rule
 import org.junit.Test
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.medicine.MedicineLookup
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.model.ItemUnit
@@ -23,6 +24,7 @@ import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
+import se.partee71.reseapoteket.testing.FakeMedicines
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.EditorEffect
@@ -40,7 +42,7 @@ class RegimenViewModelsTest {
     private val household = MutableStateFlow<Household?>(Household("h1", marginDays = 2))
 
     private fun viewModel(regimenId: String? = null, kind: RegimenKind = RegimenKind.MEDICINE) =
-        RegimenEditViewModel("anna", kind, regimenId, regimens, StubHouseholds(household), FixedClock(), TimeZone.UTC)
+        RegimenEditViewModel("anna", kind, regimenId, regimens, StubHouseholds(household), FakeMedicines(), FixedClock(), TimeZone.UTC)
 
     private val levaxin = Regimen(
         "r1", RegimenKind.MEDICINE, "Levaxin", MedicineForm.TABLET, "50 µg", ItemUnit.TABLETT, 100,
@@ -233,5 +235,38 @@ class RegimenViewModelsTest {
         assertEquals(levaxin.copy(travelDay = true, travelDayTime = LocalTime(7, 30)), anna.get("r1").getOrThrow())
         vm.onEvent(RegimenEditEvent.TravelDay(TravelDayChange(false, LocalTime(7, 30))))
         assertEquals(false to null, vm.state.value.value.let { it.travelDay to it.travelDayTime })
+    }
+
+    @Test
+    fun `namnet föreslår ur läkemedelslistan, ett val fyller i allt utom doseringen (REC-6, REC-7)`() = runTest {
+        val vm = viewModel()
+        vm.lookup.test {
+            assertEquals(MedicineLookup(), awaitItem())
+            vm.onEvent(RegimenEditEvent.Name("alved"))
+            val found = expectMostRecentItem().suggestions
+            assertEquals(listOf("Alvedon 60 mg", "Alvedon 500 mg", "Alvedon 500 mg", "Alvedon forte 1 g"), found.map { it.entry.title })
+            vm.onEvent(RegimenEditEvent.Schedule(DoseSchedule.AsNeeded(10)))
+            vm.onEvent(RegimenEditEvent.PickMedicine(found[1].entry))
+            assertEquals(MedicineLookup(filled = true), expectMostRecentItem())
+            assertEquals(
+                Regimen(vm.state.value.value.id, name = "Alvedon", form = MedicineForm.TABLET, strength = "500 mg", unit = ItemUnit.TABLETT, schedule = DoseSchedule.AsNeeded(10)),
+                vm.state.value.value,
+            )
+            // Ändrad styrka – inte längre "ifyllt"; ändrat namn – förslagen igen.
+            vm.onEvent(RegimenEditEvent.Strength("1 g"))
+            assertEquals(MedicineLookup(), expectMostRecentItem())
+            vm.onEvent(RegimenEditEvent.Name("Alvedon f"))
+            assertEquals(listOf("Alvedon forte 1 g"), expectMostRecentItem().suggestions.map { it.entry.title })
+            vm.onEvent(RegimenEditEvent.Name("Magnecyl"))
+            assertEquals(MedicineLookup(noMatch = true), expectMostRecentItem())
+        }
+    }
+
+    @Test
+    fun `ett befintligt recept söker inte i läkemedelslistan`() = runTest {
+        anna.upsert(levaxin)
+        val vm = viewModel("r1")
+        vm.onEvent(RegimenEditEvent.Name("Alvedon"))
+        assertEquals(MedicineLookup(), vm.lookup.value)
     }
 }

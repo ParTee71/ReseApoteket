@@ -38,10 +38,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import se.partee71.reseapoteket.BuildConfig
@@ -59,7 +61,9 @@ import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.datastore.ThemeMode
 import se.partee71.reseapoteket.data.export.ExportFiles
 import se.partee71.reseapoteket.data.export.HouseholdExport
+import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
+import se.partee71.reseapoteket.ui.common.DateFormat
 import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
 import se.partee71.reseapoteket.ui.common.toMessage
 import se.partee71.reseapoteket.ui.components.ApotekCard
@@ -120,7 +124,12 @@ class SettingsViewModel @Inject constructor(
     private val files: ExportFiles,
     private val clock: Clock,
     private val timeZone: TimeZone,
+    medicines: MedicineRepository,
 ) : ViewModel() {
+
+    /** Datumet för den inbyggda läkemedelslistan (REC-6), eller `null` om den saknas. */
+    val medicinesUpdated: StateFlow<LocalDate?> = flow { emit(medicines.catalog().updated) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     private val action = MutableStateFlow(Action())
 
@@ -191,6 +200,7 @@ fun SettingsScreen(
     remindersViewModel: RemindersViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val medicinesUpdated by viewModel.medicinesUpdated.collectAsStateWithLifecycle()
     val reminders by remindersViewModel.state.collectAsStateWithLifecycle()
     val access = rememberNotificationAccess()
     val context = LocalContext.current
@@ -201,7 +211,7 @@ fun SettingsScreen(
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { collectShares(viewModel, context, chooserTitle) }
     }
-    SettingsContent(state, viewModel::onEvent, BuildConfig.VERSION_NAME, onEditHousehold, onOpenGallery) {
+    SettingsContent(state, viewModel::onEvent, BuildConfig.VERSION_NAME, onEditHousehold, onOpenGallery, medicinesUpdated = medicinesUpdated) {
         RemindersCard(reminders, remindersViewModel::onEvent, access.allowed, access.ask, access.openSettings)
     }
 }
@@ -224,6 +234,7 @@ private val THEME_OPTIONS = listOf(ThemeMode.Light to R.string.theme_light, Them
 
 /**
  * @param onOpenGallery "Komponenter" – bara i debug-bygget, annars `null`.
+ * @param medicinesUpdated datumet för den inbyggda läkemedelslistan (REC-6), under Om.
  * @param reminders kortet Påminnelser (PÅM-1), efter Packlista.
  */
 @Composable
@@ -234,6 +245,7 @@ fun SettingsContent(
     onEditHousehold: () -> Unit,
     onOpenGallery: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    medicinesUpdated: LocalDate? = null,
     reminders: (@Composable () -> Unit)? = null,
 ) {
     var confirmSignOut by rememberSaveable { mutableStateOf(false) }
@@ -326,6 +338,10 @@ fun SettingsContent(
             GroupLabel(stringResource(R.string.settings_about))
             ApotekCard {
                 ItemRow(stringResource(R.string.app_name), subtitle = stringResource(R.string.settings_version_format, versionName))
+                medicinesUpdated?.let {
+                    AppDivider()
+                    ItemRow(stringResource(R.string.settings_medicines), subtitle = stringResource(R.string.settings_medicines_note, DateFormat.display(it)))
+                }
                 AppDivider()
                 ItemRow(
                     title = stringResource(R.string.settings_source),

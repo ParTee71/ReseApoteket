@@ -81,11 +81,13 @@ bygger kravet. Arkitekturbesluten bakom TP-kraven står i [ARKITEKTUR.md](ARKITE
 
 | ID | Krav |
 |----|------|
-| REC-1 | Ett recept har namn (obligatoriskt), styrka, form, enhet, förpackningsstorlek (valfri), dosering, "Packas på resedagen" (PAK-6), anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. Form och enhet väljs var för sig. Ett nytt recept börjar som en tablett om dagen och hamnar sist. Radering frågar om receptets sparade namn. |
+| REC-1 | Ett recept har namn (obligatoriskt; i ett nytt recept med förslag ur Läkemedelsverkets lista, REC-6), styrka, form, enhet, förpackningsstorlek (valfri), dosering, "Packas på resedagen" (PAK-6), anteckning och aktiv/inaktiv; skapas och redigeras enligt NFR-2. Form och enhet väljs var för sig. Ett nytt recept börjar som en tablett om dagen och hamnar sist. Radering frågar om receptets sparade namn. |
 | REC-2 | Doseringen är **Dagligen**, **Veckodagar**, **Intervall** eller **Vid behov** (DAT-3). Giltig när: dagligen minst 1 dos, veckodagar minst en dag, intervall minst 2 dagar, vid behov minst 1; stegarna går inte under det. Felet visas när typens fält ändrats eller vid sparförsök, inte direkt vid byte av typ. En dosering av okänd typ (från en nyare app) visas som meddelande och bevaras (BCK-5). |
 | REC-3 | Doseringen visas i klartext, samma text i lista (utom för pausade, REC-5), redigering och packlista, t.ex. "1 tablett morgon och kväll", "1 kapsel mån, ons, fre", "1 dos var 3:e dag", "vid behov: ta med 10". I persondetaljen visas dessutom doseringstypen som etikett. |
 | REC-4 | Under doseringen visas vad som skulle packas för en 7-dagarsresa som börjar i dag, med hushållets marginaldagar (BER), t.ex. "För en 7-dagarsresa: 18 tabletter · 2 kartor" och förklaringen (BER-10). Går mängden inte att räkna ut visas skälet i stället för en mängd. |
 | REC-5 | Inaktiva (pausade) recept visas nedtonade med etiketten "Pausat" och undertexten "Pausat – räknas inte med" i stället för doseringen, och räknas inte med i packförslaget (BER-9). Ett recept raderas permanent via menyn med bekräftelse (NFR-4). |
+| REC-6 | I ett **nytt recept** (inte kosttillskott, inte vid redigering) föreslår namnfältet läkemedel ur **Läkemedelsverkets lista över läkemedel som säljs i Sverige** när minst 3 tecken är skrivna: högst 5 förslag där namnet med styrka, eller ett ord i det, börjar med det skrivna ("levaxin 50"), utan hänsyn till skiftläge och diakritiska tecken; namnets början först. Varje förslag visar namn och styrka med det matchande markerat och formen under, och sist står "Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns". Antalet förslag läses upp av TalkBack. Finns inget står "Inget i Läkemedelsverkets lista heter så. Namnet sparas som du skrev det." under fältet, och receptet sparas som vanligt. Listan är inbyggd i appen och uppdateras med varje release (`tools/medicines`, skill `release`); sökningen sker helt på telefonen, utan nätverk och utan loggning (NFR-8). |
+| REC-7 | Ett valt förslag fyller i **namn**, **styrka**, **form** (Läkemedelsverkets form översatt: tabletter → Tablett, kapslar → Kapsel, lösningar och suspensioner → Flytande, pulver och granulat → Pulver, inhalation → Inhalator, droppar → Droppar, plåster → Plåster, övrigt – t.ex. injektioner, krämer och suppositorier – → Annat) och formens **enhet** (tablett, kapsel, ml, dos, puff eller st); doseringen, förpackningsstorleken och resten ändras inte. Förslagen stängs och visas igen först när namnet ändras. "Ifyllt från Läkemedelsverket – ändra fritt" visas tills namn, styrka, form eller enhet ändras. |
 
 ## 8. Kosttillskott
 
@@ -150,7 +152,7 @@ Formlerna står ordagrant som i skill [`packing-engine`](.claude/skills/packing-
 | SET-3 | **"Flytta avprickade sist"** i packlistan, sparat på enheten, förval på (PAK-2). |
 | SET-4 | Kontot visar Google-kontots namn och e-post (de sparas eller loggas aldrig); **"Logga ut"** frågar först ("Logga ut?") och leder till inloggningen (AUTH-4). |
 | SET-5 | **Data & backup:** text om synk och veckobackup, dataformat (`schemaVersion`) och appversion; **"Exportera som JSON"** sparar hushållets alla dokument i samma format som `tools/db export` – så att filen kan läsas in med `tools/db import` (BCK-1, BCK-6) – och öppnar Androids delningsmeny, bara efter användarens tryck. Bara den senaste exportfilen finns kvar i appens cache. Recept under en person som saknar eget dokument (bara möjligt via verktygen; appen visar dem aldrig) kommer bara med i veckobackupen. |
-| SET-6 | **Om:** version och länk till källkoden; i debug-byggen öppnar "Komponenter" komponentgalleriet. |
+| SET-6 | **Om:** version, den inbyggda läkemedelslistans datum och källa ("Läkemedelsverket, sön 4 okt 2026 · CC BY 4.0", REC-6) och länk till källkoden; i debug-byggen öppnar "Komponenter" komponentgalleriet. |
 | SET-7 | Ett fel från en åtgärd i Inställningar (marginaldagar, utloggning, export) visas i kortet där åtgärden gjordes, med samma texter som överallt (NFR-5), och försvinner vid nästa åtgärd. |
 
 ## 14. Påminnelser
@@ -234,4 +236,4 @@ Struktur och fält står bara i ARKITEKTUR.md → "Datamodell"; här står det s
 |----|------|
 | FUT-1 | ~~Påminnelser inför resa och när det är dags att packa.~~ *(borttaget – byggt som PÅM-1–7, #78)* |
 | FUT-2 | Dela hushållet med fler Google-konton. |
-| FUT-3 | Slå upp mediciner via streckkod eller FASS. |
+| FUT-3 | Skanna streckkoden på förpackningen *(parkerad – nyare förpackningars GTIN går bara att slå upp i eHälsomyndighetens VARA, som kräver avtal, och FASS API är kommersiellt; sökning på namn är byggd som REC-6–7, #82)*. |

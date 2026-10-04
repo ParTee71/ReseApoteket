@@ -16,10 +16,12 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,6 +31,10 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingEngine
 import se.partee71.reseapoteket.core.engine.PackingPreviewText
 import se.partee71.reseapoteket.core.engine.UnitNames
+import se.partee71.reseapoteket.core.medicine.MedicineEntry
+import se.partee71.reseapoteket.core.medicine.MedicineLookup
+import se.partee71.reseapoteket.core.medicine.fillFrom
+import se.partee71.reseapoteket.core.medicine.lookup
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.HouseholdSettings
 import se.partee71.reseapoteket.core.model.ItemUnit
@@ -37,6 +43,7 @@ import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.displayName
 import se.partee71.reseapoteket.data.common.upsertPlaced
+import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.data.repository.householdSettings
@@ -52,11 +59,15 @@ import se.partee71.reseapoteket.ui.components.DeleteAction
 import se.partee71.reseapoteket.ui.components.DoseScheduleRow
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
 import se.partee71.reseapoteket.ui.components.ExampleChips
+import se.partee71.reseapoteket.ui.components.InfoPill
 import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
+import se.partee71.reseapoteket.ui.components.Suggestion
+import se.partee71.reseapoteket.ui.components.SuggestionField
 import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.components.kindLabel
+import se.partee71.reseapoteket.ui.theme.Tone
 
 /** REC-1, REC-2: namnet är obligatoriskt och doseringen ska gå att räkna på. */
 object RegimenValidator : Validator<Regimen> {
@@ -102,6 +113,9 @@ sealed interface RegimenEditEvent {
     /** Packas på resedagen och ev. egen tid (PAK-6). */
     data class TravelDay(val change: TravelDayChange) : RegimenEditEvent
 
+    /** Ett förslag ur Läkemedelsverkets lista valt under namnfältet (REC-7). */
+    data class PickMedicine(val entry: MedicineEntry) : RegimenEditEvent
+
     data object Save : RegimenEditEvent
 
     data object Delete : RegimenEditEvent
@@ -117,6 +131,7 @@ class RegimenEditViewModel @AssistedInject constructor(
     @Assisted("regimenId") private val regimenId: String?,
     regimens: RegimenRepository,
     households: HouseholdRepository,
+    medicines: MedicineRepository,
     private val clock: Clock,
     private val timeZone: TimeZone,
 ) : ViewModel() {
@@ -157,6 +172,20 @@ class RegimenEditViewModel @AssistedInject constructor(
     ) { regimen, settings -> PackingEngine.regimenPreview(regimen, settings, clock.todayIn(timeZone)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, PackingEngine.regimenPreview(editor.value, HouseholdSettings(), clock.todayIn(timeZone)))
 
+    private val picked = MutableStateFlow<MedicineEntry?>(null)
+
+    /**
+     * Förslagen ur Läkemedelsverkets lista under namnfältet (REC-6, REC-7) – bara för något nytt;
+     * formuläret visar dem där sorten har uppslag ([RegimenEditorConfig.medicineLookup]).
+     */
+    val lookup: StateFlow<MedicineLookup> = if (!isNew) {
+        MutableStateFlow(MedicineLookup())
+    } else {
+        combine(editor.state.map { it.value }.distinctUntilChanged(), picked, flow { emit(medicines.catalog()) }) { regimen, entry, catalog ->
+            catalog.lookup(regimen, entry)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, MedicineLookup())
+    }
+
     fun onEvent(event: RegimenEditEvent) {
         when (event) {
             is RegimenEditEvent.Name -> editor.update(RegimenValidator.NAME) { it.copy(name = event.name) }
@@ -176,6 +205,10 @@ class RegimenEditViewModel @AssistedInject constructor(
             is RegimenEditEvent.Notes -> editor.update { it.copy(notes = event.notes) }
             is RegimenEditEvent.Active -> editor.update { it.copy(active = event.active) }
             is RegimenEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
+            is RegimenEditEvent.PickMedicine -> {
+                picked.value = event.entry
+                editor.update(RegimenValidator.NAME) { it.fillFrom(event.entry) }
+            }
             RegimenEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
             RegimenEditEvent.Delete -> viewModelScope.launch { editor.run { collection.delete(editor.value.id) } }
             RegimenEditEvent.Retry -> loader.retry()
@@ -199,14 +232,15 @@ fun RegimenEditScreen(config: RegimenEditorConfig, onClose: () -> Unit, viewMode
     val state by viewModel.state.collectAsStateWithLifecycle()
     val preview by viewModel.preview.collectAsStateWithLifecycle()
     val stored by viewModel.stored.collectAsStateWithLifecycle()
-    RegimenEditContent(config, viewModel.isNew, state, preview, viewModel.effects, viewModel::onEvent, onClose, stored = stored)
+    val lookup by viewModel.lookup.collectAsStateWithLifecycle()
+    RegimenEditContent(config, viewModel.isNew, state, preview, viewModel.effects, viewModel::onEvent, onClose, stored = stored, lookup = lookup)
 }
 
 /**
  * Formuläret i mockupens ordning (variant B: enheten väljs för sig, oberoende av formen).
  * Rubriken är fast ("Nytt recept"/"Redigera recept") som i alla formulär. [stored] är det lagrade
  * receptet: radering frågar om dess namn, och dess form finns kvar bland valen även när den inte
- * hör till sortens former (KOS-2).
+ * hör till sortens former (KOS-2). [lookup] är förslagen ur Läkemedelsverkets lista (REC-6).
  */
 @Composable
 fun RegimenEditContent(
@@ -219,6 +253,7 @@ fun RegimenEditContent(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     stored: Regimen? = null,
+    lookup: MedicineLookup = MedicineLookup(),
 ) {
     val regimen = state.value
     EntityEditScreen(
@@ -240,12 +275,22 @@ fun RegimenEditContent(
                 ExampleChips(names, { onEvent(RegimenEditEvent.Name(it)) }, chosen = regimen.name.trim())
             }
         }
-        AppTextField(
-            regimen.name,
-            { onEvent(RegimenEditEvent.Name(it)) },
-            stringResource(R.string.name),
-            error = state.errorFor(RegimenValidator.NAME)?.let { stringResource(it) },
-        )
+        val nameError = state.errorFor(RegimenValidator.NAME)?.let { stringResource(it) }
+        if (isNew && config.medicineLookup) {
+            SuggestionField(
+                regimen.name,
+                { onEvent(RegimenEditEvent.Name(it)) },
+                stringResource(R.string.name),
+                suggestions = lookup.suggestions.map { Suggestion(it.entry.title, it.entry.formText, it.start until it.start + it.length) },
+                onPick = { onEvent(RegimenEditEvent.PickMedicine(lookup.suggestions[it].entry)) },
+                footer = stringResource(R.string.medicine_lookup_source),
+                error = nameError,
+                helper = stringResource(R.string.medicine_lookup_no_match).takeIf { lookup.noMatch },
+            )
+            if (lookup.filled) InfoPill(stringResource(R.string.medicine_lookup_filled), tone = Tone.Blue, icon = R.drawable.ic_check)
+        } else {
+            AppTextField(regimen.name, { onEvent(RegimenEditEvent.Name(it)) }, stringResource(R.string.name), error = nameError)
+        }
         AppTextField(
             regimen.strength,
             { onEvent(RegimenEditEvent.Strength(it)) },

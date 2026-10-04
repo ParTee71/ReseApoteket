@@ -139,6 +139,7 @@ ReseApoteket/
 │       ├── model/                Person, Regimen, DoseSchedule, FamilyItem, QuantityRule, Trip, PackingItem …
 │       ├── engine/               PackingEngine, ReasonFormatter, DoseScheduleFormatter, QuantityRuleFormatter, UnitNames, Texts,
 │       │                         ReminderPlanner (vilka påminnelser som kommer och när)
+│       ├── medicine/             MedicineCatalog (läkemedelslistan: läsning, sökning, ifyllning), MedicineForms
 │       └── schema/               DocCodec + fälthjälpare, codecs per modell, Schema, SchemaMigrator,
 │                                 ExportFormat (samma JSON som tools/db export)
 ├── app/                          Android-appen
@@ -153,6 +154,7 @@ ReseApoteket/
 │       │   ├── household/        HouseholdSession (aktivt hushåll och dess schemaVersion), HouseholdDirectory
 │       │   ├── export/           HouseholdExport, ExportFiles (exportfilen i cachen, delas via FileProvider)
 │       │   ├── repository/       tunna fasader per domän
+│       │   ├── medicines/        MedicineRepository → AssetMedicineRepository (assets/medicines.tsv, läses en gång)
 │       │   └── datastore/        SettingsStore (även telefonens påminnelser)
 │       ├── reminders/            påminnelserna (PÅM): ReminderSource (plan ur resor, listor, inställningar), ReminderRunner,
 │       │                         ReminderNotifier (privat notis), ReminderScheduler + ReminderWorker (WorkManager),
@@ -168,6 +170,7 @@ ReseApoteket/
 │           ├── sync/             SyncViewModel (synkläget för UI:t, NFR-6)
 │           └── persons/ regimens/ familyitems/ trips/ packing/ settings/
 ├── tools/db/                     Node: query, get, stats, export, import, migrate + lib/ + tester
+├── tools/medicines/              Node utan beroenden: Läkemedelsverkets lista → app/src/main/assets/medicines.tsv (vid release)
 ├── firestore.rules               security rules
 └── .github/workflows/            android.yml, instrumented.yml, quality.yml, release.yml, backup.yml
 ```
@@ -188,6 +191,7 @@ Compose-skärm
 Beräkning:  ViewModel → PackingEngine (:core, rena funktioner) → PackingItem-lista → PackingRepository
 Backup:     Firestore → tools/db export (Actions, veckovis) → krypterad artifact → tools/db import
 Session:    Claude → tools/db query/get/stats (service account, läsroll) → Firestore
+Läkemedel:  Läkemedelsverkets öppna data → tools/medicines (vid release) → assets/medicines.tsv → MedicineCatalog (:core)
 ```
 
 - Fel mappas till `DataError` en gång, med `suspendRunCatching` i `data/common/` – av
