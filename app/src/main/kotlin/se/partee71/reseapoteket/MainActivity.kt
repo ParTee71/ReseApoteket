@@ -25,6 +25,7 @@ import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.datastore.ThemeMode
 import se.partee71.reseapoteket.reminders.ReminderSync
+import se.partee71.reseapoteket.reminders.TripLink
 import se.partee71.reseapoteket.ui.AppRoot
 import se.partee71.reseapoteket.ui.components.LocalTravelDayMorning
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
@@ -74,15 +75,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         takeTrip(intent)
     }
 
+    /** Bara notisens egen länk öppnar en resa ([TripLink]). */
     private fun takeTrip(intent: Intent) {
-        intent.getStringExtra(EXTRA_TRIP_ID)?.let { openTrip.value = it }
-        intent.removeExtra(EXTRA_TRIP_ID)
-    }
-
-    companion object {
-        const val EXTRA_TRIP_ID = "se.partee71.reseapoteket.TRIP_ID"
+        TripLink.tripId(intent)?.let { openTrip.value = it }
+        TripLink.consume(intent)
     }
 }

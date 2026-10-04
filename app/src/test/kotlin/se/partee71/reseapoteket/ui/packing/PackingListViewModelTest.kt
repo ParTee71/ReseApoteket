@@ -289,6 +289,17 @@ class PackingListViewModelTest {
         assertEquals("Laddare" to LocalTime(8, 30), last.name to last.travelDayTime)
         assertEquals(PackingProgress(0, 1), vm.header.value!!.groups[PackingGroup.TRAVEL_DAY])
     }
+
+    @Test
+    fun `en resa som inte finns visar finns inte längre och går inte att lägga till under (#88)`() = runTest {
+        val vm = PackingListViewModel("okand", trips, persons, regimens, packing, settings, tripPacking, FixedClock())
+        assertEquals(ListUiState.Error(DataError.NotFound), vm.state.value)
+        seed()
+        val open = viewModel()
+        assertEquals(3, open.rows().size)
+        trips.delete("t1")
+        assertEquals(ListUiState.Error(DataError.NotFound), open.state.value)
+    }
 }
 
 /** Skrivningar av resor: hela resor ([written]) och fältvisa ([fields]) – packlistan får bara skriva statusen (PAK-5). */

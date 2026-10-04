@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlin.time.Duration
+import kotlin.time.Instant
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,6 +73,8 @@ class SettingsTest {
     }
     private val files = object : ExportFiles {
         override suspend fun save(name: String, text: String): Result<String> = saveResult.also { saved += name }
+
+        override suspend fun cleanUp(now: Instant, maxAge: Duration) = Unit
     }
 
     private fun viewModel() = SettingsViewModel(settings, households, auth, export, files, FixedClock(), TimeZone.UTC, FakeMedicines())

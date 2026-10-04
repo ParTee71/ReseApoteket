@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -165,7 +166,15 @@ class PackingListViewModel @AssistedInject constructor(
             }
 
     private val loader = ListLoader(rows, viewModelScope)
-    val state = loader.state
+
+    /**
+     * Listan – eller "finns inte längre" om resan saknas (raderad, eller en okänd resa i en
+     * länk): då går inget att lägga till under den. Ett läsfel på resan räknas inte som saknad.
+     */
+    val state: StateFlow<ListUiState<PackingRow>> =
+        combine(loader.state, trips.observe(tripId).map { it != null }.withFallback(true)) { list, exists ->
+            if (exists) list else ListUiState.Error(DataError.NotFound)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, ListUiState.Loading)
 
     val header: StateFlow<PackingHeader?> = combine(trip, state, people) { trip, list, all ->
         trip?.let {

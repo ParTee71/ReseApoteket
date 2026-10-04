@@ -3,10 +3,12 @@ package se.partee71.reseapoteket.reminders
 import android.Manifest
 import android.app.Application
 import android.app.Notification
+import android.app.PendingIntent
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
@@ -23,7 +25,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
-import se.partee71.reseapoteket.MainActivity
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.engine.Reminder
 import se.partee71.reseapoteket.core.engine.ReminderKind
@@ -92,9 +93,13 @@ class ReminderRunnerTest {
         assertEquals(NotificationCompat.VISIBILITY_PRIVATE, shown.visibility)
         assertEquals("Påminnelse inför resan", shown.publicVersion.extras.getString(Notification.EXTRA_TITLE))
         assertEquals("Senare", shown.actions.single().title)
+        // Notisens länkar är explicita och oföränderliga; resan öppnas via det icke-exporterade aliaset (#88).
         val open = shadowOf(shown.contentIntent).savedIntent
-        assertEquals(MainActivity::class.java.name, open.component?.className)
-        assertEquals("gc", open.getStringExtra(MainActivity.EXTRA_TRIP_ID))
+        assertEquals(TripLink.ALIAS, open.component?.className)
+        assertEquals("gc", TripLink.tripId(open))
+        val snooze = shadowOf(shown.actions.single().actionIntent)
+        assertEquals(ReminderSnoozeReceiver::class.java.name, snooze.savedIntent.component?.className)
+        for (flags in listOf(shadowOf(shown.contentIntent).flags, snooze.flags)) assertTrue(flags and PendingIntent.FLAG_IMMUTABLE != 0)
     }
 
     @Test
