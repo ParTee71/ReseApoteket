@@ -45,9 +45,13 @@ class TripLinkTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 assertNull(activity.linkedTrip)
+                val launched = activity.intent
                 InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(activity, link("kreta"))
                 assertEquals("kreta", activity.linkedTrip)
                 assertEquals(TripLink.ALIAS, activity.intent.component?.className)
+                // ActivityScenario känner igen sin aktivitet på startintentet – återställ det, annars
+                // kan den inte stänga aktiviteten efter testet.
+                activity.intent = launched
             }
         }
     }
