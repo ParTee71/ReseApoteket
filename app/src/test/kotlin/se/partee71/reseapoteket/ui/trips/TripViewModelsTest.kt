@@ -99,6 +99,7 @@ class TripViewModelsTest {
         val saved = trips.getAll().getOrThrow().single()
         assertEquals("Resa 22 sep", saved.name)
         assertNotNull(saved.createdAt)
+        // Resan skrivs före listan – annars nekar firestore.rules packraderna och listan blir tom.
         assertEquals(setOf("Levaxin", "Solkräm"), items(saved.id).map { it.name }.toSet())
     }
 

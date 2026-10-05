@@ -69,9 +69,11 @@ class TripPacking @Inject constructor(
 
     /**
      * Sparar resan och uppdaterar packlistan enligt [update]. Allt som förslaget bygger på läses
-     * först, så att ett läsfel inte lämnar resan halvsparad. Packlistan skrivs före resan: en ny
-     * resa finns aldrig utan sin lista, och en ändrad resa står kvar som osparad om listan inte
-     * gick att skriva. (Skrivningar läggs i cachen direkt; fel efter läsningen är sällsynta.)
+     * först, så att ett läsfel inte lämnar resan halvsparad. En ny resa skrivs före sin lista –
+     * `firestore.rules` tar bara emot packrader under en resa som finns – och tas bort igen om
+     * listan inte gick att skriva, så att den aldrig finns utan sin lista. En ändrad resa står kvar
+     * som osparad om listan inte gick att skriva. (Skrivningar läggs i cachen direkt; fel efter
+     * läsningen är sällsynta.)
      * En befintlig resa skrivs bara med formulärets fält, så att statusen som packlistan satt under
      * tiden inte skrivs över; efter en omräkning följer statusen den nya listan (PAK-5).
      */
@@ -79,9 +81,10 @@ class TripPacking @Inject constructor(
         when (update) {
             PackingUpdate.KEEP -> trips.update(trip, TripCodec.FORM_FIELDS)
             PackingUpdate.CREATE -> {
+                val items = suggest(trip).items
+                trips.upsert(trip).getOrThrow()
                 // Ett tidigare försök kan ha skrivit en lista – den ersätts helt.
-                packing.replacePackingItems(trip.id, suggest(trip).items).getOrThrow()
-                trips.upsert(trip)
+                packing.replacePackingItems(trip.id, items).onFailure { trips.delete(trip.id) }
             }
             PackingUpdate.RECOUNT -> {
                 val status = PackingList.statusAfter(trip.status, PackingEngine.progress(recountList(trip)))

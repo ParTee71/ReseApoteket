@@ -10,12 +10,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.model.PackingItem
+import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
+import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.schema.HouseholdCodec
 import se.partee71.reseapoteket.data.FakeCollectionFactory
 import se.partee71.reseapoteket.data.FixedClock
@@ -36,6 +39,12 @@ class RepositoriesTest {
     private val collections = FakeCollectionFactory()
 
     private var settings: SettingsStore? = null
+
+    /** Recept och packrader skapas bara under en person eller resa som finns (firestore.rules). */
+    private suspend fun parents() {
+        listOf("anna", "bertil").forEach { collections.persons().upsert(Person(it, it)).getOrThrow() }
+        listOf("t1", "t2").forEach { collections.trips().upsert(Trip(it, it, LocalDate(2026, 10, 1), 7)).getOrThrow() }
+    }
 
     /**
      * Sessionen och repositoryt. Ett andra anrop är som en omstart: nya instanser, men samma
@@ -153,6 +162,7 @@ class RepositoriesTest {
 
     @Test
     fun `regimensFor ger recepten per person och följer ändringar`() = runTest(UnconfinedTestDispatcher()) {
+        parents()
         val repository = DefaultRegimenRepository(collections)
         repository.forPerson("anna").upsert(Regimen("r1", name = "Levaxin")).getOrThrow()
         repository.forPerson("bertil").upsert(Regimen("r2", name = "D-vitamin")).getOrThrow()
@@ -169,6 +179,7 @@ class RepositoriesTest {
 
     @Test
     fun `replacePackingItems ersätter resans lista och tar bort rader som inte finns kvar`() = runTest {
+        parents()
         val repository = DefaultPackingRepository(collections)
         repository.replacePackingItems("t1", listOf(PackingItem("a", name = "A"), PackingItem("b", name = "B"))).getOrThrow()
         repository.forTrip("t2").upsert(PackingItem("x", name = "Annan resa")).getOrThrow()
@@ -181,6 +192,7 @@ class RepositoriesTest {
 
     @Test
     fun `replacePackingItems med redan läst lista tar bort det som inte finns kvar i den`() = runTest {
+        parents()
         val repository = DefaultPackingRepository(collections)
         val existing = listOf(PackingItem("a", name = "A"), PackingItem("b", name = "B"))
         repository.replacePackingItems("t1", existing).getOrThrow()
@@ -191,7 +203,16 @@ class RepositoriesTest {
     }
 
     @Test
+    fun `en packlista under en resa som inte finns avvisas, som i firestore rules`() = runTest {
+        val repository = DefaultPackingRepository(collections)
+        assertTrue(repository.replacePackingItems("t1", listOf(PackingItem("a", name = "A"))).isFailure)
+        parents()
+        repository.replacePackingItems("t1", listOf(PackingItem("a", name = "A"))).getOrThrow()
+    }
+
+    @Test
     fun `packingFor ger packlistorna per resa och följer ändringar`() = runTest {
+        parents()
         val repository = DefaultPackingRepository(collections)
         repository.forTrip("t1").upsert(PackingItem("a", name = "A")).getOrThrow()
         repository.packingFor(listOf("t1", "t2", "t1")).test {
