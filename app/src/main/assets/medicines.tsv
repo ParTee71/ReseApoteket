@@ -1,5 +1,5 @@
 # Läkemedel som säljs i Sverige – Läkemedelsverket, CC BY 4.0 (https://www.lakemedelsverket.se/sv/om-webbplatsen/oppna-data)
-# updated 2026-10-04
+# updated 2026-10-06
 Abacavir/Lamivudine Accord	600 mg/300 mg	Filmdragerad tablett
 Abacavir/Lamivudine Glenmark	600 mg/300 mg	Filmdragerad tablett
 Abacavir/Lamivudine Medical Valley	600 mg/300 mg	Filmdragerad tablett
@@ -1939,6 +1939,7 @@ Deferasirox Sandoz	180 mg	Filmdragerad tablett
 Deferasirox Sandoz	360 mg	Filmdragerad tablett
 Deferasirox STADA	90 mg	Filmdragerad tablett
 Deferasirox STADA	180 mg	Filmdragerad tablett
+Deferasirox STADA	360 mg	Filmdragerad tablett
 Deferipron Ebb	1000 mg	Filmdragerad tablett
 Deferipron Evolan	500 mg	Filmdragerad tablett
 Deferipron Evolan	1000 mg	Filmdragerad tablett
@@ -3863,6 +3864,9 @@ Klorzoxazon Orifarm	250 mg	Tablett
 Klozapin Ebb	25 mg	Tablett
 Klozapin Ebb	100 mg	Tablett
 Klyx	1 mg/ml+250 mg/ml	Rektallösning
+Kodein ExtractumPharma	10 mg	Tablett
+Kodein ExtractumPharma	20 mg	Tablett
+Kodein ExtractumPharma	30 mg	Tablett
 Koffein Viatris	100 mg	Tablett
 Kolekalciferol Evolan	800 IE	Tablett
 Kolekalciferol Evolan	800 IE/droppe	Orala droppar, lösning
@@ -6833,6 +6837,7 @@ Scheriproct	1,3 mg/1 mg	Suppositorium
 Scopoderm	1 mg/72 timmar	Depotplåster
 Sedaconda	100% V/V	Inhalationsånga, vätska
 Sedix		Dragerad tablett
+Sedix forte		Filmdragerad tablett
 Seebri Breezhaler	44 mikrogram	Inhalationspulver, hård kapsel
 Sefitude		Dragerad tablett
 Sehcat	370 kBq	Kapsel, hård
@@ -8113,6 +8118,7 @@ Wartec	0,15 %	Kräm
 Wartec	5 mg/ml	Kutan lösning
 Wegovy	1,5 mg	Tablett
 Wegovy	4 mg	Tablett
+Wegovy	7,2 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Wegovy	9 mg	Tablett
 Wegovy Flex Touch	0,5 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Wegovy Flex Touch	0,5 mg (0,7 ml/dos)	Injektionsvätska, lösning i förfylld injektionspenna
