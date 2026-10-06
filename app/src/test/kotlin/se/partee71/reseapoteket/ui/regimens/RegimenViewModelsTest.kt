@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import se.partee71.reseapoteket.R
@@ -18,6 +19,7 @@ import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.MedicineForm
+import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.data.FakeCollectionFactory
@@ -40,6 +42,10 @@ class RegimenViewModelsTest {
     private val regimens = DefaultRegimenRepository(collections)
     private val anna = regimens.forPerson("anna")
     private val household = MutableStateFlow<Household?>(Household("h1", marginDays = 2))
+
+    /** Ett recept skapas bara under en person som finns (firestore.rules). */
+    @Before
+    fun annaExists() = runTest { collections.persons().upsert(Person("anna", "Anna")).getOrThrow() }
 
     private fun viewModel(regimenId: String? = null, kind: RegimenKind = RegimenKind.MEDICINE) =
         RegimenEditViewModel("anna", kind, regimenId, regimens, StubHouseholds(household), FakeMedicines(), FixedClock(), TimeZone.UTC)

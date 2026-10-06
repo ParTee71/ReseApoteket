@@ -26,13 +26,15 @@ import se.partee71.reseapoteket.data.firestore.CollectionTable
 
 /**
  * Minnesbaserad databas med Firestores semantik för det appen använder: merge är djup för
- * nästlade maps, `null` lagras som `null`, heltal lagras som `Long`.
+ * nästlade maps, `null` lagras som `null`, heltal lagras som `Long`. Som `firestore.rules`
+ * skapas ett dokument i en undersamling (recept, packrad) bara under en förälder som finns.
  */
 class FakeStore {
     val documents = MutableStateFlow<Map<String, Map<String, Doc>>>(emptyMap())
 
     fun set(path: String, id: String, doc: Doc, merge: Boolean) = documents.update { all ->
         val collection = all[path].orEmpty()
+        check(id in collection || parentExists(all, path)) { "Föräldern till $path finns inte (firestore.rules)" }
         val stored = firestoreValues(doc)
         val merged = if (merge) deepMerge(collection[id].orEmpty(), stored) else stored
         all + (path to collection + (id to merged))
@@ -51,6 +53,13 @@ class FakeStore {
     fun delete(path: String, id: String) = documents.update { all -> all + (path to all[path].orEmpty() - id) }
 
     fun read(path: String, id: String): Doc? = documents.value[path]?.get(id)
+
+    /** `households/{hid}/trips/{tid}/packingItems` kräver `trips/{tid}`; en samling direkt under hushållet kräver inget. */
+    private fun parentExists(all: Map<String, Map<String, Doc>>, path: String): Boolean {
+        val segments = path.split('/')
+        if (segments.size <= 3) return true
+        return all[segments.dropLast(2).joinToString("/")]?.containsKey(segments[segments.size - 2]) == true
+    }
 
     fun collection(path: String): Flow<Map<String, Doc>> = documents.map { it[path].orEmpty() }.distinctUntilChanged()
 
