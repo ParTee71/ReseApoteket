@@ -23,7 +23,8 @@ import se.partee71.reseapoteket.ui.theme.AppTypography
  * med stor bokstav (NFR-18); ett fält som anger egna [keyboardOptions], t.ex. siffror, styr själv.
  * Texten växer inte förbi [maxLength] – samma tak som rules har (NFR-16); en inklistring som
  * skulle gå över ignoreras hellre än kapas mitt i. En lagrad längre text (från verktygen) kortas
- * aldrig av, men måste kortas under taket för att gå att spara.
+ * aldrig av, men måste kortas under taket för att gå att spara. Ett flerradigt fält växer med
+ * texten, högst [maxLines] rader – sedan scrollar det inuti (#100).
  */
 @Composable
 fun AppTextField(
@@ -39,6 +40,7 @@ fun AppTextField(
     @DrawableRes trailingIcon: Int? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
     maxLength: Int = if (singleLine) TextLimits.SHORT else TextLimits.LONG,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
 ) {
     val card = AppColors.extended.card
     OutlinedTextField(
@@ -54,6 +56,7 @@ fun AppTextField(
         isError = error != null,
         keyboardOptions = keyboardOptions,
         singleLine = singleLine,
+        maxLines = maxLines,
         shape = AppShapes.field,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = card,
