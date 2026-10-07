@@ -1,11 +1,14 @@
 package se.partee71.reseapoteket.ui.packing
 
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.filter
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -13,9 +16,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import org.robolectric.annotation.Config
@@ -27,6 +32,8 @@ import se.partee71.reseapoteket.core.engine.PackingEngine
 import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingProgress
+import se.partee71.reseapoteket.core.engine.PastedLine
+import se.partee71.reseapoteket.core.engine.PastedStatus
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
@@ -155,6 +162,44 @@ class PackingListScreensTest {
         rule.onNodeWithText("Vem?", ignoreCase = true).assertIsDisplayed()
         rule.onAllNodesWithText("Erik").filterToOne(hasClickAction()).performClick()
         assertEquals(listOf<PackingListEvent>(PackingListEvent.AddPerson("erik")), events)
+    }
+
+    private val newItem = EditorUiState(PackingItem("ny", PackingSection.FAMILY, sourceType = PackingSource.MANUAL, quantity = 1))
+
+    private val pasted = AddListState(
+        AddMode.LIST,
+        "Solkräm 2\nLaddare\nPlåster",
+        listOf(PastedLine("Solkräm", 2, PastedStatus.ADD), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Plåster", 1, PastedStatus.EXISTS)),
+    )
+
+    @Test
+    @Config(qualifiers = "w390dp-h1000dp-xxhdpi")
+    fun `lägg till som lista visar vad som läggs till under Övrigt och sparar (PAK-7)`() {
+        val events = mutableListOf<PackingListEvent>()
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = newItem, addList = pasted) } }
+        rule.onNodeWithText("Läggs till under Övrigt", ignoreCase = true).assertIsDisplayed()
+        rule.onNodeWithText("2 st").assertIsDisplayed()
+        rule.onNodeWithText("finns redan").assertIsDisplayed()
+        rule.onNodeWithText("Vad?").assertDoesNotExist()
+        rule.onNodeWithText("Lägg till 2 saker").performClick()
+        rule.onNodeWithText("En sak").performClick()
+        assertEquals(listOf(PackingListEvent.AddListSave, PackingListEvent.AddModeChange(AddMode.ONE)), events)
+    }
+
+    @Test
+    fun `en lista utan något nytt går inte att spara, och En sak byter till listan (PAK-7)`() {
+        val events = mutableListOf<PackingListEvent>()
+        val nothing = AddListState(AddMode.LIST, "Plåster", listOf(PastedLine("Plåster", 1, PastedStatus.EXISTS)))
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = newItem, addList = nothing) } }
+        rule.onAllNodesWithText("Lägg till").filter(isNotEnabled()).assertCountEquals(1)
+        rule.onNodeWithText("En sak per rad").performTextInput("Laddare")
+        assertTrue(events.single() is PackingListEvent.AddListText)
+    }
+
+    @Test
+    @Config(qualifiers = "w390dp-h1000dp-xxhdpi")
+    fun `skärmdump - lägg till som lista (PAK-7)`() = rule.captureScreenLightAndDark("PackingListScreen_lista") {
+        PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}, adding = newItem, addList = pasted)
     }
 
     @Test

@@ -52,7 +52,7 @@ import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Spacing
 import se.partee71.reseapoteket.ui.theme.Tone
 
-/** Packlistan för en resa (PAK-1–5); pennan öppnar resans formulär (RES-1). */
+/** Packlistan för en resa (PAK-1–7); pennan öppnar resans formulär (RES-1). */
 @Composable
 fun PackingListScreen(onBack: () -> Unit, onEditTrip: () -> Unit, viewModel: PackingListViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -60,6 +60,7 @@ fun PackingListScreen(onBack: () -> Unit, onEditTrip: () -> Unit, viewModel: Pac
     val editing by viewModel.editing.collectAsStateWithLifecycle()
     val adding by viewModel.adding.collectAsStateWithLifecycle()
     val addState by viewModel.addEditor.state.collectAsStateWithLifecycle()
+    val addList by viewModel.addList.collectAsStateWithLifecycle()
     val askRecount by viewModel.askRecount.collectAsStateWithLifecycle()
     val sheetError by viewModel.sheetError.collectAsStateWithLifecycle()
     PackingListContent(
@@ -71,6 +72,7 @@ fun PackingListScreen(onBack: () -> Unit, onEditTrip: () -> Unit, viewModel: Pac
         archive = viewModel.hiding.collectAsListArchive(showToggle = false),
         editing = editing,
         adding = addState.takeIf { adding },
+        addList = addList,
         askRecount = askRecount,
         celebrations = viewModel.celebrations,
         sheetError = sheetError,
@@ -88,6 +90,7 @@ fun PackingListContent(
     archive: ListArchive = ListArchive(showToggle = false),
     editing: PackingRow? = null,
     adding: EditorUiState<PackingItem>? = null,
+    addList: AddListState = AddListState(),
     askRecount: Boolean = false,
     celebrations: Flow<Unit> = emptyFlow(),
     sheetError: DataError? = null,
@@ -136,7 +139,7 @@ fun PackingListContent(
         if (confetti) Confetti(Modifier.fillMaxSize(), onFinished = { confetti = false })
     }
     editing?.let { QuantitySheet(it, onEvent, sheetError) }
-    adding?.let { AddItemSheet(it, header?.travellers.orEmpty(), onEvent, sheetError) }
+    adding?.let { AddItemSheet(it, header?.travellers.orEmpty(), onEvent, sheetError, addList) }
     if (askRecount) {
         ConfirmDialog(
             title = stringResource(R.string.trip_recount_title),
