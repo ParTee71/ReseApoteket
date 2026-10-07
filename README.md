@@ -29,7 +29,7 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Nytt recept föreslår läkemedel ur Läkemedelsverkets lista medan man skriver och fyller i namn, styrka, form och enhet – listan är inbyggd och sökningen sker på telefonen (REC-6–7).
 - Familjeartiklar på hushållsnivå, t.ex. solkräm och plåster, med mängdregler och exempel att börja från (FAM).
 - Resor: skapa en resa som räknar fram packlistan från resans längd och vilka som åker med, och räkna om när resan ändras (RES).
-- Packlistan: pricka av per sektion och person, ändra mängd, lägg till egna rader, dölj med svep och ångra, och konfetti när allt är packat (PAK).
+- Packlistan: pricka av per sektion och person, ändra mängd, lägg till egna rader – en i taget eller en hel inklistrad lista under Övrigt (PAK-7) – dölj med svep och ångra, och konfetti när allt är packat (PAK).
 - Inställningar: hushållets namn och marginaldagar, "Flytta avprickade sist", tema, konto med utloggning, och export av hushållet som JSON i samma format som backupen (SET).
 - Påminnelser inför resan: ingen packlista än, dags att packa, dagen före och resedagens morgon – för de personer telefonen valt, med egna tider (PÅM).
 - Packas på resedagen: det som används till sista morgonen samlas sist i packlistan och påminns om på resedagens morgon eller vid en egen tid (PAK-6).

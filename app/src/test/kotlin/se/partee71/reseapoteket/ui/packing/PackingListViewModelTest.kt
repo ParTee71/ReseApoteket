@@ -14,6 +14,8 @@ import org.junit.Test
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingProgress
+import se.partee71.reseapoteket.core.engine.PastedLine
+import se.partee71.reseapoteket.core.engine.PastedStatus
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.Household
@@ -259,6 +261,73 @@ class PackingListViewModelTest {
         assertEquals("Erik", added.person?.name)
         assertEquals(2, added.item.quantity)
         assertEquals("", vm.addEditor.state.value.value.name, "panelen börjar om tom")
+    }
+
+    @Test
+    fun `en inklistrad lista läggs sist under Övrigt i en skrivning och kan ångras (PAK-7)`() = runTest {
+        seed()
+        val vm = viewModel()
+        vm.onEvent(PackingListEvent.Add)
+        vm.onEvent(PackingListEvent.AddModeChange(AddMode.LIST))
+        vm.onEvent(PackingListEvent.AddListText("solkräm 2\nLaddare\n- Badkläder x2\nladdare\n"))
+        val list = vm.addList.value
+        assertEquals(
+            listOf(PastedLine("solkräm", 2, PastedStatus.EXISTS), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Badkläder", 2, PastedStatus.ADD)),
+            list.lines,
+            "det som redan finns under Övrigt läggs inte till igen, dubbletter hoppas över",
+        )
+        assertTrue(list.canSave)
+
+        vm.onEvent(PackingListEvent.AddListSave)
+        assertFalse(vm.adding.value)
+        assertEquals(AddListState(), vm.addList.value, "panelen börjar om med en sak och tom text")
+        val other = vm.rows().map { it.item }.filter { it.section == PackingSection.FAMILY }
+        assertEquals(listOf("Solkräm" to 1, "Laddare" to 1, "Badkläder" to 2), other.map { it.name to it.quantity })
+        val added = other.drop(1)
+        assertTrue(added.all { it.sourceType == PackingSource.MANUAL && it.suggestedQuantity == it.quantity && !it.travelDay })
+        assertEquals(UndoRequest(added.first().id, "2", R.string.packing_added_other), vm.hiding.undo.value)
+
+        vm.hiding.onEvent(ArchiveEvent.Undo)
+        assertEquals(listOf("Solkräm"), vm.rows().map { it.item }.filter { it.section == PackingSection.FAMILY }.map { it.name })
+        assertNull(packing.forTrip("t1").get(added.first().id).getOrThrow(), "Ångra tar bort raderna")
+    }
+
+    @Test
+    fun `det som finns under Övrigt räknas även när det är dolt, och bara Övrigt räknas (PAK-7)`() = runTest {
+        seed()
+        val vm = viewModel()
+        val solkram = vm.row("Solkräm").item
+        vm.hiding.onEvent(ArchiveEvent.Archive(solkram.id, solkram.name))
+        assertTrue(stored(solkram.id).hidden)
+        vm.onEvent(PackingListEvent.Add)
+        vm.onEvent(PackingListEvent.AddModeChange(AddMode.LIST))
+        vm.onEvent(PackingListEvent.AddListText("Solkräm\nLevaxin"))
+        assertEquals(listOf(PastedLine("Solkräm", 1, PastedStatus.EXISTS), PastedLine("Levaxin", 1, PastedStatus.ADD)), vm.addList.value.lines)
+    }
+
+    @Test
+    fun `en lista utan något att lägga till sparas inte, och ett skrivfel står i panelen med texten kvar (PAK-7)`() = runTest {
+        seed()
+        val blocked = DefaultPackingRepository(FakeCollectionFactory(collections.store, TestHouseholdScope(version = Schema.CURRENT_VERSION + 1)))
+        val vm = PackingListViewModel("t1", trips, persons, regimens, blocked, settings, tripPacking, FixedClock())
+        vm.onEvent(PackingListEvent.Add)
+        vm.onEvent(PackingListEvent.AddModeChange(AddMode.LIST))
+        vm.onEvent(PackingListEvent.AddListText("Solkräm"))
+        assertFalse(vm.addList.value.canSave, "allt finns redan")
+        vm.onEvent(PackingListEvent.AddListSave)
+        assertNull(vm.sheetError.value)
+
+        vm.onEvent(PackingListEvent.AddListText("Laddare\nPowerbank"))
+        vm.onEvent(PackingListEvent.AddListSave)
+        assertEquals(DataError.UpdateRequired, vm.sheetError.value)
+        assertTrue(vm.adding.value)
+        assertEquals("Laddare\nPowerbank", vm.addList.value.text)
+        assertFalse(vm.addList.value.saving)
+        assertNull(vm.hiding.undo.value)
+
+        vm.onEvent(PackingListEvent.CloseAdd)
+        assertNull(vm.sheetError.value)
+        assertEquals(AddListState(), vm.addList.value)
     }
 
     @Test

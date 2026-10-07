@@ -310,6 +310,19 @@
     <string name="packing_who">Vem?</string>
     <string name="packing_how_many">Hur många?</string>
     <string name="packing_person_required">Välj vem det är till</string>
+    <string name="packing_add_one">En sak</string>
+    <string name="packing_add_list">Lista</string>
+    <string name="packing_list_field">En sak per rad</string>
+    <string name="packing_list_helper">Ett tal sist på raden blir antalet, t.ex. ”Solkräm 2”.</string>
+    <string name="packing_list_preview">Läggs till under Övrigt</string>
+    <string name="packing_list_exists">finns redan</string>
+    <string name="packing_list_too_long">för lång</string>
+    <plurals name="packing_list_add">
+        <item quantity="one">Lägg till %d sak</item>
+        <item quantity="other">Lägg till %d saker</item>
+    </plurals>
+    <string name="packing_added_one">%s sak tillagd</string>
+    <string name="packing_added_other">%s saker tillagda</string>
     <plurals name="packing_travellers">
         <item quantity="one">%d resenär</item>
         <item quantity="other">%d resenärer</item>

@@ -27,6 +27,9 @@ import se.partee71.reseapoteket.core.engine.PackingEngine
 import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingProgress
+import se.partee71.reseapoteket.core.engine.PastedLine
+import se.partee71.reseapoteket.core.engine.PastedList
+import se.partee71.reseapoteket.core.engine.PastedStatus
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
@@ -40,6 +43,7 @@ import se.partee71.reseapoteket.core.schema.TripCodec
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.combineByKey
 import se.partee71.reseapoteket.data.common.dataError
+import se.partee71.reseapoteket.data.common.nextSortOrder
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.common.withFallback
 import se.partee71.reseapoteket.data.datastore.SettingsStore
@@ -56,6 +60,7 @@ import se.partee71.reseapoteket.ui.common.ListLoader
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.common.Validator
+import se.partee71.reseapoteket.ui.components.UndoRequest
 
 /** En rad i packlistan: raden, personen den hör till och doseringen i kort form ("1/dag", PAK-2). */
 data class PackingRow(val item: PackingItem, val person: Person? = null, val schedule: String? = null)
@@ -68,11 +73,29 @@ data class PackingHeader(
     val groups: Map<PackingGroup, PackingProgress>,
 )
 
+/** "Lägg till": en sak (PAK-4) eller en inklistrad lista (PAK-7). */
+enum class AddMode { ONE, LIST }
+
+/**
+ * "Lägg till" i läget [mode]; för en lista texten, raderna den blir (PAK-7) och om de sparas.
+ * Bara de rader som läggs till ([toAdd]) sparas.
+ */
+data class AddListState(
+    val mode: AddMode = AddMode.ONE,
+    val text: String = "",
+    val lines: List<PastedLine> = emptyList(),
+    val saving: Boolean = false,
+) {
+    val toAdd: List<PastedLine> get() = lines.filter { it.status == PastedStatus.ADD }
+
+    val canSave: Boolean get() = toAdd.isNotEmpty() && !saving
+}
+
 /** En egen rad (PAK-4): namn krävs, och en person för mediciner och kosttillskott. */
 object ManualItemValidator : Validator<PackingItem> {
     const val NAME = "name"
     const val PERSON = "person"
-    val QUANTITY_RANGE = 1..999
+    val QUANTITY_RANGE = PastedList.QUANTITY_RANGE
 
     override fun validate(value: PackingItem): Map<String, Int> = buildMap {
         if (value.name.isBlank()) put(NAME, R.string.name_required)
@@ -122,6 +145,13 @@ sealed interface PackingListEvent {
     data class AddTravelDay(val change: TravelDayChange) : PackingListEvent
 
     data object AddSave : PackingListEvent
+
+    /** En sak eller en lista (PAK-7). */
+    data class AddModeChange(val mode: AddMode) : PackingListEvent
+
+    data class AddListText(val text: String) : PackingListEvent
+
+    data object AddListSave : PackingListEvent
 }
 
 /**
@@ -205,6 +235,19 @@ class PackingListViewModel @AssistedInject constructor(
     /** Den egna raden som läggs till (PAK-4). */
     val addEditor: EditorState<PackingItem> = EditorState(newManualItem(), ManualItemValidator)
 
+    private val addMode = MutableStateFlow(AddMode.ONE)
+    private val listText = MutableStateFlow("")
+    private val listSaving = MutableStateFlow(false)
+
+    /**
+     * "Lägg till" som lista (PAK-7): raderna tolkas mot det som redan finns under Övrigt, dolt
+     * eller inte, så att samma sak inte läggs till två gånger.
+     */
+    val addList: StateFlow<AddListState> = combine(addMode, listText, listSaving, state) { mode, text, saving, list ->
+        val existing = currentRows(list).map { it.item }.filter { it.section == PackingSection.FAMILY }.map { it.name }
+        AddListState(mode, text, if (mode == AddMode.LIST) PastedList.parse(text, existing) else emptyList(), saving)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, AddListState())
+
     private val _askRecount = MutableStateFlow(false)
     val askRecount: StateFlow<Boolean> = _askRecount.asStateFlow()
 
@@ -249,10 +292,7 @@ class PackingListViewModel @AssistedInject constructor(
         viewModelScope.launch {
             addEditor.effects.collect { effect ->
                 when (effect) {
-                    EditorEffect.Done -> {
-                        _adding.value = false
-                        addEditor.load(newManualItem())
-                    }
+                    EditorEffect.Done -> closeAdd()
                     is EditorEffect.Failed -> report(effect.error)
                 }
             }
@@ -273,10 +313,7 @@ class PackingListViewModel @AssistedInject constructor(
             PackingListEvent.CancelRecount -> _askRecount.value = false
             PackingListEvent.Recount -> recount()
             PackingListEvent.Add -> openSheet { _adding.value = true }
-            PackingListEvent.CloseAdd -> openSheet {
-                _adding.value = false
-                addEditor.load(newManualItem())
-            }
+            PackingListEvent.CloseAdd -> openSheet(::closeAdd)
             // Ett gammalt fel står inte kvar medan raden ändras.
             is PackingListEvent.AddName -> editNew(ManualItemValidator.NAME) { it.copy(name = event.name) }
             is PackingListEvent.AddSection -> editNew {
@@ -286,6 +323,9 @@ class PackingListViewModel @AssistedInject constructor(
             is PackingListEvent.AddQuantity -> editNew { it.copy(quantity = event.quantity, suggestedQuantity = event.quantity) }
             is PackingListEvent.AddTravelDay -> editNew { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
             PackingListEvent.AddSave -> addSave()
+            is PackingListEvent.AddModeChange -> openSheet { addMode.value = event.mode }
+            is PackingListEvent.AddListText -> openSheet { listText.value = event.text }
+            PackingListEvent.AddListSave -> addListSave()
         }
     }
 
@@ -305,6 +345,39 @@ class PackingListViewModel @AssistedInject constructor(
         changedHere = true
         viewModelScope.launch {
             addEditor.save { item -> collection.upsertPlaced(item.copy(name = item.name.trim()), isNew = true) { copy(sortOrder = it) } }
+        }
+    }
+
+    /** Stänger "Lägg till" och börjar om med en tom rad och en sak. */
+    private fun closeAdd() {
+        _adding.value = false
+        addEditor.load(newManualItem())
+        addMode.value = AddMode.ONE
+        listText.value = ""
+    }
+
+    /**
+     * Listans rader sist under Övrigt, i listans ordning, i en skrivning (PAK-7). Lyckas det
+     * stängs panelen och Ångra tar bort just de raderna; ett fel visas i panelen och texten står kvar.
+     */
+    private fun addListSave() {
+        val lines = addList.value.toAdd
+        if (lines.isEmpty() || listSaving.value) return
+        _sheetError.value = null
+        listSaving.value = true
+        changedHere = true
+        viewModelScope.launch {
+            val first = collection.nextSortOrder()
+            val items = lines.mapIndexed { index, line ->
+                newManualItem().copy(name = line.name, quantity = line.quantity, suggestedQuantity = line.quantity, sortOrder = first + index)
+            }
+            val error = collection.batch(items).dataError()
+            listSaving.value = false
+            if (error != null) return@launch report(error)
+            closeAdd()
+            val count = items.size
+            val request = UndoRequest(items.first().id, count.toString(), if (count == 1) R.string.packing_added_one else R.string.packing_added_other)
+            hiding.offerUndo(request) { collection.batch(emptyList(), items.map { it.id }) }
         }
     }
 
