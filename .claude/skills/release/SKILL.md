@@ -47,15 +47,9 @@ repo `ReseApoteket`). Commits sedan dess: `git log <tagg>..HEAD --oneline --no-m
 | `feat`, ny skärm, ny förmåga | **minor** |
 | `fix`, `chore`, `refactor`, `test`, `docs`, beroenden | **patch** |
 
-Ny `versionCode` = nuvarande + 1. Visa:
-```
-Nuvarande: v<gammal>  (versionCode <gammal>)
-Förslag:   v<ny>      (versionCode <ny>)
-Skäl:      <en mening>
-Commits:   <punktlista>
-Kör v<ny>, eller en annan version?
-```
-**Vänta på bekräftelse.**
+Ny `versionCode` = nuvarande + 1. **Fråga inte om versionsnumret** (användarens beslut): välj
+höjningen enligt tabellen, nämn kort vilken version det blir och varför, och fortsätt direkt.
+Användaren kan säga till om en annan version.
 
 ## Steg 3 – Uppdatera version, README och krav
 
