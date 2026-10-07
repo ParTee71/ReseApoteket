@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filter
 import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
@@ -14,11 +15,14 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
@@ -184,6 +188,20 @@ class PackingListScreensTest {
         rule.onNodeWithText("Lägg till 2 saker").performClick()
         rule.onNodeWithText("En sak").performClick()
         assertEquals(listOf(PackingListEvent.AddListSave, PackingListEvent.AddModeChange(AddMode.ONE)), events)
+    }
+
+    @Test
+    fun `en lång lista – knappen går att nå och förhandsvisningen går att scrolla till (#100)`() {
+        val events = mutableListOf<PackingListEvent>()
+        val lines = (1..72).map { PastedLine("Sak nummer $it i flyttlasset", 1, PastedStatus.ADD) }
+        val long = AddListState(AddMode.LIST, lines.joinToString("\n") { it.name }, lines)
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = newItem, addList = long) } }
+        // Fältet växer inte med alla 72 raderna – högst 8 rader, sedan scrollar det inuti.
+        val field = rule.onNodeWithText("En sak per rad").getUnclippedBoundsInRoot()
+        assertTrue(field.height < 320.dp, "fältet är ${field.height} högt")
+        rule.onNodeWithText("Lägg till 72 saker").performScrollTo().assertIsDisplayed().performClick()
+        assertEquals(listOf<PackingListEvent>(PackingListEvent.AddListSave), events)
+        rule.onNodeWithText("Sak nummer 72 i flyttlasset").performScrollTo().assertIsDisplayed()
     }
 
     @Test

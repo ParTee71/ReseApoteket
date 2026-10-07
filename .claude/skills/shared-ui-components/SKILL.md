@@ -36,7 +36,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Fel under ett fält eller i en panel | `FieldError` | Felfärg, läses som fel; ett skrivfel i ett bottom sheet visas via `AppBottomSheet(error)` |
 | Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter; visar synkindikatorn (`InfoPill` med moln) före `actions` när `LocalSyncIndicator` säger att ändringar väntar (NFR-6) |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
-| Textfält | `AppTextField` | M3 textfält med fel/hjälptext |
+| Textfält | `AppTextField` | M3 textfält med fel/hjälptext; flerradigt växer med texten upp till `maxLines` |
 | Textfält med förslag (läkemedelslistan, REC-6) | `SuggestionField` | `AppTextField` + kort med en `ItemRow` per `Suggestion` (matchningen färgmarkerad via `titleHighlight`) och valfri källrad; antalet läses upp; anroparen bestämmer vad ett val fyller i |
 | Etikett/pill | `InfoPill` | `AppShapes.pill`; `icon` före texten, `onClick` gör den till en knapp med 48 dp tryckyta |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
@@ -53,7 +53,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Laddning | `AppLoading` | Expressive laddningsindikator |
 | Tomt tillstånd | `EmptyState` | ikon + text + `AppButton` |
 | Bekräftelse | `ConfirmDialog` | M3 dialog, `destructive`-parameter |
-| Bottom sheet | `AppBottomSheet` | M3 modal sheet |
+| Bottom sheet | `AppBottomSheet` | M3 modal sheet; scrollar när innehållet är högre än skärmen |
 | Meddelande | `AppSnackbarHost` | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
 | Firande | `Confetti` | egen `Canvas`, inget bibliotek |
 | Avdelare | `AppDivider` | M3-avdelare med temats färg och tjocklek |

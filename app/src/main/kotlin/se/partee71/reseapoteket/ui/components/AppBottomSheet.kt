@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -24,9 +26,9 @@ import se.partee71.reseapoteket.ui.theme.AppTypography
 import se.partee71.reseapoteket.ui.theme.Spacing
 
 /**
- * Bottom sheet med rubrik, t.ex. "ändra mängd" i packlistan. Öppnas helt direkt. Ett skrivfel
- * ([error], via `DataError.toMessage()`) visas sist i panelen, eftersom panelen ligger över
- * skärmens meddelanden.
+ * Bottom sheet med rubrik, t.ex. "ändra mängd" i packlistan. Öppnas helt direkt, och innehåll
+ * som är högre än skärmen går att scrolla (#100). Ett skrivfel ([error], via
+ * `DataError.toMessage()`) visas sist i panelen, eftersom panelen ligger över skärmens meddelanden.
  */
 @Composable
 fun AppBottomSheet(
@@ -44,7 +46,10 @@ fun AppBottomSheet(
         containerColor = AppColors.extended.card,
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.xl),
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             Text(title, style = AppTypography.sectionTitle, modifier = Modifier.semantics { heading() })

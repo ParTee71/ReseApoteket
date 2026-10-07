@@ -115,7 +115,7 @@ private fun AddOneContent(state: EditorUiState<PackingItem>, travellers: List<Pe
     AppButton(stringResource(R.string.add), { onEvent(PackingListEvent.AddSave) }, Modifier.fillMaxWidth(), enabled = state.canSave, loading = state.saving)
 }
 
-/** En inklistrad lista (PAK-7): en sak per rad, och vad som läggs till under Övrigt. */
+/** En inklistrad lista (PAK-7): en sak per rad, knappen och vad som läggs till under Övrigt. */
 @Composable
 private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Unit) {
     AppTextField(
@@ -124,12 +124,9 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
         stringResource(R.string.packing_list_field),
         helper = stringResource(R.string.packing_list_helper),
         singleLine = false,
+        maxLines = LIST_MAX_LINES,
     )
-    if (list.lines.isNotEmpty()) {
-        LabeledGroup(stringResource(R.string.packing_list_preview)) {
-            ApotekCard { list.lines.forEach { PastedRow(it) } }
-        }
-    }
+    // Knappen direkt under fältet, så att den syns även när listan är lång (#100).
     val count = list.toAdd.size
     AppButton(
         if (count == 0) stringResource(R.string.add) else pluralStringResource(R.plurals.packing_list_add, count, count),
@@ -138,7 +135,15 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
         enabled = list.canSave,
         loading = list.saving,
     )
+    if (list.lines.isNotEmpty()) {
+        LabeledGroup(stringResource(R.string.packing_list_preview)) {
+            ApotekCard { list.lines.forEach { PastedRow(it) } }
+        }
+    }
 }
+
+/** Så många rader visar listans fält; en längre lista scrollar i fältet (#100). */
+private const val LIST_MAX_LINES = 8
 
 /** En rad i förhandsvisningen: antalet i Övrigts ton, eller nedtonad med varför den inte läggs till. */
 @Composable
