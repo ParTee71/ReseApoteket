@@ -92,7 +92,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` (fel per fält visas efter ändring eller sparförsök; `EditorEffect` till ramen) |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>`, och `ListLoader` (med "Försök igen") + `activeOnly()` för en listas ViewModel, i `ui/common/` |
-| Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions` + `ArchiveEvent` i `ui/common/` (en per list-ViewModel, exponerad som `archive`); skärmen skickar `archive.collectAsListArchive()` till `EntityListScreen` |
+| Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions` + `ArchiveEvent` i `ui/common/` (en per list-ViewModel, exponerad som `archive`); skärmen skickar `archive.collectAsListArchive()` till `EntityListScreen`. Ångra för något annat än arkivering (t.ex. rader som just lagts till, PAK-7) erbjuds med `offerUndo(request) { … }` – samma snackbar |
 | Detaljtillstånd | `Flow<T?>.asDetailUiState()` → `DetailUiState<T>`, och `DetailLoader` (med "Försök igen") för en detaljskärms ViewModel, i `ui/common/` |
 | ViewModel med nyckel | Hilt assisted injection: `@HiltViewModel(assistedFactory = …)` + `hiltViewModel<VM, VM.Factory> { it.create(key.…) }` i `appEntries` (ARKITEKTUR → Verifierade API:er) |
 | Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |

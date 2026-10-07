@@ -46,6 +46,41 @@ class ArchiveActionsTest {
     }
 
     @Test
+    fun `Ångra kan erbjudas för något annat än arkivering och körs en gång (PAK-7)`() = runTest {
+        val archive = actions()
+        val undone = mutableListOf<String>()
+        val request = UndoRequest("tillagt", "6", R.string.packing_added_other)
+        archive.offerUndo(request) {
+            undone += "tillagt"
+            result
+        }
+        assertEquals(request, archive.undo.value)
+        archive.onEvent(ArchiveEvent.Undo)
+        archive.onEvent(ArchiveEvent.Undo)
+        assertEquals(listOf("tillagt"), undone)
+        assertEquals(emptyList(), written, "inget arkiveras tillbaka")
+        // Ett fel när det ångras visas som meddelande.
+        result = Result.failure(DataError.PermissionDenied)
+        archive.offerUndo(request) { result }
+        archive.onEvent(ArchiveEvent.Undo)
+        assertEquals(DataError.PermissionDenied, archive.error.value)
+    }
+
+    @Test
+    fun `en arkivering efter ett eget Ångra ångrar arkiveringen, och avfärdat glömmer åtgärden`() = runTest {
+        val archive = actions()
+        val undone = mutableListOf<String>()
+        archive.offerUndo(UndoRequest("tillagt", "6", R.string.packing_added_other)) { Result.success(Unit).also { undone += "tillagt" } }
+        archive.onEvent(ArchiveEvent.Archive("a", "Anna"))
+        archive.onEvent(ArchiveEvent.Undo)
+        assertEquals(listOf("a" to true, "a" to false), written)
+        archive.offerUndo(UndoRequest("tillagt", "6", R.string.packing_added_other)) { Result.success(Unit).also { undone += "tillagt" } }
+        archive.onEvent(ArchiveEvent.UndoDismissed)
+        archive.onEvent(ArchiveEvent.Undo)
+        assertEquals(emptyList(), undone)
+    }
+
+    @Test
     fun `ett skrivfel visas som meddelande och ger inget Ångra`() = runTest {
         val archive = actions()
         result = Result.failure(DataError.PermissionDenied)

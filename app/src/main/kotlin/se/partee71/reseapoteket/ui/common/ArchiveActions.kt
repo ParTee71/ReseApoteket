@@ -36,7 +36,8 @@ sealed interface ArchiveEvent {
  * `SwipeToHide`, `UndoSnackbar` och "Visa arkiverade" i `EntityListScreen` behöver. [setArchived]
  * skriver; ett fel visas som meddelande ([error]) i stället för att tappas. Samma mekanik för
  * att dölja en rad i packlistan: [setArchived] sätter då `hidden` och [undoFormat] är "%s dold". ViewModeln exponerar
- * den som `archive`, och skärmen skickar `archive.collectAsListArchive()` till listan.
+ * den som `archive`, och skärmen skickar `archive.collectAsListArchive()` till listan. Samma Ångra kan
+ * också erbjudas för något annat än arkivering ([offerUndo]), t.ex. rader som just lagts till (PAK-7).
  */
 class ArchiveActions(
     private val scope: CoroutineScope,
@@ -48,6 +49,9 @@ class ArchiveActions(
 
     private val _undo = MutableStateFlow<UndoRequest?>(null)
     val undo: StateFlow<UndoRequest?> = _undo.asStateFlow()
+
+    /** Vad Ångra gör när det inte är att arkivera tillbaka ([offerUndo]); `null` = arkivera tillbaka. */
+    private var undoAction: (suspend () -> Result<Unit>)? = null
 
     /** Ett misslyckat arkivera/ångra, tills listan visat det. */
     private val _error = MutableStateFlow<DataError?>(null)
@@ -62,17 +66,31 @@ class ArchiveActions(
         _error.value = error
     }
 
+    /** Erbjuder Ångra för något annat än arkivering: [undo] körs om användaren trycker Ångra (NFR-3). */
+    fun offerUndo(request: UndoRequest, undo: suspend () -> Result<Unit>) {
+        undoAction = undo
+        _undo.value = request
+    }
+
     fun onEvent(event: ArchiveEvent) {
         when (event) {
             is ArchiveEvent.Archive -> scope.launch {
-                setArchived(event.id, true).dataError()?.let { _error.value = it } ?: run { _undo.value = UndoRequest(event.id, event.name, undoFormat) }
+                setArchived(event.id, true).dataError()?.let { _error.value = it } ?: run {
+                    undoAction = null
+                    _undo.value = UndoRequest(event.id, event.name, undoFormat)
+                }
             }
             ArchiveEvent.Undo -> {
                 val request = _undo.value ?: return
+                val action = undoAction
                 _undo.value = null
-                scope.launch { setArchived(request.id, false).dataError()?.let { _error.value = it } }
+                undoAction = null
+                scope.launch { (action?.invoke() ?: setArchived(request.id, false)).dataError()?.let { _error.value = it } }
             }
-            ArchiveEvent.UndoDismissed -> _undo.value = null
+            ArchiveEvent.UndoDismissed -> {
+                _undo.value = null
+                undoAction = null
+            }
             ArchiveEvent.ToggleArchived -> _showingArchived.value = !_showingArchived.value
             ArchiveEvent.ErrorShown -> _error.value = null
         }
