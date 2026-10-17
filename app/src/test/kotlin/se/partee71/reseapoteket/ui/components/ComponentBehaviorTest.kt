@@ -4,11 +4,13 @@ import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -25,6 +27,7 @@ import androidx.compose.ui.test.assertTouchHeightIsEqualTo
 import androidx.compose.ui.test.assertTouchWidthIsEqualTo
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -237,6 +240,25 @@ class ComponentBehaviorTest {
             }
         }
         listOf("Ipren", "Alvedon", "Levaxin", "Zyrtec").forEach { rule.onNodeWithText(it).assertIsDisplayed() }
+    }
+
+    @Test
+    fun `långtryck på en rad med kapad titel visar hela titeln och undertexten (NFR-20)`() {
+        val long = "Febernedsättande för barn – Alvedon oral suspension 24 mg/ml med doseringsspruta"
+        var opened = 0
+        show {
+            Column(Modifier.width(200.dp)) {
+                CheckRow(long, false, {}, subtitle = "1 flaska", onClick = { opened++ })
+                CheckRow("Plåster", false, {}, subtitle = "1 ask", onClick = { opened++ })
+            }
+        }
+        // Bara raden vars titel kapas har långtrycket – den korta raden är som förut.
+        rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick)).assertCountEquals(1)
+        rule.onAllNodesWithText(long).assertCountEquals(1)
+        rule.onNodeWithText(long).performTouchInput { longClick() }
+        rule.onAllNodesWithText(long).assertCountEquals(2)
+        rule.onAllNodesWithText("1 flaska").assertCountEquals(2)
+        assertEquals(0, opened, "långtrycket öppnar inte raden")
     }
 
     @Test

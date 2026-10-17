@@ -14,14 +14,17 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.DataError
@@ -73,6 +76,7 @@ class FramesTest {
     }
 
     @Test
+    @Config(qualifiers = "w800dp-h1280dp-xxhdpi")
     fun `undergrupper, två kolumner, en hopfälld grupp och rubrik överst`() {
         val rows = listOf("A1" to "a", "A2" to "a", "B1" to "b", "Ö1" to "ö", "Ö2" to "ö", "Ö3" to "ö", "D1" to "d")
         val groups = mapOf(
@@ -112,6 +116,29 @@ class FramesTest {
         rule.onNodeWithText("Dolda").performClick()
         rule.onNode(hasScrollAction()).performScrollToNode(hasText("D1"))
         rule.onNodeWithText("D1").assertExists()
+    }
+
+    @Test
+    fun `på en telefon blir en grupp med två kolumner en kolumn (NFR-20)`() {
+        val rows = listOf("Solkräm SPF 50", "Resetabletter mot åksjuka")
+        rule.setContent {
+            ReseApoteketTheme {
+                EntityListScreen("Gran Canaria", ListUiState.Content(rows), empty, {}, key = { it }, group = { ListGroup("Övrigt", columns = 2) }) { ItemRow(it) }
+            }
+        }
+        val first = rule.onNodeWithText(rows[0]).fetchSemanticsNode().positionInRoot
+        val second = rule.onNodeWithText(rows[1]).fetchSemanticsNode().positionInRoot
+        assertEquals(first.x, second.x, "en kolumn: samma vänsterkant")
+        assertTrue(second.y > first.y, "en kolumn: raderna under varandra")
+    }
+
+    @Test
+    fun `kolumner får plats först när var och en blir minst 260 dp bred (NFR-20)`() {
+        assertEquals(1, columnsThatFit(358.dp), "telefon")
+        assertEquals(1, columnsThatFit(523.dp), "strax under två")
+        assertEquals(2, columnsThatFit(524.dp), "precis två")
+        assertEquals(2, columnsThatFit(568.dp), "surfplatta")
+        assertEquals(1, columnsThatFit(0.dp), "alltid minst en")
     }
 
     @Test

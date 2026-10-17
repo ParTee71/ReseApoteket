@@ -6,6 +6,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -69,8 +70,8 @@ data class EmptyExample(val label: String, val onClick: () -> Unit)
 
 /**
  * En grupp i en grupperad lista: rubrik, valfri ikon och ton. [count] ersätter antalet rader i
- * rubriken ("3 / 6" packat); [columns] = 2 lägger raderna i två kolumner (Övrigt i packlistan);
- * [collapsible] gör gruppen hopfälld tills rubriken trycks ("Dolda").
+ * rubriken ("3 / 6" packat); [columns] = 2 lägger raderna i upp till två kolumner (Övrigt i
+ * packlistan) – bara så många som får plats, så på en telefon blir det en (NFR-20); [collapsible] gör gruppen hopfälld tills rubriken trycks ("Dolda").
  */
 data class ListGroup(
     val title: String,
@@ -196,36 +197,41 @@ private fun <T> ListContent(
     val groups = remember(items, group) { if (group == null) listOf(null to items) else items.groupBy(group).toList() }
     // Utfällda grupper (bara de hopfällbara), efter rubrik; står kvar efter rotation och tillbaka.
     var expanded by rememberSaveable { mutableStateOf(emptyList<String>()) }
-    // Varje rad är ett eget listobjekt (lat inläsning, animering per rad); korten byggs av bitar.
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = Spacing.l, end = Spacing.l, top = Spacing.xs, bottom = clearance + ADD_BUTTON_CLEARANCE),
-    ) {
-        header?.let { item(key = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
-        groups.forEachIndexed { index, (head, rows) ->
-            if (index > 0) item(key = "gap:$index") { Spacer(Modifier.height(Spacing.m)) }
-            val open = head == null || !head.collapsible || head.title in expanded
-            head?.let {
-                item(key = "header:${it.title}") {
-                    CardSegment(top = true, bottom = !open, Modifier.animateItem()) {
-                        GroupHeader(it, rows.size, open) { expanded = if (open) expanded - it.title else expanded + it.title }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        // Kolumner bara där de får plats – annars kapas texten i raderna (NFR-20).
+        val fitting = columnsThatFit(maxWidth - Spacing.l * 2)
+        // Varje rad är ett eget listobjekt (lat inläsning, animering per rad); korten byggs av bitar.
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = Spacing.l, end = Spacing.l, top = Spacing.xs, bottom = clearance + ADD_BUTTON_CLEARANCE),
+        ) {
+            header?.let { item(key = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
+            groups.forEachIndexed { index, (head, rows) ->
+                if (index > 0) item(key = "gap:$index") { Spacer(Modifier.height(Spacing.m)) }
+                val open = head == null || !head.collapsible || head.title in expanded
+                head?.let {
+                    item(key = "header:${it.title}") {
+                        CardSegment(top = true, bottom = !open, Modifier.animateItem()) {
+                            GroupHeader(it, rows.size, open) { expanded = if (open) expanded - it.title else expanded + it.title }
+                        }
                     }
                 }
+                if (open) groupRows(head, rows, key, subgroup, fitting, row)
             }
-            if (open) groupRows(head, rows, key, subgroup, row)
         }
     }
 }
 
-/** Raderna i en grupp: undergrupper med rubrik, och i [ListGroup.columns] kolumner. */
+/** Raderna i en grupp: undergrupper med rubrik, och i [ListGroup.columns] kolumner – högst [fitting]. */
 private fun <T> LazyListScope.groupRows(
     head: ListGroup?,
     rows: List<T>,
     key: (T) -> Any,
     subgroup: ((T) -> ListSubgroup?)?,
+    fitting: Int,
     row: @Composable (T) -> Unit,
 ) {
-    val columns = head?.columns ?: 1
+    val columns = (head?.columns ?: 1).coerceAtMost(fitting)
     val runs = if (subgroup == null) listOf(null to rows) else rows.runsBy(subgroup)
     // Undergruppens nyckel är dess rubrik (och ordningsnummer om samma namn finns två gånger) –
     // inte första radens, som byts när en rad prickas av och flyttas sist.
@@ -308,3 +314,9 @@ private fun SubgroupLabel(subgroup: ListSubgroup) {
 
 /** Plats under sista raden så att lägg till-knappen inte täcker den. */
 private val ADD_BUTTON_CLEARANCE = 80.dp
+
+/** Hur många kolumner om minst [MIN_COLUMN_WIDTH] som får plats på [width] – alltid minst en (NFR-20). */
+internal fun columnsThatFit(width: Dp): Int = ((width + Spacing.xs) / (MIN_COLUMN_WIDTH + Spacing.xs)).toInt().coerceAtLeast(1)
+
+/** En kolumn smalare än så lämnar för lite plats åt texten bredvid krysset (NFR-20). */
+private val MIN_COLUMN_WIDTH = 260.dp
