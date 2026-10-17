@@ -1,5 +1,5 @@
 # Läkemedel som säljs i Sverige – Läkemedelsverket, CC BY 4.0 (https://www.lakemedelsverket.se/sv/om-webbplatsen/oppna-data)
-# updated 2026-10-07
+# updated 2026-10-17
 Abacavir/Lamivudine Accord	600 mg/300 mg	Filmdragerad tablett
 Abacavir/Lamivudine Glenmark	600 mg/300 mg	Filmdragerad tablett
 Abacavir/Lamivudine Medical Valley	600 mg/300 mg	Filmdragerad tablett
@@ -693,8 +693,6 @@ Atorvastatin Accord	10 mg	Filmdragerad tablett
 Atorvastatin Accord	20 mg	Filmdragerad tablett
 Atorvastatin Accord	40 mg	Filmdragerad tablett
 Atorvastatin Accord	80 mg	Filmdragerad tablett
-Atorvastatin Actavis	10 mg	Filmdragerad tablett
-Atorvastatin Actavis	20 mg	Filmdragerad tablett
 Atorvastatin Amarox	10 mg	Filmdragerad tablett
 Atorvastatin Amarox	20 mg	Filmdragerad tablett
 Atorvastatin Amarox	40 mg	Filmdragerad tablett
@@ -717,7 +715,6 @@ Atorvastatin SUN	40 mg	Filmdragerad tablett
 Atorvastatin SUN	80 mg	Filmdragerad tablett
 Atorvastatin Teva	20 mg	Filmdragerad tablett
 Atorvastatin Teva	40 mg	Filmdragerad tablett
-Atorvastatin Teva	80 mg	Filmdragerad tablett
 Atorvastatin Teva B.V.	10 mg	Filmdragerad tablett
 Atorvastatin Teva B.V.	20 mg	Filmdragerad tablett
 Atorvastatin Teva B.V.	40 mg	Filmdragerad tablett
@@ -1153,6 +1150,7 @@ Brivaracetam Orion	25 mg	Filmdragerad tablett
 Brivaracetam Orion	50 mg	Filmdragerad tablett
 Brivaracetam Orion	75 mg	Filmdragerad tablett
 Brivaracetam Orion	100 mg	Filmdragerad tablett
+Brivaracetam STADA	10 mg	Filmdragerad tablett
 Brivaracetam Teva	25 mg	Filmdragerad tablett
 Brivaracetam Teva	50 mg	Filmdragerad tablett
 Brivaracetam Teva	75 mg	Filmdragerad tablett
@@ -1237,7 +1235,6 @@ Buprenorphine Sandoz	40 mikrogram/timme	Depotplåster
 Buprenorphine STADA	5 mikrogram/timme	Depotplåster
 Buprenorphine STADA	10 mikrogram/timme	Depotplåster
 Buprenorphine STADA	20 mikrogram/timme	Depotplåster
-Buprenorphine Teva	5 mikrogram/timme	Depotplåster
 Buprenorphine Teva	20 mikrogram/timme	Depotplåster
 Buprenorphine/Naloxone G.L. Pharma	2 mg/0,5 mg	Resoriblett, sublingual
 Buprenorphine/Naloxone G.L. Pharma	8 mg/2 mg	Resoriblett, sublingual
@@ -1732,6 +1729,7 @@ Cometriq	20 mg + 80 mg	Kapsel, hård
 Comirnaty LP.8.1	30 mikrogram/dos	Injektionsvätska, dispersion
 Comirnaty XFG	10 mikrogram/dos	Injektionsvätska, dispersion
 Comirnaty XFG	30 mikrogram/dos	Injektionsvätska, dispersion
+Comirnaty XFG	30 mikrogram/dos	Injektionsvätska, dispersion i förfylld spruta
 Comtess	200 mg	Filmdragerad tablett
 Concerta	18 mg	Depottablett
 Concerta	27 mg	Depottablett
@@ -1788,6 +1786,7 @@ Curemid	50 mg/g	Kräm
 Curosurf	80 mg/ml	Instillationsvätska för luftvägarna, suspension
 Cutaquig	165 mg/ml	Injektionsvätska, lösning
 Cuvitru	200 mg/ml	Injektionsvätska, lösning
+Cyanocobalamin Farmacia	1 mg	Filmdragerad tablett
 Cyanokit	5 g	Pulver till infusionsvätska, lösning
 Cyclogest	400 mg	Vagitorium
 Cyclogyl	1 %	Ögondroppar, lösning
@@ -1830,7 +1829,6 @@ Dabigatran etexilate Krka	150 mg	Kapsel, hård
 Dabigatran etexilate Medical Valley	75 mg	Kapsel, hård
 Dabigatran etexilate Medical Valley	110 mg	Kapsel, hård
 Dabigatran etexilate Medical Valley	150 mg	Kapsel, hård
-Dabigatran etexilate Orion	75 mg	Kapsel, hård
 Dabigatran etexilate Orion	110 mg	Kapsel, hård
 Dabigatran etexilate Orion	150 mg	Kapsel, hård
 Dabigatran etexilate Sandoz	75 mg	Kapsel, hård
@@ -2131,6 +2129,7 @@ Dizminelle	0,02 mg/3 mg	Filmdragerad tablett
 Dobutamin Hameln	12,5 mg/ml	Koncentrat till infusionsvätska, lösning
 Docetaxel Accord	80 mg/4 ml	Koncentrat till infusionsvätska, lösning
 Docetaxel Accord	160 mg/8 ml	Koncentrat till infusionsvätska, lösning
+Docetaxel Actavis	20 mg/ml	Koncentrat till infusionsvätska, lösning
 DOCETAXEL KABI	160 mg/8 ml	Koncentrat till infusionsvätska, lösning
 Doktacillin		Pulver till injektions-/infusionsvätska, lösning
 Dokusatnatrium/Sorbitol Evolan	1 mg/ml + 250 mg/ml	Rektallösning
@@ -2686,6 +2685,7 @@ Everolimus Avansor	5 mg	Tablett
 Everolimus Krka	2,5 mg	Tablett
 Everolimus Krka	5 mg	Tablett
 Everolimus Krka	10 mg	Tablett
+Everolimus Orifarm	10 mg	Tablett
 Everolimus Sandoz	2,5 mg	Tablett
 Everolimus Sandoz	5 mg	Tablett
 Everolimus Sandoz	10 mg	Tablett
@@ -2902,7 +2902,6 @@ Flagyl	40 mg/ml	Oral suspension
 Flagyl	400 mg	Tablett
 Flebogamma DIF	50 mg/ml	Infusionsvätska, lösning
 Flexilev	5 mg/1,25 mg	Dispergerbara tabletter för dosdispenser
-Flexiloges		Filmdragerad tablett
 Flixabi	100 mg	Pulver till koncentrat till infusionsvätska, lösning
 Florinef	0,1 mg	Tablett
 Fluad		Injektionsvätska, suspension, förfylld spruta
@@ -3147,7 +3146,6 @@ Gaviscon		Oral suspension
 Gaviscon		Tuggtablett
 Gazyvaro	1000 mg	Koncentrat till infusionsvätska, lösning
 Gefitinib Accord	250 mg	Filmdragerad tablett
-Gefitinib STADA	250 mg	Filmdragerad tablett
 Gelaspan		Infusionsvätska, lösning
 Gelofusine		Infusionsvätska, lösning
 Gemadol	50 mg	Depotkapsel, hård
@@ -3663,6 +3661,7 @@ Isoptin Retard	240 mg	Depottablett
 Isopto-Maxidex	1 mg/ml	Ögondroppar, suspension
 Isotracin	10 mg	Kapsel, mjuk
 Isotracin	20 mg	Kapsel, mjuk
+Isotretinoin Abacus Medicine	10 mg	Kapsel, mjuk
 Isotretinoin Actavis	10 mg	Kapsel, mjuk
 Isotretinoin Actavis	20 mg	Kapsel, mjuk
 Isotretinoin Ebb	10 mg	Kapsel, mjuk
@@ -4069,10 +4068,6 @@ Lenalidomide Accord	10 mg	Kapsel, hård
 Lenalidomide Accord	15 mg	Kapsel, hård
 Lenalidomide Accord	20 mg	Kapsel, hård
 Lenalidomide Accord	25 mg	Kapsel, hård
-Lenalidomide Glenmark	5 mg	Kapsel, hård
-Lenalidomide Glenmark	10 mg	Kapsel, hård
-Lenalidomide Glenmark	15 mg	Kapsel, hård
-Lenalidomide Glenmark	25 mg	Kapsel, hård
 Lenalidomide Grindeks	5 mg	Kapsel, hård
 Lenalidomide Grindeks	10 mg	Kapsel, hård
 Lenalidomide Grindeks	15 mg	Kapsel, hård
@@ -4333,7 +4328,6 @@ Lopacut	2 mg	Filmdragerad tablett
 Loperamid ABECE	2 mg	Tablett
 Loperamid Apofri	2 mg	Tablett
 Loperamid Brown	2 mg	Kapsel, hård
-Loperamid NET	2 mg	Tablett
 Loperamid Viatris	2 mg	Kapsel, hård
 Loperamide Grindeks	2 mg	Kapsel, hård
 Loperamide Medical Valley	2 mg	Tablett
@@ -4415,6 +4409,7 @@ Lutathera	370 MBq/ml	Infusionsvätska, lösning
 Lutinus	100 mg	Vaginaltablett
 Lutonaze	125 mikrogram + 50 mikrogram/sprayning	Nässpray, suspension
 Luxturna		Koncentrat till injektionsvätska, lösning
+Lydagriks	10 mg/ml	Injektionsvätska, lösning
 Lyfnua	45 mg	Filmdragerad tablett
 Lymecycline Actavis	300 mg	Kapsel, hård
 Lymecyklin Abacus Medicine	300 mg	Kapsel, hård
@@ -5199,6 +5194,8 @@ Noradrenalin Zentiva	1 mg/ml	Koncentrat till infusionsvätska, lösning
 Noradrenaline Sintetica	0,1 mg/ml	Infusionsvätska, lösning
 Noradrenaline Sintetica	0,2 mg/ml	Infusionsvätska, lösning
 Noradrenaline Sintetica	1 mg/ml	Koncentrat till infusionsvätska, lösning
+Nordanest	40 mg/ml + 5 mikrogram/ml	Injektionsvätska, lösning
+Nordanest	40 mg/ml + 10 mikrogram/ml	Injektionsvätska, lösning
 Nordimet	7,5 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Nordimet	10 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Nordimet	12,5 mg	Injektionsvätska, lösning i förfylld injektionspenna
@@ -5564,7 +5561,9 @@ Otrivin Menthol (utan konserveringsmedel)	1 mg/ml	Nässpray, lösning
 Otrivin utan konserveringsmedel	0,5 mg/ml	Nässpray, lösning
 Otrivin utan konserveringsmedel	1 mg/ml	Nässpray, lösning
 Otulfi	45 mg	Injektionsvätska, lösning
+Otulfi	45 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Otulfi	45 mg	Injektionsvätska, lösning i förfylld spruta
+Otulfi	90 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Otulfi	90 mg	Injektionsvätska, lösning i förfylld spruta
 Otulfi	130 mg	Koncentrat till infusionsvätska, lösning
 Ovaleap	300 IE/0,5 ml	Injektionsvätska, lösning
@@ -6049,7 +6048,6 @@ Pramipexol STADA	0,35 mg	Tablett
 Pramipexol STADA	0,52 mg	Depottablett
 Pramipexol STADA	1,05 mg	Depottablett
 Pramipexol STADA	2,10 mg	Depottablett
-Pramipexol Teva Pharma	0,26 mg	Depottablett
 Pramipexol Teva Pharma	0,52 mg	Depottablett
 Pramipexol Teva Pharma	1,05 mg	Depottablett
 Pramipexol Teva Pharma	2,1 mg	Depottablett
@@ -7348,6 +7346,7 @@ Tamoxifen Ebb	20 mg	Tablett
 Tamoxifen Orifarm	20 mg	Tablett
 Tamoxifen Sandoz	20 mg	Filmdragerad tablett
 Tamoxifen Viatris	20 mg	Tablett
+Tamsulosin Medartuum	0,4 mg	Kapsel med modifierad frisättning, hård
 Tapentadol Consilient Health	50 mg	Filmdragerad tablett
 Tapentadol Depot Krka	50 mg	Depottablett
 Tapentadol Depot Krka	100 mg	Depottablett
@@ -7901,6 +7900,9 @@ Varenicline Bluefish	0,5 mg + 1 mg	Filmdragerad tablett
 Varenicline Bluefish	1 mg	Filmdragerad tablett
 Varenicline Glenmark	0,5 mg	Filmdragerad tablett
 Varenicline Glenmark	1 mg	Filmdragerad tablett
+Varenicline Newbury	0,5 mg	Filmdragerad tablett
+Varenicline Newbury	0,5 mg + 1 mg	Filmdragerad tablett
+Varenicline Newbury	1 mg	Filmdragerad tablett
 Varenicline Orion	0,5 mg	Filmdragerad tablett
 Varenicline Orion	0,5 mg + 1 mg	Filmdragerad tablett
 Varenicline Orion	1 mg	Filmdragerad tablett
@@ -8199,6 +8201,7 @@ Xofigo	1100 kBq/ml	Injektionsvätska, lösning
 Xofluza	40 mg	Filmdragerad tablett
 Xofluza	80 mg	Filmdragerad tablett
 Xolair	75 mg	Injektionsvätska, lösning i förfylld spruta
+Xolair	150 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Xolair	150 mg	Injektionsvätska, lösning i förfylld spruta
 Xolair	300 mg	Injektionsvätska, lösning i förfylld injektionspenna
 Xonvea	10 mg/10 mg	Enterotablett
@@ -8272,7 +8275,6 @@ Zejula	100 mg	Filmdragerad tablett
 Zejula	100 mg	Kapsel, hård
 Zelboraf	240 mg	Filmdragerad tablett
 Zeltacin	100 mg/ml	Injektions-/infusionsvätska, lösning
-ZEPATIER	50 mg/100 mg	Filmdragerad tablett
 Zeposia	0,23 mg + 0,46 mg	Kapsel, hård
 Zeposia	0,92 mg	Kapsel, hård
 Zeqmelit	4 mg	Munsönderfallande film
