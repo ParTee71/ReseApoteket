@@ -192,7 +192,7 @@ Run workflow), krypterar den med gpg och sparar `backup.json.gpg` som artifact i
 
 ## Versionshistorik
 
-Versionen höjs bara vid release (skill [`release`](.claude/skills/release/SKILL.md)).
+Versionen höjs i funktions-PR:en; releasen görs via skill [`release`](.claude/skills/release/SKILL.md)).
 
 | Version | Innehåll |
 |---|---|
