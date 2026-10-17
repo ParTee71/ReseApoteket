@@ -117,11 +117,11 @@ internal fun ItemRowLayout(
         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
         tooltip = { PlainTooltip { FullText(title, subtitle) } },
         state = rememberTooltipState(),
-        modifier = modifier,
         enableUserInput = truncated,
     ) {
+        // Anroparens modifierare (svep och dess TalkBack-åtgärd) ska ligga på raden som TalkBack läser.
         Column(
-            Modifier
+            modifier
                 .fillMaxWidth()
                 .heightIn(min = MIN_HEIGHT)
                 .clip(AppShapes.row)
