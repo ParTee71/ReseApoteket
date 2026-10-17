@@ -204,3 +204,4 @@ Versionen höjs bara vid release (skill [`release`](.claude/skills/release/SKILL
 | 0.4.2 | Buggfixar: "Skapa packlista" ger packlistan med recepten i stället för åtkomstfel och en tom lista (#95); resedagens notis visar antal (#93); uppdaterad läkemedelslista. |
 | 0.5.0 | Klistra in en lista i packlistan: "Lägg till" → Lista lägger in en sak per rad under Övrigt, med antal, förhandsvisning och Ångra (#97, PAK-7); uppdaterad läkemedelslista. |
 | 0.5.1 | Buggfix: en lång inklistrad lista går att lägga till – bladet scrollar, fältet visar högst 8 rader och knappen står direkt under fältet (#100). |
+| 0.5.2 | Packlistan på telefon: Övrigt visas i en kolumn så att namnen får plats, och två kolumner bara där de ryms; ett långtryck på en kapad rad visar hela texten (#103, NFR-20); uppdaterad läkemedelslista. |
