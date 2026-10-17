@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package se.partee71.reseapoteket.ui.components
 
 import androidx.compose.foundation.background
@@ -8,10 +10,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -41,6 +53,7 @@ import se.partee71.reseapoteket.ui.theme.Spacing
  * [inactive] tonar ner hela raden, för det som finns men inte räknas med (ett pausat recept).
  * [below] står under titel och undertext över hela radens bredd (resenärer och packat på en resa).
  * [titleHighlight] färgmarkerar en del av titeln – det man sökt på i ett [SuggestionField].
+ * Kapas titeln visar ett långtryck hela titeln och undertexten i en bubbla (NFR-20).
  */
 @Composable
 fun ItemRow(
@@ -98,34 +111,54 @@ internal fun ItemRowLayout(
 ) {
     val tint = AppColors.extended.rowTint
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    Column(
-        modifier
-            .fillMaxWidth()
-            .heightIn(min = MIN_HEIGHT)
-            .clip(AppShapes.row)
-            .then(if (tinted) Modifier.background(tint) else Modifier)
-            .then(interaction)
-            .then(if (accent != null) Modifier.drawBehind { drawAccent(accent) } else Modifier)
-            .padding(horizontal = Spacing.m, vertical = Spacing.s),
-        verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically),
+    // Bubblan finns bara när titeln faktiskt kapas – annars är långtrycket radens som vanligt.
+    var truncated by remember { mutableStateOf(false) }
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+        tooltip = { PlainTooltip { FullText(title, subtitle) } },
+        state = rememberTooltipState(),
+        modifier = modifier,
+        enableUserInput = truncated,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            leading?.invoke()
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                val decoration = if (done) TextDecoration.LineThrough else null
-                Text(
-                    highlighted(title, titleHighlight),
-                    style = AppTypography.itemTitle,
-                    color = if (done) muted else MaterialTheme.colorScheme.onSurface,
-                    textDecoration = decoration,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                subtitle?.let { Text(it, style = AppTypography.itemSubtitle, color = muted, textDecoration = decoration) }
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = MIN_HEIGHT)
+                .clip(AppShapes.row)
+                .then(if (tinted) Modifier.background(tint) else Modifier)
+                .then(interaction)
+                .then(if (accent != null) Modifier.drawBehind { drawAccent(accent) } else Modifier)
+                .padding(horizontal = Spacing.m, vertical = Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                leading?.invoke()
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    val decoration = if (done) TextDecoration.LineThrough else null
+                    Text(
+                        highlighted(title, titleHighlight),
+                        style = AppTypography.itemTitle,
+                        color = if (done) muted else MaterialTheme.colorScheme.onSurface,
+                        textDecoration = decoration,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        onTextLayout = { truncated = it.hasVisualOverflow },
+                    )
+                    subtitle?.let { Text(it, style = AppTypography.itemSubtitle, color = muted, textDecoration = decoration) }
+                }
+                trailing?.invoke()
             }
-            trailing?.invoke()
+            below?.invoke()
         }
-        below?.invoke()
+    }
+}
+
+/** Hela titeln och undertexten, i långtrycksbubblan på en rad med kapad titel. */
+@Composable
+private fun FullText(title: String, subtitle: String?) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(title, style = AppTypography.itemTitle)
+        subtitle?.let { Text(it, style = AppTypography.itemSubtitle) }
     }
 }
 
