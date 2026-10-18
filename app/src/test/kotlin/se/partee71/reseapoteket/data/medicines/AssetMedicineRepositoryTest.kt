@@ -4,6 +4,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,7 +19,7 @@ import se.partee71.reseapoteket.core.model.MedicineForm
 @RunWith(RobolectricTestRunner::class)
 class AssetMedicineRepositoryTest {
 
-    private val repository = AssetMedicineRepository(RuntimeEnvironment.getApplication())
+    private val repository = AssetMedicineRepository(RuntimeEnvironment.getApplication(), UnconfinedTestDispatcher())
 
     @Test
     fun `den inbyggda listan läses med datum, tusentals läkemedel och sökbara namn`() = runTest {

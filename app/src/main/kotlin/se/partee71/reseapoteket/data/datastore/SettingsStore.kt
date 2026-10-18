@@ -18,8 +18,6 @@ import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -32,9 +30,12 @@ import se.partee71.reseapoteket.data.common.retryWithBackoff
 /** Temaval i Inställningar (SET-1). Lagras med namnet; ett okänt namn ger [System]. */
 enum class ThemeMode { System, Light, Dark }
 
-/** Inställningsfilen. En trasig fil ersätts med standardvärden i stället för att varje skrivning fallerar. */
+/**
+ * Inställningsfilen. En trasig fil ersätts med standardvärden i stället för att varje skrivning fallerar.
+ * [scope] kör filens läsningar och skrivningar – i appen på I/O-dispatchern (`AppModule`).
+ */
 fun settingsDataStore(
-    scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+    scope: CoroutineScope,
     produceFile: () -> File,
 ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
     corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },

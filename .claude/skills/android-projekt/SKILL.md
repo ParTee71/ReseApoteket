@@ -28,7 +28,7 @@ verifierade API:er står bara i [ARKITEKTUR.md](../../../ARKITEKTUR.md).
 - `suspendRunCatching` finns en gång i `data/common/`; skriv ingen egen variant.
 - `:core` är ren och synkron – inga coroutines eller dispatchers där.
 - ViewModel-tester använder den delade `MainDispatcherRule` (`StandardTestDispatcher` via `Dispatchers.setMain`).
-- **Nuvarande läge, avviker från pluginen:** `Dispatchers.` nämns i dag även utanför `di/` – `data/export/ExportFiles.kt` och `data/medicines/MedicineRepository.kt` (`IO`), `data/firestore/HouseholdExporter.kt` (`Default`) och default-scopet i `data/datastore/SettingsStore.kt`. Repot ska migrera enligt pluginen (dispatcher injiceras bara där kod väljer en, och bara `di/` nämner `Dispatchers`) i en egen PR senare; ny kod följer pluginen.
+- Dispatchers: `di/DispatchersModule` ger `@IoDispatcher` och `@DefaultDispatcher`; bara `di/` nämner `Dispatchers.`, vilket scopet `[dispatchers]` i `ui-forbidden.txt` kontrollerar i `UiConsistencyTest` och hooken. Enhetstester ger `UnconfinedTestDispatcher()` eller `StandardTestDispatcher(testScheduler)`.
 
 ## Flöden (android:kotlin-flows)
 

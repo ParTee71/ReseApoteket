@@ -11,6 +11,8 @@
 # allowlist-fel = allowlist-rader som ska avvisas (saknar symbol eller motivering)
 
 [ok]
+withContext(io) {
+import kotlinx.coroutines.Dispatchers
 ApotekCard { }
 AppButton(onClick = {})
 AppIconButton(onClick = {})
@@ -42,6 +44,8 @@ import androidx.compose.material3.Card
  * Card(modifier) i en KDoc
 
 [stopp]
+withContext(Dispatchers.IO) {
+val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 val c = Color(0xFFC8502F)
 tint = Color.Red
 shape = RoundedCornerShape(12.dp)
@@ -79,14 +83,14 @@ style = MaterialTheme.typography.titleLarge
 README.md	
 app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/notes.md	
 app/src/test/kotlin/X.kt	
-app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/FirestoreCollection.kt	expressive
-app/src/main/kotlin/se/partee71/reseapoteket/ui/theme/Theme.kt	firestore
-app/src/main/kotlin/se/partee71/reseapoteket/ui/common/EditorState.kt	firestore,expressive
-app/src/main/kotlin/se/partee71/reseapoteket/ui/components/screens/EntityListScreen.kt	firestore
-app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonsScreen.kt	feature,firestore,expressive
-app/src/main/kotlin/se/partee71/reseapoteket/ui/AppRoot.kt	feature,firestore,expressive
+app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/FirestoreCollection.kt	expressive,dispatchers
+app/src/main/kotlin/se/partee71/reseapoteket/ui/theme/Theme.kt	firestore,dispatchers
+app/src/main/kotlin/se/partee71/reseapoteket/ui/common/EditorState.kt	firestore,expressive,dispatchers
+app/src/main/kotlin/se/partee71/reseapoteket/ui/components/screens/EntityListScreen.kt	firestore,dispatchers
+app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonsScreen.kt	feature,firestore,expressive,dispatchers
+app/src/main/kotlin/se/partee71/reseapoteket/ui/AppRoot.kt	feature,firestore,expressive,dispatchers
 app/src/main/kotlin/se/partee71/reseapoteket/di/AppModule.kt	firestore,expressive
-app/src/main/kotlin/se/partee71/reseapoteket/data/repository/PersonRepository.kt	firestore,expressive
+app/src/main/kotlin/se/partee71/reseapoteket/data/repository/PersonRepository.kt	firestore,expressive,dispatchers
 
 [allowlist]
 app/src/main/kotlin/se/partee71/reseapoteket/ui/trips/TripRow.kt:Card( – test	Card(modifier) { }	ok

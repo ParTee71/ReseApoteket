@@ -4,11 +4,12 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import se.partee71.reseapoteket.core.medicine.MedicineCatalog
+import se.partee71.reseapoteket.di.IoDispatcher
 
 /** Läkemedelslistan som är inbyggd i appen (REC-6) – läses en gång, sedan ur minnet. */
 interface MedicineRepository {
@@ -20,12 +21,15 @@ interface MedicineRepository {
  * blir listan tom: formuläret fungerar då som utan förslag. Inget om sökningar loggas eller skickas.
  */
 @Singleton
-class AssetMedicineRepository @Inject constructor(@param:ApplicationContext private val context: Context) : MedicineRepository {
+class AssetMedicineRepository @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val io: CoroutineDispatcher,
+) : MedicineRepository {
     private val lock = Mutex()
     private var loaded: MedicineCatalog? = null
 
     override suspend fun catalog(): MedicineCatalog = lock.withLock {
-        loaded ?: withContext(Dispatchers.IO) {
+        loaded ?: withContext(io) {
             runCatching { context.assets.open(FILE).bufferedReader().use { MedicineCatalog.parse(it.readText()) } }
                 .getOrElse { MedicineCatalog(null, emptyList()) }
         }.also { loaded = it }

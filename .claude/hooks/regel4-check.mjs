@@ -83,6 +83,7 @@ export function isAllowed(allowlist, file, match) {
  *   (även filer direkt under ui/).
  * - `firestore`: all Kotlin under app/src/main utom data/firestore/.
  * - `expressive`: all Kotlin under app/src/main utom ui/theme/ och ui/components/.
+ * - `dispatchers`: all Kotlin under app/src/main utom di/.
  */
 export function scopesFor(relPath) {
   const p = relPath.split(path.sep).join('/');
@@ -95,6 +96,7 @@ export function scopesFor(relPath) {
   }
   if (!/\/data\/firestore\//.test(p)) scopes.push('firestore');
   if (!/\/ui\/(theme|components)\//.test(p)) scopes.push('expressive');
+  if (!/\/di\//.test(p)) scopes.push('dispatchers');
   return scopes;
 }
 
@@ -133,6 +135,7 @@ const SCOPE_TEXT = {
   feature: 'feature-kod (ui/<feature>/)',
   firestore: 'kod utanför data/firestore/',
   expressive: 'kod utanför ui/theme/ och ui/components/',
+  dispatchers: 'kod utanför di/',
 };
 
 /** Läser mönster och undantag för ett repo. Kastar vid ogiltig undantagsfil. */

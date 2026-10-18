@@ -5,6 +5,7 @@
 #               (även filer direkt under ui/)
 # [firestore] = all Kotlin under app/src/main utom data/firestore/
 # [expressive] = all Kotlin under app/src/main utom ui/theme/ och ui/components/
+# [dispatchers] = all Kotlin under app/src/main utom di/ (skill android:kotlin-coroutines)
 # Tillåtet i feature-kod: Text (med AppTypography-stil), Icon (appens ikoner i res/drawable),
 # Column, Row, Box, Spacer med Spacing, samt allt i ui/components och ui/common.
 # Regexarna ska fungera både i JavaScript och Kotlin (ingen lookbehind).
@@ -54,3 +55,6 @@
 
 [expressive]
 \bExperimentalMaterial3ExpressiveApi\b	en delad komponent i ui/components (Expressive-opt-in bara i ui/theme och ui/components)
+
+[dispatchers]
+\bDispatchers\.(IO|Default|Main|Unconfined)\b	injicerad CoroutineDispatcher (@IoDispatcher/@DefaultDispatcher från di/DispatchersModule)

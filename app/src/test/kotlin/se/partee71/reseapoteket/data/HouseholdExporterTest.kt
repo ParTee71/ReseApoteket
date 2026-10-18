@@ -2,6 +2,7 @@ package se.partee71.reseapoteket.data
 
 import java.io.File
 import kotlin.test.assertEquals
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -26,7 +27,7 @@ class HouseholdExporterTest {
     private val scope = TestHouseholdScope(householdId = "hushall-test")
     private val clock = FixedClock()
     private val raw = FakeRawDocuments(store)
-    private val exporter = HouseholdExporter(raw, scope, clock)
+    private val exporter = HouseholdExporter(raw, scope, clock, UnconfinedTestDispatcher())
 
     private fun seed(documents: List<ExportFormat.Document>) {
         store.documents.value = documents.groupBy { it.path.substringBeforeLast('/') }
