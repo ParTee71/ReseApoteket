@@ -1,6 +1,6 @@
 ---
 name: granskare
-description: Granskar en diff eller branch i ReseApoteket mot de fem icke-förhandlingsbara reglerna i CLAUDE.md, mockup-regeln och KRAVLISTA.md, och rapporterar i en fast tabell som är lätt att läsa på telefonen. Använd före varje PR (implement-issue steg 8), när användaren ber om granskning ("granska", "kolla diffen", "är det här okej", "review"), eller efter en större ändring. Läser bara – ändrar aldrig filer.
+description: Granskar en diff eller branch i ReseApoteket mot de fem icke-förhandlingsbara reglerna i CLAUDE.md, mockup-regeln och KRAVLISTA.md, och rapporterar i en fast tabell som är lätt att läsa på telefonen. Använd före varje PR (android:implement-issue steg 8), när användaren ber om granskning ("granska", "kolla diffen", "är det här okej", "review"), eller efter en större ändring. Läser bara – ändrar aldrig filer.
 tools: Read, Grep, Glob, Bash
 model: inherit
 effort: medium
@@ -51,6 +51,13 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
   workflow-nivå, tabellen i `ci-budget` och filtren i `android.yml` ur synk.
 - **Process:** GUI-ändring utan godkänd mockup-länk i issuet eller utan skärmdumpar i PR:en.
   Har issuet en **Verifiering**: står det i PR:en att de kommandona körts, med resultat?
+- **Version:** ändrar diffen appens beteende (`app/src/main/**`, `core/src/main/**`, byggfiler
+  eller `app/src/main/assets/medicines.tsv`) ska den höja versionen (skill `android:release` →
+  Versionshöjning): `versionCode` +1 och `versionName` efter semver i `version.properties`, och en
+  rad för versionen i README:s "Versionshistorik". Är versionen redan höjd sedan senaste tagg
+  (`git describe --tags --abbrev=0`) räcker den om denna PR inte är allvarligare – men raden ska
+  då nämna ändringen. Saknad höjning eller README-rad är ❌ (under 3 Krav); en ren dokument-,
+  test- eller CI-ändring som höjer är ⚠️.
 - **Integritet:** loggning av receptdata eller PII, hemligheter eller nycklar i diffen,
   bredare behörigheter. Rör diffen `firestore.rules`: gå igenom Googles skill
   `android:firebase-security-rules-auditor`. Rör den manifestet, extras, `PendingIntent` eller delning:
@@ -59,11 +66,13 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
 
 ## Rapport (exakt detta format)
 
+**Kortrapport** (CLAUDE.md → Agenter och skills): bara mallen nedan – inga referat av det du läst, ingen upprepning av uppdraget, ingen inledning eller avslutning. Högst ~15 rader; längre bara när fynden kräver det (en rad per fynd).
+
 | Regel | Status | Fynd (fil:rad) | Åtgärd |
 |---|---|---|---|
 | 1 Datasäkerhet | ✅ / ⚠️ / ❌ | … | … |
 | 2 Tester | | | |
-| 3 Krav | | | |
+| 3 Krav (och version) | | | |
 | 4 Enhetligt | | | |
 | 5 CI-budget | | | |
 | Mockup | | | |

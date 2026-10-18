@@ -22,7 +22,7 @@ resten med `dorny/paths-filter`.
 | `app` | `app/**`, `.claude/skills/shared-ui-components/**` | `:app:testDebugUnitTest` (inkl. `UiConsistencyTest`) + `verifyRoborazziDebug` + `cpdCheck` + `:app:assembleDebugAndroidTest` (kompilerar och dexar instrumenttesterna utan att köra dem – utom när filtret `instrumented` kör dem) |
 | `tools` | `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `tools/db/**`, `app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/Paths.kt` | rules- och rundturstester (Node) mot Firebase-emulatorn, och samlingslistan mot `Paths.kt` |
 | `build` | `*.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `.github/**` | allt ovan utom instrumenttesterna (de har egna sökvägar) |
-| `instrumented` | `app/src/**`, `core/src/**`, `*.gradle.kts`, `app/build.gradle.kts`, `core/build.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `firestore.rules`, `firebase.json`, `tools/db/package-lock.json`, `.github/workflows/instrumented.yml`, `.github/actions/setup-android/**` | instrumenttesterna på Android-emulator (`instrumented.yml`), bara i PR; då hoppar `gradle` över `assembleDebugAndroidTest`. `release.yml` kör dem inte igen om dessa sökvägar är oförändrade sedan en PR där de var gröna |
+| `instrumented` | `app/src/**`, `core/src/**`, `*.gradle.kts`, `app/build.gradle.kts`, `core/build.gradle.kts`, `gradle/**`, `gradle.properties`, `build-logic/**`, `firestore.rules`, `firebase.json`, `tools/db/package-lock.json`, `.github/workflows/instrumented.yml`, `.github/actions/setup-android/**` | instrumenttesterna på Android-emulator (`instrumented.yml`), bara i PR, och måste då vara gröna för merge (`ci-ok`); då hoppar `gradle` över `assembleDebugAndroidTest`. `release.yml` kör dem inte igen om dessa sökvägar är oförändrade sedan en PR där de var gröna |
 | – | allt annat (`*.md`, `.claude/**`) | bara `changes` med dokumentkontroller |
 <!-- ci-table:end -->
 
@@ -32,7 +32,7 @@ resten med `dorny/paths-filter`.
   I samma steg körs testerna för läkemedelslistans byggskript,
   `node --test 'tools/medicines/test/*.test.mjs'` – Node utan beroenden, under en sekund, så de
   får inget eget filter. Själva skriptet (`tools/medicines/build.mjs`) körs aldrig i CI, bara vid
-  release (skill `release`).
+  release (skill `android-projekt` → Release).
 - **`push` till `master`** sätter alla filter till sant – baslinje och cache-uppvärmning.
 - **Gradle build cache** (`org.gradle.caching=true` + `gradle/actions/setup-gradle`) gör
   att oförändrade testtasks blir `FROM-CACHE`/`UP-TO-DATE` även inom en modul. Det kräver
@@ -42,7 +42,10 @@ resten med `dorny/paths-filter`.
   körs bara i jobbet `instrumented` (filter `instrumented`).
 - **Node ≥ 22** pinnas i alla jobb som kör `node --test` (globmönster kräver Node 21+).
 - **Hoppade jobb rapporterar ingen status.** Därför är jobbet `ci-ok`
-  (`needs: [changes, gradle, rules]`, `if: always()`) det enda obligatoriska statuskravet.
+  (`needs: [changes, gradle, rules, instrumented]`, `if: always()`) det enda obligatoriska
+  statuskravet. Det godtar `success` och `skipped` och fäller allt annat: **körs instrumenttesterna
+  måste de vara gröna för merge** – ett rött eller avbrutet `instrumented` fäller `ci-ok`, ett
+  överhoppat gör det inte (användarens beslut 2026-10-18).
 
 - **`gradle`** kör en enda Gradle-körning: `cpdCheck` plus `:core:test` och/eller app-uppgifterna
   enligt filtren, med `--configuration-cache --continue`. Testrapporter laddas alltid upp;
@@ -58,7 +61,8 @@ resten med `dorny/paths-filter`.
   ändrats sedan förra releasen. Ett fallerat jobb körs om ensamt, aldrig hela releasen.
 - **`quality.yml`** (veckovis) hoppar över om master inte ändrats sedan senaste gröna
   kvalitets- eller releasekörning.
-- **Versionen** står i `version.properties` (utanför filtren): en release-PR kör bara `changes`.
+- **Versionen** står i `version.properties` (utanför filtren) och höjs i funktions-PR:en, så
+  höjningen kostar inga extra jobb och releasen behöver ingen egen PR.
 - Varje jobb debiteras uppåt till hel minut – slå ihop korta steg i ett jobb hellre än att
   lägga till jobb.
 

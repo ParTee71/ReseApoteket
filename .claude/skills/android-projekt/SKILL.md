@@ -1,6 +1,6 @@
 ---
 name: android-projekt
-description: ReseApotekets anpassningar av de generella android:-skillsen från pluginen android@claude-android (android-dev, kotlin-coroutines, kotlin-flows, compose-expert, navigation-3, accessibility-compose, android-gradle-logic, firebase-auth, android-intent-security, firebase-security-rules-auditor, mockup). Ladda den alltid tillsammans med en android:-skill – den säger vad som gäller just här och går före pluginens generella råd. Täcker projektets klasser och mönster, nuvarande avvikelser från pluginen, Gradle-uppsättningen, inloggning med hushåll, a11y-detaljer för appens komponenter och mockup-processen med mallens länk. Trigger-ord: Android, Kotlin, ViewModel, Hilt, Compose, coroutine, dispatcher, flöde, StateFlow, händelse, effekt, navigering, flik, tillgänglighet, TalkBack, Gradle, beroende, inloggning, logga in, logga ut, hushåll, google-services, SHA-1, manifest, Intent, firestore.rules, mockup, skiss, ny skärm, ny komponent, Design-canvas.
+description: ReseApotekets anpassningar av de generella android:-skillsen från pluginen android@claude-android (android-dev, kotlin-coroutines, kotlin-flows, compose-expert, navigation-3, accessibility-compose, android-gradle-logic, firebase-auth, android-intent-security, firebase-security-rules-auditor, mockup, implement-issue, refine-issue, release). Ladda den alltid tillsammans med en android:-skill – den säger vad som gäller just här och går före pluginens generella råd. Täcker projektets klasser och mönster, nuvarande avvikelser från pluginen, Gradle-uppsättningen, inloggning med hushåll, a11y-detaljer för appens komponenter, mockup-processen med mallens länk, arbetsflödet från issue till PR (repo, lager, agenter, /code-review, commit-områden), issuets repodelar (etiketter, testplan, Agent · modell · effort) och releasens repodelar (version.properties, release.yml, rules, läkemedelslistan, schemaVersion). Trigger-ord: Android, Kotlin, ViewModel, Hilt, Compose, coroutine, dispatcher, flöde, StateFlow, händelse, effekt, navigering, flik, tillgänglighet, TalkBack, Gradle, beroende, inloggning, logga in, logga ut, hushåll, google-services, SHA-1, manifest, Intent, firestore.rules, mockup, skiss, ny skärm, ny komponent, Design-canvas, issue, genomför, implementera, kör #N, kör nästa, förfina, planera, PR, commit, granskning, agent, modell, effort, release, släpp, ny version, versionshöjning, version.properties, release.yml, läkemedelslistan, bygg APK.
 ---
 
 # Android i ReseApoteket
@@ -125,8 +125,121 @@ Processen (när, hur, visa och vänta) står i pluginen; det här är ReseApotek
 - **Data:** riktiga svenska texter och realistisk, påhittad data – familjemedlemmar med emoji,
   verkliga medicinnamn och doser, en resa med datum och antal dagar. Aldrig familjens riktiga
   recept eller hälsodata.
-- **Länken** läggs i issuet under rubriken **Design** (skill `refine-issue`); koden skrivs
-  först efter användarens ok (skill `implement-issue`).
+- **Länken** läggs i issuet under rubriken **Design** (skill `android:refine-issue`); koden skrivs
+  först efter användarens ok (skill `android:implement-issue`).
 - **I PR:en:** Roborazzi-skärmdumpar (ljust + mörkt) av det byggda bredvid mockup-länken
   (`./gradlew :app:recordRoborazziDebug` vid avsiktlig designändring); avvikelser förklaras.
 - Mockupens HTML/CSS och färgvärden kopieras aldrig – översätt till `ui/theme` och delade komponenter.
+
+## Arbetsflöde (android:implement-issue)
+
+Stegen står i pluginen; det här är ReseApotekets delar.
+
+- **Repo:** owner `ParTee71`, repo `ReseApoteket`, basbranch `master`. Issues och PR:er läses och
+  skrivs med GitHub MCP.
+- **Databasen i tester:** tester i `tools/db` körs bara mot Firebase-emulatorn, aldrig mot den
+  riktiga databasen (skill `data-safety-backup`).
+- **Domänskills:** datalagret → skill `firestore-data-layer`; beräkningar, mängder och
+  `ReasonFormatter` → skill `packing-engine` (BER-krav); recept och loggning → skill
+  `data-privacy-security`.
+- **Lagerkedjan:** `Compose → ViewModel(StateFlow<UiState>, sealed events + onEvent()) →
+  Repository → FirestoreCollection<T> + DocCodec<T>`, Hilt, fel mappas en gång till `DataError`
+  i `data/common`. En listskärm är en `EntityListScreen`, ett formulär en `EntityEditScreen` +
+  `EditorState` (skill `shared-ui-components`).
+- **Datakedjan** för ett persisterat fält eller en ny samling: default i `:core`-modellen,
+  tolerant `DocCodec`, `firestore.rules`, `tools/db/lib/collections.mjs` och rundturstest – i samma
+  ändring (skill `data-safety-backup`).
+- **Agenter:** huvudsessionen orkestrerar, implementerar (skärmar, komponenter, datamodell, codecs,
+  rules, CI-filer) och granskar – repot har ingen `byggare` eller `arkitekt`. Agenten
+  `testskrivare` tar tester på tre eller fler nivåer, `granskare` granskar diffen (steg 8),
+  `ci-doktor` diagnostiserar rött CI och `db-inspektor` läser faktisk data. Modell och effort per
+  del: avsnittet Issues nedan.
+- **`/code-review` krävs** (efter `granskare`) när ändringen rör logik i `:core`, datalagret,
+  `firestore.rules`, `tools/db` eller en delad ram eller komponent (`ui/components`, `ui/common`),
+  eller när diffen är större än ett par filer.
+- **Commit-områden:** `packlista`, `berakning`, `recept`, `resor`, `paminnelser`, `lakemedel`,
+  `rules`, `data`, `ui`, `säkerhet`, `claude`, `skills` – t.ex. `feat(packlista): …`,
+  `fix(berakning): …`.
+- **Kommandon:** CLAUDE.md → "Bygg & test" och skill `testing-strategy` → "Innan du anser dig
+  klar". Manifest, resurser, proguard eller byggfiler ändrade → `./gradlew :app:lintDebug
+  :app:assembleRelease` lokalt före push (körs inte i PR-flödet, skill `ci-budget`).
+- **I PR:en:** Roborazzi-skärmdumpar (ljust + mörkt) bredvid mockup-länken för GUI, versionen ur
+  `version.properties`, och byggtidseffekten vid nya beroenden.
+- **Emulatortesterna:** jobbet `instrumented` körs i PR:er som rör filtret `instrumented`, och
+  `ci-ok` fäller PR:en om det blir rött eller avbryts; ett överhoppat jobb fäller inte (skill
+  `ci-budget`).
+
+## Issues (android:refine-issue)
+
+- **Repo:** owner `ParTee71`, repo `ReseApoteket`; dubblettsökning med
+  `mcp__github__search_issues` (`repo:ParTee71/ReseApoteket <ord>`).
+- **Extra undersökningspunkter:** berörs en formel → skill `packing-engine` och BER-kraven; loggas,
+  lagras eller exporteras receptdata (hälsodata) → skill `data-privacy-security`.
+- **Datakedjan i DoD:** modell med default, codec, `firestore.rules`, `tools/db/lib/collections.mjs`
+  och rundturstest – eller "ingen persisterad ändring".
+- **Testplanens nivåer:** `:core` (ren JUnit), `app/src/test` (ViewModel med fakes + Turbine,
+  Robolectric, kontraktstester för ramarna, Roborazzi-skärmdumpar), `tools/db` (rules och rundtur
+  mot Firebase-emulatorn), `app/src/androidTest` (instrumenttester, i Actions).
+- **Verifiering**, exempel: `./gradlew :core:test --tests "*PackingEngine*"`, vilka Roborazzi-bilder
+  som ändras, eller `firebase emulators:exec --only firestore "node --test 'tools/db/test/*.test.mjs'"`.
+- **Etiketter:** `funktion`, `arkitektur`, `ai-regler`, `prio:1`–`prio:3`, `epic`.
+- **Agent · modell · effort** (obligatoriskt även här). Repot har bara dessa:
+
+  | Agent | Tar | Standard |
+  |---|---|---|
+  | huvudsessionen | implementationen – skärmar, komponenter, datamodell, codecs, rules, CI | Opus · medium; datamodell, rules, migrering och backup-kedjan minst Opus · high |
+  | `testskrivare` | tester när tre eller fler nivåer berörs | Sonnet · medium |
+  | `granskare` | granskningen i steg 8, alltid med | sessionens modell (Opus) · medium |
+  | `ci-doktor` | rött CI – startas vid behov, anges inte i förväg | Sonnet · medium |
+  | `db-inspektor` | faktisk data, bara läsning – anges när issuet kräver det | Haiku · low |
+
+  Minst två rader: huvudsessionen och `granskare`. Modellen följer tabellen i
+  `android:refine-issue`; standarden ovan är agentens frontmatter (`granskare` ärver sessionens modell).
+
+## Release (android:release)
+
+- **Versionsfilen** är `version.properties` (`versionCode`, `versionName`) i roten, utanför
+  CI-filtren; README:s rad står under "Versionshistorik". Båda höjs i funktions-PR:en.
+- **Workflow:** `release.yml` (owner `ParTee71`, repo `ReseApoteket`), jobben:
+  - `gate` (sekunder): commiten ligger på `master`, versionen är `versionName` i
+    `version.properties`, taggen finns inte, secrets finns och `ci-ok` är grönt på commiten –
+    master-pushen har kört alla tester, `cpdCheck`, rules-tester och dokumentkontroller, och de
+    körs inte om. Starta releasen först när CI på `master` är klart, annars stoppar `gate` den.
+  - `build`: lint och det signerade, minifierade bygget i en Gradle-körning, parallellt med
+  - `instrumented` (`instrumented.yml`): hoppas över när sökvägarna i filtret `instrumented` är
+    oförändrade sedan en PR-commit där de var gröna (`.github/scripts/instrumented-paths.mjs`).
+  - `publish`: när båda är gröna – deployar `firestore.rules`, skapar taggen och GitHub Release.
+- **Secrets:** `GOOGLE_SERVICES_JSON`, `SIGNING_KEYSTORE_BASE64`, `SIGNING_STORE_PASSWORD`,
+  `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`, `FIREBASE_RULES_DEPLOYER`.
+- **Rules:** `publish` deployar `firestore.rules` (secret `FIREBASE_RULES_DEPLOYER`) före GitHub
+  Release, bara om de ändrats sedan förra `v*`-taggen; en publicering vars `firestore.rules`
+  skiljer sig från `master` stoppas. Skapades en tagg utan att `publish` lyckades: kör `rules.yml`
+  med `deploy: true` om rules ändrats.
+- **Läkemedelslistan före release (REC-6):** `node tools/medicines/build.mjs` hämtar
+  Läkemedelsverkets lista och skriver `app/src/main/assets/medicines.tsv` (stoppar hellre än
+  skriver en trasig lista). Ändrades filen landar den i en liten PR före releasen – den kör
+  app-testerna och instrumenttesterna (sökvägen ligger under `app/src/`) – med "uppdaterad
+  läkemedelslista" på README-raden, och patch-höjning om versionen inte redan höjts sedan senaste
+  tagg. Trigga releasen när den är mergad och CI på `master` är grönt.
+- **Kravlistan:** inga kvarvarande `*(planerad)*` för byggda funktioner, och TP-kraven matchar
+  SDK-nivåerna i `app/build.gradle.kts`.
+- **Har `schemaVersion` höjts sedan förra releasen:** nämn det tydligt (skill
+  `data-safety-backup`) och be användaren göra detta, i den här ordningen, **innan** release-bygget
+  triggas:
+  1. deploya `firestore.rules` med den nya `maxSchemaVersion()` – kör `rules.yml` med
+     `deploy: true` (`publish` deployar dem också, men stämplingen måste vänta på dem);
+  2. stämpla hushållen: `node tools/db/migrate.mjs --to <N> --dry-run`, sedan utan `--dry-run`.
+
+  Äldre appar visar då "Uppdatera appen" (HUS-3) redan innan den nya appen kan skriva ett värde
+  som de skulle läsa fel och skriva tillbaka. Appen stämplar själv bara när inget steg ändrar data
+  (`SchemaMigrator.canStamp`) – och bara om de nya rules redan är deployade. Vänta tills
+  användaren bekräftat båda.
+- **Dispatch:** `workflow_id: release.yml`, `ref: master`,
+  `inputs: { version_name: "<version>", publish_release: "true" }` – `version_name` utan `v`,
+  `publish_release` som sträng. Med `"false"` blir det ett testbygge utan tagg och Release: APK:n
+  ligger då bara som artifacten `reseapoteket-v<version>` – länka den.
+- **APK:n** heter `ReseApoteket-<version>-<ÅÅÅÅMMDD-HHMM>.apk` (NFR-17); sammanfattningen börjar
+  `Släppt: ReseApoteket v<version>`.
+- **Lokal reserv:** `./gradlew :app:assembleRelease` kräver keystore i `app/` och
+  signeringslösenord via `local.properties` eller `SIGNING_*`-miljövariabler (skill
+  `data-privacy-security`).

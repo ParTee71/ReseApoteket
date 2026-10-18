@@ -200,7 +200,8 @@ Run workflow), krypterar den med gpg och sparar `backup.json.gpg` som artifact i
 
 ## Versionshistorik
 
-Versionen höjs i funktions-PR:en; releasen görs via skill [`release`](.claude/skills/release/SKILL.md)).
+Versionen och raden nedan höjs och skrivs i funktions-PR:en; releasen görs via pluginens skill `android:release`
+(repots delar: [`android-projekt`](.claude/skills/android-projekt/SKILL.md) → Release).
 
 | Version | Innehåll |
 |---|---|

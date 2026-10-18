@@ -67,8 +67,9 @@ bevisar den.
 ## Följdartefakter
 
 - **README.md** – funktionslistan och versionstabellen när en funktion tillkommer eller försvinner.
-- **Version** – `versionName`/`versionCode` höjs **bara vid release**, aldrig i en
-  funktions-PR. Releasen görs bara på uttrycklig begäran (skill `release`).
+- **Version** – `versionName`/`versionCode` och README-raden höjs och skrivs **i funktions-PR:en**
+  (skill `android:release` → Versionshöjning; filen i skill `android-projekt` → Release). Releasen
+  görs bara på uttrycklig begäran och frågar inte om versionen.
 
 ## Checklista
 
@@ -76,5 +77,5 @@ bevisar den.
 - [ ] Nytt ID / redigerat / struket med `~~…~~ *(borttaget)*`; `*(planerad)*` borttaget när det byggts.
 - [ ] Inga ID:n återanvända eller raderade.
 - [ ] Gemensamma beteenden refererade, inte upprepade.
-- [ ] README uppdaterad om funktionsomfånget ändrats (version höjs vid release).
+- [ ] README uppdaterad om funktionsomfånget ändrats; ändras beteendet är versionen höjd med raden i "Versionshistorik".
 - [ ] Ett test bevisar det nya/ändrade kravet.
