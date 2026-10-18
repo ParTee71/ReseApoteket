@@ -86,8 +86,6 @@ och workflow, länkar, hooktest) körs alltid. Att slippa köra ett test är ald
 inte skriva det.
 → Skill: **ci-budget** – enda källan för vad som körs när; kontrolleras mot `android.yml`.
 
----
-
 ## Processregel: mockup före ny GUI (skill **mockup**)
 
 Utvecklingen sker mest från telefonen, och en release för att "se hur det blev" är dyr.
@@ -104,8 +102,6 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
   ikonbyte → skärmdumpsdiffen i PR:en räcker.
 
 → Skills: **mockup**, **ui-style**, **refine-issue**, **implement-issue**.
-
----
 
 ## Innan du skriver ny kod
 
@@ -129,8 +125,6 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 - [ ] **CI-budget:** inga nya dyra steg i PR-flödet; byggtidseffekt angiven vid nya beroenden. (5)
 - [ ] **GUI:** mockup godkänd och skärmdumpar bifogade i PR:en.
 - [ ] **Granskning:** agenten `granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **implement-issue**, steg 8).
-
----
 
 ## PR-flöde
 
@@ -187,46 +181,15 @@ Läs med `tools/db` (skill **db-access**, agent **db-inspektor**). Kräver milj�
 `FIREBASE_SERVICE_ACCOUNT` i Claude-miljöns inställningar – be aldrig användaren klistra
 in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs`/`migrate.mjs`.
 
----
+## Agenter och skills
 
-## Agenter (`.claude/agents/`)
+Agenterna (`granskare`, `ci-doktor`, `testskrivare`, `db-inspektor`) och alla skills, med
+när de används, listas i [.claude/README.md](.claude/README.md).
 
-| Agent | När |
-|---|---|
-| `granskare` | Före varje PR: granskar diffen mot de fem reglerna och mockup-regeln, rapporterar i en tabell. |
-| `ci-doktor` | Vid rött CI: läser loggar, skärmdumpsdiffar och CPD-rapporter, föreslår fix. |
-| `testskrivare` | Skriver/utökar tester med de delade testhjälparna – bara när tre eller fler testnivåer berörs. |
-| `db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
+## Lång session
 
-## Skills (`.claude/skills/`)
-
-| Skill | När |
-|---|---|
-| `android-dev` | Baslinje för all Android/Kotlin-utveckling (ladda alltid). |
-| `compose-expert` · `kotlin-coroutines` · `kotlin-flows` | Compose-, coroutine- och flow-detaljer. |
-| `android-gradle-logic` | Gradle, version catalog, convention plugins. |
-| `firebase-auth` | Google-inloggning (Credential Manager + Firebase). |
-| `accessibility-compose` | TalkBack, tryckytor, dynamisk text. |
-| `data-privacy-security` | Hälsodata, loggning, hemligheter, minify. |
-| **`data-safety-backup`** | Regel 1 – codecs, schemaversion, export/import och rundtur. |
-| **`testing-strategy`** | Regel 2 – testnivåer, kontraktstester, skärmdumpar. |
-| **`requirements-kravlista`** | Regel 3 – hålla KRAVLISTA.md aktuell. |
-| **`shared-ui-components`** | Regel 4 – komponenter, ramar, byggstenar, förbud, kontroller. |
-| **`ci-budget`** | Regel 5 – vad som körs när i CI. |
-| `ui-style` | Designspråket (Material 3 Expressive); API:er i `ARKITEKTUR.md` → "Verifierade API:er". |
-| `mockup` | Ny skärm, komponent eller ändrat utseende: mockup före kod. |
-| `firestore-data-layer` | `FirestoreCollection`, `DocCodec`, repositories, offline, rules. |
-| `packing-engine` | Beräkningsformler och kantfall. |
-| `db-access` | Läsa databasen från en Claude-session. |
-| `refine-issue` | Förfina en idé till ett planerat issue (med Design och Återbruk). |
-| `implement-issue` | Genomföra ett issue hela vägen till PR enligt reglerna (med merge-kontroll först). |
-| `release` | Endast vid uttrycklig release. |
-| `firebase-security-rules-auditor` | *Googles (Firebase).* Granska `firestore.rules` – vid varje rules-ändring, före FUT-2. |
-| `android-intent-security` | *Googles (Android).* Granska exporterade komponenter, notisers och delningens Intents. |
-| `navigation-3` | *Googles (Android).* Referens för Navigation 3: djuplänkar, flera stackar, scener. |
-
-Googles skills är oförändrade kopior (källa, commit och licens i deras `SOURCE.md`); där de
-krockar med projektets regler gäller projektets.
+Vid komprimering av sammanhanget: behåll listan över ändrade filer, issue- och PR-nummer,
+testkommandon som körts med resultat, och öppna ❌ från granskningen.
 
 > Reglerna gäller både i Claude-appen på telefonen och i Claude i Android Studio – båda
 > läser denna fil och `.claude/`.

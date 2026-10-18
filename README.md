@@ -49,7 +49,7 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 ## Utveckling via Claude
 
 ### Det som ligger i repot
-- `CLAUDE.md`, skills och agenter i `.claude/`.
+- `CLAUDE.md`, skills och agenter i `.claude/` (översikt i [`.claude/README.md`](.claude/README.md)).
 - `.claude/settings.json` förhandsgodkänner utan fråga:
   - läsning av PR:er, CI-status och jobbloggar, och bevakning av PR-aktivitet;
   - schemalagda check-ins och triggers (skapa, ändra, ta bort, köra) – samma val som i
@@ -58,10 +58,18 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
   - hooktestet och dokumentkontrollerna (`node --test` på de två testkatalogerna, kört
     från repots rot med relativa sökvägar – i en session med flera repon frågar Claude först).
   Skrivande databaskommandon (`import`, `migrate`) kräver alltid bekräftelse.
+- Samma fil hindrar Claude från att öppna nyckelfiler med läsverktyget (`google-services.json`, keystores,
+  service accounts, `.env`) och sätter `LC_ALL=C.UTF-8`, så att svenska tecken i testnamn och
+  skärmdumpar blir rätt i molnsessionen.
 - Hooken `session-start.sh` installerar `tools/db` (utan livscykelskript) och talar om ifall
   databasnyckeln finns.
 - Hooken `regel4-check.mjs` kontrollerar regel 4 direkt efter varje filändring, med samma
   mönster som bygget (`app/src/test/resources/ui-forbidden.txt`).
+- Samma hook körs som Stop-hook innan Claude avslutar en tur: den går igenom alla filer som
+  ändrats mot `origin/master` och ber Claude rätta en träff först (högst en gång i följd).
+- `install-android-sdk.sh` installerar Android SDK i `/opt/android-sdk` och pekar ut den i
+  `local.properties`, så att Gradle-testerna kan köras i en molnsession. Det körs inte
+  automatiskt (cirka 450 MB); lägg det i miljöns setup-skript eller be Claude köra det.
 - Hookarna hittar repot både när det är sessionens projektrot och när sessionen har flera
   repon under en gemensam katalog.
 

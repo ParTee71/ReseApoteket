@@ -1,6 +1,6 @@
 ---
 name: data-privacy-security
-description: ReseApotekets integritets- och säkerhetsregler — appen lagrar recept och mediciner per person, vilket är känslig hälsodata (GDPR art. 9). Ladda denna ALLTID när du rör loggning, Firestore, security rules, backup/export, tools/db, behörigheter, autentisering, hemligheter (nycklar/tokens/service accounts), release/minify eller något som exponerar eller lagrar användardata. Trigger-ord: integritet, säkerhet, privacy, GDPR, känslig data, hälsodata, recept, PII, logga, Log, secret, hemlighet, service account, FIREBASE_SERVICE_ACCOUNT, BACKUP_PASSPHRASE, keystore, jks, google-services, token, Firestore, firestore.rules, export, behörighet, permission, minify, R8, ProGuard.
+description: Integritet och säkerhet i ReseApoteket — recept och mediciner är hälsodata (GDPR art. 9). Ladda alltid vid loggning, firestore.rules, backup/export, tools/db, behörigheter, inloggning, hemligheter eller release/minify. Trigger-ord: integritet, säkerhet, GDPR, hälsodata, PII, logga, Log, hemlighet, service account, keystore, BACKUP_PASSPHRASE, google-services, token, behörighet, R8, ProGuard.
 ---
 
 # Datasäkerhet & integritet
