@@ -14,8 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingList
@@ -63,6 +61,7 @@ fun PackingListScreen(onBack: () -> Unit, onEditTrip: () -> Unit, viewModel: Pac
     val addList by viewModel.addList.collectAsStateWithLifecycle()
     val askRecount by viewModel.askRecount.collectAsStateWithLifecycle()
     val sheetError by viewModel.sheetError.collectAsStateWithLifecycle()
+    val celebrate by viewModel.celebrate.collectAsStateWithLifecycle()
     PackingListContent(
         state = state,
         header = header,
@@ -74,7 +73,7 @@ fun PackingListScreen(onBack: () -> Unit, onEditTrip: () -> Unit, viewModel: Pac
         adding = addState.takeIf { adding },
         addList = addList,
         askRecount = askRecount,
-        celebrations = viewModel.celebrations,
+        celebrate = celebrate,
         sheetError = sheetError,
     )
 }
@@ -92,13 +91,18 @@ fun PackingListContent(
     adding: EditorUiState<PackingItem>? = null,
     addList: AddListState = AddListState(),
     askRecount: Boolean = false,
-    celebrations: Flow<Unit> = emptyFlow(),
+    celebrate: Boolean = false,
     sheetError: DataError? = null,
 ) {
     val groups = packingGroups(header?.groups.orEmpty())
     val progress = header?.progress ?: PackingProgress.NONE
     var confetti by remember { mutableStateOf(false) }
-    LaunchedEffect(celebrations) { celebrations.collect { confetti = true } }
+    LaunchedEffect(celebrate) {
+        if (celebrate) {
+            confetti = true
+            onEvent(PackingListEvent.Celebrated)
+        }
+    }
     Box(modifier.fillMaxSize()) {
         EntityListScreen(
             title = header?.trip?.name.orEmpty(),

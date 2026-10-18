@@ -38,7 +38,6 @@ import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.components.UndoRequest
 
@@ -92,9 +91,9 @@ class TripViewModelsTest {
     fun `Skapa packlista sparar resan med förvalt namn och skriver packlistan (RES-2, RES-3)`() = runTest {
         seedHousehold()
         val vm = editor()
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(TripEditEvent.Save(defaultName = "Resa 22 sep"))
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val saved = trips.getAll().getOrThrow().single()
         assertEquals("Resa 22 sep", saved.name)
@@ -137,11 +136,11 @@ class TripViewModelsTest {
 
         val vm = editor("t1")
         vm.onEvent(TripEditEvent.Days(10))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(TripEditEvent.Save(""))
             assertTrue(vm.askRecount.value, "Spara frågar först")
             vm.onEvent(TripEditEvent.Recount(true))
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val after = items("t1")
         val recounted = after.single { it.name == "Levaxin" }
@@ -160,10 +159,10 @@ class TripViewModelsTest {
         vm.onEvent(TripEditEvent.Traveller("erik"))
         // Packlistan sätter status medan formuläret är öppet – formulärets äldre kopia skriver inte över den.
         trips.update(Trip("t1", status = TripStatus.PACKED), setOf(TripCodec.STATUS))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(TripEditEvent.Save(""))
             vm.onEvent(TripEditEvent.Recount(false))
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertEquals(before, items("t1"))
         val saved = trips.get("t1").getOrThrow()!!
@@ -177,10 +176,10 @@ class TripViewModelsTest {
         trips.upsert(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna")))
         val vm = editor("t1")
         vm.onEvent(TripEditEvent.Name("Kreta igen"))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(TripEditEvent.Save(""))
             assertFalse(vm.askRecount.value)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
     }
 
@@ -265,9 +264,9 @@ class TripViewModelsTest {
     fun `går packlistan inte att skriva sparas ingen ny resa (RES-3)`() = runTest {
         seedHousehold()
         val vm = TripEditViewModel(null, trips, persons, failingPacking(), FixedClock(), TimeZone.UTC)
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(TripEditEvent.Save(defaultName = "Resa 22 sep"))
-            assertTrue(awaitItem() is EditorEffect.Failed)
+            assertNotNull(expectMostRecentItem().failure)
         }
         assertEquals(emptyList(), trips.getAll().getOrThrow())
     }
@@ -278,10 +277,10 @@ class TripViewModelsTest {
         trips.upsert(Trip("t1", "Kreta", LocalDate(2026, 10, 1), 7, listOf("anna")))
         val vm = TripEditViewModel("t1", trips, persons, failingPacking(), FixedClock(), TimeZone.UTC)
         vm.onEvent(TripEditEvent.Days(10))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(TripEditEvent.Save(""))
             vm.onEvent(TripEditEvent.Recount(true))
-            assertTrue(awaitItem() is EditorEffect.Failed)
+            assertNotNull(expectMostRecentItem().failure)
         }
         assertEquals(7, trips.get("t1").getOrThrow()!!.days, "resan och listan hänger ihop")
         assertTrue(vm.state.value.isDirty)

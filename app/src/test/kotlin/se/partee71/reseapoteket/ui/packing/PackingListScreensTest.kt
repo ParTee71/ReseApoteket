@@ -1,5 +1,8 @@
 package se.partee71.reseapoteket.ui.packing
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -129,6 +132,20 @@ class PackingListScreensTest {
         rule.waitForIdle()
         assertEquals(listOf(PackingListEvent.Check("enalapril", true), PackingListEvent.Open("enalapril")), events)
         assertEquals(listOf<ArchiveEvent>(ArchiveEvent.Archive("zyrtec", "Zyrtec 10 mg")), hidden)
+    }
+
+    @Test
+    fun `allt packat visar konfetti och kvitterar firandet en gång (PAK-5)`() {
+        val events = mutableListOf<PackingListEvent>()
+        var celebrate by mutableStateOf(false)
+        rule.setContent {
+            ReseApoteketTheme {
+                PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { if (it == PackingListEvent.Celebrated) celebrate = false; events += it }, {}, {}, celebrate = celebrate)
+            }
+        }
+        rule.runOnIdle { celebrate = true }
+        rule.waitForIdle()
+        assertEquals(listOf<PackingListEvent>(PackingListEvent.Celebrated), events)
     }
 
     @Test

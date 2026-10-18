@@ -29,7 +29,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -38,6 +37,7 @@ import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.DetailUiState
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -346,7 +346,7 @@ private fun Frames(onBack: () -> Unit) {
         EntityEditScreen(
             title = "Ny familjeartikel",
             state = EditorUiState(value = name, errors = if (name.isBlank()) persistentMapOf("name" to R.string.error_unknown) else persistentMapOf(), isValid = name.isNotBlank(), isDirty = name.isNotEmpty()),
-            effects = emptyFlow(),
+            events = EditorEvents.None,
             onSave = {},
             onClose = onBack,
             onArchive = {},

@@ -9,7 +9,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
@@ -18,7 +17,7 @@ import se.partee71.reseapoteket.core.schema.HouseholdCodec
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -48,7 +47,6 @@ class HouseholdEditViewModel @Inject constructor(private val households: Househo
 
     val editor: EditorState<Household> = EditorState(Household(id = ""), HouseholdValidator, loading = true)
     val state = editor.state
-    val effects: Flow<EditorEffect> = editor.effects
     private val loader = EditorLoader(editor, viewModelScope, { suspendRunCatching({ DataError.Unknown }) { households.current.first() } })
 
     fun onEvent(event: HouseholdEditEvent) {
@@ -73,13 +71,13 @@ class HouseholdEditViewModel @Inject constructor(private val households: Househo
 @Composable
 fun HouseholdEditScreen(onClose: () -> Unit, viewModel: HouseholdEditViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HouseholdEditContent(state, viewModel.effects, viewModel::onEvent, onClose)
+    HouseholdEditContent(state, viewModel.editor, viewModel::onEvent, onClose)
 }
 
 @Composable
 fun HouseholdEditContent(
     state: EditorUiState<Household>,
-    effects: Flow<EditorEffect>,
+    events: EditorEvents,
     onEvent: (HouseholdEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -87,7 +85,7 @@ fun HouseholdEditContent(
     EntityEditScreen(
         title = stringResource(R.string.household_edit),
         state = state,
-        effects = effects,
+        events = events,
         onSave = { onEvent(HouseholdEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,

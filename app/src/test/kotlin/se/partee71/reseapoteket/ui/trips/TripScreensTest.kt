@@ -19,7 +19,6 @@ import kotlin.test.assertEquals
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test
@@ -33,6 +32,7 @@ import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -65,8 +65,8 @@ class TripScreensTest {
             makeInvalid = { update(TripValidator.TRAVELLERS) { it.copy(travellerIds = listOf("anna")) }; update(TripValidator.TRAVELLERS) { it.copy(travellerIds = emptyList()) } },
             makeValid = { update(TripValidator.TRAVELLERS) { it.copy(travellerIds = listOf("anna")) } },
             invalidMessage = "Välj minst en som åker med",
-        ) { state, effects, onSave, onClose ->
-            TripEditContent(false, state, people, preview, effects, { if (it is TripEditEvent.Save) onSave() }, onClose, stored = trip)
+        ) { state, events, onSave, onClose ->
+            TripEditContent(false, state, people, preview, events, { if (it is TripEditEvent.Save) onSave() }, onClose, stored = trip)
         }
     }
 
@@ -74,7 +74,7 @@ class TripScreensTest {
     fun `en ny resa heter Ny resa, sparas med Skapa packlista och föreslår namnet Resa datum (RES-2, RES-3)`() {
         val events = mutableListOf<TripEditEvent>()
         val new = trip.copy(name = "")
-        rule.setContent { ReseApoteketTheme { TripEditContent(true, EditorUiState(new, isDirty = true), people, preview, emptyFlow(), { events += it }, {}) } }
+        rule.setContent { ReseApoteketTheme { TripEditContent(true, EditorUiState(new, isDirty = true), people, preview, EditorEvents.None, { events += it }, {}) } }
         rule.onNodeWithText("Ny resa").assertIsDisplayed()
         rule.onNodeWithText("Resa 2 okt").assertIsDisplayed()
         rule.onNodeWithText("Skapa packlista").performClick()
@@ -84,7 +84,7 @@ class TripScreensTest {
     @Test
     fun `Räkna om packlistan frågar med Behåll listan och Räkna om (RES-4)`() {
         val events = mutableListOf<TripEditEvent>()
-        rule.setContent { ReseApoteketTheme { TripEditContent(false, EditorUiState(trip), people, preview, emptyFlow(), { events += it }, {}, stored = trip, askRecount = true) } }
+        rule.setContent { ReseApoteketTheme { TripEditContent(false, EditorUiState(trip), people, preview, EditorEvents.None, { events += it }, {}, stored = trip, askRecount = true) } }
         rule.onNodeWithText("Räkna om packlistan?").assertIsDisplayed()
         rule.onNodeWithText("Behåll listan").performClick()
         rule.onNodeWithText("Räkna om").performClick()
@@ -94,7 +94,7 @@ class TripScreensTest {
     @Test
     fun `en resenär väljs och väljs bort med personchipet`() {
         val events = mutableListOf<TripEditEvent>()
-        rule.setContent { ReseApoteketTheme { TripEditContent(true, EditorUiState(trip), people, preview, emptyFlow(), { events += it }, {}) } }
+        rule.setContent { ReseApoteketTheme { TripEditContent(true, EditorUiState(trip), people, preview, EditorEvents.None, { events += it }, {}) } }
         rule.onNodeWithText("Erik").performScrollTo().performClick()
         assertEquals(listOf<TripEditEvent>(TripEditEvent.Traveller("erik")), events)
     }
@@ -124,7 +124,7 @@ class TripScreensTest {
     fun `en sparad resa kan arkiveras och en arkiverad återställas från formuläret`() {
         val events = mutableListOf<TripEditEvent>()
         var stored by mutableStateOf(trip)
-        rule.setContent { ReseApoteketTheme { TripEditContent(false, EditorUiState(stored), people, preview, emptyFlow(), { events += it }, {}, stored = stored) } }
+        rule.setContent { ReseApoteketTheme { TripEditContent(false, EditorUiState(stored), people, preview, EditorEvents.None, { events += it }, {}, stored = stored) } }
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Arkivera").performClick()
         stored = trip.copy(archived = true)
@@ -136,7 +136,7 @@ class TripScreensTest {
     @Test
     fun `skärmdumpar - formuläret`() {
         captureLightAndDark("TripEditScreen_ny") {
-            TripEditContent(true, EditorUiState(trip, isDirty = true), people, preview, emptyFlow(), {}, {})
+            TripEditContent(true, EditorUiState(trip, isDirty = true), people, preview, EditorEvents.None, {}, {})
         }
         captureLightAndDark("TripEditScreen_ingen_resenar") {
             val none = trip.copy(name = "", travellerIds = emptyList())
@@ -145,7 +145,7 @@ class TripScreensTest {
                 EditorUiState(none, errors = persistentMapOf(TripValidator.TRAVELLERS to R.string.trip_travellers_required), isValid = false, isDirty = true),
                 people,
                 PackingPreviewText("För 0 resenärer i 7 dagar", "0 saker att packa", null),
-                emptyFlow(),
+                EditorEvents.None,
                 {},
                 {},
             )

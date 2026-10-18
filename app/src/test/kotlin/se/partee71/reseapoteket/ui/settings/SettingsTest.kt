@@ -158,9 +158,13 @@ class SettingsTest {
     @Test
     fun `export sparar filen med dagens datum och öppnar delningsmenyn en gång (SET-5)`() = runTest {
         val vm = viewModel()
-        vm.shares.test {
+        vm.state.test {
+            awaitItem()
             vm.onEvent(SettingsEvent.Export)
-            assertEquals(ShareExport("content://se.partee71.reseapoteket.exports/exports/fil.json"), awaitItem())
+            assertEquals(ShareExport("content://se.partee71.reseapoteket.exports/exports/fil.json"), expectMostRecentItem().share)
+            // Delningen står kvar tills skärmen öppnat menyn, och kommer sedan inte igen.
+            vm.onEvent(SettingsEvent.ShareShown)
+            assertNull(expectMostRecentItem().share)
             expectNoEvents()
         }
         assertEquals(listOf("reseapoteket-2026-09-21.json"), saved)
@@ -172,11 +176,9 @@ class SettingsTest {
         exported = Result.failure(DataError.Offline)
         vm.state.test {
             awaitItem()
-            vm.shares.test {
-                vm.onEvent(SettingsEvent.Export)
-                expectNoEvents()
-            }
+            vm.onEvent(SettingsEvent.Export)
             val failed = expectMostRecentItem()
+            assertNull(failed.share)
             assertEquals(SettingsError(SettingsSection.Data, DataError.Offline), failed.error)
             assertFalse(failed.exporting)
         }

@@ -69,10 +69,10 @@ class EditorStateTest {
     fun `lyckad sparning ger Done och ett oändrat formulär`() = runTest {
         val editor = editor()
         editor.update(NAME) { it.copy(name = "Solkräm") }
-        editor.effects.test {
+        editor.state.test {
             var saved: Form? = null
             editor.save { saved = it; Result.success(Unit) }
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
             assertEquals(Form("Solkräm"), saved)
         }
         assertFalse(editor.state.value.isDirty)
@@ -83,12 +83,35 @@ class EditorStateTest {
     fun `sparfel ger Failed och formuläret står kvar ändrat`() = runTest {
         val editor = editor()
         editor.update(NAME) { it.copy(name = "Solkräm") }
-        editor.effects.test {
+        editor.state.test {
             editor.save { Result.failure(DataError.Offline) }
-            assertEquals(EditorEffect.Failed(DataError.Offline), awaitItem())
+            val failed = expectMostRecentItem()
+            assertEquals(DataError.Offline, failed.failure)
+            assertFalse(failed.done)
         }
         assertTrue(editor.state.value.isDirty)
         assertTrue(editor.state.value.canSave)
+    }
+
+    @Test
+    fun `klar och sparfel står kvar tills de kvitterats, även när formuläret ändras, och kommer inte igen`() = runTest {
+        val editor = editor()
+        editor.update(NAME) { it.copy(name = "Solkräm") }
+        editor.save { Result.failure(DataError.Offline) }
+        editor.update(NOTE) { it.copy(note = "SPF 50") }
+        assertEquals(DataError.Offline, editor.state.value.failure, "ett okvitterat fel tappas inte av en ändring")
+        editor.onFailureShown()
+        assertNull(editor.state.value.failure)
+
+        editor.save { Result.success(Unit) }
+        editor.load(Form("Solkräm", "SPF 50"))
+        assertTrue(editor.state.value.done, "ett okvitterat klar tappas inte av load")
+        editor.onDoneHandled()
+        assertFalse(editor.state.value.done)
+        assertNull(editor.state.value.failure, "det kvitterade felet visas inte igen")
+
+        editor.update(NOTE) { it.copy(note = "SPF 30") }
+        assertFalse(editor.state.value.done, "klar visas inte igen")
     }
 
     @Test
@@ -124,11 +147,11 @@ class EditorStateTest {
     @Test
     fun `run för arkivera och radera ger Done eller Failed`() = runTest {
         val editor = editor(Form("Solkräm"))
-        editor.effects.test {
+        editor.state.test {
             editor.run { Result.success(Unit) }
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
             editor.run { Result.failure(DataError.PermissionDenied) }
-            assertEquals(EditorEffect.Failed(DataError.PermissionDenied), awaitItem())
+            assertEquals(DataError.PermissionDenied, expectMostRecentItem().failure)
         }
     }
 
@@ -165,31 +188,27 @@ class EditorStateTest {
         val editor = editor()
         editor.update(NAME) { it.copy(name = "Solkräm") }
         val gate = CompletableDeferred<Unit>()
-        editor.effects.test {
-            val saving = launch { editor.save { gate.await(); Result.success(Unit) } }
-            testScheduler.runCurrent()
-            editor.update(NOTE) { it.copy(note = "SPF 50") }
-            gate.complete(Unit)
-            saving.join()
+        val saving = launch { editor.save { gate.await(); Result.success(Unit) } }
+        testScheduler.runCurrent()
+        editor.update(NOTE) { it.copy(note = "SPF 50") }
+        gate.complete(Unit)
+        saving.join()
 
-            assertTrue(editor.state.value.isDirty, "anteckningen är inte sparad")
-            assertTrue(editor.state.value.canSave)
-            expectNoEvents()
-        }
+        assertTrue(editor.state.value.isDirty, "anteckningen är inte sparad")
+        assertTrue(editor.state.value.canSave)
+        assertFalse(editor.state.value.done, "formuläret stängs inte")
     }
 
     @Test
     fun `arkivera eller radera stänger alltid, även om något ändrats under tiden`() = runTest {
         val editor = editor(Form("Solkräm"))
         val gate = CompletableDeferred<Unit>()
-        editor.effects.test {
-            val deleting = launch { editor.run { gate.await(); Result.success(Unit) } }
-            testScheduler.runCurrent()
-            editor.update(NOTE) { it.copy(note = "skrivet under raderingen") }
-            gate.complete(Unit)
-            deleting.join()
-            assertEquals(EditorEffect.Done, awaitItem())
-        }
+        val deleting = launch { editor.run { gate.await(); Result.success(Unit) } }
+        testScheduler.runCurrent()
+        editor.update(NOTE) { it.copy(note = "skrivet under raderingen") }
+        gate.complete(Unit)
+        deleting.join()
+        assertTrue(editor.state.value.done)
     }
 
     @Test

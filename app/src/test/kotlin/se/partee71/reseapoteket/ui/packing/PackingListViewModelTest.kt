@@ -99,12 +99,16 @@ class PackingListViewModelTest {
     fun `avprickning sparar tiden, allt packat gör resan packad och firar en gång, en borttagen avprickning planerad (PAK-5)`() = runTest {
         seed()
         val vm = viewModel()
-        vm.celebrations.test {
+        vm.celebrate.test {
+            assertFalse(awaitItem())
             vm.rows().forEach { vm.onEvent(PackingListEvent.Check(it.item.id, true)) }
-            awaitItem()
+            assertTrue(awaitItem())
             assertTrue(vm.rows().all { it.item.checked })
             assertEquals(FixedClock().now(), stored(vm.row("Solkräm").item.id).checkedAt)
             assertEquals(TripStatus.PACKED, trips.get("t1").getOrThrow()!!.status)
+            // Firandet står kvar tills skärmen visat konfettin, och kommer sedan inte igen.
+            vm.onEvent(PackingListEvent.Celebrated)
+            assertFalse(awaitItem())
 
             vm.onEvent(PackingListEvent.Check(vm.row("Alvedon").item.id, false))
             assertNull(stored(vm.row("Alvedon").item.id).checkedAt)
@@ -119,10 +123,11 @@ class PackingListViewModelTest {
         val vm = viewModel()
         vm.onEvent(PackingListEvent.Check(vm.row("Levaxin").item.id, true))
         vm.onEvent(PackingListEvent.Check(vm.row("Alvedon").item.id, true))
-        vm.celebrations.test {
+        vm.celebrate.test {
+            assertFalse(awaitItem())
             val solkram = vm.row("Solkräm").item
             vm.hiding.onEvent(ArchiveEvent.Archive(solkram.id, solkram.name))
-            awaitItem()
+            assertTrue(awaitItem())
             assertEquals(TripStatus.PACKED, trips.get("t1").getOrThrow()!!.status, "den sista oavprickade dold – allt packat")
         }
         vm.onEvent(PackingListEvent.Add)
@@ -149,9 +154,12 @@ class PackingListViewModelTest {
     fun `Dölj packade på en packad lista packar inte upp resan och firar inte igen (PAK-5)`() = runTest {
         seed()
         val vm = viewModel()
-        vm.celebrations.test {
+        vm.celebrate.test {
+            assertFalse(awaitItem())
             vm.rows().forEach { vm.onEvent(PackingListEvent.Check(it.item.id, true)) }
-            awaitItem()
+            assertTrue(awaitItem())
+            vm.onEvent(PackingListEvent.Celebrated)
+            assertFalse(awaitItem())
             vm.onEvent(PackingListEvent.HideChecked)
             assertTrue(vm.rows().all { it.item.hidden })
             assertEquals(TripStatus.PACKED, trips.get("t1").getOrThrow()!!.status)
@@ -166,7 +174,7 @@ class PackingListViewModelTest {
         seed()
         packing.forTrip("t1").getAll().getOrThrow().forEach { packing.forTrip("t1").upsert(it.copy(checked = true)) }
         val vm = viewModel()
-        vm.celebrations.test { expectNoEvents() }
+        vm.celebrate.test { assertFalse(awaitItem()) }
         assertEquals(TripStatus.PLANNING, trips.get("t1").getOrThrow()!!.status, "statusen följer bara egna ändringar")
     }
 

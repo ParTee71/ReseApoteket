@@ -23,7 +23,6 @@ import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.reseapoteket.ui.components.UndoRequest
@@ -80,12 +79,12 @@ class FamilyItemViewModelsTest {
         val vm = editor()
         assertTrue(vm.isNew)
         assertEquals(FamilyItem(vm.state.value.value.id, rule = QuantityRule.Fixed(1)), vm.state.value.value)
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(FamilyItemEditEvent.Name("  Myggmedel "))
             vm.onEvent(FamilyItemEditEvent.Rule(QuantityRule.PerTraveller(1)))
             vm.onEvent(FamilyItemEditEvent.Notes(" Spray "))
             vm.onEvent(FamilyItemEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val saved = items.getAll().getOrThrow().single { it.id != "f1" }
         assertEquals(FamilyItem(saved.id, "Myggmedel", rule = QuantityRule.PerTraveller(1), notes = "Spray", sortOrder = 3), saved)
@@ -125,16 +124,16 @@ class FamilyItemViewModelsTest {
         items.upsert(sunscreen)
         val vm = editor("f1")
         assertFalse(vm.stored.value!!.archived)
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(FamilyItemEditEvent.Archive)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertTrue(items.get("f1").getOrThrow()!!.archived)
         val again = editor("f1")
         assertTrue(again.stored.value!!.archived)
-        again.effects.test {
+        again.state.test {
             again.onEvent(FamilyItemEditEvent.Restore)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertFalse(items.get("f1").getOrThrow()!!.archived)
     }
@@ -145,9 +144,9 @@ class FamilyItemViewModelsTest {
         items.upsert(future)
         val vm = editor("f1")
         vm.onEvent(FamilyItemEditEvent.Notes("Ny"))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(FamilyItemEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertEquals(future.copy(notes = "Ny"), items.get("f1").getOrThrow())
     }
@@ -173,11 +172,11 @@ class FamilyItemViewModelsTest {
     @Test
     fun `en artikel som packas på resedagen sparas med valet (PAK-6)`() = runTest {
         val vm = editor()
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(FamilyItemEditEvent.Name("Tandborste"))
             vm.onEvent(FamilyItemEditEvent.TravelDay(TravelDayChange(true, null)))
             vm.onEvent(FamilyItemEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val saved = items.getAll().getOrThrow().single()
         assertEquals(true to null, saved.travelDay to saved.travelDayTime)

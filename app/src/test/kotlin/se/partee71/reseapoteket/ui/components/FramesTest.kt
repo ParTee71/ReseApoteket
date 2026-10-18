@@ -2,6 +2,7 @@ package se.partee71.reseapoteket.ui.components
 
 import android.content.Context
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,11 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,7 +39,7 @@ import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -180,8 +183,8 @@ class FramesTest {
             makeInvalid = { update("name") { "x" }; update("name") { "" } },
             makeValid = { update("name") { "Solkräm" } },
             invalidMessage = string(R.string.error_no_household),
-        ) { state, effects, onSave, onClose ->
-            EntityEditScreen("Ny familjeartikel", state, effects, onSave, onClose) {
+        ) { state, events, onSave, onClose ->
+            EntityEditScreen("Ny familjeartikel", state, events, onSave, onClose) {
                 AppTextField(state.value, { v -> editor.update("name") { v } }, "Namn", error = state.errorFor("name")?.let { string(it) })
             }
         }
@@ -194,7 +197,7 @@ class FramesTest {
         rule.setContent {
             ReseApoteketTheme {
                 EntityEditScreen(
-                    "Solkräm", EditorUiState("Solkräm"), emptyFlow(), {}, {},
+                    "Solkräm", EditorUiState("Solkräm"), EditorEvents.None, {}, {},
                     onArchive = { archived++ },
                     delete = DeleteAction("Radera Solkräm?", "Det går inte att ångra.") { deleted++ },
                 ) {}
@@ -215,14 +218,47 @@ class FramesTest {
     fun `EntityEditScreen - lyckad sparning går till onSaved, bakåt till onClose`() {
         var saved = 0
         var closed = 0
-        val effects = kotlinx.coroutines.flow.MutableSharedFlow<EditorEffect>(extraBufferCapacity = 1)
+        val editor = EditorState("Kreta", Validator { emptyMap() })
         rule.setContent {
-            ReseApoteketTheme { EntityEditScreen("Ny resa", EditorUiState("Kreta"), effects, {}, { closed++ }, onSaved = { saved++ }) {} }
+            ReseApoteketTheme {
+                val state by editor.state.collectAsState()
+                EntityEditScreen("Ny resa", state, editor, {}, { closed++ }, onSaved = { saved++ }) {}
+            }
         }
-        rule.runOnIdle { effects.tryEmit(EditorEffect.Done) }
+        rule.runOnIdle { runBlocking { editor.run { Result.success(Unit) } } }
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Tillbaka").performClick()
         assertEquals(1 to 1, saved to closed)
+    }
+
+    @Test
+    fun `EntityEditScreen kvitterar klar och sparfel – de väntar tills skärmen visas och kommer inte igen efter rotation`() {
+        val editor = EditorState("Kreta", Validator { emptyMap() })
+        var saved = 0
+        var shown by mutableStateOf(false)
+        val restoration = StateRestorationTester(rule)
+        restoration.setContent {
+            ReseApoteketTheme {
+                val state by editor.state.collectAsState()
+                if (shown) EntityEditScreen("Ny resa", state, editor, {}, {}, onSaved = { saved++ }) {}
+            }
+        }
+        // Ett sparfel medan skärmen inte visas tappas inte: snackbaren kommer när den visas.
+        rule.runOnIdle { runBlocking { editor.run { Result.failure(DataError.Offline) } } }
+        assertEquals(DataError.Offline, editor.state.value.failure)
+        rule.runOnIdle { shown = true }
+        rule.onNodeWithText(string(R.string.error_offline)).assertIsDisplayed()
+        assertNull(editor.state.value.failure, "kvitterat när snackbaren startats")
+
+        rule.runOnIdle { runBlocking { editor.run { Result.success(Unit) } } }
+        rule.waitForIdle()
+        assertEquals(1, saved)
+        assertFalse(editor.state.value.done, "kvitterat när skärmen lämnats")
+
+        restoration.emulateSavedInstanceStateRestore()
+        rule.waitForIdle()
+        assertEquals(1, saved, "klar upprepas inte efter rotation")
+        rule.onNodeWithText(string(R.string.error_offline)).assertDoesNotExist()
     }
 
     @Test
@@ -246,7 +282,7 @@ class FramesTest {
     fun `EntityEditScreen - arkivera med osparade ändringar frågar först (NFR-2)`() {
         var archived = 0
         rule.setContent {
-            ReseApoteketTheme { EntityEditScreen("Solkräm", EditorUiState("Solkräm 50", isValid = true, isDirty = true), emptyFlow(), {}, {}, onArchive = { archived++ }) {} }
+            ReseApoteketTheme { EntityEditScreen("Solkräm", EditorUiState("Solkräm 50", isValid = true, isDirty = true), EditorEvents.None, {}, {}, onArchive = { archived++ }) {} }
         }
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Arkivera").performClick()
@@ -269,7 +305,7 @@ class FramesTest {
     fun `EntityEditScreen - Återställ i menyn för något arkiverat`() {
         var restored = 0
         rule.setContent {
-            ReseApoteketTheme { EntityEditScreen("Solkräm", EditorUiState("Solkräm"), emptyFlow(), {}, {}, onRestore = { restored++ }) {} }
+            ReseApoteketTheme { EntityEditScreen("Solkräm", EditorUiState("Solkräm"), EditorEvents.None, {}, {}, onRestore = { restored++ }) {} }
         }
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Arkivera").assertDoesNotExist()
@@ -343,13 +379,13 @@ class FramesTest {
     @Test
     fun `EntityEditScreen - ogiltig och giltig`() {
         captureLightAndDark("EntityEditScreen_ogiltig") {
-            EntityEditScreen("Ny familjeartikel", EditorUiState("", persistentMapOf("name" to R.string.error_unknown), isValid = false, isDirty = true), emptyFlow(), {}, {}) {
+            EntityEditScreen("Ny familjeartikel", EditorUiState("", persistentMapOf("name" to R.string.error_unknown), isValid = false, isDirty = true), EditorEvents.None, {}, {}) {
                 AppTextField("", {}, "Namn", error = "Ange ett namn")
                 QuantityRuleRow(QuantityRule.PerDays(1, 7), {}, { if (it == 1) "tub" else "tuber" })
             }
         }
         captureLightAndDark("EntityEditScreen_giltig") {
-            EntityEditScreen("Ny familjeartikel", EditorUiState("Solkräm", isValid = true, isDirty = true), emptyFlow(), {}, {}, onArchive = {}) {
+            EntityEditScreen("Ny familjeartikel", EditorUiState("Solkräm", isValid = true, isDirty = true), EditorEvents.None, {}, {}, onArchive = {}) {
                 AppTextField("Solkräm", {}, "Namn")
                 PackingPreview("För 4 personer i 10 dagar", "2 tuber", reason = "ceil((10 + 2) / 7) × 1 tub")
             }
@@ -358,7 +394,7 @@ class FramesTest {
 
     @Test
     fun `EntityEditScreen - släng ändringar`() = rule.captureScreenLightAndDark("EntityEditScreen_slang", open = { onNodeWithContentDescription("Tillbaka").clickWithoutRipple() }) {
-        EntityEditScreen("Solkräm", EditorUiState("Solkräm 50", isValid = true, isDirty = true), emptyFlow(), {}, {}) {
+        EntityEditScreen("Solkräm", EditorUiState("Solkräm 50", isValid = true, isDirty = true), EditorEvents.None, {}, {}) {
             AppTextField("Solkräm 50", {}, "Namn")
         }
     }
