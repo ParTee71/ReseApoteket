@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import kotlin.test.assertEquals
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.DayOfWeek
 import org.junit.Rule
@@ -83,7 +84,7 @@ class PersonScreensTest {
         val events = mutableListOf<ArchiveEvent>()
         rule.setContent {
             ReseApoteketTheme {
-                PersonsContent(ListUiState.Content(listOf(PersonListItem(anna, 1))), {}, {}, {}, archive = ListArchive { events += it })
+                PersonsContent(ListUiState.Content(persistentListOf(PersonListItem(anna, 1))), {}, {}, {}, archive = ListArchive { events += it })
             }
         }
         rule.onNodeWithText("Anna").performTouchInput { swipeLeft() }

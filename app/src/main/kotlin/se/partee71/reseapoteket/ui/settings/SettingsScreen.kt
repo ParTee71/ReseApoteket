@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -86,6 +87,7 @@ enum class SettingsSection { Household, Account, Data }
 
 data class SettingsError(val section: SettingsSection, val error: DataError)
 
+@Immutable
 data class SettingsUiState(
     val household: Household? = null,
     val account: AuthUser? = null,

@@ -215,3 +215,4 @@ Versionen och raden nedan höjs och skrivs i funktions-PR:en; releasen görs via
 | 0.5.1 | Buggfix: en lång inklistrad lista går att lägga till – bladet scrollar, fältet visar högst 8 rader och knappen står direkt under fältet (#100). |
 | 0.5.2 | Packlistan på telefon: Övrigt visas i en kolumn så att namnen får plats, och två kolumner bara där de ryms; ett långtryck på en kapad rad visar hela texten (#103, NFR-20); uppdaterad läkemedelslista. |
 | 0.5.3 | Intern: coroutine-dispatchers injiceras från `di/DispatchersModule`, och bygget och hooken stoppar `Dispatchers.` utanför `di/`. Ingen synlig ändring. |
+| 0.5.4 | Intern: listor och kartor i skärmtillstånden är oföränderliga och tillstånden märkta `@Immutable`, så att Compose hoppar över oförändrade delar; listans rader har `contentType`. Ingen synlig ändring. |

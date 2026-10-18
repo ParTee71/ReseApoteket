@@ -1,5 +1,6 @@
 package se.partee71.reseapoteket.ui.packing
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
@@ -7,6 +8,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,11 +72,12 @@ import se.partee71.reseapoteket.ui.components.UndoRequest
 data class PackingRow(val item: PackingItem, val person: Person? = null, val schedule: String? = null)
 
 /** Rubrikområdet: resan, resenärerna och packat, totalt och per grupp (PAK-1, PAK-6). */
+@Immutable
 data class PackingHeader(
     val trip: Trip,
-    val travellers: List<Person>,
+    val travellers: ImmutableList<Person>,
     val progress: PackingProgress,
-    val groups: Map<PackingGroup, PackingProgress>,
+    val groups: ImmutableMap<PackingGroup, PackingProgress>,
 )
 
 /** "Lägg till": en sak (PAK-4) eller en inklistrad lista (PAK-7). */
@@ -80,10 +87,11 @@ enum class AddMode { ONE, LIST }
  * "Lägg till" i läget [mode]; för en lista texten, raderna den blir (PAK-7) och om de sparas.
  * Bara de rader som läggs till ([toAdd]) sparas.
  */
+@Immutable
 data class AddListState(
     val mode: AddMode = AddMode.ONE,
     val text: String = "",
-    val lines: List<PastedLine> = emptyList(),
+    val lines: ImmutableList<PastedLine> = persistentListOf(),
     val saving: Boolean = false,
 ) {
     val toAdd: List<PastedLine> get() = lines.filter { it.status == PastedStatus.ADD }
@@ -215,9 +223,9 @@ class PackingListViewModel @AssistedInject constructor(
             val shown = items.filterNot { item -> item.hidden }
             PackingHeader(
                 trip = it,
-                travellers = it.travellerIds.mapNotNull { id -> all.firstOrNull { person -> person.id == id } },
+                travellers = it.travellerIds.mapNotNull { id -> all.firstOrNull { person -> person.id == id } }.toImmutableList(),
                 progress = PackingEngine.progress(items),
-                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) },
+                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) }.toImmutableMap(),
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -245,7 +253,7 @@ class PackingListViewModel @AssistedInject constructor(
      */
     val addList: StateFlow<AddListState> = combine(addMode, listText, listSaving, state) { mode, text, saving, list ->
         val existing = currentRows(list).map { it.item }.filter { it.section == PackingSection.FAMILY }.map { it.name }
-        AddListState(mode, text, if (mode == AddMode.LIST) PastedList.parse(text, existing) else emptyList(), saving)
+        AddListState(mode, text, if (mode == AddMode.LIST) PastedList.parse(text, existing).toImmutableList() else persistentListOf(), saving)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AddListState())
 
     private val _askRecount = MutableStateFlow(false)

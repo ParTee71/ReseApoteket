@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.ui.tabs
 
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import kotlinx.collections.immutable.persistentListOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,7 +53,7 @@ class TabScreensTest {
         captureLightAndDark("PersonsScreen_innehall") {
             PersonsContent(
                 ListUiState.Content(
-                    listOf(
+                    persistentListOf(
                         PersonListItem(Person("p1", "Anna", "🦊", "#D97757"), medicines = 3, supplements = 1),
                         PersonListItem(Person("p2", "Erik", "🐻", "#3B7EA1"), medicines = 1),
                         PersonListItem(Person("p3", "Lova", "🐰", "#7A9A3C")),

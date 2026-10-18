@@ -1,10 +1,17 @@
 package se.partee71.reseapoteket.ui.settings
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Clock
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -27,10 +34,11 @@ import se.partee71.reseapoteket.reminders.ReminderSource
 import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
 
 /** Kortet Påminnelser: personerna att välja bland, telefonens inställningar och nästa påminnelse av varje slag. */
+@Immutable
 data class RemindersUiState(
-    val persons: List<Person> = emptyList(),
+    val persons: ImmutableList<Person> = persistentListOf(),
     val settings: ReminderSettings = ReminderSettings(),
-    val next: Map<ReminderKind, Reminder> = emptyMap(),
+    val next: ImmutableMap<ReminderKind, Reminder> = persistentMapOf(),
 )
 
 sealed interface RemindersEvent {
@@ -58,7 +66,7 @@ class RemindersViewModel @Inject constructor(
     ) { people, chosen, planned ->
         val now = clock.now()
         val upcoming = planned.filter { it.at.toInstant(zone) > now }
-        RemindersUiState(people, chosen, ReminderKind.entries.mapNotNull { kind -> upcoming.firstOrNull { it.kind == kind }?.let { kind to it } }.toMap())
+        RemindersUiState(people.toImmutableList(), chosen, ReminderKind.entries.mapNotNull { kind -> upcoming.firstOrNull { it.kind == kind }?.let { kind to it } }.toMap().toImmutableMap())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), RemindersUiState())
 
     fun onEvent(event: RemindersEvent) {

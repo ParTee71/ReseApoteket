@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import kotlin.test.assertEquals
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
 import org.junit.Test
@@ -61,7 +63,7 @@ class FamilyItemScreensTest {
 
     @Test
     fun `listan visar kategorier, regeltext och typ, och pausade nedtonade (FAM-1, FAM-3)`() {
-        rule.setContent { ReseApoteketTheme { FamilyItemsContent(ListUiState.Content(list), {}, {}, {}) } }
+        rule.setContent { ReseApoteketTheme { FamilyItemsContent(ListUiState.Content(list.toImmutableList()), {}, {}, {}) } }
         rule.onNodeWithText("Krämer & salvor").assertIsDisplayed()
         rule.onNodeWithText("1 tub per 7 dagar").assertIsDisplayed()
         rule.onNodeWithText("1 per resenär").assertIsDisplayed()
@@ -99,7 +101,7 @@ class FamilyItemScreensTest {
     @Test
     fun `mängdfelet syns under regeln`() {
         val zero = sunscreen.copy(rule = QuantityRule.PerDays(1, 0))
-        val state = EditorUiState(zero, errors = mapOf(FamilyItemValidator.RULE to R.string.rule_min_one))
+        val state = EditorUiState(zero, errors = persistentMapOf(FamilyItemValidator.RULE to R.string.rule_min_one))
         rule.setContent { ReseApoteketTheme { FamilyItemEditContent(false, state, preview(zero), emptyFlow(), {}, {}) } }
         rule.onNodeWithText("Minst 1").performScrollTo().assertIsDisplayed()
     }
@@ -117,6 +119,6 @@ class FamilyItemScreensTest {
 
     @Test
     fun `skärmdumpar - listan`() {
-        captureLightAndDark("FamilyItemsScreen_innehall") { FamilyItemsContent(ListUiState.Content(list), {}, {}, {}) }
+        captureLightAndDark("FamilyItemsScreen_innehall") { FamilyItemsContent(ListUiState.Content(list.toImmutableList()), {}, {}, {}) }
     }
 }

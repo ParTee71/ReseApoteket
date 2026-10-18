@@ -1,6 +1,7 @@
 package se.partee71.reseapoteket.ui.auth
 
 import android.content.Context
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +29,7 @@ import se.partee71.reseapoteket.domain.EnsureHouseholdUseCase
 /** Vad appen visar: inloggning, "Uppdatera appen" eller innehållet (AUTH-1, HUS-3). */
 enum class AuthGate { Loading, SignedOut, NeedsHousehold, UpdateRequired, Ready }
 
+@Immutable
 data class AuthUiState(
     val gate: AuthGate = AuthGate.Loading,
     /** Inloggning eller val av hushåll pågår. */

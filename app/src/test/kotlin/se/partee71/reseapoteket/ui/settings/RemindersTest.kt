@@ -17,6 +17,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import app.cash.turbine.test
 import kotlin.test.assertEquals
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
@@ -84,7 +86,7 @@ class RemindersTest {
     private val granCanaria = Reminder(
         ReminderKind.TIME_TO_PACK, "gc", "Gran Canaria", LocalDate(2026, 10, 3), LocalDateTime(2026, 9, 30, 18, 0), PackingProgress(9, 16),
     )
-    private val state = RemindersUiState(people, ReminderSettings(personIds = setOf("anna", "lova")), mapOf(ReminderKind.TIME_TO_PACK to granCanaria))
+    private val state = RemindersUiState(people.toImmutableList(), ReminderSettings(personIds = setOf("anna", "lova")), persistentMapOf(ReminderKind.TIME_TO_PACK to granCanaria))
 
     @Test
     fun `personerna utan arkiverade, inställningarna och nästa påminnelse av varje slag`() = runTest {
