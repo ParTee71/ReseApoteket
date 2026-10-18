@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -55,10 +56,11 @@ fun AppNavigation(
 /** En påminnelse öppnar resans packlista i fliken Resor (PÅM-7); [onOpened] släpper begäran. */
 @Composable
 fun OpenTripEffect(backStack: AppBackStack, tripId: String?, onOpened: () -> Unit) {
+    val opened by rememberUpdatedState(onOpened)
     LaunchedEffect(tripId) {
         if (tripId == null) return@LaunchedEffect
         backStack.openPackingList(tripId)
-        onOpened()
+        opened()
     }
 }
 
