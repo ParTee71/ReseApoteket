@@ -32,7 +32,7 @@ agent ta rutindelarna.
 
 | Skill | När |
 |---|---|
-| `android-projekt` | ReseApotekets delar av pluginens `android:`-skills (se nedan) – ladda alltid tillsammans med dem; mockupmallen och mockupens data och skärmdumpar. |
+| `android-projekt` | ReseApotekets delar av pluginens `android:`-skills (se nedan) – ladda alltid tillsammans med dem; mockupmallen och mockupens data och skärmdumpar; avsnitten Arbetsflöde, Issues och Release till `android:implement-issue`, `android:refine-issue` och `android:release`. |
 | `data-privacy-security` | Hälsodata, loggning, hemligheter, minify. |
 | **`data-safety-backup`** | Regel 1 – codecs, schemaversion, export/import och rundtur. |
 | **`testing-strategy`** | Regel 2 – testnivåer, kontraktstester, skärmdumpar. |
@@ -43,17 +43,17 @@ agent ta rutindelarna.
 | `firestore-data-layer` | `FirestoreCollection`, `DocCodec`, repositories, offline, rules. |
 | `packing-engine` | Beräkningsformler och kantfall. |
 | `db-access` | Läsa databasen från en Claude-session. |
-| `refine-issue` | Förfina en idé till ett planerat issue (med Design och Återbruk). |
-| `implement-issue` | Genomföra ett issue hela vägen till PR enligt reglerna (med merge-kontroll först). |
-| `release` | Endast vid uttrycklig release. |
 
-Elva generella skills kommer från pluginen `android@claude-android` och heter `android:<namn>`
+Fjorton generella skills kommer från pluginen `android@claude-android` och heter `android:<namn>`
 i sessionen: `android-dev` (baslinje, ladda alltid), `compose-expert`, `kotlin-coroutines`,
 `kotlin-flows`, `navigation-3`, `accessibility-compose`, `android-gradle-logic`, `firebase-auth`,
-`mockup` (mockup före ny GUI) samt Googles `android-intent-security` (manifest, Intents, delning)
+`mockup` (mockup före ny GUI), `refine-issue` (förfina en idé till ett planerat issue),
+`implement-issue` (genomföra ett issue hela vägen till PR, med merge-kontroll först), `release`
+(endast vid uttrycklig release; versionshöjningen i funktions-PR:en) samt Googles `android-intent-security` (manifest, Intents, delning)
 och `firebase-security-rules-auditor` (vid varje ändring i `firestore.rules`, före FUT-2).
 Pluginen är generell; ReseApotekets delar och nuvarande avvikelser står i `android-projekt`, och
-där de krockar gäller projektets regler.
+där de krockar gäller projektets regler. Namnen listas i `.github/scripts/plugin-skills.txt`, som
+dokumentkontrollen läser i stället för pluginen.
 
 ## Hooks (`.claude/hooks/`) och inställningar
 

@@ -40,7 +40,7 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 - **Lägre** → `SchemaMigrator` lyfter dokumenten vid läsning; skrivning sker i nytt format.
   Versionen hör till hushållet, inte till varje dokument, så **varje steg är idempotent** och
   hushållets `schemaVersion` höjs av en fullständig migrering av alla dess dokument
-  (`tools/db/migrate.mjs`, i release-ordningen i skill `release`) – aldrig av en vanlig skrivning.
+  (`tools/db/migrate.mjs`, i release-ordningen i skill `android-projekt` → Release) – aldrig av en vanlig skrivning.
   Ändrar inget steg dit några dokument (`SchemaMigrator.Step.UNCHANGED`, `canStamp`) stämplar
   appen själv hushållet när det öppnas (`HouseholdSession`), så att en äldre app genast ber om
   uppdatering. Ett steg som ändrar data har `changesData = true` och kräver `migrate.mjs`.

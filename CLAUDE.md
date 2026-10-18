@@ -37,7 +37,7 @@ testet deterministiskt, kör aldrig bara om.
 Ändrar du synligt beteende uppdateras [KRAVLISTA.md](KRAVLISTA.md) i samma PR – nytt krav
 får nästa lediga ID, ändrat behåller sitt ID, borttaget stryks med `~~…~~ *(borttaget)*`.
 Gemensamma beteenden beskrivs en gång (NFR/NAV) och refereras. README följer med när
-funktionsomfånget ändras; `versionName` höjs i funktions-PR:en (se PR-flöde); själva releasen görs via skill **release**.
+funktionsomfånget ändras; `versionName` höjs i funktions-PR:en (se PR-flöde); själva releasen görs via skill **android:release**.
 → Skill: **requirements-kravlista**.
 
 ### 4. Enhetligt och utan dubbelkod
@@ -101,8 +101,8 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 - Tumregel: syns förändringen i en tumnagel → mockup först. Padding, ordval eller
   ikonbyte → skärmdumpsdiffen i PR:en räcker.
 
-→ Skills: **android-projekt** (mallens länk, data, skärmdumpar), **ui-style**, **refine-issue**,
-**implement-issue** och pluginens **android:mockup**.
+→ Skills: **android-projekt** (mallens länk, data, skärmdumpar), **ui-style**, **android:refine-issue**,
+**android:implement-issue** och pluginens **android:mockup**.
 
 ## Innan du skriver ny kod
 
@@ -125,12 +125,12 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 - [ ] **Enhetligt:** inga råa M3-komponenter, egna interaktionsmönster, hårdkodade stilvärden eller kopierad logik; `UiConsistencyTest` och `cpdCheck` gröna. (4)
 - [ ] **CI-budget:** inga nya dyra steg i PR-flödet; byggtidseffekt angiven vid nya beroenden. (5)
 - [ ] **GUI:** mockup godkänd och skärmdumpar bifogade i PR:en.
-- [ ] **Granskning:** agenten `granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **implement-issue**, steg 8).
+- [ ] **Granskning:** agenten `granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **android:implement-issue**, steg 8).
 
 ## PR-flöde
 
 - **En PR i taget.** Öppna inte nästa förrän den föregående är mergad (eller uttryckligen
-  stängd/pausad av användaren). Gäller `implement-issue` och manuellt arbete.
+  stängd/pausad av användaren). Gäller `android:implement-issue` och manuellt arbete.
 - **Kontrollera mergen via GitHub** (`pull_request_read`) innan nästa issue påbörjas –
   inte via antagande. Först när den är mergad startas arbetsbranchen om från `origin/master`.
 - PR:er går mot `master`. Kör testerna lokalt först (skill **testing-strategy**), pusha sedan –
@@ -142,7 +142,7 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
   uppdatera `version.properties` och versionshistoriken i README, och skriv versionen i PR-beskrivningen. Ren dokument-,
   test- eller CI-ändring utan effekt i appen höjer inte. Är versionen redan höjd sedan senaste
   tagg, höj bara om denna PR är allvarligare. Själva releasen (tagg, bygge, publicering) körs
-  fortfarande bara på uttrycklig begäran (skill **release**) och kräver då ingen ny PR.
+  fortfarande bara på uttrycklig begäran (skill **android:release**) och kräver då ingen ny PR.
 - **Prenumerera automatiskt** på PR-aktivitet (`subscribe_pr_activity`) så fort en PR
   skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
   granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `ci-doktor`
@@ -188,6 +188,10 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 
 Agenterna (`granskare`, `ci-doktor`, `testskrivare`, `db-inspektor`) och alla skills, med
 när de används, listas i [.claude/README.md](.claude/README.md).
+
+**Kortrapport:** agenternas svar hamnar i huvudsessionens kontext och kostar där. `granskare` och
+`ci-doktor` svarar bara med mallen i sin fil – inga referat av det de läst, ingen upprepning av
+uppdraget, högst ~15 rader om inte fynden kräver mer.
 
 ## Lång session
 
