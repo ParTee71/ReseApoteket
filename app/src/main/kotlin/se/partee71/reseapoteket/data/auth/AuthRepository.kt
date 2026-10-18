@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
  */
 data class AuthUser(val uid: String, val name: String? = null, val email: String? = null)
 
-/** Inloggning med Google (skill firebase-auth). Alla fel kommer som `DataError`, mappade en gång. */
+/** Inloggning med Google (skill android:firebase-auth + android-projekt). Alla fel kommer som `DataError`, mappade en gång. */
 interface AuthRepository {
     /** Aktuell användare vid varje ändring; `null` = utloggad. */
     val authState: Flow<AuthUser?>

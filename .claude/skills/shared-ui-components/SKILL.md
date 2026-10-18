@@ -122,7 +122,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Test-fakes och hjälpare | se skill `testing-strategy` |
 | `tools/db`-logik | `tools/db/lib/` (admin, collections, walk, serialize, cli) |
 | CI-steg | composite actions i `.github/actions/` |
-| Byggkonfiguration | ett ställe (skill `android-gradle-logic`) |
+| Byggkonfiguration | ett ställe (skill `android:android-gradle-logic` + `android-projekt`) |
 
 ## Förbjudet
 
@@ -174,7 +174,7 @@ ovan eller utöka en ram. Tröskeln höjs inte för att "det bara är lite likt"
 2. Räcker det inte → **utöka** med en parameter vars default bevarar nuvarande utseende
    och beteende. Uppdatera bara de skärmdumpar som avsiktligt ändras.
 3. Något nytt behövs → ny delad del i rätt paket, rad i tabellen, test, skärmdump, plats i
-   `ComponentGallery` – och visad i mockup först (skill `mockup`).
+   `ComponentGallery` – och visad i mockup först (skill `android:mockup` + `android-projekt`).
 4. Delade delar utökas i en egen commit **före** featuren som behöver dem.
 5. Två ställen gör nästan samma sak → bryt ut innan det tredje kommer.
 6. En ändring av en elementtyp eller ett mönster görs på ett ställe och slår igenom överallt.

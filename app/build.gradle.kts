@@ -146,7 +146,7 @@ dependencies {
 
     constraints {
         // AGP låser androidTest till appens versioner. När ett testberoende kräver en nyare
-        // version än appen löser, höjs den här (skill android-gradle-logic).
+        // version än appen löser, höjs den här (skill android:android-gradle-logic).
         implementation(libs.androidx.concurrent.futures) // androidx.test.ext:junit
         implementation(libs.errorprone.annotations) // espresso via compose ui-test
     }

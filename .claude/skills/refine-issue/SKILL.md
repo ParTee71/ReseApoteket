@@ -56,7 +56,7 @@ Anteckna konkreta filsökvägar.
 
 ## Steg 4 – Mockup (endast ny GUI)
 
-Om ändringen är synlig enligt tabellen i skill `mockup`: bygg mockupen nu, visa länken
+Om ändringen är synlig enligt tabellen i skill `android:mockup` (mallen och ReseApotekets delar: skill `android-projekt`): bygg mockupen nu, visa länken
 och vänta på ok innan issuet skapas. Länken går in under **Design**.
 
 ## Steg 5 – Omfång och Definition of Done

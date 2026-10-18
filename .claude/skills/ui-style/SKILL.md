@@ -1,6 +1,6 @@
 ---
 name: ui-style
-description: ReseApotekets designspråk (väg C, Material 3 Expressive) — enkelt, stilfullt, lite kul och tydligt. Ladda denna när du bygger eller ändrar tema, färger, typografi, former, rörelse, texter, ikoner, tomma tillstånd eller en komponents utseende, och tillsammans med skill mockup. Trigger-ord: design, stil, utseende, färg, palett, tema, mörkt läge, typsnitt, font, Nunito, rundad, hörn, animation, rörelse, fjädrande, Expressive, ikon, emoji, text, formulering, tomt tillstånd, konfetti, lekfull, snyggt.
+description: ReseApotekets designspråk (väg C, Material 3 Expressive) — enkelt, stilfullt, lite kul och tydligt. Ladda denna när du bygger eller ändrar tema, färger, typografi, former, rörelse, texter, ikoner, tomma tillstånd eller en komponents utseende, och tillsammans med skill android:mockup och android-projekt. Trigger-ord: design, stil, utseende, färg, palett, tema, mörkt läge, typsnitt, font, Nunito, rundad, hörn, animation, rörelse, fjädrande, Expressive, ikon, emoji, text, formulering, tomt tillstånd, konfetti, lekfull, snyggt.
 ---
 
 # Designspråket
@@ -85,7 +85,7 @@ Samma bekräftelser, samma ångra-snackbar, samma tomma tillstånd och samma fel
 
 ## Tillgänglighet
 
-Enligt skill `accessibility-compose` – semantiken ligger i komponenterna.
+Enligt skill `android:accessibility-compose` och skill `android-projekt` – semantiken ligger i komponenterna.
 
 ## Skärmdumpar
 

@@ -17,7 +17,7 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
    - tester → `.claude/skills/testing-strategy/SKILL.md`
    - UI, komponenter, ramar, byggstenar → `.claude/skills/shared-ui-components/SKILL.md`
    - CI, beroenden → `.claude/skills/ci-budget/SKILL.md`
-   - GUI → `.claude/skills/mockup/SKILL.md`
+   - GUI → skill `android:mockup` (pluginen) och `.claude/skills/android-projekt/SKILL.md` → "Mockup"
 2. Hämta diffen: `git diff origin/master...HEAD` (eller det intervall du fått).
 3. Läs de ändrade filerna i sin helhet där sammanhanget behövs.
 
@@ -53,8 +53,9 @@ kommandon (`git diff`, `git log`, `git show`, `git status`).
   Har issuet en **Verifiering**: står det i PR:en att de kommandona körts, med resultat?
 - **Integritet:** loggning av receptdata eller PII, hemligheter eller nycklar i diffen,
   bredare behörigheter. Rör diffen `firestore.rules`: gå igenom Googles skill
-  `firebase-security-rules-auditor`. Rör den manifestet, extras, `PendingIntent` eller delning:
-  gå igenom Googles skill `android-intent-security`.
+  `android:firebase-security-rules-auditor`. Rör den manifestet, extras, `PendingIntent` eller delning:
+  gå igenom Googles skill `android:android-intent-security`
+  (projektets delar: skill `android-projekt`).
 
 ## Rapport (exakt detta format)
 

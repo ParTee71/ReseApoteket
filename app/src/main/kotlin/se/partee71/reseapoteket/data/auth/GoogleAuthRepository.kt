@@ -23,7 +23,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.household.HouseholdSession
 
-/** Credential Manager + Firebase Auth (skill firebase-auth). Loggar aldrig uid eller e-post. */
+/** Credential Manager + Firebase Auth (skill android:firebase-auth + android-projekt). Loggar aldrig uid eller e-post. */
 @Singleton
 class GoogleAuthRepository @Inject constructor(
     @ApplicationContext context: Context,
