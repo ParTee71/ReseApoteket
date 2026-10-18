@@ -2,7 +2,7 @@ package se.partee71.reseapoteket.data.firestore
 
 import javax.inject.Inject
 import kotlin.time.Clock
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -13,6 +13,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.HouseholdScope
 import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.export.HouseholdExport
+import se.partee71.reseapoteket.di.DefaultDispatcher
 
 /**
  * Går igenom det aktiva hushållet längs alla samlingar i [Paths] – samma som
@@ -25,6 +26,7 @@ class HouseholdExporter @Inject constructor(
     private val raw: RawDocuments,
     private val scope: HouseholdScope,
     private val clock: Clock,
+    @param:DefaultDispatcher private val computation: CoroutineDispatcher,
 ) : HouseholdExport {
 
     override suspend fun export(): Result<String> = suspendRunCatching(::firestoreError) {
@@ -39,7 +41,7 @@ class HouseholdExporter @Inject constructor(
             stored to listOf(ExportFormat.Document(Paths.household(hid), stored)) + persons.await() + familyItems.await() + trips.await()
         }
         // Ett stort hushåll ska inte byggas till text på huvudtråden.
-        withContext(Dispatchers.Default) { ExportFormat.encode(clock.now(), Schema.versionOf(household["schemaVersion"]), documents) }
+        withContext(computation) { ExportFormat.encode(clock.now(), Schema.versionOf(household["schemaVersion"]), documents) }
     }
 
     /**

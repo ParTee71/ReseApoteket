@@ -5,6 +5,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,7 +17,7 @@ import org.robolectric.RuntimeEnvironment
 class CacheExportFilesTest {
 
     private val context = RuntimeEnvironment.getApplication()
-    private val files = CacheExportFiles(context)
+    private val files = CacheExportFiles(context, UnconfinedTestDispatcher())
 
     @Test
     fun `exporten finns kvar en timme för delningen och rensas sedan`() = runTest {

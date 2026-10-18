@@ -64,6 +64,7 @@ object Regel4 {
     /**
      * `feature`: ui-paket utom components/theme/common (även filer direkt i ui/).
      * `firestore`: allt utom data/firestore/. `expressive`: allt utom ui/theme/ och ui/components/.
+     * `dispatchers`: allt utom di/.
      */
     fun scopesFor(relPath: String): List<String> {
         val p = relPath.replace('\\', '/')
@@ -76,6 +77,7 @@ object Regel4 {
         }
         if (!p.contains("/data/firestore/")) scopes += "firestore"
         if (!Regex("""/ui/(theme|components)/""").containsMatchIn(p)) scopes += "expressive"
+        if (!p.contains("/di/")) scopes += "dispatchers"
         return scopes
     }
 

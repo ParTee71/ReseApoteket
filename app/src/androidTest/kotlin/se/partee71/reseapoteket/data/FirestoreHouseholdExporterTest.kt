@@ -2,6 +2,7 @@ package se.partee71.reseapoteket.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlin.test.assertEquals
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Test
@@ -28,7 +29,7 @@ class FirestoreHouseholdExporterTest {
         val collections = FirebaseEmulator.collections(scope)
         collections.factory.persons().upsert(Person("anna", "Anna", "🦊")).getOrThrow()
 
-        val text = HouseholdExporter(FirestoreRawDocuments(FirebaseEmulator.db), scope, collections.clock).export().getOrThrow()
+        val text = HouseholdExporter(FirestoreRawDocuments(FirebaseEmulator.db), scope, collections.clock, Dispatchers.Default).export().getOrThrow()
 
         val paths = ExportFormat.decode(text).map { it.path }
         assertEquals(listOf(Paths.household(householdId), "${Paths.persons(householdId)}/anna"), paths)

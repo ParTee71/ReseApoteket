@@ -29,7 +29,7 @@ class UiConsistencyTest {
 
     @Test
     fun `mönsterfilen har alla scope och en ersättning per mönster`() {
-        assertEquals(setOf("feature", "firestore", "expressive"), patterns.keys)
+        assertEquals(setOf("feature", "firestore", "expressive", "dispatchers"), patterns.keys)
         patterns.values.flatten().forEach { assertTrue(it.replacement.isNotBlank(), it.regex.pattern) }
     }
 

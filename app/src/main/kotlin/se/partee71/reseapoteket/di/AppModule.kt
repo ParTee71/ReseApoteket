@@ -13,8 +13,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.datetime.TimeZone
 import se.partee71.reseapoteket.data.common.HouseholdScope
@@ -42,7 +42,8 @@ abstract class AppModule {
         @Provides
         @Singleton
         @ApplicationScope
-        fun applicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        fun applicationScope(@DefaultDispatcher computation: CoroutineDispatcher): CoroutineScope =
+            CoroutineScope(SupervisorJob() + computation)
 
         @Provides
         fun clock(): Clock = Clock.System
@@ -53,7 +54,10 @@ abstract class AppModule {
 
         @Provides
         @Singleton
-        fun preferences(@ApplicationContext context: Context): DataStore<Preferences> =
-            settingsDataStore { context.preferencesDataStoreFile("settings") }
+        fun preferences(
+            @ApplicationContext context: Context,
+            @IoDispatcher io: CoroutineDispatcher,
+        ): DataStore<Preferences> =
+            settingsDataStore(CoroutineScope(io + SupervisorJob())) { context.preferencesDataStoreFile("settings") }
     }
 }
