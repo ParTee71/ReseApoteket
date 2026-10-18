@@ -18,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import kotlin.test.assertEquals
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
@@ -65,7 +66,7 @@ fun <T> ComposeContentTestRule.runListScreenContract(
     onNodeWithText(text(R.string.retry)).performClick()
     assertEquals(1, retries, "fel: Försök igen ska läsa om listan")
 
-    state = ListUiState.Content(listOf(item))
+    state = ListUiState.Content(persistentListOf(item))
     onNodeWithText(itemText).assertIsDisplayed()
     onNodeWithText(addLabel).performClick()
     assertEquals(2, adds, "innehåll: lägg till ska finnas ovanför listan")

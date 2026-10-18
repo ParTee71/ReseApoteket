@@ -16,6 +16,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import kotlin.test.assertEquals
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
@@ -103,7 +106,7 @@ class TripScreensTest {
         val archived = Trip("t2", "Rom", LocalDate(2025, 4, 10), 5, listOf("anna"), archived = true)
         rule.setContent {
             ReseApoteketTheme {
-                TripsContent(ListUiState.Content(listOf(TripListItem(trip, people), TripListItem(archived, people.take(1)))), {}, {}, { opened += it }, archive = ListArchive(showing = true) { events += it })
+                TripsContent(ListUiState.Content(persistentListOf(TripListItem(trip, people), TripListItem(archived, people.take(1)))), {}, {}, { opened += it }, archive = ListArchive(showing = true) { events += it })
             }
         }
         val archiveAction = SemanticsMatcher("har Arkivera") { node -> node.config.getOrNull(SemanticsActions.CustomActions).orEmpty().any { it.label == "Arkivera" } }
@@ -139,7 +142,7 @@ class TripScreensTest {
             val none = trip.copy(name = "", travellerIds = emptyList())
             TripEditContent(
                 true,
-                EditorUiState(none, errors = mapOf(TripValidator.TRAVELLERS to R.string.trip_travellers_required), isValid = false, isDirty = true),
+                EditorUiState(none, errors = persistentMapOf(TripValidator.TRAVELLERS to R.string.trip_travellers_required), isValid = false, isDirty = true),
                 people,
                 PackingPreviewText("För 0 resenärer i 7 dagar", "0 saker att packa", null),
                 emptyFlow(),
@@ -158,6 +161,6 @@ class TripScreensTest {
             TripListItem(Trip("t4", "Göteborg", LocalDate(2026, 5, 15), 2, listOf("anna"), TripStatus.DONE), people.take(1), PackingProgress(6, 6)),
             TripListItem(Trip("t5", "Rom", LocalDate(2025, 4, 10), 5, listOf("anna", "erik"), TripStatus.DONE, archived = true), people.take(2), PackingProgress(9, 10)),
         )
-        captureLightAndDark("TripsScreen_innehall") { TripsContent(ListUiState.Content(list), {}, {}, {}, archive = ListArchive(showing = true)) }
+        captureLightAndDark("TripsScreen_innehall") { TripsContent(ListUiState.Content(list.toImmutableList()), {}, {}, {}, archive = ListArchive(showing = true)) }
     }
 }

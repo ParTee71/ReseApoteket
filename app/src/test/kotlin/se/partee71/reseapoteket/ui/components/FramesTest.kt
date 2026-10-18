@@ -19,6 +19,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
 import org.junit.Test
@@ -67,7 +70,7 @@ class FramesTest {
     fun `grupperad lista visar en rubrik med antal per grupp`() {
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Familjeartiklar", ListUiState.Content(items), empty, {}, key = { it.first }, group = ::group) { ItemRow(it.first) }
+                EntityListScreen("Familjeartiklar", ListUiState.Content(items.toImmutableList()), empty, {}, key = { it.first }, group = ::group) { ItemRow(it.first) }
             }
         }
         rule.onNodeWithText("Krämer & salvor").assertIsDisplayed()
@@ -89,7 +92,7 @@ class FramesTest {
             ReseApoteketTheme {
                 EntityListScreen(
                     "Gran Canaria",
-                    ListUiState.Content(rows),
+                    ListUiState.Content(rows.toImmutableList()),
                     empty,
                     {},
                     key = { it.first },
@@ -123,7 +126,7 @@ class FramesTest {
         val rows = listOf("Solkräm SPF 50", "Resetabletter mot åksjuka")
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Gran Canaria", ListUiState.Content(rows), empty, {}, key = { it }, group = { ListGroup("Övrigt", columns = 2) }) { ItemRow(it) }
+                EntityListScreen("Gran Canaria", ListUiState.Content(rows.toImmutableList()), empty, {}, key = { it }, group = { ListGroup("Övrigt", columns = 2) }) { ItemRow(it) }
             }
         }
         val first = rule.onNodeWithText(rows[0]).fetchSemanticsNode().positionInRoot
@@ -146,7 +149,7 @@ class FramesTest {
         val restore = StateRestorationTester(rule)
         restore.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Gran Canaria", ListUiState.Content(listOf("A1", "D1")), empty, {}, key = { it }, group = { ListGroup(if (it == "D1") "Dolda" else "Övrigt", collapsible = it == "D1") }) { ItemRow(it) }
+                EntityListScreen("Gran Canaria", ListUiState.Content(persistentListOf("A1", "D1")), empty, {}, key = { it }, group = { ListGroup(if (it == "D1") "Dolda" else "Övrigt", collapsible = it == "D1") }) { ItemRow(it) }
             }
         }
         rule.onNodeWithText("D1").assertDoesNotExist()
@@ -161,7 +164,7 @@ class FramesTest {
         var toggles = 0
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Familjeartiklar", ListUiState.Content(listOf("Solkräm")), empty, {}, key = { it }, archive = ListArchive { if (it == ArchiveEvent.ToggleArchived) toggles++ }) { ItemRow(it) }
+                EntityListScreen("Familjeartiklar", ListUiState.Content(persistentListOf("Solkräm")), empty, {}, key = { it }, archive = ListArchive { if (it == ArchiveEvent.ToggleArchived) toggles++ }) { ItemRow(it) }
             }
         }
         rule.onNodeWithContentDescription("Fler val").performClick()
@@ -332,7 +335,7 @@ class FramesTest {
         captureLightAndDark("EntityListScreen_tom") { EntityListScreen<String>("Familjeartiklar", ListUiState.Empty, empty, {}, key = { it }) {} }
         captureLightAndDark("EntityListScreen_fel") { EntityListScreen<String>("Familjeartiklar", ListUiState.Error(DataError.Offline), empty, {}, key = { it }) {} }
         captureLightAndDark("EntityListScreen_innehall") {
-            EntityListScreen("Familjeartiklar", ListUiState.Content(items), empty, {}, key = { it.first }, group = ::group,
+            EntityListScreen("Familjeartiklar", ListUiState.Content(items.toImmutableList()), empty, {}, key = { it.first }, group = ::group,
                 addMenu = listOf(AppMenuItem("Visa arkiverade", {}))) { ItemRow(it.first, subtitle = "1 tub per 7 dagar", navigates = true, onClick = {}) }
         }
     }
@@ -340,7 +343,7 @@ class FramesTest {
     @Test
     fun `EntityEditScreen - ogiltig och giltig`() {
         captureLightAndDark("EntityEditScreen_ogiltig") {
-            EntityEditScreen("Ny familjeartikel", EditorUiState("", mapOf("name" to R.string.error_unknown), isValid = false, isDirty = true), emptyFlow(), {}, {}) {
+            EntityEditScreen("Ny familjeartikel", EditorUiState("", persistentMapOf("name" to R.string.error_unknown), isValid = false, isDirty = true), emptyFlow(), {}, {}) {
                 AppTextField("", {}, "Namn", error = "Ange ett namn")
                 QuantityRuleRow(QuantityRule.PerDays(1, 7), {}, { if (it == 1) "tub" else "tuber" })
             }

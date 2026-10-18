@@ -1,5 +1,8 @@
 package se.partee71.reseapoteket.ui.common
 
+import androidx.compose.runtime.Immutable
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,12 +18,13 @@ import se.partee71.reseapoteket.core.model.Archivable
 import se.partee71.reseapoteket.data.common.DataError
 
 /** Tillståndet för varje listskärm – samma fyra lägen överallt (NFR-1, `EntityListScreen`). */
+@Immutable
 sealed interface ListUiState<out T> {
     data object Loading : ListUiState<Nothing>
 
     data object Empty : ListUiState<Nothing>
 
-    data class Content<T>(val items: List<T>) : ListUiState<T>
+    data class Content<T>(val items: ImmutableList<T>) : ListUiState<T>
 
     data class Error(val error: DataError) : ListUiState<Nothing>
 }
@@ -35,7 +39,7 @@ fun <T> Flow<List<T>>.asListUiState(retry: Flow<Unit>): Flow<ListUiState<T>> =
 
 /** Den enda översättningen från en datalista till [ListUiState]. */
 fun <T> Flow<List<T>>.asListUiState(): Flow<ListUiState<T>> =
-    map<List<T>, ListUiState<T>> { items -> if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items) }
+    map<List<T>, ListUiState<T>> { items -> if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items.toImmutableList()) }
         .onStart { emit(ListUiState.Loading) }
         .catch { emit(ListUiState.Error(it as? DataError ?: DataError.Unknown)) }
 
@@ -70,6 +74,7 @@ class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope) {
 }
 
 /** Tillståndet för en detaljskärm (`EntityDetailScreen`): laddning, fel eller innehåll. */
+@Immutable
 sealed interface DetailUiState<out T> {
     data object Loading : DetailUiState<Nothing>
 

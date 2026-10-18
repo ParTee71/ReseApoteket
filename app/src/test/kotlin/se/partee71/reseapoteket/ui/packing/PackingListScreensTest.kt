@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import org.robolectric.annotation.Config
@@ -117,7 +119,7 @@ class PackingListScreensTest {
         val hidden = mutableListOf<ArchiveEvent>()
         rule.setContent {
             ReseApoteketTheme {
-                PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, archive = ListArchive(showToggle = false) { hidden += it })
+                PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}, archive = ListArchive(showToggle = false) { hidden += it })
             }
         }
         rule.onNodeWithContentDescription("Enalapril 10 mg, 18 tabletter · 2 kartor").performClick()
@@ -131,7 +133,7 @@ class PackingListScreensTest {
     @Test
     fun `Dolda är hopfälld tills rubriken trycks, och en dold rad visas igen (PAK-4)`() {
         val events = mutableListOf<PackingListEvent>()
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}) } }
         rule.onNodeWithText("Plåster").assertDoesNotExist()
         rule.onNode(hasScrollAction()).performScrollToNode(hasText("Dolda"))
         rule.onNodeWithText("Dolda").performSemanticsAction(SemanticsActions.OnClick)
@@ -144,7 +146,7 @@ class PackingListScreensTest {
     @Test
     fun `mängden har förslaget, Återställ och Klar (PAK-3)`() {
         val events = mutableListOf<PackingListEvent>()
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, editing = rows[4]) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}, editing = rows[4]) } }
         rule.onNodeWithText("Förslag").assertIsDisplayed()
         rule.onNodeWithText("10 tabletter").assertIsDisplayed()
         rule.onNodeWithText("Återställ till förslag (10)").performClick()
@@ -154,7 +156,7 @@ class PackingListScreensTest {
 
     @Test
     fun `ett skrivfel visas i panelen`() {
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}, editing = rows[4], sheetError = DataError.Offline) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}, editing = rows[4], sheetError = DataError.Offline) } }
         rule.onNodeWithText("Ingen anslutning", substring = true).assertIsDisplayed()
     }
 
@@ -162,7 +164,7 @@ class PackingListScreensTest {
     fun `lägg till frågar vem för en medicin (PAK-4)`() {
         val events = mutableListOf<PackingListEvent>()
         val adding = EditorUiState(PackingItem("ny", PackingSection.MEDICINE, name = "Nässpray", quantity = 1, sourceType = PackingSource.MANUAL), isValid = false, isDirty = true)
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = adding) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}, adding = adding) } }
         rule.onNodeWithText("Vem?", ignoreCase = true).assertIsDisplayed()
         rule.onAllNodesWithText("Erik").filterToOne(hasClickAction()).performClick()
         assertEquals(listOf<PackingListEvent>(PackingListEvent.AddPerson("erik")), events)
@@ -173,14 +175,14 @@ class PackingListScreensTest {
     private val pasted = AddListState(
         AddMode.LIST,
         "Solkräm 2\nLaddare\nPlåster",
-        listOf(PastedLine("Solkräm", 2, PastedStatus.ADD), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Plåster", 1, PastedStatus.EXISTS)),
+        persistentListOf(PastedLine("Solkräm", 2, PastedStatus.ADD), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Plåster", 1, PastedStatus.EXISTS)),
     )
 
     @Test
     @Config(qualifiers = "w390dp-h1000dp-xxhdpi")
     fun `lägg till som lista visar vad som läggs till under Övrigt och sparar (PAK-7)`() {
         val events = mutableListOf<PackingListEvent>()
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = newItem, addList = pasted) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}, adding = newItem, addList = pasted) } }
         rule.onNodeWithText("Läggs till under Övrigt", ignoreCase = true).assertIsDisplayed()
         rule.onNodeWithText("2 st").assertIsDisplayed()
         rule.onNodeWithText("finns redan").assertIsDisplayed()
@@ -194,8 +196,8 @@ class PackingListScreensTest {
     fun `en lång lista – knappen går att nå och förhandsvisningen går att scrolla till (#100)`() {
         val events = mutableListOf<PackingListEvent>()
         val lines = (1..72).map { PastedLine("Sak nummer $it i flyttlasset", 1, PastedStatus.ADD) }
-        val long = AddListState(AddMode.LIST, lines.joinToString("\n") { it.name }, lines)
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = newItem, addList = long) } }
+        val long = AddListState(AddMode.LIST, lines.joinToString("\n") { it.name }, lines.toImmutableList())
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}, adding = newItem, addList = long) } }
         // Fältet växer inte med alla 72 raderna – högst 8 rader, sedan scrollar det inuti.
         val field = rule.onNodeWithText("En sak per rad").getUnclippedBoundsInRoot()
         assertTrue(field.height < 320.dp, "fältet är ${field.height} högt")
@@ -207,8 +209,8 @@ class PackingListScreensTest {
     @Test
     fun `en lista utan något nytt går inte att spara, och En sak byter till listan (PAK-7)`() {
         val events = mutableListOf<PackingListEvent>()
-        val nothing = AddListState(AddMode.LIST, "Plåster", listOf(PastedLine("Plåster", 1, PastedStatus.EXISTS)))
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, {}, adding = newItem, addList = nothing) } }
+        val nothing = AddListState(AddMode.LIST, "Plåster", persistentListOf(PastedLine("Plåster", 1, PastedStatus.EXISTS)))
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, {}, adding = newItem, addList = nothing) } }
         rule.onAllNodesWithText("Lägg till").filter(isNotEnabled()).assertCountEquals(1)
         rule.onNodeWithText("En sak per rad").performTextInput("Laddare")
         assertTrue(events.single() is PackingListEvent.AddListText)
@@ -217,14 +219,14 @@ class PackingListScreensTest {
     @Test
     @Config(qualifiers = "w390dp-h1000dp-xxhdpi")
     fun `skärmdump - lägg till som lista (PAK-7)`() = rule.captureScreenLightAndDark("PackingListScreen_lista") {
-        PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}, adding = newItem, addList = pasted)
+        PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}, adding = newItem, addList = pasted)
     }
 
     @Test
     fun `pennan öppnar resan och Räkna om frågar först`() {
         var edits = 0
         val events = mutableListOf<PackingListEvent>()
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), { events += it }, {}, { edits++ }, askRecount = true) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { events += it }, {}, { edits++ }, askRecount = true) } }
         rule.onNodeWithContentDescription("Redigera resa").performClick()
         rule.onNodeWithText("Räkna om packlistan?").assertIsDisplayed()
         rule.onNodeWithText("Räkna om").performClick()
@@ -242,7 +244,7 @@ class PackingListScreensTest {
             PackingRow(other("tandborste", "Tandborste", 4, ItemUnit.ST).copy(travelDay = true)),
             PackingRow(other("laddare", "Laddare", 2, ItemUnit.ST, manual = true).copy(travelDay = true, travelDayTime = LocalTime(8, 30))),
         )
-        captureLightAndDark("PackingListScreen_resedag") { PackingListContent(ListUiState.Content(travelDay), header(travelDay), {}, {}, {}) }
+        captureLightAndDark("PackingListScreen_resedag") { PackingListContent(ListUiState.Content(travelDay.toImmutableList()), header(travelDay), {}, {}, {}) }
     }
 
     @Test
@@ -261,25 +263,25 @@ class PackingListScreensTest {
 
     @Test
     fun `skärmdumpar - delvis, allt packat och nyskapad`() {
-        captureLightAndDark("PackingListScreen_delvis") { PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}) }
+        captureLightAndDark("PackingListScreen_delvis") { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}) }
         captureLightAndDark("PackingListScreen_klar") {
-            PackingListContent(ListUiState.Content(allChecked), header(allChecked, TripStatus.PACKED), {}, {}, {})
+            PackingListContent(ListUiState.Content(allChecked.toImmutableList()), header(allChecked, TripStatus.PACKED), {}, {}, {})
         }
         val other = rows.filter { it.item.section == PackingSection.FAMILY }
-        captureLightAndDark("PackingListScreen_ovrigt") { PackingListContent(ListUiState.Content(other), header(other), {}, {}, {}) }
+        captureLightAndDark("PackingListScreen_ovrigt") { PackingListContent(ListUiState.Content(other.toImmutableList()), header(other), {}, {}, {}) }
         val fresh = rows.map { it.copy(item = it.item.copy(checked = false, hidden = false, quantity = it.item.suggestedQuantity)) }
-        captureLightAndDark("PackingListScreen_ny") { PackingListContent(ListUiState.Content(fresh), header(fresh), {}, {}, {}) }
+        captureLightAndDark("PackingListScreen_ny") { PackingListContent(ListUiState.Content(fresh.toImmutableList()), header(fresh), {}, {}, {}) }
     }
 
     @Test
     fun `skärmdump - ändra mängd`() = rule.captureScreenLightAndDark("PackingListScreen_mangd") {
-        PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}, editing = rows[4])
+        PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}, editing = rows[4])
     }
 
     @Test
     fun `skärmdump - lägg till`() = rule.captureScreenLightAndDark("PackingListScreen_lagg_till") {
         PackingListContent(
-            ListUiState.Content(rows),
+            ListUiState.Content(rows.toImmutableList()),
             header(rows),
             {},
             {},
@@ -290,7 +292,7 @@ class PackingListScreensTest {
 
     @Test
     fun `packat visas i rubriken`() {
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows), header(rows), {}, {}, {}) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}) } }
         assertEquals(PackingProgress(6, 12), header(rows).progress)
         rule.onNodeWithContentDescription("6 av 12 packat").assertIsDisplayed()
     }

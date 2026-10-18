@@ -205,12 +205,12 @@ private fun <T> ListContent(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = Spacing.l, end = Spacing.l, top = Spacing.xs, bottom = clearance + ADD_BUTTON_CLEARANCE),
         ) {
-            header?.let { item(key = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
+            header?.let { item(key = "list-header", contentType = "list-header") { Box(Modifier.padding(bottom = Spacing.m)) { it() } } }
             groups.forEachIndexed { index, (head, rows) ->
-                if (index > 0) item(key = "gap:$index") { Spacer(Modifier.height(Spacing.m)) }
+                if (index > 0) item(key = "gap:$index", contentType = "gap") { Spacer(Modifier.height(Spacing.m)) }
                 val open = head == null || !head.collapsible || head.title in expanded
                 head?.let {
-                    item(key = "header:${it.title}") {
+                    item(key = "header:${it.title}", contentType = "group-header") {
                         CardSegment(top = true, bottom = !open, Modifier.animateItem()) {
                             GroupHeader(it, rows.size, open) { expanded = if (open) expanded - it.title else expanded + it.title }
                         }
@@ -244,11 +244,15 @@ private fun <T> LazyListScope.groupRows(
         val top = head == null && position == 0
         val bottom = position == lines.lastIndex
         when (line) {
-            is Line.Label -> item(key = "sub:${head?.title}:${line.id}") {
+            is Line.Label -> item(key = "sub:${head?.title}:${line.id}", contentType = "subgroup") {
                 CardSegment(top = top, bottom = bottom, Modifier.animateItem()) { SubgroupLabel(line.subgroup) }
             }
             // Nycklar måste kunna sparas i en Bundle: en rad har sin egen, flera i kolumner en sammansatt sträng.
-            is Line.Rows -> item(key = line.members.singleOrNull()?.let(key) ?: line.members.joinToString("|") { key(it).toString() }) {
+            // contentType efter antal kolumner: Compose återanvänder bara rader med samma uppbyggnad.
+            is Line.Rows -> item(
+                key = line.members.singleOrNull()?.let(key) ?: line.members.joinToString("|") { key(it).toString() },
+                contentType = "rows:$columns",
+            ) {
                 CardSegment(top = top, bottom = bottom, Modifier.animateItem()) {
                     if (columns == 1) {
                         row(line.members.single())

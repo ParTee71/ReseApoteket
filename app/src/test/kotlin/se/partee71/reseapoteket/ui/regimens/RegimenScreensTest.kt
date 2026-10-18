@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import kotlin.test.assertEquals
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -122,7 +123,7 @@ class RegimenScreensTest {
     @Test
     fun `förhandsvisningen och doseringsfelet syns i formuläret (REC-2, REC-4)`() {
         val weekdays = levaxin.copy(schedule = DoseSchedule.Weekdays(emptySet(), 1))
-        val state = EditorUiState(weekdays, errors = mapOf(RegimenValidator.SCHEDULE to R.string.regimen_days_required))
+        val state = EditorUiState(weekdays, errors = persistentMapOf(RegimenValidator.SCHEDULE to R.string.regimen_days_required))
         rule.setContent { ReseApoteketTheme { RegimenEditContent(config, false, state, preview(levaxin), emptyFlow(), {}, {}) } }
         rule.onNodeWithText("Välj minst en veckodag").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("För en 7-dagarsresa").performScrollTo().assertIsDisplayed()

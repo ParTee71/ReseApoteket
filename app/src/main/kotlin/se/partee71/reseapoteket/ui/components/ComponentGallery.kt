@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -276,7 +278,7 @@ private fun Frames(onBack: () -> Unit) {
     Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
         EntityListScreen(
             title = "Familjeartiklar",
-            state = if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items),
+            state = if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items.toImmutableList()),
             empty = EmptyContent(
                 R.drawable.ic_family_items,
                 "Inga familjeartiklar än",
@@ -318,7 +320,7 @@ private fun Frames(onBack: () -> Unit) {
         EntityListScreen(
             title = "Kreta",
             subtitle = "2 okt · 7 dagar",
-            state = ListUiState.Content(grouped),
+            state = ListUiState.Content(grouped.toImmutableList()),
             empty = EmptyContent(R.drawable.ic_family_items, "", "", ""),
             onAdd = {},
             key = { it.second },
@@ -343,7 +345,7 @@ private fun Frames(onBack: () -> Unit) {
     Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
         EntityEditScreen(
             title = "Ny familjeartikel",
-            state = EditorUiState(value = name, errors = if (name.isBlank()) mapOf("name" to R.string.error_unknown) else emptyMap(), isValid = name.isNotBlank(), isDirty = name.isNotEmpty()),
+            state = EditorUiState(value = name, errors = if (name.isBlank()) persistentMapOf("name" to R.string.error_unknown) else persistentMapOf(), isValid = name.isNotBlank(), isDirty = name.isNotEmpty()),
             effects = emptyFlow(),
             onSave = {},
             onClose = onBack,

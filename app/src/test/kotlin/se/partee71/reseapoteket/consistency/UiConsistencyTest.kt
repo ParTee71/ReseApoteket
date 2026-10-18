@@ -111,6 +111,17 @@ class UiConsistencyTest {
     }
 
     @Test
+    fun `UiState-typer är @Immutable eller @Stable`() {
+        // En lista eller karta i tillståndet är ImmutableList/ImmutableMap; annoteringen gör hela typen stabil (skill compose-expert).
+        val states = production.classes().filter { it.hasDataModifier && it.name.endsWith("State") } +
+            production.interfaces().withNameEndingWith("UiState")
+        assertTrue(states.isNotEmpty(), "hittade inga UiState-typer")
+        states.filter { it.resideInPackage("..ui..") }.forEach { state ->
+            assertTrue(state.hasAnnotationWithName("Immutable", "Stable"), "${state.name} ska vara @Immutable eller @Stable")
+        }
+    }
+
+    @Test
     fun `komponenttabellen i shared-ui-components stämmer med ui-components`() {
         val inCode = publicComponents("Dokumentdrift")
         val inTable = documentedComponents()
