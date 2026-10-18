@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -97,10 +98,11 @@ fun PackingListContent(
     val groups = packingGroups(header?.groups.orEmpty())
     val progress = header?.progress ?: PackingProgress.NONE
     var confetti by remember { mutableStateOf(false) }
+    val event by rememberUpdatedState(onEvent)
     LaunchedEffect(celebrate) {
         if (celebrate) {
             confetti = true
-            onEvent(PackingListEvent.Celebrated)
+            event(PackingListEvent.Celebrated)
         }
     }
     Box(modifier.fillMaxSize()) {

@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -25,10 +27,11 @@ fun SignInScreen(state: AuthUiState, onEvent: (AuthEvent) -> Unit, modifier: Mod
     val resources = LocalResources.current
     val snackbar = remember { SnackbarHostState() }
     val error = state.error
+    val event by rememberUpdatedState(onEvent)
     LaunchedEffect(error) {
         if (error != null) {
             snackbar.showSnackbar(resources.getString(error.toMessage()))
-            onEvent(AuthEvent.ErrorShown)
+            event(AuthEvent.ErrorShown)
         }
     }
     EmptyState(
