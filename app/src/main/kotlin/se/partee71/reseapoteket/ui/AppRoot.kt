@@ -27,7 +27,7 @@ fun AppRoot(
     modifier: Modifier = Modifier,
     openTrip: String? = null,
     onTripOpened: () -> Unit = {},
-    viewModel: AuthViewModel = hiltViewModel(),
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     AppRootContent(state, viewModel::onEvent, modifier) { AppNavigation(openTrip = openTrip, onTripOpened = onTripOpened) }
@@ -39,14 +39,17 @@ fun AppRootContent(
     state: AuthUiState,
     onEvent: (AuthEvent) -> Unit,
     modifier: Modifier = Modifier,
-    main: @Composable () -> Unit = { AppNavigation() },
+    main: @Composable () -> Unit = { AppNavigation() }
 ) {
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when (state.gate) {
             AuthGate.SignedOut, AuthGate.NeedsHousehold -> SignInScreen(state, onEvent)
+
             AuthGate.UpdateRequired -> UpdateRequiredScreen()
+
             // Syns bara en kort stund vid start; hänger något ser användaren att appen arbetar.
             AuthGate.Loading -> AppLoading()
+
             AuthGate.Ready -> main()
         }
     }

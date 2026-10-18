@@ -29,7 +29,7 @@ fun DateField(
     date: LocalDate?,
     onDateChange: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
-    error: String? = null,
+    error: String? = null
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
     PickerField(
@@ -39,7 +39,7 @@ fun DateField(
         icon = R.drawable.ic_calendar,
         onPick = { picking = true },
         modifier = modifier,
-        error = error,
+        error = error
     )
     if (picking) {
         val state = rememberDatePickerState(initialSelectedDateMillis = date?.let(DateFormat::toEpochMillis))
@@ -52,7 +52,7 @@ fun DateField(
                 }, variant = ButtonVariant.Text)
             },
             dismissButton = { AppButton(stringResource(R.string.cancel), { picking = false }, variant = ButtonVariant.Text) },
-            colors = DatePickerDefaults.colors(containerColor = AppColors.extended.card),
+            colors = DatePickerDefaults.colors(containerColor = AppColors.extended.card)
         ) {
             DatePicker(state)
         }

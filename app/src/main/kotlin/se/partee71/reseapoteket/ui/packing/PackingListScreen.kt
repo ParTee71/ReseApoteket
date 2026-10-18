@@ -74,7 +74,7 @@ fun PackingListScreen(onBack: () -> Unit, onEditTrip: () -> Unit, viewModel: Pac
         addList = addList,
         askRecount = askRecount,
         celebrate = celebrate,
-        sheetError = sheetError,
+        sheetError = sheetError
     )
 }
 
@@ -92,7 +92,7 @@ fun PackingListContent(
     addList: AddListState = AddListState(),
     askRecount: Boolean = false,
     celebrate: Boolean = false,
-    sheetError: DataError? = null,
+    sheetError: DataError? = null
 ) {
     val groups = packingGroups(header?.groups.orEmpty())
     val progress = header?.progress ?: PackingProgress.NONE
@@ -111,14 +111,14 @@ fun PackingListContent(
                 icon = R.drawable.ic_luggage,
                 title = stringResource(R.string.packing_empty_title),
                 message = stringResource(R.string.packing_empty_message),
-                actionLabel = stringResource(R.string.add),
+                actionLabel = stringResource(R.string.add)
             ),
             onAdd = { onEvent(PackingListEvent.Add) },
             key = { it.item.id },
             onRetry = { onEvent(PackingListEvent.List(ListEvent.Retry)) },
             addMenu = listOf(
                 AppMenuItem(stringResource(R.string.packing_recount), { onEvent(PackingListEvent.AskRecount) }, R.drawable.ic_refresh),
-                AppMenuItem(stringResource(R.string.packing_hide_checked), { onEvent(PackingListEvent.HideChecked) }, R.drawable.ic_visibility_off),
+                AppMenuItem(stringResource(R.string.packing_hide_checked), { onEvent(PackingListEvent.HideChecked) }, R.drawable.ic_visibility_off)
             ),
             group = { row -> groups.getValue(if (row.item.hidden) null else PackingList.group(row.item)) },
             archive = archive,
@@ -138,7 +138,7 @@ fun PackingListContent(
             },
             subgroup = { row ->
                 row.person?.takeIf { !row.item.hidden && row.item.section != PackingSection.FAMILY }?.let { ListSubgroup(it.name, AppColors.person(it.colorHex)) }
-            },
+            }
         ) { row -> PackingRowView(row, onEvent, archive) }
         if (confetti) Confetti(Modifier.fillMaxSize(), onFinished = { confetti = false })
     }
@@ -150,7 +150,7 @@ fun PackingListContent(
             message = stringResource(R.string.packing_recount_message),
             confirmLabel = stringResource(R.string.trip_recount_confirm),
             onConfirm = { onEvent(PackingListEvent.Recount) },
-            onDismiss = { onEvent(PackingListEvent.CancelRecount) },
+            onDismiss = { onEvent(PackingListEvent.CancelRecount) }
         )
     }
 }
@@ -182,7 +182,7 @@ private fun packingGroups(progress: Map<PackingGroup, PackingProgress>): Map<Pac
             PackingGroup.SUPPLEMENT to supplements,
             PackingGroup.FAMILY to other,
             PackingGroup.TRAVEL_DAY to travelDay,
-            null to hidden,
+            null to hidden
         )
     }
 }
@@ -196,7 +196,7 @@ private fun PackingRowView(row: PackingRow, onEvent: (PackingListEvent) -> Unit,
         ItemRow(
             item.name,
             subtitle = amount,
-            trailing = { AppButton(stringResource(R.string.packing_show_again), { onEvent(PackingListEvent.Show(item.id)) }, variant = ButtonVariant.Text, compact = true) },
+            trailing = { AppButton(stringResource(R.string.packing_show_again), { onEvent(PackingListEvent.Show(item.id)) }, variant = ButtonVariant.Text, compact = true) }
         )
         return
     }
@@ -210,7 +210,7 @@ private fun PackingRowView(row: PackingRow, onEvent: (PackingListEvent) -> Unit,
             trailing = labels(row),
             onClick = { onEvent(PackingListEvent.Open(item.id)) },
             onClickLabel = stringResource(R.string.packing_edit_quantity),
-            accent = row.person?.takeIf { item.section != PackingSection.FAMILY }?.let { AppColors.person(it.colorHex) },
+            accent = row.person?.takeIf { item.section != PackingSection.FAMILY }?.let { AppColors.person(it.colorHex) }
         )
     }
 }

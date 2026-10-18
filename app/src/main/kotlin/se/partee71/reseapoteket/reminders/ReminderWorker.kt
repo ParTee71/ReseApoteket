@@ -46,7 +46,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             run: suspend () -> Instant,
             showAgain: suspend (String) -> Unit,
             checkAt: (Instant) -> Unit,
-            retryAt: () -> Instant,
+            retryAt: () -> Instant
         ) {
             val key = input.getString(KEY)
             if (key != null) {

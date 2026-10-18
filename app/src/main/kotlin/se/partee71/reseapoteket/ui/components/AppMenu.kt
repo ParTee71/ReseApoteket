@@ -26,7 +26,7 @@ data class AppMenuItem(
     val label: String,
     val onClick: () -> Unit,
     @param:DrawableRes val icon: Int? = null,
-    val destructive: Boolean = false,
+    val destructive: Boolean = false
 )
 
 /** Menyn bakom "Fler val" (⋮): arkivera, radera, visa arkiverade m.m. */
@@ -46,7 +46,7 @@ internal fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss
         expanded = expanded,
         onDismissRequest = onDismiss,
         shape = AppShapes.menu,
-        containerColor = AppColors.extended.card,
+        containerColor = AppColors.extended.card
     ) {
         items.forEach { item ->
             val color = if (item.destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
@@ -57,7 +57,7 @@ internal fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss
                     item.onClick()
                 },
                 leadingIcon = item.icon?.let { { Icon(painterResource(it), contentDescription = null) } },
-                colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color),
+                colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color)
             )
         }
     }

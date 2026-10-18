@@ -51,8 +51,7 @@ object FirebaseEmulator {
         return householdId
     }
 
-    fun collections(scope: TestHouseholdScope, clock: FixedClock = FixedClock()) =
-        Collections(FirestoreCollectionFactory(db, scope, sync(), clock), clock)
+    fun collections(scope: TestHouseholdScope, clock: FixedClock = FixedClock()) = Collections(FirestoreCollectionFactory(db, scope, sync(), clock), clock)
 
     fun versions() = FirestoreHouseholdVersions(db)
 

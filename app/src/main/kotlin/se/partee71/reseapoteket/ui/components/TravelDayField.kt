@@ -27,14 +27,14 @@ fun TravelDayField(travelDay: Boolean, time: LocalTime?, onChange: (TravelDayCha
             stringResource(R.string.travel_day),
             travelDay,
             { onChange(TravelDayChange(it, time)) },
-            subtitle = stringResource(R.string.travel_day_note),
+            subtitle = stringResource(R.string.travel_day_note)
         )
         if (travelDay) {
             TimeField(
                 stringResource(R.string.travel_day_time),
                 time ?: LocalTravelDayMorning.current,
                 { onChange(TravelDayChange(true, it)) },
-                helper = stringResource(if (time == null) R.string.travel_day_time_morning else R.string.travel_day_time_own),
+                helper = stringResource(if (time == null) R.string.travel_day_time_morning else R.string.travel_day_time_own)
             )
             if (time != null) AppButton(stringResource(R.string.travel_day_use_morning), { onChange(TravelDayChange(true, null)) }, variant = ButtonVariant.Text, compact = true)
         }

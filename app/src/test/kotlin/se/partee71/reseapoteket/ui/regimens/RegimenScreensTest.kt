@@ -54,7 +54,7 @@ class RegimenScreensTest {
     private val today = LocalDate(2026, 10, 1)
     private val levaxin = Regimen(
         "r1", RegimenKind.MEDICINE, "Levaxin", MedicineForm.TABLET, "50 µg", ItemUnit.TABLETT, 100,
-        DoseSchedule.Daily(1, 1), "På fastande mage",
+        DoseSchedule.Daily(1, 1), "På fastande mage"
     )
 
     private fun preview(regimen: Regimen) = PackingEngine.regimenPreview(regimen, HouseholdSettings(), today)
@@ -70,9 +70,12 @@ class RegimenScreensTest {
         val editor = EditorState(levaxin.copy(kind = kind, name = ""), RegimenValidator)
         rule.runEditScreenContract(
             editor = editor,
-            makeInvalid = { update(RegimenValidator.NAME) { it.copy(name = "x") }; update(RegimenValidator.NAME) { it.copy(name = "") } },
+            makeInvalid = {
+                update(RegimenValidator.NAME) { it.copy(name = "x") }
+                update(RegimenValidator.NAME) { it.copy(name = "") }
+            },
             makeValid = { update(RegimenValidator.NAME) { it.copy(name = "Levaxin") } },
-            invalidMessage = "Ange ett namn",
+            invalidMessage = "Ange ett namn"
         ) { state, events, onSave, onClose ->
             RegimenEditContent(config, isNew = true, state, preview(state.value), events, { event ->
                 if (event == RegimenEditEvent.Save) onSave()
@@ -158,14 +161,13 @@ class RegimenScreensTest {
     @Test
     @Config(qualifiers = "w390dp-h1500dp-xxhdpi")
     fun `skärmdumpar i alla fyra doseringslägen`() {
-        fun capture(name: String, regimen: Regimen) =
-            captureLightAndDark("RegimenEditScreen_$name") {
-                RegimenEditContent(config, false, EditorUiState(regimen, isDirty = true), preview(regimen), EditorEvents.None, {}, {}, stored = levaxin)
-            }
+        fun capture(name: String, regimen: Regimen) = captureLightAndDark("RegimenEditScreen_$name") {
+            RegimenEditContent(config, false, EditorUiState(regimen, isDirty = true), preview(regimen), EditorEvents.None, {}, {}, stored = levaxin)
+        }
         capture("dagligen", levaxin)
         capture(
             "veckodagar",
-            levaxin.copy(name = "Enalapril", strength = "10 mg", notes = "", schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 1)),
+            levaxin.copy(name = "Enalapril", strength = "10 mg", notes = "", schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 1))
         )
         capture("intervall", levaxin.copy(name = "Alendronat", strength = "70 mg", packageSize = 4, notes = "", schedule = DoseSchedule.IntervalDays(7, 1)))
         capture("vid_behov", levaxin.copy(name = "Alvedon", strength = "500 mg", packageSize = 20, notes = "Vid feber eller värk", schedule = DoseSchedule.AsNeeded(20)))

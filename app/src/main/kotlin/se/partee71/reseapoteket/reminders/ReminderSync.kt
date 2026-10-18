@@ -15,7 +15,7 @@ class ReminderSync @Inject constructor(
     private val source: ReminderSource,
     private val runner: ReminderRunner,
     private val scheduler: ReminderScheduler,
-    private val clock: Clock,
+    private val clock: Clock
 ) {
     @OptIn(FlowPreview::class)
     suspend fun follow() {

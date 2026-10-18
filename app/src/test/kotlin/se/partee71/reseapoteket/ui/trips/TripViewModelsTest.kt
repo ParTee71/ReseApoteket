@@ -256,8 +256,12 @@ class TripViewModelsTest {
 
     /** Packlistor som inte går att skriva (nyare data än appen), resten som vanligt. */
     private fun failingPacking() = TripPacking(
-        trips, persons, regimens, familyItems, StubHouseholds(household),
-        DefaultPackingRepository(FakeCollectionFactory(collections.store, TestHouseholdScope(version = Schema.CURRENT_VERSION + 1))),
+        trips,
+        persons,
+        regimens,
+        familyItems,
+        StubHouseholds(household),
+        DefaultPackingRepository(FakeCollectionFactory(collections.store, TestHouseholdScope(version = Schema.CURRENT_VERSION + 1)))
     )
 
     @Test

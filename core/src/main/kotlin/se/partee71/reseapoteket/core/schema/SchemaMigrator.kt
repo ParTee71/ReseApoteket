@@ -32,15 +32,14 @@ object SchemaMigrator {
     /** Nyckel = versionen steget migrerar *från*. */
     internal val steps: Map<Int, Step> = mapOf(
         // 1 → 2: bara ett nytt enum-värde (POWDER) – inga befintliga dokument ändras.
-        1 to Step.UNCHANGED,
+        1 to Step.UNCHANGED
     )
 
     /**
      * Om ett hushåll i version [from] kan stämplas med [Schema.CURRENT_VERSION] utan att några
      * dokument migreras: det är äldre än appen och inget steg dit ändrar data.
      */
-    fun canStamp(from: Int): Boolean =
-        from < Schema.CURRENT_VERSION && stepsFrom(from).none { it.changesData }
+    fun canStamp(from: Int): Boolean = from < Schema.CURRENT_VERSION && stepsFrom(from).none { it.changesData }
 
     fun migrate(from: Int, collection: String, doc: Doc): Doc {
         require(!Schema.isNewerThanApp(from)) {
@@ -50,8 +49,7 @@ object SchemaMigrator {
     }
 
     /** Stegen från [from] till [Schema.CURRENT_VERSION]; en version under den första (trasigt värde) är det första formatet. */
-    private fun stepsFrom(from: Int): List<Step> =
-        (from.coerceAtLeast(Schema.FIRST_VERSION) until Schema.CURRENT_VERSION).map { version ->
-            checkNotNull(steps[version]) { "Migreringssteg saknas för version $version" }
-        }
+    private fun stepsFrom(from: Int): List<Step> = (from.coerceAtLeast(Schema.FIRST_VERSION) until Schema.CURRENT_VERSION).map { version ->
+        checkNotNull(steps[version]) { "Migreringssteg saknas för version $version" }
+    }
 }

@@ -24,24 +24,23 @@ sealed interface HouseholdStatus {
  */
 class EnsureHouseholdUseCase @Inject constructor(
     private val directory: HouseholdDirectory,
-    private val households: HouseholdRepository,
+    private val households: HouseholdRepository
 ) {
-    suspend operator fun invoke(uid: String): Result<HouseholdStatus> =
-        suspendRunCatching({ DataError.Unknown }) {
-            val found = directory.householdsOf(uid).getOrThrow()
-            // Äldst först; ett hushåll utan createdAt vet vi inget om och kommer sist.
-            val existing = found.minWithOrNull(compareBy<Household, Instant?>(nullsLast()) { it.createdAt }.thenBy { it.id })
-            if (existing == null) {
-                HouseholdStatus.Ready(households.create(DEFAULT_NAME, uid).getOrThrow())
+    suspend operator fun invoke(uid: String): Result<HouseholdStatus> = suspendRunCatching({ DataError.Unknown }) {
+        val found = directory.householdsOf(uid).getOrThrow()
+        // Äldst först; ett hushåll utan createdAt vet vi inget om och kommer sist.
+        val existing = found.minWithOrNull(compareBy<Household, Instant?>(nullsLast()) { it.createdAt }.thenBy { it.id })
+        if (existing == null) {
+            HouseholdStatus.Ready(households.create(DEFAULT_NAME, uid).getOrThrow())
+        } else {
+            households.select(existing.id)
+            if (Schema.isNewerThanApp(existing.schemaVersion)) {
+                HouseholdStatus.RequiresUpdate(existing.id)
             } else {
-                households.select(existing.id)
-                if (Schema.isNewerThanApp(existing.schemaVersion)) {
-                    HouseholdStatus.RequiresUpdate(existing.id)
-                } else {
-                    HouseholdStatus.Ready(existing.id)
-                }
+                HouseholdStatus.Ready(existing.id)
             }
         }
+    }
 
     companion object {
         /** Namnet på ett nytt hushåll – data, inte en UI-text; kan byta namn i Inställningar (Epic 3). */

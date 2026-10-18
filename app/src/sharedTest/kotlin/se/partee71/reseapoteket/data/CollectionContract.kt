@@ -19,8 +19,8 @@ import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
 import se.partee71.reseapoteket.core.schema.Doc
 import se.partee71.reseapoteket.core.schema.RegimenCodec
-import se.partee71.reseapoteket.core.schema.TripCodec
 import se.partee71.reseapoteket.core.schema.Schema
+import se.partee71.reseapoteket.core.schema.TripCodec
 import se.partee71.reseapoteket.data.common.CollectionFactory
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.dataError

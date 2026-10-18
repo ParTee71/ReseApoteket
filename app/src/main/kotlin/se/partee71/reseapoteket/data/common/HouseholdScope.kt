@@ -27,8 +27,7 @@ interface HouseholdScope {
 }
 
 /** Den kända versionen för det aktiva hushållet, annars `null`. */
-fun HouseholdScope.currentVersion(): Int? =
-    schemaVersion.value?.takeIf { it.householdId == householdId.value }?.version
+fun HouseholdScope.currentVersion(): Int? = schemaVersion.value?.takeIf { it.householdId == householdId.value }?.version
 
 /**
  * Varför en skrivning inte får göras, eller `null` om den får (BCK-5). **Stängd som
@@ -42,8 +41,10 @@ suspend fun HouseholdScope.writeBlocker(): DataError? {
         combine(schemaVersion, unreadable) { version, denied ->
             when {
                 denied == id -> Verdict(DataError.PermissionDenied)
+
                 version?.householdId == id ->
                     Verdict(DataError.UpdateRequired.takeIf { Schema.isNewerThanApp(version.version) })
+
                 else -> null
             }
         }.filterNotNull().first()

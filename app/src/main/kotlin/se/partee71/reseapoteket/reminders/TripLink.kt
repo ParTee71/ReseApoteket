@@ -16,8 +16,7 @@ object TripLink {
     /** Aliasets klassnamn – i appens kodpaket, oberoende av applicationId (debug-suffix). */
     val ALIAS: String = "${MainActivity::class.java.name.substringBeforeLast('.')}.OpenTripFromReminder"
 
-    fun intent(context: Context, tripId: String): Intent =
-        Intent().setClassName(context, ALIAS).putExtra(EXTRA_TRIP_ID, tripId)
+    fun intent(context: Context, tripId: String): Intent = Intent().setClassName(context, ALIAS).putExtra(EXTRA_TRIP_ID, tripId)
 
     /**
      * Resan i [intent], eller `null` om den inte kom via notisens alias, saknas eller inte är ett

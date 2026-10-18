@@ -27,7 +27,7 @@ import se.partee71.reseapoteket.data.household.HouseholdSession
 @Singleton
 class GoogleAuthRepository @Inject constructor(
     @ApplicationContext context: Context,
-    private val session: HouseholdSession,
+    private val session: HouseholdSession
 ) : AuthRepository {
     private val auth = FirebaseAuth.getInstance()
     private val credentials = CredentialManager.create(context)

@@ -25,8 +25,7 @@ class FirestoreRawDocuments @Inject constructor(private val db: FirebaseFirestor
 
     override suspend fun document(path: String): Doc? = db.document(path).get(Source.SERVER).await().data?.let(::fromFirestore)
 
-    override suspend fun collection(path: String): Map<String, Doc> =
-        db.collection(path).get(Source.SERVER).await().documents.associate { it.id to fromFirestore(it.data.orEmpty()) }
+    override suspend fun collection(path: String): Map<String, Doc> = db.collection(path).get(Source.SERVER).await().documents.associate { it.id to fromFirestore(it.data.orEmpty()) }
 
     private companion object {
         /** Når skrivningarna inte servern på den tiden räknas det som offline. */

@@ -15,8 +15,7 @@ class PackingListTest {
     private val anna = Person("anna", "Anna", sortOrder = 0)
     private val erik = Person("erik", "Erik", sortOrder = 1)
 
-    private fun item(id: String, section: PackingSection, person: String?, order: Int, checked: Boolean = false, hidden: Boolean = false) =
-        PackingItem(id, section = section, personId = person, sortOrder = order, checked = checked, hidden = hidden)
+    private fun item(id: String, section: PackingSection, person: String?, order: Int, checked: Boolean = false, hidden: Boolean = false) = PackingItem(id, section = section, personId = person, sortOrder = order, checked = checked, hidden = hidden)
 
     private val items = listOf(
         item("solkram", PackingSection.FAMILY, null, 0),
@@ -26,7 +25,7 @@ class PackingListTest {
         item("anna-d", PackingSection.SUPPLEMENT, "anna", 4),
         // En egen rad till Erik läggs sist men visas hos Erik.
         PackingItem("egen", section = PackingSection.MEDICINE, personId = "erik", sourceType = PackingSource.MANUAL, sortOrder = 9),
-        item("plaster", PackingSection.FAMILY, null, 5, hidden = true),
+        item("plaster", PackingSection.FAMILY, null, 5, hidden = true)
     )
 
     @Test
@@ -73,7 +72,7 @@ class PackingListTest {
         val travel = listOf(
             PackingItem("tandborste", section = PackingSection.FAMILY, travelDay = true, sortOrder = 0),
             PackingItem("anna-insulin", section = PackingSection.MEDICINE, personId = "anna", travelDay = true, sortOrder = 1),
-            PackingItem("dold-laddare", section = PackingSection.FAMILY, travelDay = true, hidden = true, sortOrder = 2),
+            PackingItem("dold-laddare", section = PackingSection.FAMILY, travelDay = true, hidden = true, sortOrder = 2)
         )
         val arranged = PackingList.arrange(items + travel, listOf(anna, erik), checkedLast = false)
         assertEquals(listOf("anna-insulin", "tandborste"), arranged.visible.takeLast(2).map { it.id })

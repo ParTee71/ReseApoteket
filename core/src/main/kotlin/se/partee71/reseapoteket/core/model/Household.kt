@@ -10,7 +10,7 @@ data class Household(
     val memberUids: List<String> = emptyList(),
     val marginDays: Int = HouseholdSettings.DEFAULT_MARGIN_DAYS,
     val schemaVersion: Int = Schema.CURRENT_VERSION,
-    val createdAt: Instant? = null,
+    val createdAt: Instant? = null
 ) : Identified {
     val settings: HouseholdSettings get() = HouseholdSettings(marginDays)
 }

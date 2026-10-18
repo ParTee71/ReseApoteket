@@ -15,8 +15,7 @@ class ReminderWorkerTest {
     private val scheduled = mutableListOf<Instant>()
     private val shownAgain = mutableListOf<String>()
 
-    private suspend fun perform(input: Data, run: suspend () -> Instant) =
-        ReminderWorker.perform(input, run, { key -> shownAgain += key }, { scheduled += it }, { retry })
+    private suspend fun perform(input: Data, run: suspend () -> Instant) = ReminderWorker.perform(input, run, { key -> shownAgain += key }, { scheduled += it }, { retry })
 
     @Test
     fun `en genomgång schemalägger nästa`() = runTest {
@@ -44,5 +43,4 @@ class ReminderWorkerTest {
         assertEquals(listOf("gc/DAY_BEFORE/18:00"), shownAgain)
         assertEquals(emptyList(), scheduled)
     }
-
 }

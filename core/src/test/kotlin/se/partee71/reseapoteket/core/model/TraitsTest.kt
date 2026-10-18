@@ -1,7 +1,7 @@
 package se.partee71.reseapoteket.core.model
 
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class TraitsTest {
 
@@ -28,7 +28,7 @@ class TraitsTest {
         val all = listOf(
             Regimen("r1", RegimenKind.MEDICINE),
             Regimen("r2", RegimenKind.MEDICINE, archived = true),
-            Regimen("s1", RegimenKind.SUPPLEMENT, active = false),
+            Regimen("s1", RegimenKind.SUPPLEMENT, active = false)
         )
         assertEquals(listOf("r1"), all.listed(RegimenKind.MEDICINE).map { it.id })
         assertEquals(listOf("s1"), all.listed(RegimenKind.SUPPLEMENT).map { it.id }, "pausade räknas, arkiverade inte")

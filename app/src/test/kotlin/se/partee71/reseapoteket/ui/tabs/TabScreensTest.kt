@@ -30,22 +30,19 @@ class TabScreensTest {
     val rule = createComposeRule()
 
     @Test
-    fun `Resor uppfyller listkontraktet`() =
-        rule.runListScreenContract(TripListItem(Trip("t1", "Kreta", days = 7)), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
-            TripsContent(state, { if (it == TripsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
-        }
+    fun `Resor uppfyller listkontraktet`() = rule.runListScreenContract(TripListItem(Trip("t1", "Kreta", days = 7)), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
+        TripsContent(state, { if (it == TripsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
+    }
 
     @Test
-    fun `Personer uppfyller listkontraktet`() =
-        rule.runListScreenContract(PersonListItem(Person("p1", "Anna", "🦊", "#D97757")), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
-            PersonsContent(state, { if (it == PersonsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
-        }
+    fun `Personer uppfyller listkontraktet`() = rule.runListScreenContract(PersonListItem(Person("p1", "Anna", "🦊", "#D97757")), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
+        PersonsContent(state, { if (it == PersonsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
+    }
 
     @Test
-    fun `Familjeartiklar uppfyller listkontraktet`() =
-        rule.runListScreenContract(FamilyItem("f1", "Solkräm"), "Solkräm", "Inga familjeartiklar än", "Lägg till") { state, onAdd, onRetry ->
-            FamilyItemsContent(state, { if (it == FamilyItemsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
-        }
+    fun `Familjeartiklar uppfyller listkontraktet`() = rule.runListScreenContract(FamilyItem("f1", "Solkräm"), "Solkräm", "Inga familjeartiklar än", "Lägg till") { state, onAdd, onRetry ->
+        FamilyItemsContent(state, { if (it == FamilyItemsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
+    }
 
     @Test
     fun `tomma flikar och innehåll`() {
@@ -56,10 +53,12 @@ class TabScreensTest {
                     persistentListOf(
                         PersonListItem(Person("p1", "Anna", "🦊", "#D97757"), medicines = 3, supplements = 1),
                         PersonListItem(Person("p2", "Erik", "🐻", "#3B7EA1"), medicines = 1),
-                        PersonListItem(Person("p3", "Lova", "🐰", "#7A9A3C")),
-                    ),
+                        PersonListItem(Person("p3", "Lova", "🐰", "#7A9A3C"))
+                    )
                 ),
-                {}, {}, {},
+                {},
+                {},
+                {}
             )
         }
         captureLightAndDark("FamilyItemsScreen_tom") { FamilyItemsContent(ListUiState.Empty, {}, {}, {}) }

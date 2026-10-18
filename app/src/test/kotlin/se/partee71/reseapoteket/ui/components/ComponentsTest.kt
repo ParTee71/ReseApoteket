@@ -55,7 +55,7 @@ class ComponentsTest {
     fun `AppButton - varianter och lägen`() = captureLightAndDark("AppButton_varianter") {
         Column(
             Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             AppButton("Logga in med Google", {}, Modifier.fillMaxWidth(), icon = R.drawable.ic_login)
             AppButton("Loggar in …", {}, Modifier.fillMaxWidth(), loading = true)
@@ -81,7 +81,7 @@ class ComponentsTest {
                 icon = R.drawable.ic_luggage,
                 title = "Inga resor än",
                 message = "Lägg till en resa så räknar appen ut vad ni ska packa.",
-                action = { AppButton("Lägg till resa", {}, Modifier.fillMaxWidth()) },
+                action = { AppButton("Lägg till resa", {}, Modifier.fillMaxWidth()) }
             )
         }
     }
@@ -95,7 +95,7 @@ class ComponentsTest {
                 message = "Installera den senaste versionen för att fortsätta.",
                 note = "Ingenting ändras förrän appen är uppdaterad.",
                 fullScreen = true,
-                action = { AppButton("Hämta senaste versionen", {}, Modifier.fillMaxWidth()) },
+                action = { AppButton("Hämta senaste versionen", {}, Modifier.fillMaxWidth()) }
             )
         }
     }

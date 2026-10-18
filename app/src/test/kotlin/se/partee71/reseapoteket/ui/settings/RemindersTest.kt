@@ -81,10 +81,15 @@ class RemindersTest {
         Person("anna", "Anna", "🦊", sortOrder = 0),
         Person("erik", "Erik", "🐻", sortOrder = 1),
         Person("lova", "Lova", "🐰", sortOrder = 2),
-        Person("gunnar", "Morfar Gunnar", "🦉", sortOrder = 3),
+        Person("gunnar", "Morfar Gunnar", "🦉", sortOrder = 3)
     )
     private val granCanaria = Reminder(
-        ReminderKind.TIME_TO_PACK, "gc", "Gran Canaria", LocalDate(2026, 10, 3), LocalDateTime(2026, 9, 30, 18, 0), PackingProgress(9, 16),
+        ReminderKind.TIME_TO_PACK,
+        "gc",
+        "Gran Canaria",
+        LocalDate(2026, 10, 3),
+        LocalDateTime(2026, 9, 30, 18, 0),
+        PackingProgress(9, 16)
     )
     private val state = RemindersUiState(people.toImmutableList(), ReminderSettings(personIds = setOf("anna", "lova")), persistentMapOf(ReminderKind.TIME_TO_PACK to granCanaria))
 
@@ -122,8 +127,7 @@ class RemindersTest {
         assertEquals(FixedClock().instant, settings.remindersCheckedUntil.first())
     }
 
-    private fun show(state: RemindersUiState, allowed: Boolean = true, onEvent: (RemindersEvent) -> Unit = {}, onAsk: () -> Unit = {}, onSettings: () -> Unit = {}) =
-        rule.setContent { ReseApoteketTheme { RemindersCard(state, onEvent, allowed, onAsk, onSettings) } }
+    private fun show(state: RemindersUiState, allowed: Boolean = true, onEvent: (RemindersEvent) -> Unit = {}, onAsk: () -> Unit = {}, onSettings: () -> Unit = {}) = rule.setContent { ReseApoteketTheme { RemindersCard(state, onEvent, allowed, onAsk, onSettings) } }
 
     @Test
     fun `raderna visar dagar och tid, växeln slår av och på och frågar om notiser`() {

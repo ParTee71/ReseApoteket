@@ -30,8 +30,7 @@ class FirestoreCollectionContractTest : CollectionContract() {
                 db.collection(path).document(id).set(toFirestore(doc)).await()
             }
 
-            override suspend fun readRaw(path: String, id: String): Doc? =
-                db.collection(path).document(id).get().await().data?.let(::fromFirestore)
+            override suspend fun readRaw(path: String, id: String): Doc? = db.collection(path).document(id).get().await().data?.let(::fromFirestore)
 
             override fun makeHouseholdNewerThanApp() = scope.setVersion(Schema.CURRENT_VERSION + 1)
 

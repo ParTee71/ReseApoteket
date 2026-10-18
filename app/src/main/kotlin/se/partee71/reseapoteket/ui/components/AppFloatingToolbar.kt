@@ -55,11 +55,11 @@ fun AppFloatingToolbar(
     items: List<ToolbarItem>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
         toolbarContainerColor = AppColors.extended.toolbar,
-        toolbarContentColor = AppColors.extended.onToolbar,
+        toolbarContentColor = AppColors.extended.onToolbar
     )
     HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors) {
         items.forEachIndexed { index, item ->
@@ -83,7 +83,7 @@ private fun ToolbarTab(item: ToolbarItem, selected: Boolean, onClick: () -> Unit
             .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
             .padding(horizontal = Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterHorizontally)
     ) {
         Icon(painterResource(item.icon), contentDescription = null, tint = content, modifier = Modifier.size(ICON))
         if (selected) Text(item.label, style = AppTypography.button, color = content, maxLines = 1)

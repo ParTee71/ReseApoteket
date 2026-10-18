@@ -23,7 +23,7 @@ class ReminderSource @Inject constructor(
     private val trips: TripRepository,
     private val packing: PackingRepository,
     private val persons: PersonRepository,
-    private val settings: SettingsStore,
+    private val settings: SettingsStore
 ) {
     val plan: Flow<List<Reminder>> =
         combine(trips.observe(), settings.reminderSettings, persons.observe()) { list, chosen, people ->
@@ -32,6 +32,6 @@ class ReminderSource @Inject constructor(
         }
             .combineByKey(
                 key = { (list, chosen) -> list.filter { ReminderPlanner.remindsAbout(it, chosen) }.map { it.id }.toSet() },
-                other = { ids -> packing.packingFor(ids.toList()) },
+                other = { ids -> packing.packingFor(ids.toList()) }
             ) { (list, chosen), lists -> ReminderPlanner.plan(list, lists, chosen) }
 }

@@ -22,8 +22,10 @@ data class Regimen(
     val travelDay: Boolean = false,
     val travelDayTime: LocalTime? = null,
     override val sortOrder: Int = 0,
-    override val archived: Boolean = false,
-) : Identified, Sortable, Archivable
+    override val archived: Boolean = false
+) : Identified,
+    Sortable,
+    Archivable
 
 /** "Levaxin 50 µg" – namn och styrka, så som receptet visas i listor och packlistan (PAK-2). */
 val Regimen.displayName: String get() = listOf(name, strength).filter { it.isNotBlank() }.joinToString(" ")

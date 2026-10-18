@@ -59,7 +59,7 @@ sealed interface PersonDetailEvent {
 class PersonDetailViewModel @AssistedInject constructor(
     @Assisted private val personId: String,
     private val persons: PersonRepository,
-    regimens: RegimenRepository,
+    regimens: RegimenRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -73,7 +73,7 @@ class PersonDetailViewModel @AssistedInject constructor(
                 PersonDetail(it, all.listed(RegimenKind.MEDICINE), all.listed(RegimenKind.SUPPLEMENT))
             }
         },
-        viewModelScope,
+        viewModelScope
     )
     val state = loader.state
 
@@ -84,9 +84,11 @@ class PersonDetailViewModel @AssistedInject constructor(
     fun onEvent(event: PersonDetailEvent) {
         when (event) {
             PersonDetailEvent.Retry -> loader.retry()
+
             is PersonDetailEvent.SetArchived -> viewModelScope.launch {
                 persons.setArchived(personId, event.archived).dataError()?.let { _error.value = it }
             }
+
             PersonDetailEvent.ErrorShown -> _error.value = null
         }
     }
@@ -98,7 +100,7 @@ fun PersonDetailScreen(
     onEdit: () -> Unit,
     onAddRegimen: (RegimenKind) -> Unit,
     onOpenRegimen: (Regimen) -> Unit,
-    viewModel: PersonDetailViewModel,
+    viewModel: PersonDetailViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -114,7 +116,7 @@ fun PersonDetailContent(
     onAddRegimen: (RegimenKind) -> Unit,
     onOpenRegimen: (Regimen) -> Unit,
     modifier: Modifier = Modifier,
-    error: DataError? = null,
+    error: DataError? = null
 ) {
     val archive = stringResource(R.string.archive)
     val restore = stringResource(R.string.restore)
@@ -137,7 +139,7 @@ fun PersonDetailContent(
         onRetry = { onEvent(PersonDetailEvent.Retry) },
         error = error,
         onErrorShown = { onEvent(PersonDetailEvent.ErrorShown) },
-        leading = { PersonAvatar(it.person.emoji, AppColors.person(it.person.colorHex), size = AvatarSize.Large) },
+        leading = { PersonAvatar(it.person.emoji, AppColors.person(it.person.colorHex), size = AvatarSize.Large) }
     ) { detail ->
         RegimenSection(RegimenKindConfig.of(RegimenKind.MEDICINE), detail.medicines, { onAddRegimen(RegimenKind.MEDICINE) }, onOpenRegimen)
         RegimenSection(RegimenKindConfig.of(RegimenKind.SUPPLEMENT), detail.supplements, { onAddRegimen(RegimenKind.SUPPLEMENT) }, onOpenRegimen)

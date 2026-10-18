@@ -35,11 +35,10 @@ class HouseholdFixture(scope: CoroutineScope, folder: File) {
     /** Hushåll vars dokument servern nekar, som när användaren inte längre är medlem (HUS-5). */
     val denied = MutableStateFlow(emptySet<String>())
     private val versions = object : HouseholdVersionSource {
-        override fun schemaVersion(householdId: String) =
-            combine(store.documents, versionsKnown, denied) { all, known, denied ->
-                if (householdId in denied) throw DataError.PermissionDenied
-                if (known) (all[Paths.HOUSEHOLDS]?.get(householdId)?.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION else null
-            }.filterNotNull()
+        override fun schemaVersion(householdId: String) = combine(store.documents, versionsKnown, denied) { all, known, denied ->
+            if (householdId in denied) throw DataError.PermissionDenied
+            if (known) (all[Paths.HOUSEHOLDS]?.get(householdId)?.get("schemaVersion") as? Number)?.toInt() ?: Schema.FIRST_VERSION else null
+        }.filterNotNull()
 
         override fun stamp(householdId: String, version: Int) {
             if (store.read(Paths.HOUSEHOLDS, householdId) != null) store.set(Paths.HOUSEHOLDS, householdId, mapOf("schemaVersion" to version), merge = true)

@@ -26,8 +26,8 @@ import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.components.ListArchive
+import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 
@@ -46,9 +46,9 @@ class PersonScreensTest {
             Regimen("r1", RegimenKind.MEDICINE, "Levaxin", strength = "50 µg", schedule = DoseSchedule.Daily(1, 1)),
             Regimen("r2", RegimenKind.MEDICINE, "Enalapril", strength = "10 mg", schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), 1)),
             Regimen("r3", RegimenKind.MEDICINE, "Alvedon", strength = "500 mg", schedule = DoseSchedule.AsNeeded(20)),
-            Regimen("r4", RegimenKind.MEDICINE, "Hydrokortison", strength = "1 %", unit = ItemUnit.TUB, schedule = DoseSchedule.AsNeeded(1), active = false),
+            Regimen("r4", RegimenKind.MEDICINE, "Hydrokortison", strength = "1 %", unit = ItemUnit.TUB, schedule = DoseSchedule.AsNeeded(1), active = false)
         ),
-        supplements = listOf(Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", strength = "10 µg", unit = ItemUnit.KAPSEL, schedule = DoseSchedule.Daily(1, 1))),
+        supplements = listOf(Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", strength = "10 µg", unit = ItemUnit.KAPSEL, schedule = DoseSchedule.Daily(1, 1)))
     )
 
     @Test
@@ -56,9 +56,12 @@ class PersonScreensTest {
         val editor = EditorState(gunnar.copy(name = ""), PersonValidator)
         rule.runEditScreenContract(
             editor = editor,
-            makeInvalid = { update(PersonValidator.NAME) { it.copy(name = "x") }; update(PersonValidator.NAME) { it.copy(name = "") } },
+            makeInvalid = {
+                update(PersonValidator.NAME) { it.copy(name = "x") }
+                update(PersonValidator.NAME) { it.copy(name = "") }
+            },
             makeValid = { update(PersonValidator.NAME) { it.copy(name = "Morfar Gunnar") } },
-            invalidMessage = "Ange ett namn",
+            invalidMessage = "Ange ett namn"
         ) { state, events, onSave, onClose ->
             PersonEditContent(isNew = true, state, events, { event ->
                 when (event) {

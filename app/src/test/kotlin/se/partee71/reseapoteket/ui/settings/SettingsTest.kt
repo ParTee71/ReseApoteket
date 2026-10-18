@@ -18,14 +18,14 @@ import app.cash.turbine.test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlin.time.Duration
-import kotlin.time.Instant
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -207,7 +207,7 @@ class SettingsTest {
         rule.onNodeWithText("Exportera som JSON").performClick()
         assertEquals(
             listOf(SettingsEvent.SetMarginDays(3), SettingsEvent.SetTheme(ThemeMode.Dark), SettingsEvent.SignOut, SettingsEvent.Export),
-            events,
+            events
         )
     }
 

@@ -74,7 +74,7 @@ data class PackingHeader(
     val trip: Trip,
     val travellers: ImmutableList<Person>,
     val progress: PackingProgress,
-    val groups: ImmutableMap<PackingGroup, PackingProgress>,
+    val groups: ImmutableMap<PackingGroup, PackingProgress>
 )
 
 /** "Lägg till": en sak (PAK-4) eller en inklistrad lista (PAK-7). */
@@ -89,7 +89,7 @@ data class AddListState(
     val mode: AddMode = AddMode.ONE,
     val text: String = "",
     val lines: ImmutableList<PastedLine> = persistentListOf(),
-    val saving: Boolean = false,
+    val saving: Boolean = false
 ) {
     val toAdd: List<PastedLine> get() = lines.filter { it.status == PastedStatus.ADD }
 
@@ -177,7 +177,7 @@ class PackingListViewModel @AssistedInject constructor(
     packing: PackingRepository,
     settings: SettingsStore,
     private val tripPacking: TripPacking,
-    private val clock: Clock,
+    private val clock: Clock
 ) : ViewModel() {
 
     @AssistedFactory
@@ -225,7 +225,7 @@ class PackingListViewModel @AssistedInject constructor(
                 trip = it,
                 travellers = it.travellerIds.mapNotNull { id -> all.firstOrNull { person -> person.id == id } }.toImmutableList(),
                 progress = PackingEngine.progress(items),
-                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) }.toImmutableMap(),
+                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) }.toImmutableMap()
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -317,30 +317,52 @@ class PackingListViewModel @AssistedInject constructor(
     fun onEvent(event: PackingListEvent) {
         when (event) {
             is PackingListEvent.List -> loader.onEvent(event.event)
+
             is PackingListEvent.Check -> check(event.id, event.checked)
+
             is PackingListEvent.Open -> openSheet { openId.value = event.id }
+
             PackingListEvent.CloseQuantity -> openSheet { openId.value = null }
+
             is PackingListEvent.Quantity -> editItem { it.copy(quantity = event.quantity) }
+
             PackingListEvent.ResetQuantity -> editItem { it.copy(quantity = it.suggestedQuantity) }
+
             is PackingListEvent.Show -> write { setHidden(event.id, false) }
+
             PackingListEvent.HideChecked -> hideChecked()
+
             PackingListEvent.AskRecount -> _askRecount.value = true
+
             PackingListEvent.CancelRecount -> _askRecount.value = false
+
             PackingListEvent.Recount -> recount()
+
             PackingListEvent.Add -> openSheet { _adding.value = true }
+
             PackingListEvent.CloseAdd -> openSheet(::closeAdd)
+
             // Ett gammalt fel står inte kvar medan raden ändras.
             is PackingListEvent.AddName -> editNew(ManualItemValidator.NAME) { it.copy(name = event.name) }
+
             is PackingListEvent.AddSection -> editNew {
                 it.copy(section = event.section, personId = it.personId.takeIf { event.section != PackingSection.FAMILY })
             }
+
             is PackingListEvent.AddPerson -> editNew(ManualItemValidator.PERSON) { it.copy(personId = event.personId) }
+
             is PackingListEvent.AddQuantity -> editNew { it.copy(quantity = event.quantity, suggestedQuantity = event.quantity) }
+
             is PackingListEvent.AddTravelDay -> editNew { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
+
             PackingListEvent.AddSave -> addSave()
+
             is PackingListEvent.AddModeChange -> openSheet { addMode.value = event.mode }
+
             is PackingListEvent.AddListText -> openSheet { listText.value = event.text }
+
             PackingListEvent.AddListSave -> addListSave()
+
             PackingListEvent.Celebrated -> _celebrate.value = false
         }
     }
@@ -447,7 +469,7 @@ class PackingListViewModel @AssistedInject constructor(
         sourceType = PackingSource.MANUAL,
         unit = ItemUnit.ST,
         suggestedQuantity = 1,
-        quantity = 1,
+        quantity = 1
     )
 
     private class Basis(val items: List<PackingItem>, val people: List<Person>, val checkedLast: Boolean)

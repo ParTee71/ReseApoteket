@@ -66,9 +66,8 @@ fun <T : Any> assertVariantCodecContract(codec: ValueCodec<T>, variants: List<Pa
     }
 }
 
-private fun persistedFields(value: Any) =
-    value::class.java.declaredFields
-        .filterNot { Modifier.isStatic(it.modifiers) || it.name == "id" }
-        .onEach { it.isAccessible = true }
+private fun persistedFields(value: Any) = value::class.java.declaredFields
+    .filterNot { Modifier.isStatic(it.modifiers) || it.name == "id" }
+    .onEach { it.isAccessible = true }
 
 private fun persistedFieldNames(value: Any) = persistedFields(value).map { it.name }.toSet()

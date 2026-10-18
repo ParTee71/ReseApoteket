@@ -42,7 +42,7 @@ sealed interface PersonsEvent {
 @HiltViewModel
 class PersonsViewModel @Inject constructor(
     persons: PersonRepository,
-    regimens: RegimenRepository,
+    regimens: RegimenRepository
 ) : ViewModel() {
     /** Svep-arkivera, Ångra och "Visa arkiverade" (PER-3) – samma som i alla listor. */
     val archive = ArchiveActions(viewModelScope, persons::setArchived)
@@ -80,7 +80,7 @@ fun PersonsContent(
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
-    archive: ListArchive = ListArchive(),
+    archive: ListArchive = ListArchive()
 ) {
     EntityListScreen(
         title = stringResource(R.string.tab_persons),
@@ -89,13 +89,13 @@ fun PersonsContent(
             icon = R.drawable.ic_person,
             title = stringResource(R.string.persons_empty_title),
             message = stringResource(R.string.persons_empty_message),
-            actionLabel = stringResource(R.string.persons_add),
+            actionLabel = stringResource(R.string.persons_add)
         ),
         onAdd = onAdd,
         key = { it.person.id },
         modifier = modifier,
         onRetry = { onEvent(PersonsEvent.List(ListEvent.Retry)) },
-        archive = archive,
+        archive = archive
     ) { item ->
         val person = item.person
         SwipeToHide(onHide = { archive.archive(person.id, person.name) }, enabled = !person.archived) { swipe ->
@@ -113,7 +113,7 @@ private fun PersonRow(item: PersonListItem, modifier: Modifier = Modifier, onOpe
         subtitle = if (person.archived) stringResource(R.string.archived_state) else personSummary(item.medicines, item.supplements),
         leading = { PersonAvatar(person.emoji, AppColors.person(person.colorHex)) },
         onClick = onOpen,
-        navigates = true,
+        navigates = true
     )
 }
 
@@ -122,7 +122,7 @@ private fun PersonRow(item: PersonListItem, modifier: Modifier = Modifier, onOpe
 internal fun personSummary(medicines: Int, supplements: Int): String {
     val parts = listOfNotNull(
         medicines.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.person_medicines, it, it) },
-        supplements.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.person_supplements, it, it) },
+        supplements.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.person_supplements, it, it) }
     )
     return if (parts.isEmpty()) stringResource(R.string.person_nothing_yet) else parts.joinToString(" · ")
 }

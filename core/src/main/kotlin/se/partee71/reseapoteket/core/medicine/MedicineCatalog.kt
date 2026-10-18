@@ -102,8 +102,7 @@ val MedicineForm.defaultUnit: ItemUnit
  * Receptet ifyllt från registret (REC-7): namn, styrka, form och formens enhet. Doseringen,
  * förpackningsstorleken och allt annat lämnas som det var.
  */
-fun Regimen.fillFrom(entry: MedicineEntry): Regimen =
-    copy(name = entry.name, strength = entry.strength, form = entry.form, unit = entry.form.defaultUnit)
+fun Regimen.fillFrom(entry: MedicineEntry): Regimen = copy(name = entry.name, strength = entry.strength, form = entry.form, unit = entry.form.defaultUnit)
 
 /**
  * Läkemedelsverkets läkemedelsformer ("Filmdragerad tablett", "Kapsel, hård", "Ögondroppar,
@@ -120,7 +119,7 @@ object MedicineForms {
         "kapsel" to MedicineForm.CAPSULE,
         "tablett|resoriblett" to MedicineForm.TABLET,
         "pulver|granulat" to MedicineForm.POWDER,
-        "lösning|suspension|sirap|emulsion|vätska|dryck|mixtur" to MedicineForm.LIQUID,
+        "lösning|suspension|sirap|emulsion|vätska|dryck|mixtur" to MedicineForm.LIQUID
     ).map { (pattern, form) -> Regex(pattern) to form }
 
     fun of(formText: String): MedicineForm {
@@ -136,7 +135,7 @@ object MedicineForms {
 data class MedicineLookup(
     val suggestions: List<MedicineMatch> = emptyList(),
     val noMatch: Boolean = false,
-    val filled: Boolean = false,
+    val filled: Boolean = false
 )
 
 /**

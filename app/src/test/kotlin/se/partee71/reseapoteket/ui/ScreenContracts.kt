@@ -47,7 +47,7 @@ fun <T> ComposeContentTestRule.runListScreenContract(
     itemText: String,
     emptyTitle: String,
     addLabel: String,
-    screen: @Composable (state: ListUiState<T>, onAdd: () -> Unit, onRetry: () -> Unit) -> Unit,
+    screen: @Composable (state: ListUiState<T>, onAdd: () -> Unit, onRetry: () -> Unit) -> Unit
 ) {
     var state by mutableStateOf<ListUiState<T>>(ListUiState.Loading)
     var adds = 0
@@ -87,7 +87,7 @@ fun <T> ComposeContentTestRule.runEditScreenContract(
     makeInvalid: EditorState<T>.() -> Unit,
     makeValid: EditorState<T>.() -> Unit,
     invalidMessage: String,
-    screen: @Composable (state: EditorUiState<T>, events: EditorEvents, onSave: () -> Unit, onClose: () -> Unit) -> Unit,
+    screen: @Composable (state: EditorUiState<T>, events: EditorEvents, onSave: () -> Unit, onClose: () -> Unit) -> Unit
 ) {
     var saveResult: Result<Unit> = Result.failure(DataError.Offline)
     var closes = 0

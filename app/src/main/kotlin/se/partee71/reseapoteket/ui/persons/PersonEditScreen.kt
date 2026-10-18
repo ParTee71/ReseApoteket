@@ -39,8 +39,7 @@ import se.partee71.reseapoteket.ui.theme.AppColors
 object PersonValidator : Validator<Person> {
     const val NAME = "name"
 
-    override fun validate(value: Person): Map<String, Int> =
-        if (value.name.isBlank()) mapOf(NAME to R.string.name_required) else emptyMap()
+    override fun validate(value: Person): Map<String, Int> = if (value.name.isBlank()) mapOf(NAME to R.string.name_required) else emptyMap()
 }
 
 sealed interface PersonEditEvent {
@@ -59,7 +58,7 @@ sealed interface PersonEditEvent {
 @HiltViewModel(assistedFactory = PersonEditViewModel.Factory::class)
 class PersonEditViewModel @AssistedInject constructor(
     @Assisted private val personId: String?,
-    private val persons: PersonRepository,
+    private val persons: PersonRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -72,7 +71,7 @@ class PersonEditViewModel @AssistedInject constructor(
     val editor: EditorState<Person> = EditorState(
         Person(id = personId ?: persons.newId(), emoji = PERSON_EMOJIS.first(), colorHex = AppColors.PERSON_HEX.first()),
         PersonValidator,
-        loading = !isNew,
+        loading = !isNew
     )
     val state = editor.state
     private val loader = EditorLoader(editor, viewModelScope, personId?.let { id -> { persons.get(id) } }) { it.withDefaults() }
@@ -93,12 +92,11 @@ class PersonEditViewModel @AssistedInject constructor(
      */
     private fun Person.withDefaults(): Person = copy(
         emoji = emoji.ifBlank { PERSON_EMOJIS.first() },
-        colorHex = colorHex.ifBlank { AppColors.PERSON_HEX.first() },
+        colorHex = colorHex.ifBlank { AppColors.PERSON_HEX.first() }
     )
 
     /** En ny person hamnar sist i listan. */
-    private suspend fun write(person: Person): Result<Unit> =
-        persons.upsertPlaced(person.copy(name = person.name.trim()), isNew) { copy(sortOrder = it) }
+    private suspend fun write(person: Person): Result<Unit> = persons.upsertPlaced(person.copy(name = person.name.trim()), isNew) { copy(sortOrder = it) }
 }
 
 @Composable
@@ -114,7 +112,7 @@ fun PersonEditContent(
     events: EditorEvents,
     onEvent: (PersonEditEvent) -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     EntityEditScreen(
         title = stringResource(if (isNew) R.string.person_new else R.string.person_edit),
@@ -123,7 +121,7 @@ fun PersonEditContent(
         onSave = { onEvent(PersonEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,
-        onRetry = { onEvent(PersonEditEvent.Retry) },
+        onRetry = { onEvent(PersonEditEvent.Retry) }
     ) {
         val person = state.value
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -133,7 +131,7 @@ fun PersonEditContent(
             person.name,
             { onEvent(PersonEditEvent.Name(it)) },
             stringResource(R.string.name),
-            error = state.errorFor(PersonValidator.NAME)?.let { stringResource(it) },
+            error = state.errorFor(PersonValidator.NAME)?.let { stringResource(it) }
         )
         LabeledGroup(stringResource(R.string.person_emoji)) {
             EmojiPicker(person.emoji, { onEvent(PersonEditEvent.Emoji(it)) })

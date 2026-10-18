@@ -40,7 +40,7 @@ fun AppTextField(
     @DrawableRes trailingIcon: Int? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
     maxLength: Int = if (singleLine) TextLimits.SHORT else TextLimits.LONG,
-    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE
 ) {
     val card = AppColors.extended.card
     OutlinedTextField(
@@ -63,7 +63,7 @@ fun AppTextField(
             unfocusedContainerColor = card,
             disabledContainerColor = card,
             errorContainerColor = card,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-        ),
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+        )
     )
 }

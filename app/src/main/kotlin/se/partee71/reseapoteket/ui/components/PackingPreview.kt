@@ -32,7 +32,7 @@ fun PackingPreview(context: String, quantity: String, modifier: Modifier = Modif
             .background(colors.container, AppShapes.row)
             .padding(horizontal = Spacing.l, vertical = Spacing.m)
             .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Text(context, style = AppTypography.pill, color = colors.content)
         Text(quantity, style = AppTypography.quantity, color = colors.content)

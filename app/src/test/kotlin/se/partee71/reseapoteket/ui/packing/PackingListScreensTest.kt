@@ -33,11 +33,11 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import org.robolectric.annotation.Config
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import se.partee71.reseapoteket.core.engine.PackingEngine
 import se.partee71.reseapoteket.core.engine.PackingGroup
 import se.partee71.reseapoteket.core.engine.PackingList
@@ -76,11 +76,9 @@ class PackingListScreensTest {
     private val gunnar = Person("gunnar", "Morfar Gunnar", "🦉", AppColors.PERSON_HEX[3])
     private val trip = Trip("t1", "Gran Canaria", LocalDate(2026, 10, 2), 7, listOf("anna", "erik", "lova", "gunnar"))
 
-    private fun med(id: String, person: Person, name: String, quantity: Int, unit: ItemUnit = ItemUnit.TABLETT, packages: Int? = null, checked: Boolean = false, suggested: Int = quantity, section: PackingSection = PackingSection.MEDICINE) =
-        PackingItem(id, section, person.id, PackingSource.REGIMEN, id, name, unit, suggested, quantity, packages, "1 × 1 tablett/dag × (7 + 2) dagar", checked)
+    private fun med(id: String, person: Person, name: String, quantity: Int, unit: ItemUnit = ItemUnit.TABLETT, packages: Int? = null, checked: Boolean = false, suggested: Int = quantity, section: PackingSection = PackingSection.MEDICINE) = PackingItem(id, section, person.id, PackingSource.REGIMEN, id, name, unit, suggested, quantity, packages, "1 × 1 tablett/dag × (7 + 2) dagar", checked)
 
-    private fun other(id: String, name: String, quantity: Int, unit: ItemUnit, checked: Boolean = false, hidden: Boolean = false, manual: Boolean = false) =
-        PackingItem(id, PackingSection.FAMILY, null, if (manual) PackingSource.MANUAL else PackingSource.FAMILY_ITEM, id, name, unit, quantity, quantity, checked = checked, hidden = hidden)
+    private fun other(id: String, name: String, quantity: Int, unit: ItemUnit, checked: Boolean = false, hidden: Boolean = false, manual: Boolean = false) = PackingItem(id, PackingSection.FAMILY, null, if (manual) PackingSource.MANUAL else PackingSource.FAMILY_ITEM, id, name, unit, quantity, quantity, checked = checked, hidden = hidden)
 
     private val rows = listOf(
         PackingRow(med("levaxin", anna, "Levaxin 50 µg", 9, packages = 1, checked = true), anna, "1/dag"),
@@ -95,7 +93,7 @@ class PackingListScreensTest {
         PackingRow(other("termometer", "Febertermometer", 1, ItemUnit.ST)),
         PackingRow(other("hydro", "Hydrokortison", 1, ItemUnit.TUB, checked = true)),
         PackingRow(other("laddare", "Laddare", 1, ItemUnit.ST, manual = true)),
-        PackingRow(other("plaster", "Plåster", 1, ItemUnit.ST, hidden = true)),
+        PackingRow(other("plaster", "Plåster", 1, ItemUnit.ST, hidden = true))
     )
 
     private fun header(of: List<PackingRow>, status: TripStatus = TripStatus.PLANNING): PackingHeader {
@@ -105,17 +103,22 @@ class PackingListScreensTest {
             trip.copy(status = status),
             persistentListOf(anna, erik, lova, gunnar),
             PackingEngine.progress(items),
-            PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { PackingList.group(it) == group }) }.toImmutableMap(),
+            PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { PackingList.group(it) == group }) }.toImmutableMap()
         )
     }
 
     private val allChecked = rows.map { it.copy(item = it.item.copy(checked = true)) }
 
     @Test
-    fun `packlistan uppfyller listkontraktet`() =
-        rule.runListScreenContract(rows.first(), "Levaxin 50 µg", "Inget att packa än", "Lägg till") { state, onAdd, onRetry ->
-            PackingListContent(state, header(rows), { if (it == PackingListEvent.Add) onAdd() else if (it == PackingListEvent.List(ListEvent.Retry)) onRetry() }, {}, {})
-        }
+    fun `packlistan uppfyller listkontraktet`() = rule.runListScreenContract(rows.first(), "Levaxin 50 µg", "Inget att packa än", "Lägg till") { state, onAdd, onRetry ->
+        PackingListContent(state, header(rows), {
+            if (it == PackingListEvent.Add) {
+                onAdd()
+            } else if (it == PackingListEvent.List(ListEvent.Retry)) {
+                onRetry()
+            }
+        }, {}, {})
+    }
 
     @Test
     fun `krysset prickar av, raden öppnar mängden och svep döljer (PAK-2–4)`() {
@@ -140,7 +143,10 @@ class PackingListScreensTest {
         var celebrate by mutableStateOf(false)
         rule.setContent {
             ReseApoteketTheme {
-                PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), { if (it == PackingListEvent.Celebrated) celebrate = false; events += it }, {}, {}, celebrate = celebrate)
+                PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {
+                    if (it == PackingListEvent.Celebrated) celebrate = false
+                    events += it
+                }, {}, {}, celebrate = celebrate)
             }
         }
         rule.runOnIdle { celebrate = true }
@@ -193,7 +199,7 @@ class PackingListScreensTest {
     private val pasted = AddListState(
         AddMode.LIST,
         "Solkräm 2\nLaddare\nPlåster",
-        persistentListOf(PastedLine("Solkräm", 2, PastedStatus.ADD), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Plåster", 1, PastedStatus.EXISTS)),
+        persistentListOf(PastedLine("Solkräm", 2, PastedStatus.ADD), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Plåster", 1, PastedStatus.EXISTS))
     )
 
     @Test
@@ -260,7 +266,7 @@ class PackingListScreensTest {
             rows[2],
             PackingRow(med("insulin", anna, "Insulin NovoRapid", 1, ItemUnit.ST).copy(travelDay = true), anna, "3/dag"),
             PackingRow(other("tandborste", "Tandborste", 4, ItemUnit.ST).copy(travelDay = true)),
-            PackingRow(other("laddare", "Laddare", 2, ItemUnit.ST, manual = true).copy(travelDay = true, travelDayTime = LocalTime(8, 30))),
+            PackingRow(other("laddare", "Laddare", 2, ItemUnit.ST, manual = true).copy(travelDay = true, travelDayTime = LocalTime(8, 30)))
         )
         captureLightAndDark("PackingListScreen_resedag") { PackingListContent(ListUiState.Content(travelDay.toImmutableList()), header(travelDay), {}, {}, {}) }
     }
@@ -304,7 +310,7 @@ class PackingListScreensTest {
             {},
             {},
             {},
-            adding = EditorUiState(PackingItem("ny", PackingSection.MEDICINE, "erik", PackingSource.MANUAL, name = "Nässpray", quantity = 1), isValid = true, isDirty = true),
+            adding = EditorUiState(PackingItem("ny", PackingSection.MEDICINE, "erik", PackingSource.MANUAL, name = "Nässpray", quantity = 1), isValid = true, isDirty = true)
         )
     }
 

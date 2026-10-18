@@ -58,7 +58,7 @@ fun FamilyItemsScreen(
     onAdd: () -> Unit,
     onAddExample: (FamilyItemExample) -> Unit,
     onOpen: (String) -> Unit,
-    viewModel: FamilyItemsViewModel = hiltViewModel(),
+    viewModel: FamilyItemsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     FamilyItemsContent(state, viewModel::onEvent, onAdd, onOpen, archive = viewModel.archive.collectAsListArchive(), onAddExample = onAddExample)
@@ -72,7 +72,7 @@ fun FamilyItemsContent(
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
     archive: ListArchive = ListArchive(),
-    onAddExample: (FamilyItemExample) -> Unit = {},
+    onAddExample: (FamilyItemExample) -> Unit = {}
 ) {
     val examples = FamilyItemExample.entries.map { example -> EmptyExample(stringResource(example.label)) { onAddExample(example) } }
     val groups = categoryGroups()
@@ -85,14 +85,14 @@ fun FamilyItemsContent(
             title = stringResource(R.string.family_items_empty_title),
             message = stringResource(R.string.family_items_empty_message),
             actionLabel = stringResource(R.string.add),
-            examples = examples,
+            examples = examples
         ),
         onAdd = onAdd,
         key = FamilyItem::id,
         modifier = modifier,
         onRetry = { onEvent(FamilyItemsEvent.List(ListEvent.Retry)) },
         group = group,
-        archive = archive,
+        archive = archive
     ) { item ->
         SwipeToHide(onHide = { archive.archive(item.id, item.name) }, enabled = !item.archived) { swipe ->
             FamilyItemRow(item, swipe, onOpen = { onOpen(item.id) })
@@ -102,8 +102,7 @@ fun FamilyItemsContent(
 
 /** En rubrik per kategori, med ikon, i Övrigt-tonen (FAM-1). */
 @Composable
-private fun categoryGroups(): Map<FamilyItemCategory, ListGroup> =
-    FamilyItemCategory.entries.associateWith { ListGroup(stringResource(it.label()), it.icon(), Tone.Blue) }
+private fun categoryGroups(): Map<FamilyItemCategory, ListGroup> = FamilyItemCategory.entries.associateWith { ListGroup(stringResource(it.label()), it.icon(), Tone.Blue) }
 
 /** Namn, mängdregeln i klartext och regeltypen (FAM-3); pausad nedtonad som recepten. */
 @Composable
@@ -115,6 +114,6 @@ private fun FamilyItemRow(item: FamilyItem, modifier: Modifier = Modifier, onOpe
         // En arkiverad visas som arkiverad även om den är pausad – den återställs från formuläret.
         active = item.active || item.archived,
         onClick = onOpen,
-        modifier = modifier,
+        modifier = modifier
     )
 }

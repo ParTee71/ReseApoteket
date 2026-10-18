@@ -72,7 +72,7 @@ fun EntityEditScreen(
     delete: DeleteAction? = null,
     onRetry: () -> Unit = {},
     onSaved: () -> Unit = onClose,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
     // Vad "Släng ändringar" leder till; null = ingen fråga visas.
@@ -120,12 +120,12 @@ fun EntityEditScreen(
                 val menu = listOfNotNull(
                     onArchive?.let { AppMenuItem(stringResource(R.string.archive), { askFirst(AfterDiscard.Archive) }, R.drawable.ic_archive) },
                     onRestore?.let { AppMenuItem(stringResource(R.string.restore), { askFirst(AfterDiscard.Restore) }, R.drawable.ic_unarchive) },
-                    delete?.let { AppMenuItem(stringResource(R.string.delete), { confirmDelete = true }, R.drawable.ic_delete, destructive = true) },
+                    delete?.let { AppMenuItem(stringResource(R.string.delete), { confirmDelete = true }, R.drawable.ic_delete, destructive = true) }
                 )
                 if (menu.isNotEmpty()) AppMenu(menu)
             }
         },
-        snackbarHost = { AppSnackbarHost(snackbar) },
+        snackbarHost = { AppSnackbarHost(snackbar) }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             val loadError = state.loadError
@@ -138,7 +138,7 @@ fun EntityEditScreen(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
                         .padding(horizontal = Spacing.xl, vertical = Spacing.s),
                     verticalArrangement = Arrangement.spacedBy(Spacing.l),
-                    content = content,
+                    content = content
                 )
             }
         }
@@ -154,7 +154,7 @@ fun EntityEditScreen(
                 proceed(after)
             },
             onDismiss = { discardThen = null },
-            dismissLabel = stringResource(R.string.keep_editing),
+            dismissLabel = stringResource(R.string.keep_editing)
         )
     }
     if (confirmDelete && delete != null) {
@@ -167,7 +167,7 @@ fun EntityEditScreen(
                 delete.onConfirm()
             },
             onDismiss = { confirmDelete = false },
-            destructive = true,
+            destructive = true
         )
     }
 }

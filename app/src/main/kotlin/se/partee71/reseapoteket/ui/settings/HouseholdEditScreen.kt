@@ -29,8 +29,7 @@ import se.partee71.reseapoteket.ui.components.EntityEditScreen
 object HouseholdValidator : Validator<Household> {
     const val NAME = "name"
 
-    override fun validate(value: Household): Map<String, Int> =
-        if (value.name.isBlank()) mapOf(NAME to R.string.name_required) else emptyMap()
+    override fun validate(value: Household): Map<String, Int> = if (value.name.isBlank()) mapOf(NAME to R.string.name_required) else emptyMap()
 }
 
 sealed interface HouseholdEditEvent {
@@ -80,7 +79,7 @@ fun HouseholdEditContent(
     events: EditorEvents,
     onEvent: (HouseholdEditEvent) -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     EntityEditScreen(
         title = stringResource(R.string.household_edit),
@@ -89,13 +88,13 @@ fun HouseholdEditContent(
         onSave = { onEvent(HouseholdEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,
-        onRetry = { onEvent(HouseholdEditEvent.Retry) },
+        onRetry = { onEvent(HouseholdEditEvent.Retry) }
     ) {
         AppTextField(
             state.value.name,
             { onEvent(HouseholdEditEvent.Name(it)) },
             stringResource(R.string.name),
-            error = state.errorFor(HouseholdValidator.NAME)?.let { stringResource(it) },
+            error = state.errorFor(HouseholdValidator.NAME)?.let { stringResource(it) }
         )
     }
 }

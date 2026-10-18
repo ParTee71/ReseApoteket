@@ -26,7 +26,7 @@ class HouseholdExporter @Inject constructor(
     private val raw: RawDocuments,
     private val scope: HouseholdScope,
     private val clock: Clock,
-    @param:DefaultDispatcher private val computation: CoroutineDispatcher,
+    @param:DefaultDispatcher private val computation: CoroutineDispatcher
 ) : HouseholdExport {
 
     override suspend fun export(): Result<String> = suspendRunCatching(::firestoreError) {
@@ -50,7 +50,7 @@ class HouseholdExporter @Inject constructor(
      */
     private suspend fun read(
         path: String,
-        children: (suspend (id: String) -> List<ExportFormat.Document>)? = null,
+        children: (suspend (id: String) -> List<ExportFormat.Document>)? = null
     ): List<ExportFormat.Document> = coroutineScope {
         val documents = raw.collection(path).toSortedMap().map { (id, data) -> ExportFormat.Document("$path/$id", data) }
         if (children == null) return@coroutineScope documents

@@ -21,10 +21,11 @@ import se.partee71.reseapoteket.core.engine.Reminder
 import se.partee71.reseapoteket.core.engine.ReminderKind
 
 /** Om appen får visa notiser – annars visas rutan "Notiser är avstängda" i Inställningar (PÅM-7). */
-fun Context.canPostNotifications(): Boolean =
-    NotificationManagerCompat.from(this).areNotificationsEnabled() &&
-        (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+fun Context.canPostNotifications(): Boolean = NotificationManagerCompat.from(this).areNotificationsEnabled() &&
+    (
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        )
 
 /**
  * Rubrik och text för en påminnelse (PÅM-2–5): resans namn och antal, och för resedagen antalet som
@@ -39,10 +40,12 @@ fun Resources.reminderText(reminder: Reminder): ReminderText {
             val days = reminder.at.date.daysUntil(reminder.startDate)
             ReminderText(getQuantityString(R.plurals.reminder_no_list_title, days, reminder.tripName, days), getString(R.string.reminder_no_list_text))
         }
+
         ReminderKind.TIME_TO_PACK -> ReminderText(
             getString(R.string.reminder_time_to_pack_title, reminder.tripName),
-            getString(R.string.reminder_time_to_pack_text, left, reminder.progress.total),
+            getString(R.string.reminder_time_to_pack_text, left, reminder.progress.total)
         )
+
         ReminderKind.DAY_BEFORE -> {
             // Det som packas på resedagen nämns för sig (PAK-6).
             val morning = reminder.travelDayCount
@@ -54,13 +57,14 @@ fun Resources.reminderText(reminder: Reminder): ReminderText {
             }
             ReminderText(getString(R.string.reminder_day_before_title, reminder.tripName), text)
         }
+
         ReminderKind.TRAVEL_DAY -> ReminderText(
             getString(R.string.reminder_travel_day_title),
             if (reminder.travelDayCount == 0) {
                 getQuantityString(R.plurals.reminder_left, left, left)
             } else {
                 getQuantityString(R.plurals.reminder_travel_day_now, reminder.travelDayCount, reminder.travelDayCount)
-            },
+            }
         )
     }
 }
@@ -80,7 +84,7 @@ class ReminderNotifier @Inject constructor(@ApplicationContext private val conte
             NotificationChannelCompat.Builder(CHANNEL, NotificationManagerCompat.IMPORTANCE_DEFAULT)
                 .setName(context.getString(R.string.reminder_channel))
                 .setDescription(context.getString(R.string.reminder_channel_note))
-                .build(),
+                .build()
         )
         val id = notificationId(reminder.key)
         try {

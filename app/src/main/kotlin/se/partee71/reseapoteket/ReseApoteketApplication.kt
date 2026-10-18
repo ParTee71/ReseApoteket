@@ -16,7 +16,8 @@ class ReseApoteketApplication : Application() {
 
     @Inject lateinit var clock: Clock
 
-    @Inject @ApplicationScope lateinit var scope: CoroutineScope
+    @Inject @ApplicationScope
+    lateinit var scope: CoroutineScope
 
     override fun onCreate() {
         super.onCreate()

@@ -22,22 +22,20 @@ abstract class CollectionTable : CollectionFactory {
     protected abstract fun <T : Identified> create(
         codec: DocCodec<T>,
         name: String,
-        path: (householdId: String?) -> String,
+        path: (householdId: String?) -> String
     ): EntityCollection<T>
 
     override fun households() = create(HouseholdCodec, Paths.HOUSEHOLDS) { Paths.HOUSEHOLDS }
 
     override fun persons() = create(PersonCodec, Paths.PERSONS) { Paths.persons(required(it)) }
 
-    override fun regimens(personId: String) =
-        create(RegimenCodec, Paths.REGIMENS) { Paths.regimens(required(it), personId) }
+    override fun regimens(personId: String) = create(RegimenCodec, Paths.REGIMENS) { Paths.regimens(required(it), personId) }
 
     override fun familyItems() = create(FamilyItemCodec, Paths.FAMILY_ITEMS) { Paths.familyItems(required(it)) }
 
     override fun trips() = create(TripCodec, Paths.TRIPS) { Paths.trips(required(it)) }
 
-    override fun packingItems(tripId: String) =
-        create(PackingItemCodec, Paths.PACKING_ITEMS) { Paths.packingItems(required(it), tripId) }
+    override fun packingItems(tripId: String) = create(PackingItemCodec, Paths.PACKING_ITEMS) { Paths.packingItems(required(it), tripId) }
 
     private fun required(householdId: String?): String = householdId ?: throw DataError.NoHousehold
 }

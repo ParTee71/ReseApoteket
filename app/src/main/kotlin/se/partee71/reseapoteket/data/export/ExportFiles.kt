@@ -34,11 +34,14 @@ interface ExportFiles {
  */
 class CacheExportFiles @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : ExportFiles {
     override suspend fun save(name: String, text: String): Result<String> = suspendRunCatching({ DataError.Unknown }) {
         withContext(io) {
-            val dir = File(context.cacheDir, DIR).apply { deleteRecursively(); mkdirs() }
+            val dir = File(context.cacheDir, DIR).apply {
+                deleteRecursively()
+                mkdirs()
+            }
             val file = File(dir, name).apply { writeText(text) }
             FileProvider.getUriForFile(context, "${context.packageName}$AUTHORITY_SUFFIX", file).toString()
         }

@@ -38,8 +38,7 @@ class FamilyItemViewModelsTest {
     private val persons = DefaultPersonRepository(collections)
     private val household = MutableStateFlow<Household?>(Household("h1", marginDays = 2))
 
-    private fun editor(itemId: String? = null, example: FamilyItemExample? = null, name: String = "") =
-        FamilyItemEditViewModel(itemId, example, name, items, persons, StubHouseholds(household))
+    private fun editor(itemId: String? = null, example: FamilyItemExample? = null, name: String = "") = FamilyItemEditViewModel(itemId, example, name, items, persons, StubHouseholds(household))
 
     private val sunscreen = FamilyItem("f1", "Solkräm", FamilyItemCategory.CREAM, ItemUnit.TUB, QuantityRule.PerDays(1, 7), "Faktor 50", sortOrder = 2)
 

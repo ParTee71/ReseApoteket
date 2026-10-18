@@ -41,7 +41,7 @@ fun AppNavigation(
     modifier: Modifier = Modifier,
     openTrip: String? = null,
     onTripOpened: () -> Unit = {},
-    syncViewModel: SyncViewModel = hiltViewModel(),
+    syncViewModel: SyncViewModel = hiltViewModel()
 ) {
     val sync by syncViewModel.state.collectAsStateWithLifecycle()
     val backStack = rememberAppBackStack()
@@ -69,8 +69,7 @@ fun OpenTripEffect(backStack: AppBackStack, tripId: String?, onOpened: () -> Uni
  * till sin post och försvinner när den stängs. En skärm stänger sig med `popIfTop(key)`, aldrig
  * `pop()`, så att ett andra tryck inte stänger skärmen under.
  */
-fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey) -> NavEntry<AppKey> =
-    // Varje nyckel har sin skärm (AppKey är förseglad); en saknad är ett programfel.
+fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey) -> NavEntry<AppKey> = // Varje nyckel har sin skärm (AppKey är förseglad); en saknad är ett programfel.
     entryProvider(fallback = { key -> error("Ingen skärm för $key") }) {
         entry<TripsKey> {
             TripsScreen(onAdd = { backStack.push(TripEditKey()) }, onOpen = { backStack.push(PackingListKey(it)) }, viewModel = hiltViewModel(tabOwner))
@@ -83,7 +82,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onAdd = { backStack.push(FamilyItemEditKey()) },
                 onAddExample = { backStack.push(FamilyItemEditKey(example = it)) },
                 onOpen = { backStack.push(FamilyItemEditKey(it)) },
-                viewModel = hiltViewModel(tabOwner),
+                viewModel = hiltViewModel(tabOwner)
             )
         }
         entry<SettingsKey> {
@@ -91,7 +90,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onEditHousehold = { backStack.push(HouseholdEditKey) },
                 onOpenGallery = if (BuildConfig.DEBUG) ({ backStack.push(ComponentGalleryKey) }) else null,
                 viewModel = hiltViewModel(tabOwner),
-                remindersViewModel = hiltViewModel(tabOwner),
+                remindersViewModel = hiltViewModel(tabOwner)
             )
         }
         entry<PersonDetailKey> { key ->
@@ -100,7 +99,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onEdit = { backStack.push(PersonEditKey(key.personId)) },
                 onAddRegimen = { kind -> backStack.push(RegimenEditKey(key.personId, kind)) },
                 onOpenRegimen = { regimen -> backStack.push(RegimenEditKey(key.personId, regimen.kind, regimen.id)) },
-                viewModel = hiltViewModel<PersonDetailViewModel, PersonDetailViewModel.Factory> { it.create(key.personId) },
+                viewModel = hiltViewModel<PersonDetailViewModel, PersonDetailViewModel.Factory> { it.create(key.personId) }
             )
         }
         entry<HouseholdEditKey> { key ->
@@ -109,21 +108,21 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
         entry<PersonEditKey> { key ->
             PersonEditScreen(
                 onClose = { backStack.popIfTop(key) },
-                viewModel = hiltViewModel<PersonEditViewModel, PersonEditViewModel.Factory> { it.create(key.personId) },
+                viewModel = hiltViewModel<PersonEditViewModel, PersonEditViewModel.Factory> { it.create(key.personId) }
             )
         }
         entry<RegimenEditKey> { key ->
             RegimenEditScreen(
                 RegimenKindConfig.of(key.kind).editor,
                 onClose = { backStack.popIfTop(key) },
-                viewModel = hiltViewModel<RegimenEditViewModel, RegimenEditViewModel.Factory> { it.create(key.personId, key.kind, key.regimenId) },
+                viewModel = hiltViewModel<RegimenEditViewModel, RegimenEditViewModel.Factory> { it.create(key.personId, key.kind, key.regimenId) }
             )
         }
         entry<FamilyItemEditKey> { key ->
             val exampleName = key.example?.let { stringResource(it.label) }.orEmpty()
             FamilyItemEditScreen(
                 onClose = { backStack.popIfTop(key) },
-                viewModel = hiltViewModel<FamilyItemEditViewModel, FamilyItemEditViewModel.Factory> { it.create(key.itemId, key.example, exampleName) },
+                viewModel = hiltViewModel<FamilyItemEditViewModel, FamilyItemEditViewModel.Factory> { it.create(key.itemId, key.example, exampleName) }
             )
         }
         entry<TripEditKey> { key ->
@@ -134,7 +133,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                     backStack.popIfTop(key)
                     backStack.push(PackingListKey(id))
                 },
-                viewModel = hiltViewModel<TripEditViewModel, TripEditViewModel.Factory> { it.create(key.tripId) },
+                viewModel = hiltViewModel<TripEditViewModel, TripEditViewModel.Factory> { it.create(key.tripId) }
             )
         }
         entry<PackingListKey> { key ->
@@ -142,7 +141,7 @@ fun appEntries(backStack: AppBackStack, tabOwner: ViewModelStoreOwner): (AppKey)
                 onBack = { backStack.popIfTop(key) },
                 // Resan ändras från packlistan (RES-1).
                 onEditTrip = { backStack.push(TripEditKey(key.tripId)) },
-                viewModel = hiltViewModel<PackingListViewModel, PackingListViewModel.Factory> { it.create(key.tripId) },
+                viewModel = hiltViewModel<PackingListViewModel, PackingListViewModel.Factory> { it.create(key.tripId) }
             )
         }
         entry<ComponentGalleryKey> { key -> ComponentGallery(onBack = { backStack.popIfTop(key) }) }

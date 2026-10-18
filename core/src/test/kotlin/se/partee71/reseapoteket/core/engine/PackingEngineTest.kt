@@ -26,8 +26,7 @@ class PackingEngineTest {
 
     private val margin2 = HouseholdSettings(marginDays = 2)
     private val noMargin = HouseholdSettings(marginDays = 0)
-    private fun trip(days: Int, start: LocalDate? = LocalDate(2026, 12, 20), travellers: List<String> = listOf("anna", "erik")) =
-        Trip("t1", "Gran Canaria", start, days, travellers)
+    private fun trip(days: Int, start: LocalDate? = LocalDate(2026, 12, 20), travellers: List<String> = listOf("anna", "erik")) = Trip("t1", "Gran Canaria", start, days, travellers)
 
     // ---- Formler ----
 
@@ -105,8 +104,8 @@ class PackingEngineTest {
             "anna" to listOf(
                 Regimen("r1", name = "Levaxin", schedule = DoseSchedule.Daily(1, 1)),
                 Regimen("r2", name = "Alvedon", schedule = DoseSchedule.AsNeeded(10)),
-                Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", schedule = DoseSchedule.Daily(1, 1)),
-            ),
+                Regimen("s1", RegimenKind.SUPPLEMENT, "D-vitamin", schedule = DoseSchedule.Daily(1, 1))
+            )
         )
         val family = listOf(FamilyItem("f1", "Solkräm", rule = QuantityRule.Fixed(1)))
         val preview = PackingEngine.tripPreview(trip(7, travellers = listOf("anna", "lova")), listOf(anna, lova), regimens, family, margin2)
@@ -131,14 +130,14 @@ class PackingEngineTest {
                 "anna" to listOf(alvedon, Regimen("inaktiv", name = "Inaktiv", active = false, schedule = DoseSchedule.Daily())),
                 "erik" to listOf(alvedon, Regimen("arkiv", name = "Arkiverad", archived = true, schedule = DoseSchedule.Daily())),
                 "lova" to listOf(alvedon),
-                "bertil" to listOf(alvedon),
+                "bertil" to listOf(alvedon)
             ),
             listOf(
                 FamilyItem("sol", "Solkräm", unit = ItemUnit.TUB, rule = QuantityRule.PerDays(1, 7)),
                 FamilyItem("gammal", "Gammal", rule = QuantityRule.Fixed(1), archived = true),
-                FamilyItem("av", "Avstängd", rule = QuantityRule.Fixed(1), active = false),
+                FamilyItem("av", "Avstängd", rule = QuantityRule.Fixed(1), active = false)
             ),
-            margin2,
+            margin2
         )
         assertEquals(listOf("regimen-anna-alvedon", "regimen-erik-alvedon", "family-sol"), suggestion.items.map { it.id })
         assertEquals(listOf("Alvedon 500 mg", "Alvedon 500 mg", "Solkräm"), suggestion.items.map { it.name })
@@ -152,7 +151,7 @@ class PackingEngineTest {
             listOf(anna, lova),
             emptyMap(),
             listOf(FamilyItem("myg", "Myggmedel", rule = QuantityRule.PerTraveller(1))),
-            margin2,
+            margin2
         )
         assertEquals(1, suggestion.items.single().quantity)
     }
@@ -166,15 +165,19 @@ class PackingEngineTest {
             listOf(erik, anna),
             mapOf("anna" to listOf(zyrtec, dvitamin, alvedon), "erik" to listOf(dvitamin, zyrtec)),
             listOf(FamilyItem("b", "B-plåster", sortOrder = 1, rule = QuantityRule.Fixed(1)), FamilyItem("a", "Termometer", sortOrder = 0, rule = QuantityRule.Fixed(1))),
-            margin2,
+            margin2
         )
         assertEquals(
             listOf(
-                PackingSection.MEDICINE to "anna/alvedon", PackingSection.MEDICINE to "anna/z", PackingSection.MEDICINE to "erik/z",
-                PackingSection.SUPPLEMENT to "anna/d", PackingSection.SUPPLEMENT to "erik/d",
-                PackingSection.FAMILY to "null/a", PackingSection.FAMILY to "null/b",
+                PackingSection.MEDICINE to "anna/alvedon",
+                PackingSection.MEDICINE to "anna/z",
+                PackingSection.MEDICINE to "erik/z",
+                PackingSection.SUPPLEMENT to "anna/d",
+                PackingSection.SUPPLEMENT to "erik/d",
+                PackingSection.FAMILY to "null/a",
+                PackingSection.FAMILY to "null/b"
             ),
-            suggestion.items.map { it.section to "${it.personId}/${it.sourceId}" },
+            suggestion.items.map { it.section to "${it.personId}/${it.sourceId}" }
         )
     }
 
@@ -193,7 +196,7 @@ class PackingEngineTest {
             listOf(anna),
             mapOf("anna" to listOf(Regimen("vb", name = "Nässpray", schedule = DoseSchedule.AsNeeded(0)), Regimen("u", name = "Ny typ"))),
             listOf(FamilyItem("x", "Okänd regel")),
-            margin2,
+            margin2
         )
         assertTrue(suggestion.items.all { it.quantity == 0 })
         assertEquals(listOf("Ny typ", "Nässpray", "Okänd regel"), suggestion.warnings) // svensk ordning: y före ä
@@ -201,8 +204,7 @@ class PackingEngineTest {
 
     // ---- merge ----
 
-    private fun row(id: String, source: PackingSource, sourceId: String?, personId: String?, suggested: Int, quantity: Int = suggested) =
-        PackingItem(id, sourceType = source, sourceId = sourceId, personId = personId, name = id, suggestedQuantity = suggested, quantity = quantity)
+    private fun row(id: String, source: PackingSource, sourceId: String?, personId: String?, suggested: Int, quantity: Int = suggested) = PackingItem(id, sourceType = source, sourceId = sourceId, personId = personId, name = id, suggestedQuantity = suggested, quantity = quantity)
 
     @Test
     fun `merge - nytt förslag, manuellt ändrad mängd, avprickning och dolt behålls`() {
@@ -210,15 +212,15 @@ class PackingEngineTest {
         val existing = listOf(
             row("gammal-1", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9),
             row("gammal-2", PackingSource.REGIMEN, "zyrtec", "anna", suggested = 9, quantity = 12)
-                .copy(checked = true, checkedAt = checkedAt, hidden = true),
+                .copy(checked = true, checkedAt = checkedAt, hidden = true)
         )
         val suggestion = PackingSuggestion(
             listOf(
                 row("regimen-anna-levaxin", PackingSource.REGIMEN, "levaxin", "anna", suggested = 11),
                 row("regimen-anna-zyrtec", PackingSource.REGIMEN, "zyrtec", "anna", suggested = 11),
-                row("regimen-erik-ny", PackingSource.REGIMEN, "ny", "erik", suggested = 5),
+                row("regimen-erik-ny", PackingSource.REGIMEN, "ny", "erik", suggested = 5)
             ),
-            emptyList(),
+            emptyList()
         )
         val merged = PackingEngine.merge(existing, suggestion).associateBy { it.sourceId }
 
@@ -236,7 +238,7 @@ class PackingEngineTest {
         val existing = listOf(
             row("borta", PackingSource.REGIMEN, "a", "lova", suggested = 3),
             row("packad", PackingSource.REGIMEN, "b", "lova", suggested = 3).copy(checked = true),
-            manual,
+            manual
         )
         val merged = PackingEngine.merge(existing, PackingSuggestion(emptyList(), emptyList()))
         assertEquals(listOf("packad", "egen"), merged.map { it.id })
@@ -249,15 +251,15 @@ class PackingEngineTest {
         val existing = listOf(
             row("a", PackingSource.REGIMEN, "alvedon", "anna", suggested = 10, quantity = 5),
             row("e", PackingSource.REGIMEN, "alvedon", "erik", suggested = 10).copy(checked = true),
-            row("f", PackingSource.FAMILY_ITEM, "sol", null, suggested = 1, quantity = 3),
+            row("f", PackingSource.FAMILY_ITEM, "sol", null, suggested = 1, quantity = 3)
         )
         val suggestion = PackingSuggestion(
             listOf(
                 row("regimen-anna-alvedon", PackingSource.REGIMEN, "alvedon", "anna", suggested = 12),
                 row("regimen-erik-alvedon", PackingSource.REGIMEN, "alvedon", "erik", suggested = 12),
-                row("family-sol", PackingSource.FAMILY_ITEM, "sol", null, suggested = 2),
+                row("family-sol", PackingSource.FAMILY_ITEM, "sol", null, suggested = 2)
             ),
-            emptyList(),
+            emptyList()
         )
         val merged = PackingEngine.merge(existing, suggestion)
         assertEquals(listOf("a" to 5, "e" to 12, "f" to 3), merged.map { it.id to it.quantity })
@@ -271,7 +273,7 @@ class PackingEngineTest {
             row("egen-1", PackingSource.MANUAL, null, null, suggested = 0).copy(sortOrder = 3),
             row("gammal", PackingSource.REGIMEN, "borta", "anna", suggested = 1).copy(checked = true, hidden = true, sortOrder = 0),
             row("dubblett-1", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9),
-            row("dubblett-2", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9).copy(checked = true),
+            row("dubblett-2", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9).copy(checked = true)
         )
         val suggestion = PackingSuggestion(listOf(row("regimen-anna-levaxin", PackingSource.REGIMEN, "levaxin", "anna", suggested = 9)), emptyList())
         val merged = PackingEngine.merge(existing, suggestion)
@@ -284,14 +286,14 @@ class PackingEngineTest {
     fun `merge - manuellt ändrad mängd behåller sina förpackningar, annars följer de förslaget`() {
         val existing = listOf(
             row("m", PackingSource.REGIMEN, "a", "anna", suggested = 9, quantity = 25).copy(packages = 3),
-            row("f", PackingSource.REGIMEN, "b", "anna", suggested = 9).copy(packages = 1),
+            row("f", PackingSource.REGIMEN, "b", "anna", suggested = 9).copy(packages = 1)
         )
         val suggestion = PackingSuggestion(
             listOf(
                 row("regimen-anna-a", PackingSource.REGIMEN, "a", "anna", suggested = 11).copy(packages = 2),
-                row("regimen-anna-b", PackingSource.REGIMEN, "b", "anna", suggested = 11).copy(packages = 2),
+                row("regimen-anna-b", PackingSource.REGIMEN, "b", "anna", suggested = 11).copy(packages = 2)
             ),
-            emptyList(),
+            emptyList()
         )
         assertEquals(listOf(3, 2), PackingEngine.merge(existing, suggestion).map { it.packages })
     }
@@ -341,7 +343,7 @@ class PackingEngineTest {
         val t = trip(7, travellers = listOf("bo", "al"))
         val regimens = mapOf(
             "bo" to listOf(Regimen("r2", name = "Alvedon", strength = "500 mg"), Regimen("r1", name = "Alvedon", strength = "250 mg")),
-            "al" to listOf(Regimen("r3", name = "Levaxin")),
+            "al" to listOf(Regimen("r3", name = "Levaxin"))
         )
         val items = listOf(FamilyItem("f2", "Plåster"), FamilyItem("f1", "Plåster"))
         val first = PackingEngine.suggest(t, listOf(bo, al), regimens, items, margin2).items
@@ -365,7 +367,7 @@ class PackingEngineTest {
             PackingItem("a", checked = true),
             PackingItem("b"),
             PackingItem("c", checked = true, hidden = true),
-            PackingItem("d", hidden = true),
+            PackingItem("d", hidden = true)
         )
         assertEquals(PackingProgress(1, 2), PackingEngine.progress(items))
         assertEquals(PackingProgress.NONE, PackingEngine.progress(emptyList()))

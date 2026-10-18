@@ -103,7 +103,7 @@ class FamilyItemEditViewModel @AssistedInject constructor(
     @Assisted("exampleName") exampleName: String,
     private val items: FamilyItemRepository,
     persons: PersonRepository,
-    households: HouseholdRepository,
+    households: HouseholdRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -128,7 +128,7 @@ class FamilyItemEditViewModel @AssistedInject constructor(
     val preview: StateFlow<PackingPreviewText?> = combine(
         editor.state.map { it.value }.distinctUntilChanged(),
         persons.activeCount().map<Int, Int?> { it }.catch { emit(null) },
-        households.householdSettings(),
+        households.householdSettings()
     ) { item, travellers, settings -> travellers?.let { PackingEngine.familyPreview(item, it, settings) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -183,7 +183,7 @@ fun FamilyItemEditContent(
     onEvent: (FamilyItemEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    stored: FamilyItem? = null,
+    stored: FamilyItem? = null
 ) {
     val item = state.value
     EntityEditScreen(
@@ -196,13 +196,13 @@ fun FamilyItemEditContent(
         // Först när den lagrade artikeln är läst finns något att arkivera eller återställa.
         onArchive = stored?.takeUnless { it.archived }?.let { { onEvent(FamilyItemEditEvent.Archive) } },
         onRestore = stored?.takeIf { it.archived }?.let { { onEvent(FamilyItemEditEvent.Restore) } },
-        onRetry = { onEvent(FamilyItemEditEvent.Retry) },
+        onRetry = { onEvent(FamilyItemEditEvent.Retry) }
     ) {
         AppTextField(
             item.name,
             { onEvent(FamilyItemEditEvent.Name(it)) },
             stringResource(R.string.name),
-            error = state.errorFor(FamilyItemValidator.NAME)?.let { stringResource(it) },
+            error = state.errorFor(FamilyItemValidator.NAME)?.let { stringResource(it) }
         )
         LabeledGroup(stringResource(R.string.family_item_category)) {
             ChoiceChips(FamilyItemCategory.entries, item.category, { onEvent(FamilyItemEditEvent.Category(it)) }, { stringResource(it.label()) })
@@ -215,7 +215,7 @@ fun FamilyItemEditContent(
                 item.rule,
                 { onEvent(FamilyItemEditEvent.Rule(it)) },
                 unitName = { UnitNames.name(it, item.unit) },
-                error = state.errorFor(FamilyItemValidator.RULE)?.let { stringResource(it) },
+                error = state.errorFor(FamilyItemValidator.RULE)?.let { stringResource(it) }
             )
         }
         preview?.let { PackingPreview(it.context, it.quantity, reason = it.reason) }
@@ -225,7 +225,7 @@ fun FamilyItemEditContent(
             stringResource(R.string.active),
             item.active,
             { onEvent(FamilyItemEditEvent.Active(it)) },
-            subtitle = stringResource(R.string.active_note),
+            subtitle = stringResource(R.string.active_note)
         )
     }
 }

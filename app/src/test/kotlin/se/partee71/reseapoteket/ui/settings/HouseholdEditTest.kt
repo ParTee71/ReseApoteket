@@ -36,7 +36,7 @@ class HouseholdEditTest {
             editor = EditorState(svensson, HouseholdValidator),
             makeInvalid = { update(HouseholdValidator.NAME) { it.copy(name = " ") } },
             makeValid = { update(HouseholdValidator.NAME) { it.copy(name = "Familjen Berg") } },
-            invalidMessage = "Ange ett namn",
+            invalidMessage = "Ange ett namn"
         ) { state, events, onSave, onClose ->
             HouseholdEditContent(state, events, { if (it is HouseholdEditEvent.Save) onSave() }, onClose)
         }

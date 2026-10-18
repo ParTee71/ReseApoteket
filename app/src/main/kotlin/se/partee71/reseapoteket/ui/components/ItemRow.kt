@@ -69,7 +69,7 @@ fun ItemRow(
     navigates: Boolean = false,
     inactive: Boolean = false,
     below: (@Composable () -> Unit)? = null,
-    titleHighlight: IntRange? = null,
+    titleHighlight: IntRange? = null
 ) {
     val end: (@Composable () -> Unit)? = if (navigates) {
         {
@@ -90,7 +90,7 @@ fun ItemRow(
         done = done,
         accent = accent,
         below = below,
-        titleHighlight = titleHighlight,
+        titleHighlight = titleHighlight
     )
 }
 
@@ -98,8 +98,8 @@ fun ItemRow(
 @Composable
 internal fun ItemRowLayout(
     title: String,
-    modifier: Modifier,
-    interaction: Modifier,
+    modifier: Modifier = Modifier,
+    interaction: Modifier = Modifier,
     subtitle: String? = null,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -107,7 +107,7 @@ internal fun ItemRowLayout(
     done: Boolean = false,
     accent: Color? = null,
     below: (@Composable () -> Unit)? = null,
-    titleHighlight: IntRange? = null,
+    titleHighlight: IntRange? = null
 ) {
     val tint = AppColors.extended.rowTint
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
@@ -117,7 +117,7 @@ internal fun ItemRowLayout(
         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
         tooltip = { PlainTooltip { FullText(title, subtitle) } },
         state = rememberTooltipState(),
-        enableUserInput = truncated,
+        enableUserInput = truncated
     ) {
         // Anroparens modifierare (svep och dess TalkBack-åtgärd) ska ligga på raden som TalkBack läser.
         Column(
@@ -129,7 +129,7 @@ internal fun ItemRowLayout(
                 .then(interaction)
                 .then(if (accent != null) Modifier.drawBehind { drawAccent(accent) } else Modifier)
                 .padding(horizontal = Spacing.m, vertical = Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                 leading?.invoke()
@@ -142,7 +142,7 @@ internal fun ItemRowLayout(
                         textDecoration = decoration,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        onTextLayout = { truncated = it.hasVisualOverflow },
+                        onTextLayout = { truncated = it.hasVisualOverflow }
                     )
                     subtitle?.let { Text(it, style = AppTypography.itemSubtitle, color = muted, textDecoration = decoration) }
                 }

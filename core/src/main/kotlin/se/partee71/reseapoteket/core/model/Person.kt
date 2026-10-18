@@ -7,5 +7,7 @@ data class Person(
     val emoji: String = "",
     val colorHex: String = "",
     override val sortOrder: Int = 0,
-    override val archived: Boolean = false,
-) : Identified, Sortable, Archivable
+    override val archived: Boolean = false
+) : Identified,
+    Sortable,
+    Archivable

@@ -16,7 +16,9 @@ data class FamilyItem(
     val travelDay: Boolean = false,
     val travelDayTime: LocalTime? = null,
     override val sortOrder: Int = 0,
-    override val archived: Boolean = false,
-) : Identified, Sortable, Archivable
+    override val archived: Boolean = false
+) : Identified,
+    Sortable,
+    Archivable
 
 enum class FamilyItemCategory { CREAM, PLASTER, TOOL, OTHER }

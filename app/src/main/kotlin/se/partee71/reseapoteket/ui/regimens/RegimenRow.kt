@@ -18,6 +18,6 @@ fun RegimenRow(regimen: Regimen, onClick: () -> Unit, modifier: Modifier = Modif
         kind = regimen.schedule.kindLabel()?.let { stringResource(it) },
         active = regimen.active,
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
     )
 }

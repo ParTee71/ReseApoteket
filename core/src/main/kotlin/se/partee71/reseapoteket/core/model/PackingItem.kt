@@ -22,8 +22,9 @@ data class PackingItem(
     /** Packas på resedagen (PAK-6): samlas sist i packlistan; [travelDayTime] är en egen påminnelsetid. */
     val travelDay: Boolean = false,
     val travelDayTime: LocalTime? = null,
-    override val sortOrder: Int = 0,
-) : Identified, Sortable
+    override val sortOrder: Int = 0
+) : Identified,
+    Sortable
 
 enum class PackingSection { MEDICINE, SUPPLEMENT, FAMILY }
 

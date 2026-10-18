@@ -22,7 +22,7 @@ object TripCodec : DocCodec<Trip> {
         STATUS to value.status.encodeEnum(),
         "createdAt" to value.createdAt,
         "updatedAt" to value.updatedAt,
-        "archived" to value.archived,
+        "archived" to value.archived
     )
 
     override fun decode(id: String, map: Doc) = Trip(
@@ -34,7 +34,7 @@ object TripCodec : DocCodec<Trip> {
         status = map.enum(STATUS, TripStatus.PLANNING),
         createdAt = map.instant("createdAt"),
         updatedAt = map.instant("updatedAt"),
-        archived = map.bool("archived"),
+        archived = map.bool("archived")
     )
 }
 
@@ -62,7 +62,7 @@ object PackingItemCodec : DocCodec<PackingItem> {
         HIDDEN to value.hidden,
         TRAVEL_DAY to value.travelDay,
         TRAVEL_DAY_TIME to value.travelDayTime.encodeTime(),
-        "sortOrder" to value.sortOrder,
+        "sortOrder" to value.sortOrder
     )
 
     override fun decode(id: String, map: Doc) = PackingItem(
@@ -82,6 +82,6 @@ object PackingItemCodec : DocCodec<PackingItem> {
         hidden = map.bool(HIDDEN),
         travelDay = map.bool(TRAVEL_DAY),
         travelDayTime = map.localTime(TRAVEL_DAY_TIME),
-        sortOrder = map.int("sortOrder"),
+        sortOrder = map.int("sortOrder")
     )
 }

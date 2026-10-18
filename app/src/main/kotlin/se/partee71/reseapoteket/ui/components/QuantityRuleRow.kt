@@ -21,7 +21,7 @@ fun QuantityRuleRow(
     onChange: (QuantityRule) -> Unit,
     unitName: (Int) -> String,
     modifier: Modifier = Modifier,
-    error: String? = null,
+    error: String? = null
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         if (rule is QuantityRule.Unknown) {
@@ -36,22 +36,25 @@ fun QuantityRuleRow(
         when (rule) {
             is QuantityRule.Fixed ->
                 LabeledStepper(rule.quantity, { onChange(rule.copy(quantity = it)) }, unitName(rule.quantity), 1..999)
+
             is QuantityRule.PerTraveller ->
                 LabeledStepper(
                     rule.quantity,
                     { onChange(rule.copy(quantity = it)) },
                     stringResource(R.string.rule_per_traveller_label, unitName(rule.quantity)),
-                    1..999,
+                    1..999
                 )
+
             is QuantityRule.PerDays -> {
                 LabeledStepper(rule.quantity, { onChange(rule.copy(quantity = it)) }, unitName(rule.quantity), 1..999)
                 LabeledStepper(
                     rule.perDays,
                     { onChange(rule.copy(perDays = it)) },
                     stringResource(R.string.rule_per_days_label, unitName(1)),
-                    1..365,
+                    1..365
                 )
             }
+
             is QuantityRule.Unknown -> Unit
         }
         error?.let { FieldError(it) }

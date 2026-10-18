@@ -29,7 +29,7 @@ class ReminderRunner @Inject constructor(
     private val notifier: ReminderNotifier,
     private val clock: Clock,
     // Telefonens tidszon läses vid varje genomgång – den byts när man reser.
-    private val zones: Provider<TimeZone>,
+    private val zones: Provider<TimeZone>
 ) {
     private val zone: TimeZone get() = zones.get()
 
@@ -67,21 +67,18 @@ class ReminderRunner @Inject constructor(
      * Första påminnelsen efter [checkedUntil] – har den redan passerat körs genomgången direkt –
      * men senast om [REFRESH], så att ändringar från andra telefoner hinner med.
      */
-    fun nextCheck(planned: List<Reminder>, checkedUntil: Instant, now: Instant): Instant =
-        minOf(ReminderPlanner.next(planned, checkedUntil, zone) ?: (now + REFRESH), now + REFRESH)
+    fun nextCheck(planned: List<Reminder>, checkedUntil: Instant, now: Instant): Instant = minOf(ReminderPlanner.next(planned, checkedUntil, zone) ?: (now + REFRESH), now + REFRESH)
 
     /** Hur långt påminnelserna gåtts igenom; första gången från nu – inget som redan passerat skickas. */
-    suspend fun checkedUntil(): Instant =
-        settings.remindersCheckedUntil.first() ?: clock.now().also { settings.setRemindersCheckedUntil(it) }
+    suspend fun checkedUntil(): Instant = settings.remindersCheckedUntil.first() ?: clock.now().also { settings.setRemindersCheckedUntil(it) }
 
-    private suspend fun read(): List<Reminder>? =
-        try {
-            withTimeoutOrNull(READ_TIMEOUT) { source.plan.first() }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Exception) {
-            null
-        }
+    private suspend fun read(): List<Reminder>? = try {
+        withTimeoutOrNull(READ_TIMEOUT) { source.plan.first() }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: Exception) {
+        null
+    }
 
     companion object {
         /**

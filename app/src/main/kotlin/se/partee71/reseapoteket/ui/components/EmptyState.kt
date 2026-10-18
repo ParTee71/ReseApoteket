@@ -40,7 +40,7 @@ fun EmptyState(
     note: String? = null,
     fullScreen: Boolean = false,
     isError: Boolean = false,
-    action: (@Composable () -> Unit)? = null,
+    action: (@Composable () -> Unit)? = null
 ) {
     val footer: @Composable ColumnScope.() -> Unit = {
         action?.let { Box(Modifier.fillMaxWidth()) { it() } }
@@ -50,7 +50,7 @@ fun EmptyState(
                 style = AppTypography.itemSubtitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -63,7 +63,7 @@ fun EmptyState(
         Column(
             modifier.fillMaxWidth().padding(Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Message(icon, title, message, isError)
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.m), content = footer)
@@ -77,17 +77,17 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
     val onTile = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xl)
     ) {
         Box(
             Modifier.size(ICON_TILE).background(tile, AppShapes.iconTile),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 painterResource(icon),
                 contentDescription = null,
                 tint = onTile,
-                modifier = Modifier.size(ICON),
+                modifier = Modifier.size(ICON)
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
@@ -96,13 +96,13 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
                 style = AppTypography.headline,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { heading() },
+                modifier = Modifier.semantics { heading() }
             )
             Text(
                 message,
                 style = AppTypography.body,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
     }

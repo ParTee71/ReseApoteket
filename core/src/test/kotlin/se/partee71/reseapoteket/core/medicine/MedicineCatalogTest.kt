@@ -26,7 +26,7 @@ class MedicineCatalogTest {
         "Lopéramid\t2 mg\tKapsel, hård",
         "Paracetamol Ägg\t500 mg\tTablett",
         "trasig rad",
-        "Utan form\t5 mg\t",
+        "Utan form\t5 mg\t"
     ).joinToString("\n")
 
     private val catalog = MedicineCatalog.parse(file)
@@ -48,7 +48,7 @@ class MedicineCatalogTest {
         assertEquals(emptyList(), catalog.search("  al  "))
         assertEquals(
             listOf("Alvedon 500 mg", "Alvedon 665 mg", "Alvedon forte 1 g", "Alvedon 60 mg", "Alvedon 24 mg/ml"),
-            names("alved"),
+            names("alved")
         )
     }
 
@@ -88,7 +88,7 @@ class MedicineCatalogTest {
         val inhaler = catalog.entries.single { it.form == MedicineForm.INHALER }
         assertEquals(
             before.copy(name = "Bricanyl Turbuhaler", strength = "0,5 mg/dos", form = MedicineForm.INHALER, unit = ItemUnit.PUFF),
-            before.fillFrom(inhaler),
+            before.fillFrom(inhaler)
         )
     }
 
@@ -123,7 +123,7 @@ class MedicineCatalogTest {
             "Ögondroppar, suspension" to MedicineForm.DROPS,
             "Medicinskt plåster" to MedicineForm.PATCH,
             "Medicinsk gas, komprimerad" to MedicineForm.OTHER,
-            "Något helt nytt" to MedicineForm.OTHER,
+            "Något helt nytt" to MedicineForm.OTHER
         )
         assertEquals(expected, expected.mapValues { (text, _) -> MedicineForms.of(text) })
     }
@@ -132,7 +132,7 @@ class MedicineCatalogTest {
     fun `varje form har en enhet`() {
         assertEquals(
             listOf(ItemUnit.TABLETT, ItemUnit.KAPSEL, ItemUnit.ML, ItemUnit.DOS, ItemUnit.PUFF, ItemUnit.ML, ItemUnit.ST, ItemUnit.ST),
-            MedicineForm.entries.map { it.defaultUnit },
+            MedicineForm.entries.map { it.defaultUnit }
         )
     }
 }

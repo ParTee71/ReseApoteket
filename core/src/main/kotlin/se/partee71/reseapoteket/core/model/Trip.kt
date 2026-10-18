@@ -13,7 +13,8 @@ data class Trip(
     val status: TripStatus = TripStatus.PLANNING,
     val createdAt: Instant? = null,
     val updatedAt: Instant? = null,
-    override val archived: Boolean = false,
-) : Identified, Archivable
+    override val archived: Boolean = false
+) : Identified,
+    Archivable
 
 enum class TripStatus { PLANNING, PACKED, DONE }

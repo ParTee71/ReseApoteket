@@ -24,7 +24,7 @@ fun AvatarStack(avatars: List<StackedAvatar>, modifier: Modifier = Modifier) {
     val ring = AppColors.extended.card
     Row(
         modifier.clearAndSetSemantics { contentDescription = avatars.joinToString(", ") { it.name } },
-        horizontalArrangement = Arrangement.spacedBy(-OVERLAP),
+        horizontalArrangement = Arrangement.spacedBy(-OVERLAP)
     ) {
         avatars.forEach { PersonAvatar(it.emoji, it.color, Modifier.border(RING, ring, AppShapes.pill), size = AvatarSize.Small) }
     }

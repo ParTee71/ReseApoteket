@@ -42,7 +42,7 @@ sealed interface ArchiveEvent {
 class ArchiveActions(
     private val scope: CoroutineScope,
     private val setArchived: suspend (id: String, archived: Boolean) -> Result<Unit>,
-    @param:StringRes private val undoFormat: Int = R.string.archived_format,
+    @param:StringRes private val undoFormat: Int = R.string.archived_format
 ) {
     private val _showingArchived = MutableStateFlow(false)
     val showingArchived: StateFlow<Boolean> = _showingArchived.asStateFlow()
@@ -58,8 +58,7 @@ class ArchiveActions(
     val error: StateFlow<DataError?> = _error.asStateFlow()
 
     /** Aktiva först; arkiverade sist och bara när de visas. Ordningen i övrigt behålls. */
-    fun <T : Archivable> visible(source: Flow<List<T>>): Flow<List<T>> =
-        combine(source, _showingArchived) { all, showArchived -> all.filter { showArchived || !it.archived }.sortedBy { it.archived } }
+    fun <T : Archivable> visible(source: Flow<List<T>>): Flow<List<T>> = combine(source, _showingArchived) { all, showArchived -> all.filter { showArchived || !it.archived }.sortedBy { it.archived } }
 
     /** Ett fel från en annan skrivning i samma lista (t.ex. en avprickning) visas på samma sätt. */
     fun report(error: DataError) {
@@ -80,6 +79,7 @@ class ArchiveActions(
                     _undo.value = UndoRequest(event.id, event.name, undoFormat)
                 }
             }
+
             ArchiveEvent.Undo -> {
                 val request = _undo.value ?: return
                 val action = undoAction
@@ -87,11 +87,14 @@ class ArchiveActions(
                 undoAction = null
                 scope.launch { (action?.invoke() ?: setArchived(request.id, false)).dataError()?.let { _error.value = it } }
             }
+
             ArchiveEvent.UndoDismissed -> {
                 _undo.value = null
                 undoAction = null
             }
+
             ArchiveEvent.ToggleArchived -> _showingArchived.value = !_showingArchived.value
+
             ArchiveEvent.ErrorShown -> _error.value = null
         }
     }

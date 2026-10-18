@@ -36,7 +36,7 @@ enum class PackingUpdate {
     CREATE,
 
     /** Listan räknas om; avprickning, ändrade mängder och egna rader behålls (RES-4). */
-    RECOUNT,
+    RECOUNT
 }
 
 /**
@@ -51,7 +51,7 @@ class TripPacking @Inject constructor(
     private val regimens: RegimenRepository,
     private val familyItems: FamilyItemRepository,
     private val households: HouseholdRepository,
-    private val packing: PackingRepository,
+    private val packing: PackingRepository
 ) {
     /**
      * Sammanfattningen för resan som den ser ut i formuläret just nu (RES-3). Räknas om bara när
@@ -80,12 +80,14 @@ class TripPacking @Inject constructor(
     suspend fun save(trip: Trip, update: PackingUpdate): Result<Unit> = suspendRunCatching({ DataError.Unknown }) {
         when (update) {
             PackingUpdate.KEEP -> trips.update(trip, TripCodec.FORM_FIELDS)
+
             PackingUpdate.CREATE -> {
                 val items = suggest(trip).items
                 trips.upsert(trip).getOrThrow()
                 // Ett tidigare försök kan ha skrivit en lista – den ersätts helt.
                 packing.replacePackingItems(trip.id, items).onFailure { trips.delete(trip.id) }
             }
+
             PackingUpdate.RECOUNT -> {
                 val status = PackingList.statusAfter(trip.status, PackingEngine.progress(recountList(trip)))
                 trips.update(trip.copy(status = status), TripCodec.FORM_FIELDS + TripCodec.STATUS)
@@ -112,7 +114,7 @@ class TripPacking @Inject constructor(
         persons.getAll().getOrThrow(),
         regimens.regimensFor(trip.travellerIds).first(),
         familyItems.getAll().getOrThrow(),
-        households.householdSettings().first(),
+        households.householdSettings().first()
     )
 
     private data class Basis(val trip: Trip, val persons: List<Person>, val family: List<FamilyItem>, val settings: HouseholdSettings)

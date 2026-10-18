@@ -31,13 +31,13 @@ fun SectionHeader(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int? = null,
     count: String? = null,
-    tone: Tone = Tone.Primary,
+    tone: Tone = Tone.Primary
 ) {
     val colors = AppColors.tone(tone)
     Row(
         modifier.fillMaxWidth().padding(horizontal = Spacing.xs, vertical = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         if (icon != null) {
             Box(Modifier.size(TILE).background(colors.container, AppShapes.smallTile), contentAlignment = Alignment.Center) {
@@ -48,7 +48,7 @@ fun SectionHeader(
             title,
             style = AppTypography.sectionTitle,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f).semantics { heading() },
+            modifier = Modifier.weight(1f).semantics { heading() }
         )
         count?.let { InfoPill(it, tone = tone) }
     }

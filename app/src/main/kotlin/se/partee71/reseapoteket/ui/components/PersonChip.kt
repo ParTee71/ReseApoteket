@@ -18,7 +18,7 @@ fun PersonChip(
     color: Color,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     FilterChip(
         selected = selected,
@@ -27,7 +27,7 @@ fun PersonChip(
         modifier = modifier.heightIn(min = PERSON_CHIP_HEIGHT),
         leadingIcon = { PersonAvatar(emoji, color, size = AvatarSize.Small) },
         shape = AppShapes.pill,
-        colors = chipColors(),
+        colors = chipColors()
     )
 }
 

@@ -105,7 +105,7 @@ class TripEditViewModel @AssistedInject constructor(
     persons: PersonRepository,
     private val packing: TripPacking,
     private val clock: Clock,
-    timeZone: TimeZone,
+    timeZone: TimeZone
 ) : ViewModel() {
 
     @AssistedFactory
@@ -168,23 +168,32 @@ class TripEditViewModel @AssistedInject constructor(
     fun onEvent(event: TripEditEvent) {
         when (event) {
             is TripEditEvent.Name -> editor.update(TripValidator.NAME) { it.copy(name = event.name) }
+
             is TripEditEvent.Start -> editor.update { it.copy(startDate = event.date) }
+
             is TripEditEvent.Days -> editor.update(TripValidator.DAYS) { it.copy(days = event.days) }
+
             is TripEditEvent.Traveller -> editor.update(TripValidator.TRAVELLERS) {
                 val ids = it.travellerIds
                 it.copy(travellerIds = if (event.personId in ids) ids - event.personId else ids + event.personId)
             }
+
             is TripEditEvent.Save -> {
                 defaultName = event.defaultName
                 if (!isNew && changesPacking()) _askRecount.value = true else save(recount = false)
             }
+
             is TripEditEvent.Recount -> {
                 _askRecount.value = false
                 save(event.recount)
             }
+
             TripEditEvent.CancelRecount -> _askRecount.value = false
+
             TripEditEvent.Archive -> setArchived(true)
+
             TripEditEvent.Restore -> setArchived(false)
+
             TripEditEvent.Retry -> loader.retry()
         }
     }
@@ -238,7 +247,7 @@ fun TripEditScreen(onClose: () -> Unit, onCreated: (String) -> Unit, viewModel: 
         onClose = onClose,
         onSaved = if (viewModel.isNew) ({ onCreated(state.value.id) }) else onClose,
         stored = stored,
-        askRecount = askRecount,
+        askRecount = askRecount
     )
 }
 
@@ -255,7 +264,7 @@ fun TripEditContent(
     modifier: Modifier = Modifier,
     onSaved: () -> Unit = onClose,
     stored: Trip? = null,
-    askRecount: Boolean = false,
+    askRecount: Boolean = false
 ) {
     val trip = state.value
     val defaultName = trip.startDate?.let { stringResource(R.string.trip_default_name, DateFormat.short(it)) }.orEmpty()
@@ -270,14 +279,14 @@ fun TripEditContent(
         onArchive = stored?.takeUnless { it.archived }?.let { { onEvent(TripEditEvent.Archive) } },
         onRestore = stored?.takeIf { it.archived }?.let { { onEvent(TripEditEvent.Restore) } },
         onRetry = { onEvent(TripEditEvent.Retry) },
-        onSaved = onSaved,
+        onSaved = onSaved
     ) {
         AppTextField(
             trip.name,
             { onEvent(TripEditEvent.Name(it)) },
             stringResource(R.string.trip_where),
             error = state.errorFor(TripValidator.NAME)?.let { stringResource(it) },
-            helper = if (trip.name.isBlank() && defaultName.isNotEmpty()) defaultName else stringResource(R.string.trip_where_helper),
+            helper = if (trip.name.isBlank() && defaultName.isNotEmpty()) defaultName else stringResource(R.string.trip_where_helper)
         )
         DateField(stringResource(R.string.trip_start), trip.startDate, { onEvent(TripEditEvent.Start(it)) })
         LabeledGroup(stringResource(R.string.trip_days_label)) {
@@ -300,7 +309,7 @@ fun TripEditContent(
             onConfirm = { onEvent(TripEditEvent.Recount(true)) },
             onDismiss = { onEvent(TripEditEvent.CancelRecount) },
             dismissLabel = stringResource(R.string.trip_recount_keep),
-            onDecline = { onEvent(TripEditEvent.Recount(false)) },
+            onDecline = { onEvent(TripEditEvent.Recount(false)) }
         )
     }
 }

@@ -58,12 +58,10 @@ interface EntityCollection<T : Identified> {
  * inte väntar på nätet (offline först). Går listan inte att läsa i tid hamnar det först (0) i
  * stället för att sparandet stoppas.
  */
-suspend fun <T> EntityCollection<T>.nextSortOrder(): Int where T : Identified, T : Sortable =
-    withTimeoutOrNull(SORT_ORDER_WAIT) { observe().catch { }.firstOrNull() }?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+suspend fun <T> EntityCollection<T>.nextSortOrder(): Int where T : Identified, T : Sortable = withTimeoutOrNull(SORT_ORDER_WAIT) { observe().catch { }.firstOrNull() }?.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
 
 /** Hur länge [nextSortOrder] väntar på listan (ur cachen tar det millisekunder; utan hushåll kommer den aldrig). */
 private val SORT_ORDER_WAIT = 2.seconds
 
 /** Sparar [item]; något nytt ([isNew]) hamnar sist i listan via [placeLast] – samma i alla formulär. */
-suspend fun <T> EntityCollection<T>.upsertPlaced(item: T, isNew: Boolean, placeLast: T.(Int) -> T): Result<Unit> where T : Identified, T : Sortable =
-    upsert(if (isNew) item.placeLast(nextSortOrder()) else item)
+suspend fun <T> EntityCollection<T>.upsertPlaced(item: T, isNew: Boolean, placeLast: T.(Int) -> T): Result<Unit> where T : Identified, T : Sortable = upsert(if (isNew) item.placeLast(nextSortOrder()) else item)

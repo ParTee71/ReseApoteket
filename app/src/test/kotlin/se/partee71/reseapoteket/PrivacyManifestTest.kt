@@ -2,13 +2,13 @@ package se.partee71.reseapoteket
 
 import android.content.pm.ApplicationInfo
 import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.xmlpull.v1.XmlPullParser
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /** Hälsodata lämnar inte appen via Androids backup eller enhetsöverföring (NFR-8, skill data-privacy-security). */
 @RunWith(RobolectricTestRunner::class)
@@ -28,7 +28,7 @@ class PrivacyManifestTest {
         val manifest = File("src/main/AndroidManifest.xml").readText()
         assertTrue(
             manifest.contains("""android:dataExtractionRules="@xml/data_extraction_rules""""),
-            "android:dataExtractionRules saknas i manifestet",
+            "android:dataExtractionRules saknas i manifestet"
         )
         val excluded = mutableMapOf<String, MutableSet<String>>()
         val parser = context.resources.getXml(R.xml.data_extraction_rules)
@@ -37,6 +37,7 @@ class PrivacyManifestTest {
             if (parser.eventType != XmlPullParser.START_TAG) continue
             when (parser.name) {
                 "cloud-backup", "device-transfer" -> section = parser.name
+
                 "exclude" -> if (parser.getAttributeValue(null, "path") == ".") {
                     excluded.getOrPut(checkNotNull(section)) { mutableSetOf() } += parser.getAttributeValue(null, "domain")
                 }
@@ -44,7 +45,7 @@ class PrivacyManifestTest {
         }
         val allDomains = setOf(
             "root", "file", "database", "sharedpref", "external",
-            "device_root", "device_file", "device_database", "device_sharedpref",
+            "device_root", "device_file", "device_database", "device_sharedpref"
         )
         assertEquals(mapOf("cloud-backup" to allDomains, "device-transfer" to allDomains), excluded)
     }

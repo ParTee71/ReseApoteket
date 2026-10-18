@@ -132,7 +132,7 @@ class RegimenEditViewModel @AssistedInject constructor(
     households: HouseholdRepository,
     medicines: MedicineRepository,
     private val clock: Clock,
-    private val timeZone: TimeZone,
+    private val timeZone: TimeZone
 ) : ViewModel() {
 
     @AssistedFactory
@@ -151,10 +151,10 @@ class RegimenEditViewModel @AssistedInject constructor(
             kind = kind,
             form = MedicineForm.TABLET,
             unit = ItemUnit.TABLETT,
-            schedule = DoseSchedule.Daily(),
+            schedule = DoseSchedule.Daily()
         ),
         RegimenValidator,
-        loading = !isNew,
+        loading = !isNew
     )
     val state = editor.state
 
@@ -166,7 +166,7 @@ class RegimenEditViewModel @AssistedInject constructor(
     /** Vad som skulle packas för en 7-dagarsresa med hushållets marginal (REC-4). */
     val preview: StateFlow<PackingPreviewText> = combine(
         editor.state.map { it.value }.distinctUntilChanged(),
-        households.householdSettings(),
+        households.householdSettings()
     ) { regimen, settings -> PackingEngine.regimenPreview(regimen, settings, clock.todayIn(timeZone)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, PackingEngine.regimenPreview(editor.value, HouseholdSettings(), clock.todayIn(timeZone)))
 
@@ -187,9 +187,13 @@ class RegimenEditViewModel @AssistedInject constructor(
     fun onEvent(event: RegimenEditEvent) {
         when (event) {
             is RegimenEditEvent.Name -> editor.update(RegimenValidator.NAME) { it.copy(name = event.name) }
+
             is RegimenEditEvent.Strength -> editor.update { it.copy(strength = event.strength) }
+
             is RegimenEditEvent.Form -> editor.update { it.copy(form = event.form) }
+
             is RegimenEditEvent.DoseUnit -> editor.update { it.copy(unit = event.unit) }
+
             is RegimenEditEvent.Schedule -> {
                 // Ett byte av typ visar inget fel än (t.ex. Veckodagar utan valda dagar) – först när
                 // typens fält ändras, eller vid sparförsök.
@@ -197,18 +201,26 @@ class RegimenEditViewModel @AssistedInject constructor(
                 val touched = if (sameKind) arrayOf(RegimenValidator.SCHEDULE) else emptyArray()
                 editor.update(*touched) { it.copy(schedule = event.schedule) }
             }
+
             is RegimenEditEvent.PackageSize -> editor.update(RegimenValidator.PACKAGE_SIZE) {
                 it.copy(packageSize = event.text.filter(Char::isDigit).take(MAX_PACKAGE_DIGITS).toIntOrNull())
             }
+
             is RegimenEditEvent.Notes -> editor.update { it.copy(notes = event.notes) }
+
             is RegimenEditEvent.Active -> editor.update { it.copy(active = event.active) }
+
             is RegimenEditEvent.TravelDay -> editor.update { it.copy(travelDay = event.change.on, travelDayTime = event.change.ownTime) }
+
             is RegimenEditEvent.PickMedicine -> {
                 picked.value = event.entry
                 editor.update(RegimenValidator.NAME) { it.fillFrom(event.entry) }
             }
+
             RegimenEditEvent.Save -> viewModelScope.launch { editor.save(::write) }
+
             RegimenEditEvent.Delete -> viewModelScope.launch { editor.run { collection.delete(editor.value.id) } }
+
             RegimenEditEvent.Retry -> loader.retry()
         }
     }
@@ -251,7 +263,7 @@ fun RegimenEditContent(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     stored: Regimen? = null,
-    lookup: MedicineLookup = MedicineLookup(),
+    lookup: MedicineLookup = MedicineLookup()
 ) {
     val regimen = state.value
     EntityEditScreen(
@@ -265,7 +277,7 @@ fun RegimenEditContent(
         delete = stored?.let {
             DeleteAction(stringResource(R.string.delete_title_format, it.displayName), stringResource(config.deleteMessage)) { onEvent(RegimenEditEvent.Delete) }
         },
-        onRetry = { onEvent(RegimenEditEvent.Retry) },
+        onRetry = { onEvent(RegimenEditEvent.Retry) }
     ) {
         if (isNew && config.suggestions.isNotEmpty()) {
             LabeledGroup(stringResource(R.string.regimen_suggestions), helper = stringResource(R.string.regimen_suggestions_note)) {
@@ -283,7 +295,7 @@ fun RegimenEditContent(
                 onPick = { onEvent(RegimenEditEvent.PickMedicine(lookup.suggestions[it].entry)) },
                 footer = stringResource(R.string.medicine_lookup_source),
                 error = nameError,
-                helper = stringResource(R.string.medicine_lookup_no_match).takeIf { lookup.noMatch },
+                helper = stringResource(R.string.medicine_lookup_no_match).takeIf { lookup.noMatch }
             )
             if (lookup.filled) InfoPill(stringResource(R.string.medicine_lookup_filled), tone = Tone.Blue, icon = R.drawable.ic_check)
         } else {
@@ -293,7 +305,7 @@ fun RegimenEditContent(
             regimen.strength,
             { onEvent(RegimenEditEvent.Strength(it)) },
             stringResource(config.strength),
-            helper = stringResource(config.strengthHelper),
+            helper = stringResource(config.strengthHelper)
         )
         LabeledGroup(stringResource(R.string.regimen_form)) {
             // En lagrad form utanför sortens lista (t.ex. Flytande på ett kosttillskott) går att
@@ -309,7 +321,7 @@ fun RegimenEditContent(
                 regimen.schedule,
                 { onEvent(RegimenEditEvent.Schedule(it)) },
                 unitName = { UnitNames.name(it, regimen.unit) },
-                error = state.errorFor(RegimenValidator.SCHEDULE)?.let { stringResource(it) },
+                error = state.errorFor(RegimenValidator.SCHEDULE)?.let { stringResource(it) }
             )
         }
         PackingPreview(preview.context, preview.quantity, reason = preview.reason)
@@ -319,7 +331,7 @@ fun RegimenEditContent(
             stringResource(R.string.regimen_package_size),
             error = state.errorFor(RegimenValidator.PACKAGE_SIZE)?.let { stringResource(it) },
             helper = stringResource(R.string.regimen_package_size_helper),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         TravelDayField(regimen.travelDay, regimen.travelDayTime, { onEvent(RegimenEditEvent.TravelDay(it)) })
         AppTextField(regimen.notes, { onEvent(RegimenEditEvent.Notes(it)) }, stringResource(R.string.notes), singleLine = false)
@@ -327,7 +339,7 @@ fun RegimenEditContent(
             stringResource(R.string.active),
             regimen.active,
             { onEvent(RegimenEditEvent.Active(it)) },
-            subtitle = stringResource(R.string.active_note),
+            subtitle = stringResource(R.string.active_note)
         )
     }
 }

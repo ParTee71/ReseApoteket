@@ -49,7 +49,7 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
         Row(
             modifier.clearAndSetSemantics { contentDescription = description },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             LinearWavyProgressIndicator(progress = { progress }, modifier = Modifier.width(COMPACT_WIDTH), color = primary, trackColor = track)
             Text("$packed / $total", style = AppTypography.pill, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -63,7 +63,7 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
     Row(
         modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.l)
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
@@ -81,14 +81,14 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
 
 /** "Allt packat! 🧳 Trevlig resa" – samma plats och resväska, i grönt. */
 @Composable
-private fun AllPacked(total: Int, modifier: Modifier) {
+private fun AllPacked(total: Int, modifier: Modifier = Modifier) {
     val tone = AppColors.extended.greenTone
     val title = stringResource(R.string.packed_all_title)
     val message = stringResource(R.string.packed_all_message, total)
     Row(
         modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = "$title $message" },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.l)
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Text(title, style = AppTypography.sectionTitle, color = tone.content)
