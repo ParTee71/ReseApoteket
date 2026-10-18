@@ -146,6 +146,8 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
   skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
   granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `ci-doktor`
   diagnostisera. Avsluta prenumerationen när PR:en är klar.
+- **Modell efter uppgift** för sessionen och varje agent, Opus som standard
+  ([.claude/README.md](.claude/README.md) → Modellval).
 
 ## Bygg & test
 
