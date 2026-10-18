@@ -9,8 +9,10 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,11 +72,12 @@ import se.partee71.reseapoteket.ui.components.UndoRequest
 data class PackingRow(val item: PackingItem, val person: Person? = null, val schedule: String? = null)
 
 /** Rubrikområdet: resan, resenärerna och packat, totalt och per grupp (PAK-1, PAK-6). */
+@Immutable
 data class PackingHeader(
     val trip: Trip,
-    val travellers: List<Person>,
+    val travellers: ImmutableList<Person>,
     val progress: PackingProgress,
-    val groups: Map<PackingGroup, PackingProgress>,
+    val groups: ImmutableMap<PackingGroup, PackingProgress>,
 )
 
 /** "Lägg till": en sak (PAK-4) eller en inklistrad lista (PAK-7). */
@@ -220,9 +223,9 @@ class PackingListViewModel @AssistedInject constructor(
             val shown = items.filterNot { item -> item.hidden }
             PackingHeader(
                 trip = it,
-                travellers = it.travellerIds.mapNotNull { id -> all.firstOrNull { person -> person.id == id } },
+                travellers = it.travellerIds.mapNotNull { id -> all.firstOrNull { person -> person.id == id } }.toImmutableList(),
                 progress = PackingEngine.progress(items),
-                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) },
+                groups = PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { item -> PackingList.group(item) == group }) }.toImmutableMap(),
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)

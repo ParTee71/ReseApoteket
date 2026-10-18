@@ -27,6 +27,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import org.robolectric.annotation.Config
@@ -99,9 +100,9 @@ class PackingListScreensTest {
         val shown = items.filterNot { it.hidden }
         return PackingHeader(
             trip.copy(status = status),
-            listOf(anna, erik, lova, gunnar),
+            persistentListOf(anna, erik, lova, gunnar),
             PackingEngine.progress(items),
-            PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { PackingList.group(it) == group }) },
+            PackingGroup.entries.associateWith { group -> PackingEngine.progress(shown.filter { PackingList.group(it) == group }) }.toImmutableMap(),
         )
     }
 

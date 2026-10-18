@@ -151,7 +151,7 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
 - **UiState-typer** (data classes som heter `*State` och sealed interfaces `*UiState` i `ui/`)
   utan `@Immutable` eller `@Stable`. Listor och kartor i dem är `ImmutableList`/`ImmutableMap`;
-  modellerna från `:core` räknas som stabila via `app/compose-stability.conf` (skill `android:compose-expert`).
+  modellerna från `:core`, `DataError` och datum-/tidstyperna räknas som stabila via `app/compose-stability.conf` (skill `android:compose-expert`).
 - **I `ui/components/`:** publik komponent utan skärmdump (ljust + mörkt) eller utan plats i
   `ComponentGallery`.
 - **Undantag:** en rad i `ui-allowlist.txt` (`fil:symbol – motivering`). Undantaget gäller bara
