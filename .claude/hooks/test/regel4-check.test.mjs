@@ -270,3 +270,19 @@ test('Stop blockerar med radnummer när undantagsfilen är trasig', () => {
   assert.equal(out.decision, 'block');
   assert.match(out.reason, /Regel 4:/);
 });
+
+test('Stop kontrollerar varje repo när projektroten är en katalog med flera repon', () => {
+  const { dir, parent } = makeGitProject();
+  writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard);
+  const other = path.join(parent, 'Annat');
+  mkdirSync(path.join(other, 'app/src/test/resources'), { recursive: true });
+  copyFileSync(path.join(dir, patternsRel), path.join(other, patternsRel));
+  spawnSync('git', ['init', '-q'], { cwd: other });
+  spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'bas'], { cwd: other });
+  spawnSync('git', ['update-ref', 'refs/remotes/origin/master', 'HEAD'], { cwd: other });
+  writeKt(other, `${pkg}/ui/persons/OtherRow.kt`, featureCard);
+  const out = JSON.parse(runStop(parent).stdout);
+  assert.equal(out.decision, 'block');
+  assert.match(out.reason, /ReseApoteket\/.*PersonRow\.kt:5/);
+  assert.match(out.reason, /Annat\/.*OtherRow\.kt:5/);
+});

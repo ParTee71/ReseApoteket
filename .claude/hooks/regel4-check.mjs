@@ -7,7 +7,7 @@
 // PostToolUse: exit 0 = inget att anmärka (tyst), exit 2 = träff; stderr går till Claude.
 // Stop: alltid exit 0; vid träff `{"decision":"block"}` på stdout så att Claude rättar först.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -207,26 +207,41 @@ function afterEdit(input) {
 }
 
 /**
+ * Repona som Stop kontrollerar: projektroten om den är ett repo, annars varje repo direkt under
+ * den (en session med flera repon under en gemensam katalog), annars repot där skriptet ligger.
+ */
+export function stopRoots(input) {
+  const isRepo = (dir) => existsSync(path.join(dir, PATTERNS_FILE));
+  const base = process.env.CLAUDE_PROJECT_DIR || input?.cwd;
+  if (base && isRepo(base)) return [base];
+  const children = base && existsSync(base)
+    ? readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => path.join(base, d.name)).filter(isRepo)
+    : [];
+  if (children.length > 0) return children;
+  const own = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  return isRepo(own) ? [own] : [];
+}
+
+/**
  * Stop: kontrollerar alla ändrade filer innan Claude avslutar turen, så att en träff som
  * PostToolUse-meddelandet inte ledde till en rättning inte följer med till PR:en.
  * Blockerar högst en gång i följd (`stop_hook_active`) – sedan avgör Claude själv.
  */
 function beforeStop(input) {
   if (input?.stop_hook_active) return 0;
-  // Projektroten om den är repot, annars repot där skriptet ligger (flera repon under en
-  // gemensam katalog).
-  const root = [process.env.CLAUDE_PROJECT_DIR, input?.cwd, path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')]
-    .filter(Boolean)
-    .find((dir) => existsSync(path.join(dir, PATTERNS_FILE)));
-  if (!root) return 0;
-  let rules;
-  try {
-    rules = loadRules(root);
-  } catch (e) {
-    process.stdout.write(JSON.stringify({ decision: 'block', reason: `Regel 4: ${e.message}` }));
-    return 0;
+  const hits = [];
+  const roots = stopRoots(input);
+  for (const root of roots) {
+    // Med flera repon visas reponamnet före sökvägen, så att träffarna går att skilja åt.
+    const prefix = roots.length > 1 ? `${path.basename(root)}/` : '';
+    try {
+      const rules = loadRules(root);
+      hits.push(...changedFiles(root).flatMap((rel) => checkFile(root, rel, rules)).map((h) => ({ ...h, rel: prefix + h.rel })));
+    } catch (e) {
+      process.stdout.write(JSON.stringify({ decision: 'block', reason: `Regel 4: ${e.message}` }));
+      return 0;
+    }
   }
-  const hits = changedFiles(root).flatMap((rel) => checkFile(root, rel, rules));
   if (hits.length > 0) process.stdout.write(JSON.stringify({ decision: 'block', reason: formatHits(hits) }));
   return 0;
 }
