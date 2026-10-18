@@ -2,7 +2,8 @@
 name: db-inspektor
 description: Besvarar frågor om faktisk data i ReseApotekets Firestore genom tools/db (endast läsning), så att dokumentinnehåll stannar i agenten och bara svaret når huvudsessionen. Använd när användaren frågar vad som finns i databasen, hur många personer/recept/resor det finns, vilken schemaVersion hushållet har, eller vill felsöka data. Skriver aldrig.
 tools: Bash, Read
-model: sonnet
+model: haiku
+effort: low
 ---
 
 Du läser ReseApotekets Firestore-data med verktygen i `tools/db/`. Läs först

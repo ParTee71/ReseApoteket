@@ -1,6 +1,6 @@
 ---
 name: shared-ui-components
-description: ReseApotekets återbruksregel (regel 4) — samma typ av element ser likadant ut och beter sig likadant överallt, och varje sak finns på ett ställe. Enda källan för komponent-, ram- och byggstenstabellerna och förbudslistan. Ladda denna ALLTID när du bygger eller ändrar UI, en skärm, en komponent, ett interaktionsmönster, en ViewModel med formulär eller lista, ett repository, en formatterare eller när du ser liknande kod på två ställen. Trigger-ord: composable, komponent, UI, skärm, vy, knapp, kort, lista, listrad, kryss, fält, dialog, bottom sheet, snackbar, tomt tillstånd, laddning, arkivera, ångra, radera, bekräfta, redigera, spara, validering, återbruk, dubbelkod, duplicering, kopiera, likadant, enhetligt, konsekvent, beteende, mönster, ram, EntityListScreen, EntityEditScreen, EditorState, FirestoreCollection, UiConsistencyTest, cpdCheck, allowlist.
+description: Regel 4 i ReseApoteket — samma elementtyp ser ut och beter sig likadant överallt och varje sak finns på ett ställe. Enda källan för komponent-, ram- och byggstenstabellerna och förbudslistan. Ladda alltid vid UI, skärmar, komponenter, interaktionsmönster, formulär, listor, formatterare eller liknande kod på två ställen. Trigger-ord: komponent, skärm, knapp, kort, dialog, snackbar, tomt tillstånd, laddning, arkivera, ångra, radera, bekräfta, redigera, spara, validering, dubbelkod, återbruk, EntityListScreen, EntityEditScreen, EditorState, UiConsistencyTest, cpdCheck, allowlist.
 ---
 
 # Enhetligt och utan dubbelkod

@@ -1,6 +1,6 @@
 ---
 name: ci-budget
-description: ReseApotekets CI-regel (regel 5) — en PR får kosta högst ca 8 Actions-minuter, och tester körs bara när koden de testar har ändrats. Enda källan för tabellen över vad som körs när. Ladda denna ALLTID när du rör .github/workflows, composite actions, Gradle-inställningar, nya beroenden eller plugins, nya moduler, testnivåer eller när CI är långsam. Trigger-ord: CI, GitHub Actions, workflow, android.yml, pipeline, byggtid, Actions-minuter, cache, paths-filter, selektiv, emulator, lint, release-bygge, nytt beroende, ny modul, långsam, budget.
+description: Regel 5 i ReseApoteket — en PR kostar högst ca 8 Actions-minuter och tester körs bara när koden de testar ändrats. Enda källan för tabellen över vad som körs när. Ladda alltid vid .github/workflows, Gradle-inställningar, nya beroenden, plugins, moduler eller testnivåer, och när CI är långsam. Trigger-ord: CI, GitHub Actions, workflow, android.yml, byggtid, Actions-minuter, cache, paths-filter, emulator, lint, nytt beroende.
 ---
 
 # CI-budget
@@ -67,7 +67,7 @@ resten med `dorny/paths-filter`.
 filtren i `android.yml` och fäller `changes` om de skiljer sig. Ändra alltid båda i samma
 PR. Ny modul = ny rad här **och** nytt filter. `.github/scripts/check-links.mjs` kontrollerar
 relativa länkar och nämnda skills/agenter i `CLAUDE.md`, `README.md`, `ARKITEKTUR.md`,
-`KRAVLISTA.md` och `.claude/**`, och att tabellerna i `CLAUDE.md` listar exakt de skills och
+`KRAVLISTA.md` och `.claude/**`, och att tabellerna i `.claude/README.md` listar exakt de skills och
 agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt`.
 
 ## Inte i PR-flödet (utan uttryckligt beslut)

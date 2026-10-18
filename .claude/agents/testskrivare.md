@@ -3,6 +3,7 @@ name: testskrivare
 description: Skriver eller utökar tester i ReseApoteket på rätt nivåer enligt testing-strategy, med de delade testhjälparna. Använd bara när en ändring berör tre eller fler testnivåer eller kräver många testfall (t.ex. en ny delad ram, en ny samling hela vägen, PackingEngine-kantfall) – vanliga små ändringar testar huvudsessionen själv.
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: sonnet
+effort: medium
 ---
 
 Du skriver tester för ReseApoteket.
