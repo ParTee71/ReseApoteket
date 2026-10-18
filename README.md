@@ -37,7 +37,7 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 
 ## Kom igång (Android Studio)
 
-1. Android Studio (senaste stabila) med JDK 17 och Android SDK-plattform 37 (`compileSdk`).
+1. Android Studio (senaste stabila) med JDK 21 och Android SDK-plattform 37 (`compileSdk`).
 2. Klona repot och öppna det. Utan `app/google-services.json` bygger appen ändå (debug får
    en stubbad Firebase-konfiguration mot demo-projektet), men inloggning fungerar inte – se
    [Firebase-setup](#firebase-setup).
