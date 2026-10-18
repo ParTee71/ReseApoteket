@@ -15,13 +15,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.repository.PersonRepository
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -76,7 +75,6 @@ class PersonEditViewModel @AssistedInject constructor(
         loading = !isNew,
     )
     val state = editor.state
-    val effects: Flow<EditorEffect> = editor.effects
     private val loader = EditorLoader(editor, viewModelScope, personId?.let { id -> { persons.get(id) } }) { it.withDefaults() }
 
     fun onEvent(event: PersonEditEvent) {
@@ -106,14 +104,14 @@ class PersonEditViewModel @AssistedInject constructor(
 @Composable
 fun PersonEditScreen(onClose: () -> Unit, viewModel: PersonEditViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    PersonEditContent(viewModel.isNew, state, viewModel.effects, viewModel::onEvent, onClose)
+    PersonEditContent(viewModel.isNew, state, viewModel.editor, viewModel::onEvent, onClose)
 }
 
 @Composable
 fun PersonEditContent(
     isNew: Boolean,
     state: EditorUiState<Person>,
-    effects: Flow<EditorEffect>,
+    events: EditorEvents,
     onEvent: (PersonEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -121,7 +119,7 @@ fun PersonEditContent(
     EntityEditScreen(
         title = stringResource(if (isNew) R.string.person_new else R.string.person_edit),
         state = state,
-        effects = effects,
+        events = events,
         onSave = { onEvent(PersonEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,

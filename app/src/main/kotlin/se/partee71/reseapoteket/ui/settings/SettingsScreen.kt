@@ -24,23 +24,19 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.withStarted
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Clock
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -95,6 +91,8 @@ data class SettingsUiState(
     val moveCheckedLast: Boolean = true,
     val exporting: Boolean = false,
     val error: SettingsError? = null,
+    /** Exportfilen som delningsmenyn ska öppnas för; kvitteras med [SettingsEvent.ShareShown]. */
+    val share: ShareExport? = null,
 )
 
 sealed interface SettingsEvent {
@@ -108,6 +106,9 @@ sealed interface SettingsEvent {
     data object SignOut : SettingsEvent
 
     data object Export : SettingsEvent
+
+    /** Delningsmenyn för [SettingsUiState.share] har öppnats. */
+    data object ShareShown : SettingsEvent
 }
 
 /** Exportfilen är sparad – delningsmenyn öppnas med dess `content://`-adress (SET-5). */
@@ -144,13 +145,8 @@ class SettingsViewModel @Inject constructor(
         settings.moveCheckedLast.withFallback(true),
         action,
     ) { household, account, theme, checkedLast, action ->
-        SettingsUiState(household, account, theme, checkedLast, action.exporting, action.error)
+        SettingsUiState(household, account, theme, checkedLast, action.exporting, action.error, action.share)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), SettingsUiState())
-
-    private val _shares = Channel<ShareExport>(Channel.CONFLATED)
-
-    /** En gång per export – delningsmenyn visas inte igen vid nästa visning. */
-    val shares: Flow<ShareExport> = _shares.receiveAsFlow()
 
     fun onEvent(event: SettingsEvent) {
         when (event) {
@@ -159,6 +155,8 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.SetMarginDays -> setMarginDays(event.days)
             SettingsEvent.SignOut -> run(SettingsSection.Account) { auth.signOut() }
             SettingsEvent.Export -> exportHousehold()
+            // En gång per export – delningsmenyn visas inte igen vid nästa visning.
+            SettingsEvent.ShareShown -> action.update { it.copy(share = null) }
         }
     }
 
@@ -172,14 +170,13 @@ class SettingsViewModel @Inject constructor(
 
     private fun exportHousehold() {
         if (action.value.exporting) return
-        action.update { Action(exporting = true) }
+        action.update { Action(exporting = true, share = it.share) }
         viewModelScope.launch {
             val today = clock.now().toLocalDateTime(timeZone).date
             val result = export.export().mapCatching { text -> files.save("reseapoteket-$today.json", text).getOrThrow() }
-            result.onSuccess { _shares.trySend(ShareExport(it)) }
             // Ett fel från en annan åtgärd under tiden står kvar.
             val failed = result.dataError()?.let { SettingsError(SettingsSection.Data, it) }
-            action.update { Action(exporting = false, error = failed ?: it.error) }
+            action.update { Action(exporting = false, error = failed ?: it.error, share = result.getOrNull()?.let(::ShareExport) ?: it.share) }
         }
     }
 
@@ -191,7 +188,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private data class Action(val exporting: Boolean = false, val error: SettingsError? = null)
+    private data class Action(val exporting: Boolean = false, val error: SettingsError? = null, val share: ShareExport? = null)
 }
 
 @Composable
@@ -210,8 +207,12 @@ fun SettingsScreen(
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     // Bara medan skärmen syns: i bakgrunden får appen inte öppna delningsmenyn, och händelsen
     // väntar då i stället för att gå förlorad.
-    LaunchedEffect(viewModel, lifecycle) {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { collectShares(viewModel, context, chooserTitle) }
+    val share = state.share
+    LaunchedEffect(share, lifecycle) {
+        if (share != null) {
+            lifecycle.withStarted { openShare(share, context, chooserTitle) }
+            viewModel.onEvent(SettingsEvent.ShareShown)
+        }
     }
     SettingsContent(state, viewModel::onEvent, BuildConfig.VERSION_NAME, onEditHousehold, onOpenGallery, medicinesUpdated = medicinesUpdated) {
         RemindersCard(reminders, remindersViewModel::onEvent, access.allowed, access.ask, access.openSettings)
@@ -219,16 +220,14 @@ fun SettingsScreen(
 }
 
 /** Delningsmenyn för varje exportfil – bara på användarens tryck, och bara den filen får läsas (SET-5). */
-private suspend fun collectShares(viewModel: SettingsViewModel, context: Context, chooserTitle: String) {
-    viewModel.shares.collect { share ->
-        val uri = share.uri.toUri()
-        val send = Intent(Intent.ACTION_SEND)
-            .setType("application/json")
-            .putExtra(Intent.EXTRA_STREAM, uri)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            .apply { clipData = ClipData.newRawUri(null, uri) }
-        context.startActivity(Intent.createChooser(send, chooserTitle))
-    }
+private fun openShare(share: ShareExport, context: Context, chooserTitle: String) {
+    val uri = share.uri.toUri()
+    val send = Intent(Intent.ACTION_SEND)
+        .setType("application/json")
+        .putExtra(Intent.EXTRA_STREAM, uri)
+        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        .apply { clipData = ClipData.newRawUri(null, uri) }
+    context.startActivity(Intent.createChooser(send, chooserTitle))
 }
 
 /** Temaalternativen i den ordning de visas: Ljust · Mörkt · System. */

@@ -39,7 +39,7 @@ verifierade API:er står bara i [ARKITEKTUR.md](../../../ARKITEKTUR.md).
 - `HouseholdSession.activeHouseholdId: StateFlow<String?>` – `flatMapLatest` på den när hushållet byts.
 - `SettingsStore` – DataStore-flöden för tema och packlisteinställningar.
 - ViewModels: `stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), …)`.
-- **Nuvarande läge, avviker från pluginen:** fel är redan state med kvittens (`ErrorSnackbar` + `…ErrorShown`), men engångseffekter går via `Channel` – `EditorState.effects` (`Channel(BUFFERED)`, konsumeras av `EntityEditScreen`), `PackingListViewModel.celebrations` (`CONFLATED`) och delningen i `SettingsViewModel`. Repot ska migrera till händelser i `UiState` enligt pluginen (Googles råd) i en egen PR senare; tills dess följer skärmar ramarnas nuvarande mönster.
+- Händelser från en ViewModel är fält i tillståndet som skärmen kvitterar (pluginen, Googles råd): fel `ErrorSnackbar` + `…ErrorShown`; formulärets klar/sparfel `EditorUiState.done`/`failure`, som `EntityEditScreen` kvitterar via `EditorEvents` (`EditorState`); konfettin `PackingListViewModel.celebrate` + `PackingListEvent.Celebrated`; delningen `SettingsUiState.share` + `SettingsEvent.ShareShown`. Skärmen agerar i en `LaunchedEffect` nyckelad på värdet. Ingen `Channel` eller `receiveAsFlow` i `ui/` – scopet `[events]` i `ui-forbidden.txt` kontrollerar det.
 
 ## Compose (android:compose-expert)
 

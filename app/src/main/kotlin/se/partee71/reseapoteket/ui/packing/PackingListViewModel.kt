@@ -13,7 +13,6 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +23,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
@@ -59,7 +57,6 @@ import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListLoader
@@ -160,6 +157,9 @@ sealed interface PackingListEvent {
     data class AddListText(val text: String) : PackingListEvent
 
     data object AddListSave : PackingListEvent
+
+    /** Konfettin för [PackingListViewModel.celebrate] har visats. */
+    data object Celebrated : PackingListEvent
 }
 
 /**
@@ -259,10 +259,13 @@ class PackingListViewModel @AssistedInject constructor(
     private val _askRecount = MutableStateFlow(false)
     val askRecount: StateFlow<Boolean> = _askRecount.asStateFlow()
 
-    private val _celebrations = Channel<Unit>(Channel.CONFLATED)
+    private val _celebrate = MutableStateFlow(false)
 
-    /** En händelse när listan just blev helt packad (PAK-5) – konfetti en gång, inte vid nästa visning. */
-    val celebrations: Flow<Unit> = _celebrations.receiveAsFlow()
+    /**
+     * Listan blev just helt packad (PAK-5) – konfetti en gång, inte vid nästa visning: står kvar
+     * tills skärmen kvitterat med [PackingListEvent.Celebrated].
+     */
+    val celebrate: StateFlow<Boolean> = _celebrate.asStateFlow()
 
     private val _sheetError = MutableStateFlow<DataError?>(null)
 
@@ -290,7 +293,7 @@ class PackingListViewModel @AssistedInject constructor(
                 val wanted = PackingList.statusAfter(current, packed)
                 if (!changedHere || wanted == current) return@collect
                 knownStatus = wanted
-                if (justPacked && wanted == TripStatus.PACKED) _celebrations.trySend(Unit)
+                if (justPacked && wanted == TripStatus.PACKED) _celebrate.value = true
                 // Bara statusfältet skrivs; ett fel visas i listan, panelen kan redan vara stängd.
                 trips.update(Trip(tripId, status = wanted), STATUS_FIELDS).onFailure { knownStatus = current }.dataError()?.let(hiding::report)
             }
@@ -298,10 +301,14 @@ class PackingListViewModel @AssistedInject constructor(
 
         // Lyckad sparning av en egen rad stänger panelen och börjar om med en tom rad.
         viewModelScope.launch {
-            addEditor.effects.collect { effect ->
-                when (effect) {
-                    EditorEffect.Done -> closeAdd()
-                    is EditorEffect.Failed -> report(effect.error)
+            addEditor.state.collect { add ->
+                if (add.done) {
+                    addEditor.onDoneHandled()
+                    closeAdd()
+                }
+                add.failure?.let { error ->
+                    addEditor.onFailureShown()
+                    report(error)
                 }
             }
         }
@@ -334,6 +341,7 @@ class PackingListViewModel @AssistedInject constructor(
             is PackingListEvent.AddModeChange -> openSheet { addMode.value = event.mode }
             is PackingListEvent.AddListText -> openSheet { listText.value = event.text }
             PackingListEvent.AddListSave -> addListSave()
+            PackingListEvent.Celebrated -> _celebrate.value = false
         }
     }
 

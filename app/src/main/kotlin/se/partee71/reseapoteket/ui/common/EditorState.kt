@@ -2,15 +2,13 @@ package se.partee71.reseapoteket.ui.common
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.dataError
@@ -31,6 +29,10 @@ data class EditorUiState<T>(
     val saving: Boolean = false,
     /** Det lagrade värdet gick inte att läsa; ramen visar felet och "Försök igen". */
     val loadError: DataError? = null,
+    /** Sparat, arkiverat eller raderat: ramen lämnar formuläret och kvitterar med [EditorEvents.onDoneHandled]. */
+    val done: Boolean = false,
+    /** Sparfelet som ska visas som snackbar; ramen kvitterar med [EditorEvents.onFailureShown]. */
+    val failure: DataError? = null,
 ) {
     /** "Spara" är aktiv först när formuläret är giltigt och ändrat (NFR-2). */
     val canSave: Boolean get() = isValid && isDirty && !saving && !loading && loadError == null
@@ -40,11 +42,25 @@ data class EditorUiState<T>(
     fun errorFor(field: String): Int? = errors[field]
 }
 
-/** Engångshändelser till ramen: klart (tillbaka) eller fel (snackbar). */
-sealed interface EditorEffect {
-    data object Done : EditorEffect
+/**
+ * Ramens kvittering av händelserna i [EditorUiState] ([EditorUiState.done], [EditorUiState.failure]):
+ * en händelse står kvar i tillståndet tills den hanterats – den tappas inte när skärmen inte
+ * visas, och den upprepas inte vid rotation (skill android-projekt, Flöden).
+ */
+@Stable
+interface EditorEvents {
+    fun onDoneHandled()
 
-    data class Failed(val error: DataError) : EditorEffect
+    fun onFailureShown()
+
+    companion object {
+        /** För ett tillstånd utan händelser (förhandsvisning, galleri). */
+        val None: EditorEvents = object : EditorEvents {
+            override fun onDoneHandled() = Unit
+
+            override fun onFailureShown() = Unit
+        }
+    }
 }
 
 /**
@@ -55,15 +71,13 @@ sealed interface EditorEffect {
  *   användaren hunnit skriva.
  * - [loading] = true tills [load] anropats (redigering av något som finns).
  */
-class EditorState<T>(initial: T, private val validator: Validator<T>, loading: Boolean = false) {
+class EditorState<T>(initial: T, private val validator: Validator<T>, loading: Boolean = false) : EditorEvents {
     private var original: T = initial
     private val touched = mutableSetOf<String>()
     private var attempted = false
     private val _state = MutableStateFlow(compute(initial, loading = loading))
-    private val _effects = Channel<EditorEffect>(Channel.BUFFERED)
 
     val state: StateFlow<EditorUiState<T>> = _state.asStateFlow()
-    val effects: Flow<EditorEffect> = _effects.receiveAsFlow()
 
     val value: T get() = _state.value.value
 
@@ -72,7 +86,7 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
         original = value
         touched.clear()
         attempted = false
-        _state.value = compute(value, loading = false)
+        show(compute(value, loading = false))
     }
 
     /**
@@ -98,12 +112,12 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
     /** Ändrar värdet; [fields] markeras som rörda så att deras fel börjar synas. */
     fun update(vararg fields: String, transform: (T) -> T) {
         touched += fields
-        _state.update { compute(transform(it.value), loading = it.loading, saving = it.saving) }
+        _state.update { compute(transform(it.value), loading = it.loading, saving = it.saving).withEventsOf(it) }
     }
 
     /**
      * Validerar och sparar med [write]. Ogiltigt → alla fel visas och inget sparas.
-     * Lyckat → [EditorEffect.Done]; fel → [EditorEffect.Failed] och formuläret står kvar.
+     * Lyckat → [EditorUiState.done]; fel → [EditorUiState.failure] och formuläret står kvar.
      */
     suspend fun save(write: suspend (T) -> Result<Unit>) {
         // Ett dubbeltryck sparar inte två gånger, och medan det lagrade värdet laddas (eller inte
@@ -112,7 +126,7 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
         if (now.saving || now.loading || now.loadError != null) return
         attempted = true
         val current = compute(value, loading = false)
-        _state.value = current
+        show(current)
         if (!current.isValid) return
         // Ändrades formuläret medan det sparades är ändringen inte sparad: formuläret står kvar
         // som ändrat i stället för att stängas och tappa den (NFR-2).
@@ -134,12 +148,21 @@ class EditorState<T>(initial: T, private val validator: Validator<T>, loading: B
         if (error == null) {
             original = written
             val after = compute(value, loading = false)
-            _state.value = after
-            if (closeIfChanged || !after.isDirty) _effects.send(EditorEffect.Done)
+            val close = closeIfChanged || !after.isDirty
+            _state.update { after.withEventsOf(it).copy(done = close || it.done) }
         } else {
-            _effects.send(EditorEffect.Failed(error))
+            _state.update { it.copy(failure = error) }
         }
     }
+
+    override fun onDoneHandled() = _state.update { it.copy(done = false) }
+
+    override fun onFailureShown() = _state.update { it.copy(failure = null) }
+
+    /** Ett nytt formulärläge; händelser som inte kvitterats än står kvar. */
+    private fun show(next: EditorUiState<T>) = _state.update { next.withEventsOf(it) }
+
+    private fun EditorUiState<T>.withEventsOf(old: EditorUiState<T>) = copy(done = old.done, failure = old.failure)
 
     private fun compute(value: T, loading: Boolean, saving: Boolean = false): EditorUiState<T> {
         val all = validator.validate(value)

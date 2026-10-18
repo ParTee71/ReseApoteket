@@ -21,7 +21,6 @@ import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.components.PERSON_EMOJIS
 import se.partee71.reseapoteket.ui.components.UndoRequest
@@ -83,12 +82,12 @@ class PersonViewModelsTest {
         val vm = PersonEditViewModel(null, persons)
         assertTrue(vm.isNew)
         assertFalse(vm.state.value.loading)
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(PersonEditEvent.Name("  Morfar Gunnar "))
             vm.onEvent(PersonEditEvent.Emoji("🦉"))
             vm.onEvent(PersonEditEvent.PersonColor(AppColors.PERSON_HEX[3]))
             vm.onEvent(PersonEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val saved = persons.getAll().getOrThrow().single { it.id != "anna" }
         assertEquals(Person(saved.id, "Morfar Gunnar", "🦉", AppColors.PERSON_HEX[3], sortOrder = 5), saved)
@@ -111,9 +110,9 @@ class PersonViewModelsTest {
         assertFalse(vm.state.value.loading)
         assertEquals("Anna", vm.state.value.value.name)
         vm.onEvent(PersonEditEvent.Emoji("🐯"))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(PersonEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertEquals(Person("anna", "Anna", "🐯", AppColors.PERSON_HEX[0], sortOrder = 2), persons.get("anna").getOrThrow())
     }

@@ -9,7 +9,6 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import kotlin.test.assertEquals
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.DayOfWeek
 import org.junit.Rule
 import org.junit.Test
@@ -23,6 +22,7 @@ import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.DetailUiState
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -59,8 +59,8 @@ class PersonScreensTest {
             makeInvalid = { update(PersonValidator.NAME) { it.copy(name = "x") }; update(PersonValidator.NAME) { it.copy(name = "") } },
             makeValid = { update(PersonValidator.NAME) { it.copy(name = "Morfar Gunnar") } },
             invalidMessage = "Ange ett namn",
-        ) { state, effects, onSave, onClose ->
-            PersonEditContent(isNew = true, state, effects, { event ->
+        ) { state, events, onSave, onClose ->
+            PersonEditContent(isNew = true, state, events, { event ->
                 when (event) {
                     is PersonEditEvent.Name -> editor.update(PersonValidator.NAME) { it.copy(name = event.name) }
                     PersonEditEvent.Save -> onSave()
@@ -73,7 +73,7 @@ class PersonScreensTest {
     @Test
     fun `emoji och färg väljs i formuläret`() {
         val events = mutableListOf<PersonEditEvent>()
-        rule.setContent { ReseApoteketTheme { PersonEditContent(true, EditorUiState(gunnar), emptyFlow(), { events += it }, {}) } }
+        rule.setContent { ReseApoteketTheme { PersonEditContent(true, EditorUiState(gunnar), EditorEvents.None, { events += it }, {}) } }
         rule.onNodeWithContentDescription("🐯").performClick()
         rule.onNodeWithContentDescription("Färg: petrol").performClick()
         assertEquals(listOf(PersonEditEvent.Emoji("🐯"), PersonEditEvent.PersonColor(AppColors.PERSON_HEX[5])), events)
@@ -144,6 +144,6 @@ class PersonScreensTest {
         captureLightAndDark("PersonDetailScreen_tom") {
             PersonDetailContent(DetailUiState.Content(PersonDetail(Person("lova", "Lova", "🐰", AppColors.PERSON_HEX[2]), emptyList(), emptyList())), {}, {}, {}, {}, {})
         }
-        captureLightAndDark("PersonEditScreen_ny") { PersonEditContent(true, EditorUiState(gunnar, isDirty = true), emptyFlow(), {}, {}) }
+        captureLightAndDark("PersonEditScreen_ny") { PersonEditContent(true, EditorUiState(gunnar, isDirty = true), EditorEvents.None, {}, {}) }
     }
 }

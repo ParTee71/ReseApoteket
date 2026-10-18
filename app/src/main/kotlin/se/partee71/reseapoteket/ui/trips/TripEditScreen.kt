@@ -12,7 +12,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,7 +39,7 @@ import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.domain.PackingUpdate
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -118,7 +117,6 @@ class TripEditViewModel @AssistedInject constructor(
 
     val editor: EditorState<Trip> = EditorState(Trip(tripId ?: trips.newId(), days = DEFAULT_DAYS), TripValidator, loading = !isNew)
     val state = editor.state
-    val effects: Flow<EditorEffect> = editor.effects
     private val loader = EditorLoader(editor, viewModelScope, tripId?.let { id -> { trips.get(id) } })
 
     /** Den lagrade resan – vad som räknas om jämförs mot, och vad som arkiveras eller återställs. */
@@ -235,7 +233,7 @@ fun TripEditScreen(onClose: () -> Unit, onCreated: (String) -> Unit, viewModel: 
         state = state,
         people = people,
         preview = preview,
-        effects = viewModel.effects,
+        events = viewModel.editor,
         onEvent = viewModel::onEvent,
         onClose = onClose,
         onSaved = if (viewModel.isNew) ({ onCreated(state.value.id) }) else onClose,
@@ -251,7 +249,7 @@ fun TripEditContent(
     state: EditorUiState<Trip>,
     people: List<Person>,
     preview: PackingPreviewText?,
-    effects: Flow<EditorEffect>,
+    events: EditorEvents,
     onEvent: (TripEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -264,7 +262,7 @@ fun TripEditContent(
     EntityEditScreen(
         title = stringResource(if (isNew) R.string.trips_add else R.string.trip_edit),
         state = state,
-        effects = effects,
+        events = events,
         onSave = { onEvent(TripEditEvent.Save(defaultName)) },
         onClose = onClose,
         modifier = modifier,

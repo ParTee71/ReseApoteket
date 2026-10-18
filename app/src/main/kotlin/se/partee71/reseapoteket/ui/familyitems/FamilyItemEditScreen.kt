@@ -11,7 +11,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -34,7 +33,7 @@ import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.activeCount
 import se.partee71.reseapoteket.data.repository.householdSettings
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -117,7 +116,6 @@ class FamilyItemEditViewModel @AssistedInject constructor(
     val editor: EditorState<FamilyItem> =
         EditorState(FamilyItem(itemId ?: items.newId(), rule = QuantityRule.Fixed()), FamilyItemValidator, loading = !isNew)
     val state = editor.state
-    val effects: Flow<EditorEffect> = editor.effects
     private val loader = EditorLoader(editor, viewModelScope, itemId?.let { id -> { items.get(id) } })
 
     /** Den lagrade artikeln – arkiverad visar menyn "Återställ" i stället för "Arkivera"; `null` medan den läses. */
@@ -172,7 +170,7 @@ fun FamilyItemEditScreen(onClose: () -> Unit, viewModel: FamilyItemEditViewModel
     val state by viewModel.state.collectAsStateWithLifecycle()
     val preview by viewModel.preview.collectAsStateWithLifecycle()
     val stored by viewModel.stored.collectAsStateWithLifecycle()
-    FamilyItemEditContent(viewModel.isNew, state, preview, viewModel.effects, viewModel::onEvent, onClose, stored = stored)
+    FamilyItemEditContent(viewModel.isNew, state, preview, viewModel.editor, viewModel::onEvent, onClose, stored = stored)
 }
 
 /** Formuläret i mockupens ordning: namn, kategori, enhet, mängd med förhandsvisning, anteckning, aktiv. */
@@ -181,7 +179,7 @@ fun FamilyItemEditContent(
     isNew: Boolean,
     state: EditorUiState<FamilyItem>,
     preview: PackingPreviewText?,
-    effects: Flow<EditorEffect>,
+    events: EditorEvents,
     onEvent: (FamilyItemEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -191,7 +189,7 @@ fun FamilyItemEditContent(
     EntityEditScreen(
         title = stringResource(if (isNew) R.string.family_item_new else R.string.family_item_edit),
         state = state,
-        effects = effects,
+        events = events,
         onSave = { onEvent(FamilyItemEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,

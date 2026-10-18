@@ -3,7 +3,6 @@ package se.partee71.reseapoteket.ui.settings
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -14,6 +13,7 @@ import se.partee71.reseapoteket.core.schema.HouseholdCodec
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.runEditScreenContract
@@ -37,8 +37,8 @@ class HouseholdEditTest {
             makeInvalid = { update(HouseholdValidator.NAME) { it.copy(name = " ") } },
             makeValid = { update(HouseholdValidator.NAME) { it.copy(name = "Familjen Berg") } },
             invalidMessage = "Ange ett namn",
-        ) { state, effects, onSave, onClose ->
-            HouseholdEditContent(state, effects, { if (it is HouseholdEditEvent.Save) onSave() }, onClose)
+        ) { state, events, onSave, onClose ->
+            HouseholdEditContent(state, events, { if (it is HouseholdEditEvent.Save) onSave() }, onClose)
         }
     }
 
@@ -67,6 +67,6 @@ class HouseholdEditTest {
 
     @Test
     fun `Hushåll - namn`() = captureLightAndDark("HouseholdEditScreen_namn") {
-        HouseholdEditContent(EditorUiState(svensson), emptyFlow(), {}, {})
+        HouseholdEditContent(EditorUiState(svensson), EditorEvents.None, {}, {})
     }
 }

@@ -71,7 +71,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
 | Listskärm | `EntityListScreen` | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal eller `ListGroup.count`, `columns` = upp till 2 kolumner, bara så många som får plats med minst 260 dp var (NFR-20), `collapsible` = hopfälld) och undergrupper (`ListSubgroup`, personens namn i färg); lägg till (`AddSplitButton`) ovanför verktygsraden; för en undersida `onBack`, `subtitle`, `actions` och `header` överst i listan; `ListArchive.showToggle = false` utan "Visa arkiverade" |
-| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); arkivera/återställ/radera i menyn |
+| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); båda kvitteras via `events` (formulärets `EditorState`) och visas inte igen efter rotation; arkivera/återställ/radera i menyn |
 | Detaljskärm | `EntityDetailScreen` | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `ApotekCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
 | Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s (packlistan: "%s dold" via `ArchiveActions(undoFormat)`); `enabled = false` för en redan arkiverad rad |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
@@ -90,7 +90,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Firestore-CRUD | `EntityCollection<T>` från `CollectionFactory` (`data/common/`); enda implementationen `FirestoreCollection<T>` i `data/firestore/`, i test `FakeCollection<T>` |
 | Sökvägar, codecs per samling | `Paths` och `CollectionTable` i `data/firestore/` (speglade i `tools/db/lib/collections.mjs`) |
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
-| Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` (fel per fält visas efter ändring eller sparförsök; `EditorEffect` till ramen) |
+| Formulär | `EditorState<T>` + `Validator<T>` i `ui/common/` (fel per fält visas efter ändring eller sparförsök; klar och sparfel som `EditorUiState.done`/`failure`, kvitterade via `EditorEvents`) |
 | Listtillstånd | `Flow<List<T>>.asListUiState()` → `ListUiState<T>`, och `ListLoader` (med "Försök igen") + `activeOnly()` för en listas ViewModel, i `ui/common/` |
 | Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions` + `ArchiveEvent` i `ui/common/` (en per list-ViewModel, exponerad som `archive`); skärmen skickar `archive.collectAsListArchive()` till `EntityListScreen`. Ångra för något annat än arkivering (t.ex. rader som just lagts till, PAK-7) erbjuds med `offerUndo(request) { … }` – samma snackbar |
 | Detaljtillstånd | `Flow<T?>.asDetailUiState()` → `DetailUiState<T>`, och `DetailLoader` (med "Försök igen") för en detaljskärms ViewModel, i `ui/common/` |
@@ -148,6 +148,9 @@ undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant 
 - **All kod utom `di/`:** `Dispatchers.IO`/`Default`/`Main`/`Unconfined`. Klassen tar en
   `CoroutineDispatcher` med `@IoDispatcher` eller `@DefaultDispatcher` från `di/DispatchersModule`
   (skill `android:kotlin-coroutines`).
+- **All kod i `ui/`** – även `ui/components/` och `ui/common/`: `Channel(` och `.receiveAsFlow(`
+  för engångshändelser. Händelsen blir ett fält i tillståndet som skärmen kvitterar
+  (`EditorUiState.done`/`failure` + `EditorEvents`; skill `android-projekt`, Flöden).
 - **ViewModels** som heter `*EditViewModel` och inte exponerar en `EditorState`.
 - **UiState-typer** (data classes som heter `*State` och sealed interfaces `*UiState` i `ui/`)
   utan `@Immutable` eller `@Stable`. Listor och kartor i dem är `ImmutableList`/`ImmutableMap`;

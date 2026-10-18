@@ -29,7 +29,6 @@ import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.testing.FakeMedicines
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
-import se.partee71.reseapoteket.ui.common.EditorEffect
 import se.partee71.reseapoteket.ui.common.TravelDayChange
 
 /** Receptformuläret (REC-1–5) mot `FakeCollection` – ramens beteende testas i ramens tester. */
@@ -64,7 +63,7 @@ class RegimenViewModelsTest {
         assertEquals(DoseSchedule.Daily(1, 1), vm.state.value.value.schedule)
         assertEquals(MedicineForm.TABLET, vm.state.value.value.form)
         assertEquals(ItemUnit.TABLETT, vm.state.value.value.unit)
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(RegimenEditEvent.Name("  Alvedon "))
             vm.onEvent(RegimenEditEvent.Strength(" 500 mg "))
             vm.onEvent(RegimenEditEvent.Form(MedicineForm.CAPSULE))
@@ -73,7 +72,7 @@ class RegimenViewModelsTest {
             vm.onEvent(RegimenEditEvent.PackageSize("20"))
             vm.onEvent(RegimenEditEvent.Notes(" Vid feber "))
             vm.onEvent(RegimenEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val saved = anna.getAll().getOrThrow().single { it.id != "r1" }
         assertEquals(
@@ -90,12 +89,12 @@ class RegimenViewModelsTest {
     @Test
     fun `ett kosttillskott från snabbvalet sparas med rätt sort och form (KOS-1–3)`() = runTest {
         val vm = viewModel(kind = RegimenKind.SUPPLEMENT)
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(RegimenEditEvent.Name("Magnesium"))
             vm.onEvent(RegimenEditEvent.Form(MedicineForm.POWDER))
             vm.onEvent(RegimenEditEvent.DoseUnit(ItemUnit.DOS))
             vm.onEvent(RegimenEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         val saved = anna.getAll().getOrThrow().single()
         assertEquals(RegimenKind.SUPPLEMENT, saved.kind)
@@ -110,9 +109,9 @@ class RegimenViewModelsTest {
         assertFalse(vm.isNew)
         assertEquals(levaxin, vm.state.value.value)
         vm.onEvent(RegimenEditEvent.Active(false))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(RegimenEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertEquals(levaxin.copy(active = false), anna.get("r1").getOrThrow())
     }
@@ -123,9 +122,9 @@ class RegimenViewModelsTest {
         anna.upsert(future)
         val vm = viewModel("r1")
         vm.onEvent(RegimenEditEvent.Notes("Ny anteckning"))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(RegimenEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertEquals(future.copy(notes = "Ny anteckning"), anna.get("r1").getOrThrow())
     }
@@ -134,9 +133,9 @@ class RegimenViewModelsTest {
     fun `radering tar bort receptet och stänger (REC-5)`() = runTest {
         anna.upsert(levaxin)
         val vm = viewModel("r1")
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(RegimenEditEvent.Delete)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertNull(anna.get("r1").getOrThrow())
     }
@@ -234,9 +233,9 @@ class RegimenViewModelsTest {
         anna.upsert(levaxin)
         val vm = viewModel("r1")
         vm.onEvent(RegimenEditEvent.TravelDay(TravelDayChange(true, LocalTime(7, 30))))
-        vm.effects.test {
+        vm.state.test {
             vm.onEvent(RegimenEditEvent.Save)
-            assertEquals(EditorEffect.Done, awaitItem())
+            assertTrue(expectMostRecentItem().done)
         }
         assertEquals(levaxin.copy(travelDay = true, travelDayTime = LocalTime(7, 30)), anna.get("r1").getOrThrow())
         vm.onEvent(RegimenEditEvent.TravelDay(TravelDayChange(false, LocalTime(7, 30))))

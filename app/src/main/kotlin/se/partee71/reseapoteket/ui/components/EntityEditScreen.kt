@@ -21,16 +21,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.toMessage
 import se.partee71.reseapoteket.ui.theme.Spacing
@@ -51,6 +51,8 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * - arkivera/återställ/radera i menyn när [onArchive]/[onRestore]/[delete] finns;
  * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
  *
+ * @param events kvitterar [EditorUiState.done] och [EditorUiState.failure] när ramen hanterat dem –
+ *   formulärets `EditorState`.
  * @param onSaved efter lyckad sparning (och arkivera/radera); standard [onClose]. En ny resa
  *   öppnar packlistan i stället för att gå tillbaka.
  * @param onClose lämnar skärmen: `backStack.popIfTop(key)`, aldrig `pop()` – den kan anropas mer
@@ -60,7 +62,7 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
 fun EntityEditScreen(
     title: String,
     state: EditorUiState<*>,
-    effects: Flow<EditorEffect>,
+    events: EditorEvents,
     onSave: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -78,14 +80,22 @@ fun EntityEditScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val close by rememberUpdatedState(onClose)
     val saved by rememberUpdatedState(onSaved)
+    val handled by rememberUpdatedState(events)
     val resources = LocalResources.current
-    LaunchedEffect(effects) {
-        effects.collect { effect ->
-            when (effect) {
-                EditorEffect.Done -> saved()
-                // Egen coroutine: en visad snackbar får inte hålla tillbaka nästa händelse.
-                is EditorEffect.Failed -> launch { snackbar.showSnackbar(resources.getString(effect.error.toMessage())) }
-            }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(state.done) {
+        if (state.done) {
+            saved()
+            handled.onDoneHandled()
+        }
+    }
+    val failure = state.failure
+    LaunchedEffect(failure) {
+        if (failure != null) {
+            // Egen coroutine: kvitteringen tömmer fältet, och en visad snackbar får inte hålla
+            // tillbaka nästa händelse.
+            scope.launch { snackbar.showSnackbar(resources.getString(failure.toMessage())) }
+            handled.onFailureShown()
         }
     }
     val archive by rememberUpdatedState(onArchive)

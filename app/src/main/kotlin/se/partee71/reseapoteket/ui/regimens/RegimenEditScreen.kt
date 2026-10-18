@@ -15,7 +15,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlin.time.Clock
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +46,7 @@ import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.data.repository.householdSettings
-import se.partee71.reseapoteket.ui.common.EditorEffect
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorLoader
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
@@ -158,7 +157,6 @@ class RegimenEditViewModel @AssistedInject constructor(
         loading = !isNew,
     )
     val state = editor.state
-    val effects: Flow<EditorEffect> = editor.effects
 
     private val loader = EditorLoader(editor, viewModelScope, regimenId?.let { id -> { collection.get(id) } })
 
@@ -233,7 +231,7 @@ fun RegimenEditScreen(config: RegimenEditorConfig, onClose: () -> Unit, viewMode
     val preview by viewModel.preview.collectAsStateWithLifecycle()
     val stored by viewModel.stored.collectAsStateWithLifecycle()
     val lookup by viewModel.lookup.collectAsStateWithLifecycle()
-    RegimenEditContent(config, viewModel.isNew, state, preview, viewModel.effects, viewModel::onEvent, onClose, stored = stored, lookup = lookup)
+    RegimenEditContent(config, viewModel.isNew, state, preview, viewModel.editor, viewModel::onEvent, onClose, stored = stored, lookup = lookup)
 }
 
 /**
@@ -248,7 +246,7 @@ fun RegimenEditContent(
     isNew: Boolean,
     state: EditorUiState<Regimen>,
     preview: PackingPreviewText,
-    effects: Flow<EditorEffect>,
+    events: EditorEvents,
     onEvent: (RegimenEditEvent) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -259,7 +257,7 @@ fun RegimenEditContent(
     EntityEditScreen(
         title = stringResource(if (isNew) config.newTitle else config.editTitle),
         state = state,
-        effects = effects,
+        events = events,
         onSave = { onEvent(RegimenEditEvent.Save) },
         onClose = onClose,
         modifier = modifier,

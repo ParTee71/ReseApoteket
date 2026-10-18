@@ -9,7 +9,6 @@ import androidx.compose.ui.test.performScrollTo
 import kotlin.test.assertEquals
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,6 +22,7 @@ import se.partee71.reseapoteket.core.model.HouseholdSettings
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
@@ -56,8 +56,8 @@ class FamilyItemScreensTest {
             makeInvalid = { update(FamilyItemValidator.NAME) { it.copy(name = "x") }; update(FamilyItemValidator.NAME) { it.copy(name = "") } },
             makeValid = { update(FamilyItemValidator.NAME) { it.copy(name = "Solkräm") } },
             invalidMessage = "Ange ett namn",
-        ) { state, effects, onSave, onClose ->
-            FamilyItemEditContent(isNew = true, state, preview(state.value), effects, { if (it == FamilyItemEditEvent.Save) onSave() }, onClose)
+        ) { state, events, onSave, onClose ->
+            FamilyItemEditContent(isNew = true, state, preview(state.value), events, { if (it == FamilyItemEditEvent.Save) onSave() }, onClose)
         }
     }
 
@@ -84,7 +84,7 @@ class FamilyItemScreensTest {
     fun `en arkiverad artikel kan återställas från formuläret, en aktiv arkiveras (FAM-2)`() {
         val events = mutableListOf<FamilyItemEditEvent>()
         rule.setContent {
-            ReseApoteketTheme { FamilyItemEditContent(false, EditorUiState(sunscreen), preview(sunscreen), emptyFlow(), { events += it }, {}, stored = sunscreen.copy(archived = true)) }
+            ReseApoteketTheme { FamilyItemEditContent(false, EditorUiState(sunscreen), preview(sunscreen), EditorEvents.None, { events += it }, {}, stored = sunscreen.copy(archived = true)) }
         }
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Återställ").performClick()
@@ -93,7 +93,7 @@ class FamilyItemScreensTest {
 
     @Test
     fun `utan känt antal personer visas ingen förhandsvisning, och utan lagrad artikel ingen meny`() {
-        rule.setContent { ReseApoteketTheme { FamilyItemEditContent(false, EditorUiState(sunscreen), null, emptyFlow(), {}, {}) } }
+        rule.setContent { ReseApoteketTheme { FamilyItemEditContent(false, EditorUiState(sunscreen), null, EditorEvents.None, {}, {}) } }
         rule.onNodeWithText("För 4 resenärer i 7 dagar").assertDoesNotExist()
         rule.onNodeWithContentDescription("Fler val").assertDoesNotExist()
     }
@@ -102,7 +102,7 @@ class FamilyItemScreensTest {
     fun `mängdfelet syns under regeln`() {
         val zero = sunscreen.copy(rule = QuantityRule.PerDays(1, 0))
         val state = EditorUiState(zero, errors = persistentMapOf(FamilyItemValidator.RULE to R.string.rule_min_one))
-        rule.setContent { ReseApoteketTheme { FamilyItemEditContent(false, state, preview(zero), emptyFlow(), {}, {}) } }
+        rule.setContent { ReseApoteketTheme { FamilyItemEditContent(false, state, preview(zero), EditorEvents.None, {}, {}) } }
         rule.onNodeWithText("Minst 1").performScrollTo().assertIsDisplayed()
     }
 
@@ -110,7 +110,7 @@ class FamilyItemScreensTest {
     @Config(qualifiers = "w390dp-h1400dp-xxhdpi")
     fun `skärmdumpar - formuläret i tre regler`() {
         fun capture(name: String, item: FamilyItem) = captureLightAndDark("FamilyItemEditScreen_$name") {
-            FamilyItemEditContent(false, EditorUiState(item, isDirty = true), preview(item), emptyFlow(), {}, {}, stored = item)
+            FamilyItemEditContent(false, EditorUiState(item, isDirty = true), preview(item), EditorEvents.None, {}, {}, stored = item)
         }
         capture("per_n_dagar", sunscreen)
         capture("per_resenar", list[3])

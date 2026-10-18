@@ -11,6 +11,8 @@
 # allowlist-fel = allowlist-rader som ska avvisas (saknar symbol eller motivering)
 
 [ok]
+manager.createNotificationChannel(channel)
+val done: Boolean = false,
 withContext(io) {
 import kotlinx.coroutines.Dispatchers
 ApotekCard { }
@@ -44,6 +46,9 @@ import androidx.compose.material3.Card
  * Card(modifier) i en KDoc
 
 [stopp]
+private val _shares = Channel<ShareExport>(Channel.CONFLATED)
+private val _effects = Channel<EditorEffect>(Channel.BUFFERED)
+val effects: Flow<EditorEffect> = _effects.receiveAsFlow()
 withContext(Dispatchers.IO) {
 val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 val c = Color(0xFFC8502F)
@@ -84,11 +89,11 @@ README.md
 app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/notes.md	
 app/src/test/kotlin/X.kt	
 app/src/main/kotlin/se/partee71/reseapoteket/data/firestore/FirestoreCollection.kt	expressive,dispatchers
-app/src/main/kotlin/se/partee71/reseapoteket/ui/theme/Theme.kt	firestore,dispatchers
-app/src/main/kotlin/se/partee71/reseapoteket/ui/common/EditorState.kt	firestore,expressive,dispatchers
-app/src/main/kotlin/se/partee71/reseapoteket/ui/components/screens/EntityListScreen.kt	firestore,dispatchers
-app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonsScreen.kt	feature,firestore,expressive,dispatchers
-app/src/main/kotlin/se/partee71/reseapoteket/ui/AppRoot.kt	feature,firestore,expressive,dispatchers
+app/src/main/kotlin/se/partee71/reseapoteket/ui/theme/Theme.kt	firestore,dispatchers,events
+app/src/main/kotlin/se/partee71/reseapoteket/ui/common/EditorState.kt	firestore,expressive,dispatchers,events
+app/src/main/kotlin/se/partee71/reseapoteket/ui/components/screens/EntityListScreen.kt	firestore,dispatchers,events
+app/src/main/kotlin/se/partee71/reseapoteket/ui/persons/PersonsScreen.kt	feature,firestore,expressive,dispatchers,events
+app/src/main/kotlin/se/partee71/reseapoteket/ui/AppRoot.kt	feature,firestore,expressive,dispatchers,events
 app/src/main/kotlin/se/partee71/reseapoteket/di/AppModule.kt	firestore,expressive
 app/src/main/kotlin/se/partee71/reseapoteket/data/repository/PersonRepository.kt	firestore,expressive,dispatchers
 

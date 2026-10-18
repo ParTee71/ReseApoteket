@@ -6,6 +6,7 @@
 # [firestore] = all Kotlin under app/src/main utom data/firestore/
 # [expressive] = all Kotlin under app/src/main utom ui/theme/ och ui/components/
 # [dispatchers] = all Kotlin under app/src/main utom di/ (skill android:kotlin-coroutines)
+# [events]    = all Kotlin under ui/, även ui/components och ui/common (skill android:kotlin-flows)
 # Tillåtet i feature-kod: Text (med AppTypography-stil), Icon (appens ikoner i res/drawable),
 # Column, Row, Box, Spacer med Spacing, samt allt i ui/components och ui/common.
 # Regexarna ska fungera både i JavaScript och Kotlin (ingen lookbehind).
@@ -58,3 +59,7 @@
 
 [dispatchers]
 \bDispatchers\.(IO|Default|Main|Unconfined)\b	injicerad CoroutineDispatcher (@IoDispatcher/@DefaultDispatcher från di/DispatchersModule)
+
+[events]
+\bChannel\s*(<[^()]*>)?\s*\(	händelsen som fält i UiState som skärmen kvitterar (EditorUiState.done/failure + EditorEvents)
+\.receiveAsFlow\(	händelsen som fält i UiState som skärmen kvitterar (EditorUiState.done/failure + EditorEvents)
