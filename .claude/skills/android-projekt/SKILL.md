@@ -19,7 +19,7 @@ verifierade API:er står bara i [ARKITEKTUR.md](../../../ARKITEKTUR.md).
 - Ramarna (regel 4): listskärmar `EntityListScreen` + `asListUiState()`, redigering `EntityEditScreen` + `EditorState<T>` – aldrig egna varianter.
 - Navigation: en Activity (`MainActivity`), back stacken är vanligt state i `navigation/`, övergångar en gång i `navigation/Transitions`.
 - Bakgrundsjobb: inga WorkManager-jobb – Firestore synkar själv och backupen körs i GitHub Actions (`tools/db`, veckovis krypterad). Ingen backupkod i appen. Behövs bakgrundsarbete: skriv en skill först.
-- **Nuvarande läge, avviker från pluginen:** targetSdk 35 (pluginen säger 36), `SavedStateHandle` i stället för assisted injection, ingen Spotless/ktlint, Renovate eller Baseline Profile. Tas i egna PR:er senare; ny kod följer pluginen där det går.
+- **Nuvarande läge, avviker från pluginen:** `SavedStateHandle` i stället för assisted injection, ingen Spotless/ktlint, Renovate eller Baseline Profile. Tas i egna PR:er senare; ny kod följer pluginen där det går.
 - Java 17 (samma som CI). Tester JVM först (JUnit, Turbine, Robolectric, Roborazzi), fakes byggda på `FakeCollection<T>` (skill `testing-strategy`).
 
 ## Coroutines (android:kotlin-coroutines)

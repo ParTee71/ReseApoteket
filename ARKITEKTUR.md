@@ -308,7 +308,7 @@ Beslutad och uppmätt i #11.
 
 | Vad | Värde | Kommentar |
 |---|---|---|
-| minSdk / targetSdk | 30 / 35 | `app/build.gradle.kts` |
+| minSdk / targetSdk | 30 / 36 | `app/build.gradle.kts` |
 | compileSdk | **37** | Compose BOM 2026.09.00 (även stabila `material-ripple`/`foundation`) kräver 37 i AAR-metadata; issuets 36 räckte inte |
 | Gradle | 9.8.0 | wrapper |
 | AGP | 9.4.1 | inbyggt Kotlin-stöd och nya DSL:en – `org.jetbrains.kotlin.android` används inte |
