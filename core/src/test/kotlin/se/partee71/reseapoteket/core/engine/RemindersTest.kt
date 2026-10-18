@@ -23,8 +23,7 @@ class RemindersTest {
 
     private fun items(packed: Int, total: Int) = (0 until total).map { PackingItem("r$it", checked = it < packed) }
 
-    private fun plan(vararg trips: Trip, packing: Map<String, List<PackingItem>> = emptyMap(), with: ReminderSettings = settings) =
-        ReminderPlanner.plan(trips.toList(), packing, with)
+    private fun plan(vararg trips: Trip, packing: Map<String, List<PackingItem>> = emptyMap(), with: ReminderSettings = settings) = ReminderPlanner.plan(trips.toList(), packing, with)
 
     private fun at(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0) = LocalDateTime(year, month, day, hour, minute)
 
@@ -35,9 +34,9 @@ class RemindersTest {
             listOf(
                 ReminderKind.TIME_TO_PACK to at(2026, 9, 30, 18),
                 ReminderKind.DAY_BEFORE to at(2026, 10, 2, 18),
-                ReminderKind.TRAVEL_DAY to at(2026, 10, 3, 7),
+                ReminderKind.TRAVEL_DAY to at(2026, 10, 3, 7)
             ),
-            planned.map { it.kind to it.at },
+            planned.map { it.kind to it.at }
         )
         assertEquals(PackingProgress(9, 16), planned.first().progress)
     }
@@ -122,13 +121,13 @@ class RemindersTest {
             PackingItem("c", name = "Insulin", travelDay = true, travelDayTime = LocalTime(7, 0)),
             PackingItem("d", name = "Laddare", travelDay = true, travelDayTime = LocalTime(8, 30)),
             PackingItem("e", name = "Packad", travelDay = true, checked = true),
-            PackingItem("f", name = "Dold", travelDay = true, hidden = true),
+            PackingItem("f", name = "Dold", travelDay = true, hidden = true)
         )
         val planned = plan(granCanaria, packing = mapOf("gc" to rows))
         val travelDay = planned.filter { it.kind == ReminderKind.TRAVEL_DAY }
         assertEquals(
             listOf(at(2026, 10, 3, 7) to 2, at(2026, 10, 3, 8, 30) to 1),
-            travelDay.map { it.at to it.travelDayCount },
+            travelDay.map { it.at to it.travelDayCount }
         )
         assertEquals(3, planned.single { it.kind == ReminderKind.DAY_BEFORE }.travelDayCount)
         assertEquals(2, travelDay.map { it.key }.toSet().size)

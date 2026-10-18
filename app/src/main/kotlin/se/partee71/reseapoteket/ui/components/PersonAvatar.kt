@@ -25,7 +25,7 @@ enum class AvatarSize(internal val size: Dp) { Regular(40.dp), Small(28.dp), Lar
 fun PersonAvatar(emoji: String, color: Color, modifier: Modifier = Modifier, size: AvatarSize = AvatarSize.Regular) {
     Box(
         modifier.size(size.size).background(color, AppShapes.pill).clearAndSetSemantics {},
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         val style = when (size) {
             AvatarSize.Small -> AppTypography.pill

@@ -52,7 +52,7 @@ class RepositoriesTest {
      */
     private fun TestScope.householdRepository(
         directory: FakeHouseholdDirectory,
-        clock: FixedClock = FixedClock(),
+        clock: FixedClock = FixedClock()
     ): Pair<HouseholdSession, DefaultHouseholdRepository> {
         val settings = settings ?: SettingsStore(settingsDataStore(backgroundScope) { folder.newFile("s.preferences_pb") })
             .also { settings = it }

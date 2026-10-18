@@ -124,7 +124,7 @@ class AppNavHostTest {
                     backStack,
                     { key -> NavEntry(key) { Text("Skärm: ${key::class.simpleName}") } },
                     sync = SyncUiState(writeError = DataError.PermissionDenied),
-                    onSyncEvent = { events += it },
+                    onSyncEvent = { events += it }
                 )
             }
         }
@@ -144,7 +144,7 @@ class AppNavHostTest {
                 AppNavHost(
                     backStack,
                     { key -> NavEntry(key) { AppTopBar("Resor") } },
-                    sync = SyncUiState(pending = true, writeError = DataError.PermissionDenied),
+                    sync = SyncUiState(pending = true, writeError = DataError.PermissionDenied)
                 )
             }
         }
@@ -161,7 +161,10 @@ class AppNavHostTest {
         var opened = 0
         rule.setContent {
             ReseApoteketTheme {
-                OpenTripEffect(backStack, trip) { trip = null; opened++ }
+                OpenTripEffect(backStack, trip) {
+                    trip = null
+                    opened++
+                }
                 AppNavHost(backStack, { key -> NavEntry(key) { Text("Skärm: $key") } })
             }
         }

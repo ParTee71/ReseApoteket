@@ -35,14 +35,14 @@ object DoseScheduleCodec : ValueCodec<DoseSchedule> {
         unitsPerDose: Int? = null,
         weekdays: List<Int>? = null,
         intervalDays: Int? = null,
-        asNeededQuantity: Int? = null,
+        asNeededQuantity: Int? = null
     ): Doc = mapOf(
         "type" to type,
         "dosesPerDay" to dosesPerDay,
         "unitsPerDose" to unitsPerDose,
         "weekdays" to weekdays,
         "intervalDays" to intervalDays,
-        "asNeededQuantity" to asNeededQuantity,
+        "asNeededQuantity" to asNeededQuantity
     )
 }
 
@@ -66,6 +66,5 @@ object QuantityRuleCodec : ValueCodec<QuantityRule> {
         }
     }
 
-    private fun fields(type: String, quantity: Int, perDays: Int? = null): Doc =
-        mapOf("type" to type, "quantity" to quantity, "perDays" to perDays)
+    private fun fields(type: String, quantity: Int, perDays: Int? = null): Doc = mapOf("type" to type, "quantity" to quantity, "perDays" to perDays)
 }

@@ -34,14 +34,12 @@ sealed interface ListUiState<out T> {
  * emitterar – "Försök igen" i `EntityListScreen`.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun <T> Flow<List<T>>.asListUiState(retry: Flow<Unit>): Flow<ListUiState<T>> =
-    retry.onStart { emit(Unit) }.flatMapLatest { asListUiState() }
+fun <T> Flow<List<T>>.asListUiState(retry: Flow<Unit>): Flow<ListUiState<T>> = retry.onStart { emit(Unit) }.flatMapLatest { asListUiState() }
 
 /** Den enda översättningen från en datalista till [ListUiState]. */
-fun <T> Flow<List<T>>.asListUiState(): Flow<ListUiState<T>> =
-    map<List<T>, ListUiState<T>> { items -> if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items.toImmutableList()) }
-        .onStart { emit(ListUiState.Loading) }
-        .catch { emit(ListUiState.Error(it as? DataError ?: DataError.Unknown)) }
+fun <T> Flow<List<T>>.asListUiState(): Flow<ListUiState<T>> = map<List<T>, ListUiState<T>> { items -> if (items.isEmpty()) ListUiState.Empty else ListUiState.Content(items.toImmutableList()) }
+    .onStart { emit(ListUiState.Loading) }
+    .catch { emit(ListUiState.Error(it as? DataError ?: DataError.Unknown)) }
 
 /** Händelser som alla listskärmar har gemensamt; skärmens egna händelser läggs i en egen typ. */
 sealed interface ListEvent {
@@ -63,7 +61,7 @@ class ListLoader<T>(source: Flow<List<T>>, scope: CoroutineScope) {
     val state: StateFlow<ListUiState<T>> = source.asListUiState(retries).stateIn(
         scope,
         SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS, replayExpirationMillis = 0),
-        ListUiState.Loading,
+        ListUiState.Loading
     )
 
     fun onEvent(event: ListEvent) {
@@ -88,12 +86,11 @@ sealed interface DetailUiState<out T> {
  * [retry] emitterar. Ett dokument som inte finns (raderat, eller en annans) är ett fel.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun <T : Any> Flow<T?>.asDetailUiState(retry: Flow<Unit>): Flow<DetailUiState<T>> =
-    retry.onStart { emit(Unit) }.flatMapLatest {
-        map<T?, DetailUiState<T>> { value -> value?.let { DetailUiState.Content(it) } ?: DetailUiState.Error(DataError.NotFound) }
-            .onStart { emit(DetailUiState.Loading) }
-            .catch { emit(DetailUiState.Error(it as? DataError ?: DataError.Unknown)) }
-    }
+fun <T : Any> Flow<T?>.asDetailUiState(retry: Flow<Unit>): Flow<DetailUiState<T>> = retry.onStart { emit(Unit) }.flatMapLatest {
+    map<T?, DetailUiState<T>> { value -> value?.let { DetailUiState.Content(it) } ?: DetailUiState.Error(DataError.NotFound) }
+        .onStart { emit(DetailUiState.Loading) }
+        .catch { emit(DetailUiState.Error(it as? DataError ?: DataError.Unknown)) }
+}
 
 /** Detaljtillståndet för en ViewModel, med "Försök igen" – som [ListLoader] för listor. */
 class DetailLoader<T : Any>(source: Flow<T?>, scope: CoroutineScope) {
@@ -102,7 +99,7 @@ class DetailLoader<T : Any>(source: Flow<T?>, scope: CoroutineScope) {
     val state: StateFlow<DetailUiState<T>> = source.asDetailUiState(retries).stateIn(
         scope,
         SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS, replayExpirationMillis = 0),
-        DetailUiState.Loading,
+        DetailUiState.Loading
     )
 
     fun retry() {

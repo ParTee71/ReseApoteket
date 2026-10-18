@@ -39,7 +39,7 @@ class FirestoreCollection<T : Identified>(
     private val clock: Clock,
     private val codec: DocCodec<T>,
     private val name: String,
-    private val path: (householdId: String?) -> String,
+    private val path: (householdId: String?) -> String
 ) : EntityCollection<T> {
 
     override fun observe(): Flow<List<T>> = scope.householdId.flatMapLatest { hid ->
@@ -75,42 +75,36 @@ class FirestoreCollection<T : Identified>(
     }
 
     /** `update`, inte `set`: bara [fields] (och `updatedAt`) ändras, och ett dokument som raderats återuppstår inte. */
-    override suspend fun updateAll(items: List<T>, fields: Set<String>): Result<Unit> =
-        commit { items.map { BatchOp.Update(it.id, fieldsForUpdate(encode(it), fields)) } }
+    override suspend fun updateAll(items: List<T>, fields: Set<String>): Result<Unit> = commit { items.map { BatchOp.Update(it.id, fieldsForUpdate(encode(it), fields)) } }
 
-    override suspend fun batch(upserts: List<T>, deletes: List<String>): Result<Unit> =
-        commit { upserts.map { BatchOp.Set(it.id, encode(it)) } + deletes.map { BatchOp.Delete(it) } }
+    override suspend fun batch(upserts: List<T>, deletes: List<String>): Result<Unit> = commit { upserts.map { BatchOp.Set(it.id, encode(it)) } + deletes.map { BatchOp.Delete(it) } }
 
     /** Atomärt inom varje bit om 500 skrivningar (Firestores gräns), inte över bitar. */
-    private suspend fun commit(operations: () -> List<BatchOp>): Result<Unit> =
-        suspendRunCatching(::firestoreError) {
-            scope.writeBlocker()?.let { throw it }
-            val ref = ref()
-            operations().chunked(MAX_BATCH).forEach { chunk ->
-                val batch = db.batch()
-                chunk.forEach { op -> op.applyTo(batch, ref) }
-                sync.track(batch.commit())
-            }
+    private suspend fun commit(operations: () -> List<BatchOp>): Result<Unit> = suspendRunCatching(::firestoreError) {
+        scope.writeBlocker()?.let { throw it }
+        val ref = ref()
+        operations().chunked(MAX_BATCH).forEach { chunk ->
+            val batch = db.batch()
+            chunk.forEach { op -> op.applyTo(batch, ref) }
+            sync.track(batch.commit())
         }
+    }
 
     override fun newId(): String = db.collection(Paths.HOUSEHOLDS).document().id
 
     private fun encode(item: T) = toFirestore(prepareForWrite(codec.encode(item), clock.now()))
 
-    private fun decode(id: String, data: Map<String, Any?>) =
-        readDocument(codec, name, scope.currentVersion(), id, fromFirestore(data))
+    private fun decode(id: String, data: Map<String, Any?>) = readDocument(codec, name, scope.currentVersion(), id, fromFirestore(data))
 
     /** Skrivningen läggs i cachen direkt; servern svarar senare (offline först). */
-    private suspend fun write(block: (CollectionReference) -> Task<*>): Result<Unit> =
-        suspendRunCatching(::firestoreError) {
-            scope.writeBlocker()?.let { throw it }
-            sync.track(block(ref()))
-        }
+    private suspend fun write(block: (CollectionReference) -> Task<*>): Result<Unit> = suspendRunCatching(::firestoreError) {
+        scope.writeBlocker()?.let { throw it }
+        sync.track(block(ref()))
+    }
 
     private fun ref(): CollectionReference = db.collection(path(scope.householdId.value))
 
-    private fun refOrNull(hid: String?): CollectionReference? =
-        runCatching { db.collection(path(hid)) }.getOrNull()
+    private fun refOrNull(hid: String?): CollectionReference? = runCatching { db.collection(path(hid)) }.getOrNull()
 
     private sealed interface BatchOp {
         fun applyTo(batch: WriteBatch, ref: CollectionReference)

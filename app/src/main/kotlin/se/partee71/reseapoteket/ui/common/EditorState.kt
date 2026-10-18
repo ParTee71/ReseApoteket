@@ -32,7 +32,7 @@ data class EditorUiState<T>(
     /** Sparat, arkiverat eller raderat: ramen lämnar formuläret och kvitterar med [EditorEvents.onDoneHandled]. */
     val done: Boolean = false,
     /** Sparfelet som ska visas som snackbar; ramen kvitterar med [EditorEvents.onFailureShown]. */
-    val failure: DataError? = null,
+    val failure: DataError? = null
 ) {
     /** "Spara" är aktiv först när formuläret är giltigt och ändrat (NFR-2). */
     val canSave: Boolean get() = isValid && isDirty && !saving && !loading && loadError == null

@@ -282,7 +282,7 @@ class PackingListViewModelTest {
         assertEquals(
             listOf(PastedLine("solkräm", 2, PastedStatus.EXISTS), PastedLine("Laddare", 1, PastedStatus.ADD), PastedLine("Badkläder", 2, PastedStatus.ADD)),
             list.lines,
-            "det som redan finns under Övrigt läggs inte till igen, dubbletter hoppas över",
+            "det som redan finns under Övrigt läggs inte till igen, dubbletter hoppas över"
         )
         assertTrue(list.canSave)
 

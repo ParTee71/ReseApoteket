@@ -1,14 +1,14 @@
 package se.partee71.reseapoteket.data
 
 import kotlin.time.Clock
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.distinctUntilChanged
 import se.partee71.reseapoteket.core.model.Identified
 import se.partee71.reseapoteket.core.schema.Doc
 import se.partee71.reseapoteket.core.schema.DocCodec
@@ -89,7 +89,7 @@ class FakeCollection<T : Identified>(
     private val clock: Clock,
     private val codec: DocCodec<T>,
     private val name: String,
-    private val path: (householdId: String?) -> String,
+    private val path: (householdId: String?) -> String
 ) : EntityCollection<T> {
 
     override fun observe(): Flow<List<T>> = scope.householdId.flatMapLatest { hid ->
@@ -152,8 +152,7 @@ class FakeCollection<T : Identified>(
 class FakeCollectionFactory(
     val store: FakeStore = FakeStore(),
     val scope: HouseholdScope = TestHouseholdScope(),
-    private val clock: Clock = FixedClock(),
+    private val clock: Clock = FixedClock()
 ) : CollectionTable() {
-    override fun <T : Identified> create(codec: DocCodec<T>, name: String, path: (householdId: String?) -> String) =
-        FakeCollection(store, scope, clock, codec, name, path)
+    override fun <T : Identified> create(codec: DocCodec<T>, name: String, path: (householdId: String?) -> String) = FakeCollection(store, scope, clock, codec, name, path)
 }

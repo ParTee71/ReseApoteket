@@ -36,11 +36,11 @@ enum class ThemeMode { System, Light, Dark }
  */
 fun settingsDataStore(
     scope: CoroutineScope,
-    produceFile: () -> File,
+    produceFile: () -> File
 ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
     corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
     scope = scope,
-    produceFile = produceFile,
+    produceFile = produceFile
 )
 
 /**
@@ -65,7 +65,7 @@ class SettingsStore @Inject constructor(private val store: DataStore<Preferences
                 first = 1.seconds,
                 max = 30.seconds,
                 retryOn = { it is IOException },
-                beforeRetry = { if (!emitted) emit(emptyPreferences()) },
+                beforeRetry = { if (!emitted) emit(emptyPreferences()) }
             )
             .collect {
                 emitted = true
@@ -134,8 +134,8 @@ class SettingsStore @Inject constructor(private val store: DataStore<Preferences
                 ReminderSetting(
                     enabled = prefs[reminderEnabled(kind)] ?: default.enabled,
                     time = minutes?.let { LocalTime(it / 60, it % 60) } ?: default.time,
-                    daysBefore = days ?: default.daysBefore,
-                ),
+                    daysBefore = days ?: default.daysBefore
+                )
             )
         }
     }

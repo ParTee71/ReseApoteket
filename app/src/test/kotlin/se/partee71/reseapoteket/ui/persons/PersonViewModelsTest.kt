@@ -51,7 +51,7 @@ class PersonViewModelsTest {
         PersonsViewModel(persons, regimens).state.test {
             assertEquals(
                 listOf(PersonListItem(Person("anna", "Anna"), 2, 1), PersonListItem(Person("lova", "Lova", sortOrder = 1), 0, 0)),
-                expectMostRecentItem().items(),
+                expectMostRecentItem().items()
             )
         }
     }

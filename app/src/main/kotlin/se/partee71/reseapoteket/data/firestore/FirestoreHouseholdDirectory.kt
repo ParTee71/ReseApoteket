@@ -20,7 +20,7 @@ import se.partee71.reseapoteket.data.household.HouseholdDirectory
 /** `households where memberUids array-contains uid` – rules tillåter frågan bara med det villkoret. */
 class FirestoreHouseholdDirectory @Inject constructor(
     private val db: FirebaseFirestore,
-    private val clock: Clock,
+    private val clock: Clock
 ) : HouseholdDirectory {
 
     override suspend fun householdsOf(uid: String): Result<List<Household>> = suspendRunCatching(::firestoreError) {

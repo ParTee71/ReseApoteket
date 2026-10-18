@@ -3,8 +3,8 @@ package se.partee71.reseapoteket.data.common
 import kotlin.time.Instant
 import se.partee71.reseapoteket.core.model.Identified
 import se.partee71.reseapoteket.core.model.Sortable
-import se.partee71.reseapoteket.core.schema.DocCodec
 import se.partee71.reseapoteket.core.schema.Doc
+import se.partee71.reseapoteket.core.schema.DocCodec
 import se.partee71.reseapoteket.core.schema.Schema
 import se.partee71.reseapoteket.core.schema.SchemaMigrator
 
@@ -48,7 +48,7 @@ fun <T> readDocument(
     version: Int?,
     id: String,
     raw: Doc,
-    migrate: Migrate = SchemaMigrator::migrate,
+    migrate: Migrate = SchemaMigrator::migrate
 ): T {
     val from = version ?: Schema.CURRENT_VERSION
     val doc = if (Schema.isNewerThanApp(from) || from == Schema.CURRENT_VERSION) raw else migrate(from, collection, raw)

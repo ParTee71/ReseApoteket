@@ -3,8 +3,8 @@ package se.partee71.reseapoteket.reminders
 import android.Manifest
 import android.app.Application
 import android.app.Notification
-import android.app.PendingIntent
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import kotlin.test.assertEquals
@@ -181,8 +181,13 @@ class ReminderRunnerTest {
     fun `dagen före nämner det som packas på morgonen, resedagen räknar det utan namn (PAK-6, PÅM-5)`() {
         val resources = application.resources
         val dayBefore = Reminder(
-            ReminderKind.DAY_BEFORE, "gc", "Gran Canaria", LocalDate(2026, 10, 3), LocalDateTime(2026, 10, 2, 18, 0),
-            PackingProgress(10, 15), travelDayCount = 2,
+            ReminderKind.DAY_BEFORE,
+            "gc",
+            "Gran Canaria",
+            LocalDate(2026, 10, 3),
+            LocalDateTime(2026, 10, 2, 18, 0),
+            PackingProgress(10, 15),
+            travelDayCount = 2
         )
         assertEquals("3 saker kvar att packa. Och 2 packas på morgonen.", resources.reminderText(dayBefore).text)
         assertEquals("Allt annat är packat – 2 packas på morgonen.", resources.reminderText(dayBefore.copy(progress = PackingProgress(13, 15))).text)
@@ -203,7 +208,7 @@ class ReminderRunnerTest {
         assertEquals(
             listOf("Påminnelse inför resan"),
             notifications.map { it.publicVersion.extras.getString(Notification.EXTRA_TITLE) }.distinct(),
-            "låsskärmen visar aldrig vad som ska packas",
+            "låsskärmen visar aldrig vad som ska packas"
         )
         assertEquals(false, notifications.any { it.publicVersion.extras.getString(Notification.EXTRA_TEXT).orEmpty().contains("Laddare") })
         runner.showAgain("gc/TRAVEL_DAY/08:30")
@@ -214,8 +219,12 @@ class ReminderRunnerTest {
     fun `texterna för ingen packlista och resedagen`() {
         val resources = application.resources
         val noList = Reminder(
-            ReminderKind.NO_LIST, "f", "Fjällen", LocalDate(2026, 12, 19), LocalDateTime(2026, 12, 12, 18, 0),
-            PackingProgress.NONE,
+            ReminderKind.NO_LIST,
+            "f",
+            "Fjällen",
+            LocalDate(2026, 12, 19),
+            LocalDateTime(2026, 12, 12, 18, 0),
+            PackingProgress.NONE
         )
         assertEquals("Fjällen om 7 dagar", resources.reminderText(noList).title)
         val travelDay = noList.copy(kind = ReminderKind.TRAVEL_DAY, at = LocalDateTime(2026, 12, 19, 7, 0), progress = PackingProgress(10, 11))
@@ -227,9 +236,13 @@ class ReminderRunnerTest {
     fun `nästa genomgång är första påminnelsen efter förra genomgången, men senast om sex timmar`() {
         val planned = listOf(
             Reminder(
-                ReminderKind.TIME_TO_PACK, "gc", "Gran Canaria", LocalDate(2026, 10, 3), LocalDateTime(2026, 9, 30, 18, 0),
-                PackingProgress(0, 1),
-            ),
+                ReminderKind.TIME_TO_PACK,
+                "gc",
+                "Gran Canaria",
+                LocalDate(2026, 10, 3),
+                LocalDateTime(2026, 9, 30, 18, 0),
+                PackingProgress(0, 1)
+            )
         )
         val now = at(2026, 9, 30, 18, 1)
         // Påminnelsen passerades efter förra genomgången: genomgången ska ske direkt.

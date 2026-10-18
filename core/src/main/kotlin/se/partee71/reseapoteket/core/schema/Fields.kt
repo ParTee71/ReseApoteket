@@ -30,12 +30,10 @@ internal fun Number.toIntClamped(): Int = toLong().coerceIn(Int.MIN_VALUE.toLong
 fun Doc.bool(key: String, default: Boolean = false): Boolean = this[key] as? Boolean ?: default
 
 /** Okänt eller saknat värde → [default]. */
-inline fun <reified E : Enum<E>> Doc.enum(key: String, default: E): E =
-    (this[key] as? String)?.let { name -> enumValues<E>().firstOrNull { it.name == name } } ?: default
+inline fun <reified E : Enum<E>> Doc.enum(key: String, default: E): E = (this[key] as? String)?.let { name -> enumValues<E>().firstOrNull { it.name == name } } ?: default
 
 /** Datum utan tid lagras som ISO-sträng (`yyyy-MM-dd`); ogiltigt → `null`. */
-fun Doc.localDate(key: String): LocalDate? =
-    (this[key] as? String)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+fun Doc.localDate(key: String): LocalDate? = (this[key] as? String)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
 /** "Packas på resedagen" (PAK-6) – samma fältnamn på recept, familjeartikel och packlistans rad. */
 const val TRAVEL_DAY = "travelDay"
@@ -45,8 +43,7 @@ const val TRAVEL_DAY_TIME = "travelDayTime"
  * Klockslag lagras som `HH:mm`; ogiltigt, saknat eller i annat format (även från en nyare app)
  * → `null`, som skrivs vid nästa sparning (skill data-safety-backup).
  */
-fun Doc.localTime(key: String): LocalTime? =
-    (this[key] as? String)?.takeIf { TIME.matches(it) }?.let { LocalTime(it.take(2).toInt(), it.takeLast(2).toInt()) }
+fun Doc.localTime(key: String): LocalTime? = (this[key] as? String)?.takeIf { TIME.matches(it) }?.let { LocalTime(it.take(2).toInt(), it.takeLast(2).toInt()) }
 
 private val TIME = Regex("([01][0-9]|2[0-3]):[0-5][0-9]")
 
@@ -58,16 +55,14 @@ fun Doc.instant(key: String): Instant? = this[key] as? Instant
 fun Doc.stringList(key: String): List<String> = (this[key] as? List<*>)?.filterIsInstance<String>().orEmpty()
 
 /** Veckodagar lagras som ISO-nummer (1 = måndag … 7 = söndag); ogiltiga tal hoppas över. */
-fun Doc.weekdays(key: String): Set<DayOfWeek> =
-    (this[key] as? List<*>)?.filterIsInstance<Number>()?.map { it.toIntClamped() }
-        ?.filter { it in 1..7 }?.map { DayOfWeek(it) }?.toSet().orEmpty()
+fun Doc.weekdays(key: String): Set<DayOfWeek> = (this[key] as? List<*>)?.filterIsInstance<Number>()?.map { it.toIntClamped() }
+    ?.filter { it in 1..7 }?.map { DayOfWeek(it) }?.toSet().orEmpty()
 
 /** Nästlat objekt; [codec] får det råa värdet och avgör vad saknat eller okänt betyder. */
 fun <T> Doc.nested(key: String, codec: ValueCodec<T>): T = codec.decode(this[key])
 
 /** Map från Firestore med okända nyckeltyper → [Doc]. */
-fun asDoc(value: Any?): Doc =
-    (value as? Map<*, *>)?.entries?.filter { it.key is String }?.associate { it.key as String to it.value }.orEmpty()
+fun asDoc(value: Any?): Doc = (value as? Map<*, *>)?.entries?.filter { it.key is String }?.associate { it.key as String to it.value }.orEmpty()
 
 // Skrivning – samma format som läsningen ovan.
 

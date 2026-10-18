@@ -28,7 +28,7 @@ class ExportFormatTest {
         val text = ExportFormat.encode(
             Instant.parse("2026-10-02T10:00:00.123456Z"),
             2,
-            listOf(ExportFormat.Document("households/h1", mapOf("name" to "Familjen Test"))),
+            listOf(ExportFormat.Document("households/h1", mapOf("name" to "Familjen Test")))
         )
         assertEquals(
             """
@@ -45,7 +45,7 @@ class ExportFormatTest {
               ]
             }
             """.trimIndent(),
-            text,
+            text
         )
         assertEquals(listOf(ExportFormat.Document("households/h1", mapOf("name" to "Familjen Test"))), ExportFormat.decode(text))
     }

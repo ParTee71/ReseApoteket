@@ -131,24 +131,23 @@ object PackingEngine {
         persons: List<Person>,
         regimensByPerson: Map<String, List<Regimen>>,
         familyItems: List<FamilyItem>,
-        settings: HouseholdSettings,
+        settings: HouseholdSettings
     ): PackingPreviewText {
         val suggestion = suggest(trip, persons, regimensByPerson, familyItems, settings)
         val travellers = persons.count { it.id in trip.travellerIds && !it.archived }
         return PackingPreviewText(
             ReasonFormatter.familyContext(travellers, tripDays(trip)),
             ReasonFormatter.suggestionCount(suggestion),
-            ReasonFormatter.suggestionParts(suggestion),
+            ReasonFormatter.suggestionParts(suggestion)
         )
     }
 
     /** Kan mängden inte räknas ut står förklaringen i stället för mängden – aldrig "0 st" som om den vore riktig. */
-    private fun preview(context: String, line: PackingLine, unit: ItemUnit): PackingPreviewText =
-        if (line.warning) {
-            PackingPreviewText(context, line.reason, null)
-        } else {
-            PackingPreviewText(context, ReasonFormatter.amount(line, unit), line.reason)
-        }
+    private fun preview(context: String, line: PackingLine, unit: ItemUnit): PackingPreviewText = if (line.warning) {
+        PackingPreviewText(context, line.reason, null)
+    } else {
+        PackingPreviewText(context, ReasonFormatter.amount(line, unit), line.reason)
+    }
 
     /** Mängd och förklaring för en familjeartikel – också förhandsvisningen. */
     fun familyLine(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings): PackingLine {
@@ -167,7 +166,7 @@ object PackingEngine {
         persons: List<Person>,
         regimensByPerson: Map<String, List<Regimen>>,
         familyItems: List<FamilyItem>,
-        settings: HouseholdSettings,
+        settings: HouseholdSettings
     ): PackingSuggestion {
         val travellers = persons.filter { it.id in trip.travellerIds && !it.archived }
             .sortedWith(bySortOrder<Person>().thenBy(swedish) { it.name }.thenBy { it.id })
@@ -201,7 +200,7 @@ object PackingEngine {
         packages = line.packages,
         reason = line.reason,
         travelDay = regimen.travelDay,
-        travelDayTime = regimen.travelDayTime,
+        travelDayTime = regimen.travelDayTime
     ) to line
 
     private fun familyItem(item: FamilyItem, line: PackingLine) = PackingItem(
@@ -215,7 +214,7 @@ object PackingEngine {
         quantity = line.quantity,
         reason = line.reason,
         travelDay = item.travelDay,
-        travelDayTime = item.travelDayTime,
+        travelDayTime = item.travelDayTime
     ) to line
 
     /**
@@ -242,7 +241,7 @@ object PackingEngine {
                 packages = if (manuallyChanged) old.packages else suggested.packages,
                 checked = old.checked,
                 checkedAt = old.checkedAt,
-                hidden = old.hidden,
+                hidden = old.hidden
             )
         }
         val keptChecked = generated.filter { it.id !in used && it.checked }.map { it.copy(reason = Texts.NO_LONGER_SUGGESTED) }
@@ -251,8 +250,7 @@ object PackingEngine {
     }
 
     /** Packat av totalt (RES-1, PAK-4); dolda rader räknas inte. */
-    fun progress(items: List<PackingItem>): PackingProgress =
-        items.filterNot { it.hidden }.let { shown -> PackingProgress(shown.count { it.checked }, shown.size) }
+    fun progress(items: List<PackingItem>): PackingProgress = items.filterNot { it.hidden }.let { shown -> PackingProgress(shown.count { it.checked }, shown.size) }
 
     private val swedish: Comparator<String> = SwedishOrder.names
 
@@ -263,6 +261,5 @@ object PackingEngine {
     internal fun ceilDiv(a: Int, b: Int): Int = if (a <= 0) 0 else (a - 1) / b.coerceAtLeast(1) + 1
 
     /** Produkt av antal, där negativa räknas som 0 och resultatet begränsas till [MAX_QUANTITY]. */
-    private fun product(vararg factors: Int): Int =
-        factors.fold(1L) { acc, factor -> (acc * factor.coerceAtLeast(0)).coerceAtMost(MAX_QUANTITY.toLong()) }.toInt()
+    private fun product(vararg factors: Int): Int = factors.fold(1L) { acc, factor -> (acc * factor.coerceAtLeast(0)).coerceAtMost(MAX_QUANTITY.toLong()) }.toInt()
 }

@@ -43,7 +43,7 @@ class FamilyItemScreensTest {
         FamilyItem("f3", "Myggmedel", FamilyItemCategory.CREAM, ItemUnit.ST, QuantityRule.PerTraveller(1)),
         FamilyItem("f4", "Plåster", FamilyItemCategory.PLASTER, ItemUnit.ST, QuantityRule.PerTraveller(10)),
         FamilyItem("f5", "Febertermometer", FamilyItemCategory.TOOL, ItemUnit.ST, QuantityRule.Fixed(1)),
-        FamilyItem("f6", "Alvedon barn 250 mg", FamilyItemCategory.OTHER, ItemUnit.ST, QuantityRule.Fixed(10), active = false),
+        FamilyItem("f6", "Alvedon barn 250 mg", FamilyItemCategory.OTHER, ItemUnit.ST, QuantityRule.Fixed(10), active = false)
     )
 
     private fun preview(item: FamilyItem) = PackingEngine.familyPreview(item, 4, HouseholdSettings())
@@ -53,9 +53,12 @@ class FamilyItemScreensTest {
         val editor = EditorState(sunscreen.copy(name = ""), FamilyItemValidator)
         rule.runEditScreenContract(
             editor = editor,
-            makeInvalid = { update(FamilyItemValidator.NAME) { it.copy(name = "x") }; update(FamilyItemValidator.NAME) { it.copy(name = "") } },
+            makeInvalid = {
+                update(FamilyItemValidator.NAME) { it.copy(name = "x") }
+                update(FamilyItemValidator.NAME) { it.copy(name = "") }
+            },
             makeValid = { update(FamilyItemValidator.NAME) { it.copy(name = "Solkräm") } },
-            invalidMessage = "Ange ett namn",
+            invalidMessage = "Ange ett namn"
         ) { state, events, onSave, onClose ->
             FamilyItemEditContent(isNew = true, state, preview(state.value), events, { if (it == FamilyItemEditEvent.Save) onSave() }, onClose)
         }

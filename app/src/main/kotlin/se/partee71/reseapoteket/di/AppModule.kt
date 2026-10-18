@@ -42,8 +42,7 @@ abstract class AppModule {
         @Provides
         @Singleton
         @ApplicationScope
-        fun applicationScope(@DefaultDispatcher computation: CoroutineDispatcher): CoroutineScope =
-            CoroutineScope(SupervisorJob() + computation)
+        fun applicationScope(@DefaultDispatcher computation: CoroutineDispatcher): CoroutineScope = CoroutineScope(SupervisorJob() + computation)
 
         @Provides
         fun clock(): Clock = Clock.System
@@ -56,8 +55,7 @@ abstract class AppModule {
         @Singleton
         fun preferences(
             @ApplicationContext context: Context,
-            @IoDispatcher io: CoroutineDispatcher,
-        ): DataStore<Preferences> =
-            settingsDataStore(CoroutineScope(io + SupervisorJob())) { context.preferencesDataStoreFile("settings") }
+            @IoDispatcher io: CoroutineDispatcher
+        ): DataStore<Preferences> = settingsDataStore(CoroutineScope(io + SupervisorJob())) { context.preferencesDataStoreFile("settings") }
     }
 }

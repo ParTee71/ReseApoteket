@@ -20,7 +20,7 @@ fun AppIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     variant: IconButtonVariant = IconButtonVariant.Plain,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     val sized = modifier.size(SIZE)
     val content: @Composable () -> Unit = { Icon(painterResource(icon), contentDescription) }

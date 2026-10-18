@@ -21,7 +21,7 @@ object HouseholdCodec : DocCodec<Household> {
         "memberUids" to value.memberUids,
         MARGIN_DAYS to value.marginDays,
         SCHEMA_VERSION to value.schemaVersion,
-        "createdAt" to value.createdAt,
+        "createdAt" to value.createdAt
     )
 
     override fun decode(id: String, map: Doc) = Household(
@@ -31,7 +31,7 @@ object HouseholdCodec : DocCodec<Household> {
         marginDays = map.int(MARGIN_DAYS, HouseholdSettings.DEFAULT_MARGIN_DAYS),
         // Saknad version = första formatet – aldrig "senaste", då skulle migrering hoppas över.
         schemaVersion = Schema.versionOf(map[SCHEMA_VERSION]),
-        createdAt = map.instant("createdAt"),
+        createdAt = map.instant("createdAt")
     )
 }
 
@@ -41,7 +41,7 @@ object PersonCodec : DocCodec<Person> {
         "emoji" to value.emoji,
         "colorHex" to value.colorHex,
         "sortOrder" to value.sortOrder,
-        "archived" to value.archived,
+        "archived" to value.archived
     )
 
     override fun decode(id: String, map: Doc) = Person(
@@ -50,7 +50,7 @@ object PersonCodec : DocCodec<Person> {
         emoji = map.string("emoji"),
         colorHex = map.string("colorHex"),
         sortOrder = map.int("sortOrder"),
-        archived = map.bool("archived"),
+        archived = map.bool("archived")
     )
 }
 
@@ -68,7 +68,7 @@ object RegimenCodec : DocCodec<Regimen> {
         TRAVEL_DAY to value.travelDay,
         TRAVEL_DAY_TIME to value.travelDayTime.encodeTime(),
         "sortOrder" to value.sortOrder,
-        "archived" to value.archived,
+        "archived" to value.archived
     )
 
     override fun decode(id: String, map: Doc) = Regimen(
@@ -85,7 +85,7 @@ object RegimenCodec : DocCodec<Regimen> {
         travelDay = map.bool(TRAVEL_DAY),
         travelDayTime = map.localTime(TRAVEL_DAY_TIME),
         sortOrder = map.int("sortOrder"),
-        archived = map.bool("archived"),
+        archived = map.bool("archived")
     )
 }
 
@@ -100,7 +100,7 @@ object FamilyItemCodec : DocCodec<FamilyItem> {
         TRAVEL_DAY to value.travelDay,
         TRAVEL_DAY_TIME to value.travelDayTime.encodeTime(),
         "sortOrder" to value.sortOrder,
-        "archived" to value.archived,
+        "archived" to value.archived
     )
 
     override fun decode(id: String, map: Doc) = FamilyItem(
@@ -114,6 +114,6 @@ object FamilyItemCodec : DocCodec<FamilyItem> {
         travelDay = map.bool(TRAVEL_DAY),
         travelDayTime = map.localTime(TRAVEL_DAY_TIME),
         sortOrder = map.int("sortOrder"),
-        archived = map.bool("archived"),
+        archived = map.bool("archived")
     )
 }

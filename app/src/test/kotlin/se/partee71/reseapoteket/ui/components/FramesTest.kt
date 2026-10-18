@@ -89,7 +89,7 @@ class FramesTest {
             "a" to ListGroup("Mediciner", count = "1 / 2"),
             "b" to ListGroup("Mediciner"),
             "ö" to ListGroup("Övrigt", columns = 2),
-            "d" to ListGroup("Dolda", collapsible = true),
+            "d" to ListGroup("Dolda", collapsible = true)
         )
         rule.setContent {
             ReseApoteketTheme {
@@ -103,7 +103,7 @@ class FramesTest {
                     subtitle = "7 dagar",
                     header = { ItemRow("Rubrikplats") },
                     subgroup = { row -> ListSubgroup(if (row.second == "b") "Erik" else "Anna", AppColors.person(0)).takeIf { row.second in setOf("a", "b") } },
-                    archive = ListArchive(showToggle = false),
+                    archive = ListArchive(showToggle = false)
                 ) { ItemRow(it.first) }
             }
         }
@@ -180,9 +180,12 @@ class FramesTest {
         val editor = EditorState("", Validator { if (it.isBlank()) mapOf("name" to R.string.error_no_household) else emptyMap() })
         rule.runEditScreenContract(
             editor = editor,
-            makeInvalid = { update("name") { "x" }; update("name") { "" } },
+            makeInvalid = {
+                update("name") { "x" }
+                update("name") { "" }
+            },
             makeValid = { update("name") { "Solkräm" } },
-            invalidMessage = string(R.string.error_no_household),
+            invalidMessage = string(R.string.error_no_household)
         ) { state, events, onSave, onClose ->
             EntityEditScreen("Ny familjeartikel", state, events, onSave, onClose) {
                 AppTextField(state.value, { v -> editor.update("name") { v } }, "Namn", error = state.errorFor("name")?.let { string(it) })
@@ -197,9 +200,13 @@ class FramesTest {
         rule.setContent {
             ReseApoteketTheme {
                 EntityEditScreen(
-                    "Solkräm", EditorUiState("Solkräm"), EditorEvents.None, {}, {},
+                    "Solkräm",
+                    EditorUiState("Solkräm"),
+                    EditorEvents.None,
+                    {},
+                    {},
                     onArchive = { archived++ },
-                    delete = DeleteAction("Radera Solkräm?", "Det går inte att ångra.") { deleted++ },
+                    delete = DeleteAction("Radera Solkräm?", "Det går inte att ångra.") { deleted++ }
                 ) {}
             }
         }
@@ -322,8 +329,12 @@ class FramesTest {
         rule.setContent {
             ReseApoteketTheme {
                 EntityDetailScreen(
-                    state, header = { DetailHeader(it, "3 recept") }, onBack = {}, onEdit = { edits++ },
-                    menu = { listOf(AppMenuItem("Arkivera", { archived++ })) }, onRetry = { retries++ },
+                    state,
+                    header = { DetailHeader(it, "3 recept") },
+                    onBack = {},
+                    onEdit = { edits++ },
+                    menu = { listOf(AppMenuItem("Arkivera", { archived++ })) },
+                    onRetry = { retries++ }
                 ) { Text("Recept") }
             }
         }
@@ -347,9 +358,12 @@ class FramesTest {
     fun `EntityDetailScreen - innehåll och fel`() {
         captureLightAndDark("EntityDetailScreen_innehall") {
             EntityDetailScreen(
-                DetailUiState.Content("Anna"), header = { DetailHeader(it, "3 recept · 1 kosttillskott") }, onBack = {}, onEdit = {},
+                DetailUiState.Content("Anna"),
+                header = { DetailHeader(it, "3 recept · 1 kosttillskott") },
+                onBack = {},
+                onEdit = {},
                 menu = { listOf(AppMenuItem("Arkivera", {})) },
-                leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) },
+                leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) }
             ) {
                 ApotekCard {
                     SectionHeader("Recept", icon = R.drawable.ic_medication, count = "1")
@@ -371,8 +385,15 @@ class FramesTest {
         captureLightAndDark("EntityListScreen_tom") { EntityListScreen<String>("Familjeartiklar", ListUiState.Empty, empty, {}, key = { it }) {} }
         captureLightAndDark("EntityListScreen_fel") { EntityListScreen<String>("Familjeartiklar", ListUiState.Error(DataError.Offline), empty, {}, key = { it }) {} }
         captureLightAndDark("EntityListScreen_innehall") {
-            EntityListScreen("Familjeartiklar", ListUiState.Content(items.toImmutableList()), empty, {}, key = { it.first }, group = ::group,
-                addMenu = listOf(AppMenuItem("Visa arkiverade", {}))) { ItemRow(it.first, subtitle = "1 tub per 7 dagar", navigates = true, onClick = {}) }
+            EntityListScreen(
+                "Familjeartiklar",
+                ListUiState.Content(items.toImmutableList()),
+                empty,
+                {},
+                key = { it.first },
+                group = ::group,
+                addMenu = listOf(AppMenuItem("Visa arkiverade", {}))
+            ) { ItemRow(it.first, subtitle = "1 tub per 7 dagar", navigates = true, onClick = {}) }
         }
     }
 

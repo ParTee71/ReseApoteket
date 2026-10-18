@@ -32,7 +32,7 @@ class ThemeContrastTest {
         "verktygsrad" to (extended.onToolbar to extended.toolbar),
         "korallton" to (extended.primaryTone.content to extended.primaryTone.container),
         "grön ton" to (extended.greenTone.content to extended.greenTone.container),
-        "blå ton" to (extended.blueTone.content to extended.blueTone.container),
+        "blå ton" to (extended.blueTone.content to extended.blueTone.container)
     )
 
     @Test

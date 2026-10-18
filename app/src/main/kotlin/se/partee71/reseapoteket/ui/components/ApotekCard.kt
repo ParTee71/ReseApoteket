@@ -34,7 +34,7 @@ internal fun CardSegment(
     bottom: Boolean,
     modifier: Modifier = Modifier,
     color: Color = AppColors.extended.card,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         modifier
@@ -42,7 +42,7 @@ internal fun CardSegment(
             .background(color, AppShapes.cardSegment(top, bottom))
             .padding(start = Spacing.m, end = Spacing.m, top = if (top) Spacing.m else HALF_GAP, bottom = if (bottom) Spacing.m else HALF_GAP),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-        content = content,
+        content = content
     )
 }
 

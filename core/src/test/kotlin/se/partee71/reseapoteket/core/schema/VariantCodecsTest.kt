@@ -1,9 +1,9 @@
 package se.partee71.reseapoteket.core.schema
 
-import kotlinx.datetime.DayOfWeek
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.datetime.DayOfWeek
+import org.junit.Test
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
 
@@ -13,12 +13,12 @@ class VariantCodecsTest {
         DoseSchedule.Daily(dosesPerDay = 3, unitsPerDose = 2) to DoseSchedule.Daily(),
         DoseSchedule.Weekdays(setOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY), unitsPerDose = 2) to DoseSchedule.Weekdays(),
         DoseSchedule.IntervalDays(intervalDays = 3, unitsPerDose = 4) to DoseSchedule.IntervalDays(),
-        DoseSchedule.AsNeeded(quantity = 10) to DoseSchedule.AsNeeded(),
+        DoseSchedule.AsNeeded(quantity = 10) to DoseSchedule.AsNeeded()
     )
     private val rules = listOf(
         QuantityRule.Fixed(2) to QuantityRule.Fixed(),
         QuantityRule.PerTraveller(3) to QuantityRule.PerTraveller(),
-        QuantityRule.PerDays(quantity = 2, perDays = 5) to QuantityRule.PerDays(),
+        QuantityRule.PerDays(quantity = 2, perDays = 5) to QuantityRule.PerDays()
     )
 
     @Test

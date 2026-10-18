@@ -34,7 +34,7 @@ data class AuthUiState(
     val gate: AuthGate = AuthGate.Loading,
     /** Inloggning eller val av hushåll pågår. */
     val busy: Boolean = false,
-    val error: DataError? = null,
+    val error: DataError? = null
 )
 
 sealed interface AuthEvent {
@@ -48,7 +48,7 @@ sealed interface AuthEvent {
 class AuthViewModel @Inject constructor(
     private val auth: AuthRepository,
     private val session: HouseholdSession,
-    private val ensureHousehold: EnsureHouseholdUseCase,
+    private val ensureHousehold: EnsureHouseholdUseCase
 ) : ViewModel() {
 
     private val user: StateFlow<AuthUser?> = auth.authState.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -139,10 +139,14 @@ class AuthViewModel @Inject constructor(
 
         fun gateOf(user: AuthUser?, householdId: String?, version: HouseholdVersion?): AuthGate = when {
             user == null -> AuthGate.SignedOut
+
             householdId == null -> AuthGate.NeedsHousehold
+
             // Versionen avgör om appen får visas – vänta på den i stället för att blinka förbi (HUS-3).
             version?.householdId != householdId -> AuthGate.Loading
+
             Schema.isNewerThanApp(version.version) -> AuthGate.UpdateRequired
+
             else -> AuthGate.Ready
         }
     }

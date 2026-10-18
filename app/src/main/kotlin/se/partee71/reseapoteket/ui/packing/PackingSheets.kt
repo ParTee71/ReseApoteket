@@ -67,13 +67,13 @@ internal fun AddItemSheet(
     travellers: List<Person>,
     onEvent: (PackingListEvent) -> Unit,
     error: DataError? = null,
-    list: AddListState = AddListState(),
+    list: AddListState = AddListState()
 ) {
     AppBottomSheet(stringResource(R.string.packing_add_title), onDismiss = { onEvent(PackingListEvent.CloseAdd) }, error = error) {
         AppSegmentedChoice(
             listOf(stringResource(R.string.packing_add_one), stringResource(R.string.packing_add_list)),
             selectedIndex = list.mode.ordinal,
-            onSelect = { onEvent(PackingListEvent.AddModeChange(AddMode.entries[it])) },
+            onSelect = { onEvent(PackingListEvent.AddModeChange(AddMode.entries[it])) }
         )
         when (list.mode) {
             AddMode.ONE -> AddOneContent(state, travellers, onEvent)
@@ -90,13 +90,13 @@ private fun AddOneContent(state: EditorUiState<PackingItem>, travellers: List<Pe
         item.name,
         { onEvent(PackingListEvent.AddName(it)) },
         stringResource(R.string.packing_what),
-        error = state.errorFor(ManualItemValidator.NAME)?.let { stringResource(it) },
+        error = state.errorFor(ManualItemValidator.NAME)?.let { stringResource(it) }
     )
     LabeledGroup(stringResource(R.string.packing_where)) {
         AppSegmentedChoice(
             listOf(stringResource(R.string.packing_medicines), stringResource(R.string.packing_supplements), stringResource(R.string.packing_other)),
             selectedIndex = item.section.ordinal,
-            onSelect = { onEvent(PackingListEvent.AddSection(PackingSection.entries[it])) },
+            onSelect = { onEvent(PackingListEvent.AddSection(PackingSection.entries[it])) }
         )
     }
     if (item.section != PackingSection.FAMILY) {
@@ -124,7 +124,7 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
         stringResource(R.string.packing_list_field),
         helper = stringResource(R.string.packing_list_helper),
         singleLine = false,
-        maxLines = LIST_MAX_LINES,
+        maxLines = LIST_MAX_LINES
     )
     // Knappen direkt under fältet, så att den syns även när listan är lång (#100).
     val count = list.toAdd.size
@@ -133,7 +133,7 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
         { onEvent(PackingListEvent.AddListSave) },
         Modifier.fillMaxWidth(),
         enabled = list.canSave,
-        loading = list.saving,
+        loading = list.saving
     )
     if (list.lines.isNotEmpty()) {
         LabeledGroup(stringResource(R.string.packing_list_preview)) {

@@ -33,7 +33,7 @@ internal fun <T> ChoiceGrid(
     label: @Composable (T) -> String,
     modifier: Modifier = Modifier,
     columns: Int = COLUMNS,
-    cell: @Composable (item: T, selected: Boolean) -> Unit,
+    cell: @Composable (item: T, selected: Boolean) -> Unit
 ) {
     BoxWithConstraints(modifier.fillMaxWidth()) {
         // Så många per rad som får plats med full tryckyta, högst [columns].
@@ -49,7 +49,7 @@ private fun <T> ChoiceRows(
     selected: T,
     onSelect: (T) -> Unit,
     label: @Composable (T) -> String,
-    cell: @Composable (item: T, selected: Boolean) -> Unit,
+    cell: @Composable (item: T, selected: Boolean) -> Unit
 ) {
     Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         rows.forEach { row ->
@@ -63,7 +63,7 @@ private fun <T> ChoiceRows(
                             .clip(AppShapes.pill)
                             .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(item) })
                             .semantics { contentDescription = description },
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) { Box(Modifier.size(CELL), contentAlignment = Alignment.Center) { cell(item, isSelected) } }
                 }
                 // En kortare sista rad följer rutnätet i stället för att spridas ut.

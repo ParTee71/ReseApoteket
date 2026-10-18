@@ -25,7 +25,7 @@ fun AppFilterChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    @DrawableRes icon: Int? = null,
+    @DrawableRes icon: Int? = null
 ) {
     val leading = if (selected) R.drawable.ic_check else icon
     FilterChip(
@@ -36,7 +36,7 @@ fun AppFilterChip(
         enabled = enabled,
         leadingIcon = leading?.let { { Icon(painterResource(it), contentDescription = null, modifier = Modifier.size(ICON)) } },
         shape = AppShapes.pill,
-        colors = chipColors(),
+        colors = chipColors()
     )
 }
 
@@ -46,7 +46,7 @@ internal fun chipColors(): SelectableChipColors = FilterChipDefaults.filterChipC
     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
     selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    labelColor = MaterialTheme.colorScheme.onSurface,
+    labelColor = MaterialTheme.colorScheme.onSurface
 )
 
 private val CHIP_HEIGHT = 36.dp

@@ -46,12 +46,11 @@ class RegimenViewModelsTest {
     @Before
     fun annaExists() = runTest { collections.persons().upsert(Person("anna", "Anna")).getOrThrow() }
 
-    private fun viewModel(regimenId: String? = null, kind: RegimenKind = RegimenKind.MEDICINE) =
-        RegimenEditViewModel("anna", kind, regimenId, regimens, StubHouseholds(household), FakeMedicines(), FixedClock(), TimeZone.UTC)
+    private fun viewModel(regimenId: String? = null, kind: RegimenKind = RegimenKind.MEDICINE) = RegimenEditViewModel("anna", kind, regimenId, regimens, StubHouseholds(household), FakeMedicines(), FixedClock(), TimeZone.UTC)
 
     private val levaxin = Regimen(
         "r1", RegimenKind.MEDICINE, "Levaxin", MedicineForm.TABLET, "50 µg", ItemUnit.TABLETT, 100,
-        DoseSchedule.Daily(1, 1), "På fastande mage", sortOrder = 3,
+        DoseSchedule.Daily(1, 1), "På fastande mage", sortOrder = 3
     )
 
     @Test
@@ -77,7 +76,7 @@ class RegimenViewModelsTest {
         val saved = anna.getAll().getOrThrow().single { it.id != "r1" }
         assertEquals(
             Regimen(saved.id, RegimenKind.MEDICINE, "Alvedon", MedicineForm.CAPSULE, "500 mg", ItemUnit.KAPSEL, 20, DoseSchedule.AsNeeded(20), "Vid feber", sortOrder = 4),
-            saved,
+            saved
         )
     }
 
@@ -255,7 +254,7 @@ class RegimenViewModelsTest {
             assertEquals(MedicineLookup(filled = true), expectMostRecentItem())
             assertEquals(
                 Regimen(vm.state.value.value.id, name = "Alvedon", form = MedicineForm.TABLET, strength = "500 mg", unit = ItemUnit.TABLETT, schedule = DoseSchedule.AsNeeded(10)),
-                vm.state.value.value,
+                vm.state.value.value
             )
             // Ändrad styrka – inte längre "ifyllt"; ändrat namn – förslagen igen.
             vm.onEvent(RegimenEditEvent.Strength("1 g"))

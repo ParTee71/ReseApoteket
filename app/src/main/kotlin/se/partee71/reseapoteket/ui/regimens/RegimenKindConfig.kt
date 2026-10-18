@@ -19,7 +19,7 @@ data class RegimenKindConfig(
     @param:StringRes val none: Int,
     @param:StringRes val add: Int,
     /** Formulärets texter, former och snabbval. */
-    val editor: RegimenEditorConfig,
+    val editor: RegimenEditorConfig
 ) {
     companion object {
         fun of(kind: RegimenKind): RegimenKindConfig = when (kind) {
@@ -40,8 +40,8 @@ data class RegimenKindConfig(
                 strength = R.string.regimen_strength,
                 strengthHelper = R.string.regimen_strength_helper,
                 forms = MedicineForm.entries,
-                medicineLookup = true,
-            ),
+                medicineLookup = true
+            )
         )
 
         private val SUPPLEMENT = RegimenKindConfig(
@@ -57,8 +57,8 @@ data class RegimenKindConfig(
                 strength = R.string.regimen_dose,
                 strengthHelper = R.string.regimen_dose_helper,
                 forms = listOf(MedicineForm.TABLET, MedicineForm.CAPSULE, MedicineForm.POWDER, MedicineForm.DROPS),
-                suggestions = listOf(R.string.suggestion_vitamin_d, R.string.suggestion_omega3, R.string.suggestion_magnesium, R.string.suggestion_probiotics),
-            ),
+                suggestions = listOf(R.string.suggestion_vitamin_d, R.string.suggestion_omega3, R.string.suggestion_magnesium, R.string.suggestion_probiotics)
+            )
         )
     }
 }
@@ -77,7 +77,7 @@ data class RegimenEditorConfig(
     @param:StringRes val strengthHelper: Int,
     val forms: List<MedicineForm>,
     val suggestions: List<Int> = emptyList(),
-    val medicineLookup: Boolean = false,
+    val medicineLookup: Boolean = false
 )
 
 /** Formens namn i formuläret: "Tablett", "Flytande". */

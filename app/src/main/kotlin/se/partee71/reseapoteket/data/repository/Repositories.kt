@@ -37,8 +37,7 @@ interface HouseholdRepository {
  * Utan hushåll, eller om det inte går att läsa, gäller standardvärdena (förhandsvisningen är bara
  * en vägledning och får aldrig stoppa formuläret).
  */
-fun HouseholdRepository.householdSettings(): Flow<HouseholdSettings> =
-    current.map { it?.settings ?: HouseholdSettings() }.catch { emit(HouseholdSettings()) }
+fun HouseholdRepository.householdSettings(): Flow<HouseholdSettings> = current.map { it?.settings ?: HouseholdSettings() }.catch { emit(HouseholdSettings()) }
 
 interface PersonRepository : EntityCollection<Person>
 

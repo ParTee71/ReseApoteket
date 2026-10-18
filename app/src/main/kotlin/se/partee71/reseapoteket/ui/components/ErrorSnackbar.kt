@@ -22,7 +22,7 @@ internal fun ErrorSnackbar(
     hostState: SnackbarHostState,
     @StringRes template: Int? = null,
     duration: SnackbarDuration = SnackbarDuration.Short,
-    onShown: () -> Unit,
+    onShown: () -> Unit
 ) {
     val resources = LocalResources.current
     val shown by rememberUpdatedState(onShown)

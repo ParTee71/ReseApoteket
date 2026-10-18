@@ -23,7 +23,7 @@ interface MedicineRepository {
 @Singleton
 class AssetMedicineRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : MedicineRepository {
     private val lock = Mutex()
     private var loaded: MedicineCatalog? = null

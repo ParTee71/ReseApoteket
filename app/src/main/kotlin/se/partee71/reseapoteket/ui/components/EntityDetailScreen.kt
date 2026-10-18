@@ -51,7 +51,7 @@ fun <T> EntityDetailScreen(
     error: DataError? = null,
     onErrorShown: () -> Unit = {},
     leading: @Composable (T) -> Unit = {},
-    content: @Composable ColumnScope.(T) -> Unit,
+    content: @Composable ColumnScope.(T) -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
     ErrorSnackbar(error, snackbar, onShown = onErrorShown)
@@ -67,21 +67,23 @@ fun <T> EntityDetailScreen(
                     if (items.isNotEmpty()) AppMenu(items)
                 }
             }
-        },
+        }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (state) {
                 DetailUiState.Loading -> AppLoading()
+
                 is DetailUiState.Error -> LoadErrorState(stringResource(R.string.load_error_title), state.error, onRetry)
+
                 is DetailUiState.Content -> Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l, vertical = Spacing.s),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.m),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
                     val top = header(state.value)
                     Column(
                         Modifier.fillMaxWidth().padding(bottom = Spacing.s),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                     ) {
                         leading(state.value)
                         Text(top.title, style = AppTypography.screenTitle, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })

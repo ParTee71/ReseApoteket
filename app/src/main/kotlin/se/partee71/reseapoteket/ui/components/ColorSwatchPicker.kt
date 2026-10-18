@@ -36,7 +36,7 @@ fun ColorSwatchPicker(selected: String, onSelect: (String) -> Unit, modifier: Mo
         onSelect,
         label = { stringResource(R.string.person_color_format, names.getOrElse(hexes.indexOf(it)) { "" }) },
         modifier = modifier,
-        columns = COLUMNS,
+        columns = COLUMNS
     ) { hex, isSelected ->
         val ring = if (isSelected) Modifier.border(RING, MaterialTheme.colorScheme.onSurface, AppShapes.pill) else Modifier
         Box(ring.fillMaxSize().padding(if (isSelected) RING_GAP else 0.dp), contentAlignment = Alignment.Center) {

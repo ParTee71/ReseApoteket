@@ -52,7 +52,7 @@ class TripScreensTest {
         Person("anna", "Anna", "🦊", AppColors.PERSON_HEX[0]),
         Person("erik", "Erik", "🐻", AppColors.PERSON_HEX[1]),
         Person("lova", "Lova", "🐰", AppColors.PERSON_HEX[2]),
-        Person("gunnar", "Morfar Gunnar", "🦉", AppColors.PERSON_HEX[3]),
+        Person("gunnar", "Morfar Gunnar", "🦉", AppColors.PERSON_HEX[3])
     )
     private val trip = Trip("t1", "Gran Canaria", LocalDate(2026, 10, 2), 7, people.map { it.id })
     private val preview = PackingPreviewText("För 4 resenärer i 7 dagar", "16 saker att packa", "6 recept · 3 kosttillskott · 7 familjeartiklar")
@@ -62,9 +62,12 @@ class TripScreensTest {
         val editor = EditorState(trip.copy(travellerIds = emptyList()), TripValidator)
         rule.runEditScreenContract(
             editor = editor,
-            makeInvalid = { update(TripValidator.TRAVELLERS) { it.copy(travellerIds = listOf("anna")) }; update(TripValidator.TRAVELLERS) { it.copy(travellerIds = emptyList()) } },
+            makeInvalid = {
+                update(TripValidator.TRAVELLERS) { it.copy(travellerIds = listOf("anna")) }
+                update(TripValidator.TRAVELLERS) { it.copy(travellerIds = emptyList()) }
+            },
             makeValid = { update(TripValidator.TRAVELLERS) { it.copy(travellerIds = listOf("anna")) } },
-            invalidMessage = "Välj minst en som åker med",
+            invalidMessage = "Välj minst en som åker med"
         ) { state, events, onSave, onClose ->
             TripEditContent(false, state, people, preview, events, { if (it is TripEditEvent.Save) onSave() }, onClose, stored = trip)
         }
@@ -147,7 +150,7 @@ class TripScreensTest {
                 PackingPreviewText("För 0 resenärer i 7 dagar", "0 saker att packa", null),
                 EditorEvents.None,
                 {},
-                {},
+                {}
             )
         }
     }
@@ -159,7 +162,7 @@ class TripScreensTest {
             TripListItem(Trip("t2", "Fjällen", LocalDate(2026, 12, 19), 8, listOf("anna", "erik")), people.take(2), PackingProgress(0, 11)),
             TripListItem(Trip("t3", "Kreta", LocalDate(2026, 7, 4), 9, listOf("anna", "erik", "lova"), TripStatus.PACKED), people.take(3), PackingProgress(14, 14)),
             TripListItem(Trip("t4", "Göteborg", LocalDate(2026, 5, 15), 2, listOf("anna"), TripStatus.DONE), people.take(1), PackingProgress(6, 6)),
-            TripListItem(Trip("t5", "Rom", LocalDate(2025, 4, 10), 5, listOf("anna", "erik"), TripStatus.DONE, archived = true), people.take(2), PackingProgress(9, 10)),
+            TripListItem(Trip("t5", "Rom", LocalDate(2025, 4, 10), 5, listOf("anna", "erik"), TripStatus.DONE, archived = true), people.take(2), PackingProgress(9, 10))
         )
         captureLightAndDark("TripsScreen_innehall") { TripsContent(ListUiState.Content(list.toImmutableList()), {}, {}, {}, archive = ListArchive(showing = true)) }
     }

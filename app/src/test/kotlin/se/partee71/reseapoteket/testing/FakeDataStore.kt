@@ -19,7 +19,7 @@ class FakeDataStore(
     private var readFailures: Int = 0,
     private val initial: Preferences = emptyPreferences(),
     var writeFailure: IOException? = null,
-    private val frozen: Boolean = false,
+    private val frozen: Boolean = false
 ) : DataStore<Preferences> {
     private val state = MutableStateFlow(initial)
 

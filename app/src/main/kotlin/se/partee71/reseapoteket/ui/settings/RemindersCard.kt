@@ -79,7 +79,7 @@ fun RemindersCard(
     onEvent: (RemindersEvent) -> Unit,
     notificationsAllowed: Boolean,
     onAskPermission: () -> Unit,
-    onOpenNotificationSettings: () -> Unit,
+    onOpenNotificationSettings: () -> Unit
 ) {
     var editing by rememberSaveable { mutableStateOf<ReminderKind?>(null) }
     val change = { kind: ReminderKind, setting: ReminderSetting ->
@@ -91,7 +91,7 @@ fun RemindersCard(
             ItemRow(
                 title = stringResource(R.string.reminders_blocked),
                 subtitle = stringResource(R.string.reminders_blocked_note),
-                trailing = { AppButton(stringResource(R.string.reminders_enable), onOpenNotificationSettings, compact = true) },
+                trailing = { AppButton(stringResource(R.string.reminders_enable), onOpenNotificationSettings, compact = true) }
             )
             AppDivider()
         }
@@ -108,7 +108,7 @@ fun RemindersCard(
                         })
                     }
                 }
-            },
+            }
         )
         AppDivider()
         ReminderKind.entries.forEach { kind ->
@@ -119,7 +119,7 @@ fun RemindersCard(
                 { change(kind, setting.copy(enabled = it)) },
                 subtitle = summary(kind, setting),
                 onClick = { editing = kind },
-                onClickLabel = stringResource(R.string.reminder_open_settings),
+                onClickLabel = stringResource(R.string.reminder_open_settings)
             )
         }
     }
@@ -140,7 +140,7 @@ private fun ReminderSheet(kind: ReminderKind, state: RemindersUiState, onChange:
                     { onChange(setting.copy(daysBefore = it)) },
                     pluralStringResource(R.plurals.reminder_days_before, setting.daysBefore, setting.daysBefore),
                     range = ReminderSettings.DAYS_BEFORE,
-                    enabled = setting.enabled,
+                    enabled = setting.enabled
                 )
             }
         }
@@ -149,7 +149,7 @@ private fun ReminderSheet(kind: ReminderKind, state: RemindersUiState, onChange:
         PackingPreview(
             context = stringResource(R.string.reminder_next),
             quantity = next?.let { nextAt(it.at) } ?: stringResource(R.string.reminder_next_none),
-            reason = next?.tripName,
+            reason = next?.tripName
         )
         AppButton(stringResource(R.string.done), onClose, Modifier.fillMaxWidth())
     }
@@ -177,7 +177,7 @@ fun rememberNotificationAccess(): NotificationAccess {
     return NotificationAccess(
         allowed = allowed,
         ask = { if (!allowed && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) launcher.launch(Manifest.permission.POST_NOTIFICATIONS) },
-        openSettings = { context.openNotificationSettings() },
+        openSettings = { context.openNotificationSettings() }
     )
 }
 

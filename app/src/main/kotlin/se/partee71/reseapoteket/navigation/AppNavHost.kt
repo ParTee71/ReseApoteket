@@ -54,7 +54,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     onExit: () -> Unit = {},
     sync: SyncUiState = SyncUiState(),
-    onSyncEvent: (SyncEvent) -> Unit = {},
+    onSyncEvent: (SyncEvent) -> Unit = {}
 ) {
     val toolbar = toolbarItems()
     val clearance = if (backStack.atTopLevel) FloatingToolbarClearance else 0.dp
@@ -77,24 +77,24 @@ fun AppNavHost(
                 onBack = { if (!backStack.pop()) onExit() },
                 entryDecorators = listOf(
                     rememberSaveableStateHolderNavEntryDecorator(rememberTabRootStateHolder()),
-                    rememberViewModelStoreNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator()
                 ),
                 transitionSpec = Transitions.forward,
                 popTransitionSpec = Transitions.back,
                 predictivePopTransitionSpec = Transitions.predictiveBack,
-                entryProvider = { key -> entryProvider(key).asTabRootIf(key) },
+                entryProvider = { key -> entryProvider(key).asTabRootIf(key) }
             )
         }
         AnimatedVisibility(
             visible = backStack.atTopLevel,
             modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = Spacing.l),
             enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
+            exit = slideOutVertically { it } + fadeOut()
         ) {
             AppFloatingToolbar(
                 items = toolbar,
                 selectedIndex = TOP_LEVEL.indexOf(backStack.currentTab),
-                onSelect = { backStack.select(TOP_LEVEL[it]) },
+                onSelect = { backStack.select(TOP_LEVEL[it]) }
             )
         }
         AppSnackbarHost(messages, Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = clearance))
@@ -123,13 +123,12 @@ private class TabRootStateHolder(private val holder: SaveableStateHolder) : Save
 /** Prefix för flikrötternas innehållsnycklar (en sträng, eftersom nyckeln sparas i en Bundle). */
 private const val TAB_ROOT = "flikrot:"
 
-private fun NavEntry<AppKey>.asTabRootIf(key: AppKey): NavEntry<AppKey> =
-    if (key is TopLevelKey) NavEntry(key, contentKey = TAB_ROOT + key, metadata = metadata) { Content() } else this
+private fun NavEntry<AppKey>.asTabRootIf(key: AppKey): NavEntry<AppKey> = if (key is TopLevelKey) NavEntry(key, contentKey = TAB_ROOT + key, metadata = metadata) { Content() } else this
 
 @Composable
 private fun toolbarItems(): List<ToolbarItem> = listOf(
     ToolbarItem(stringResource(R.string.tab_trips), R.drawable.ic_luggage),
     ToolbarItem(stringResource(R.string.tab_persons), R.drawable.ic_person),
     ToolbarItem(stringResource(R.string.tab_family_items), R.drawable.ic_family_items),
-    ToolbarItem(stringResource(R.string.tab_settings), R.drawable.ic_settings),
+    ToolbarItem(stringResource(R.string.tab_settings), R.drawable.ic_settings)
 )

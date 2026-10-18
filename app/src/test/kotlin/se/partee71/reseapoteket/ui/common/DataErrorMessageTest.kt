@@ -12,8 +12,13 @@ import se.partee71.reseapoteket.data.common.DataError
 class DataErrorMessageTest {
 
     private val all = listOf(
-        DataError.Offline, DataError.PermissionDenied, DataError.Cancelled,
-        DataError.UpdateRequired, DataError.SignInRejected, DataError.NoHousehold, DataError.Unknown,
+        DataError.Offline,
+        DataError.PermissionDenied,
+        DataError.Cancelled,
+        DataError.UpdateRequired,
+        DataError.SignInRejected,
+        DataError.NoHousehold,
+        DataError.Unknown
     )
 
     @Test

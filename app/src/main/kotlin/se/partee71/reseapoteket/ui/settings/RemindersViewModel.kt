@@ -38,7 +38,7 @@ import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
 data class RemindersUiState(
     val persons: ImmutableList<Person> = persistentListOf(),
     val settings: ReminderSettings = ReminderSettings(),
-    val next: ImmutableMap<ReminderKind, Reminder> = persistentMapOf(),
+    val next: ImmutableMap<ReminderKind, Reminder> = persistentMapOf()
 )
 
 sealed interface RemindersEvent {
@@ -55,14 +55,14 @@ class RemindersViewModel @Inject constructor(
     private val settings: SettingsStore,
     private val runner: ReminderRunner,
     private val clock: Clock,
-    private val zone: TimeZone,
+    private val zone: TimeZone
 ) : ViewModel() {
 
     // Personer och plan är tillägg: går de inte att läsa syns inställningarna ändå.
     val state: StateFlow<RemindersUiState> = combine(
         persons.observe().map { all -> all.filterNot { it.archived }.sortedBy { it.sortOrder } }.withFallback(emptyList()),
         settings.reminderSettings,
-        source.plan.withFallback(emptyList()),
+        source.plan.withFallback(emptyList())
     ) { people, chosen, planned ->
         val now = clock.now()
         val upcoming = planned.filter { it.at.toInstant(zone) > now }
@@ -76,6 +76,7 @@ class RemindersViewModel @Inject constructor(
                     val chosen = settings.reminderSettings.first().personIds
                     settings.setReminderPersons(if (event.personId in chosen) chosen - event.personId else chosen + event.personId)
                 }
+
                 is RemindersEvent.Change -> settings.setReminder(event.kind, event.setting)
             }
             runner.settingsChanged()

@@ -39,22 +39,22 @@ fun QuantityStepper(
     label: String,
     modifier: Modifier = Modifier,
     range: IntRange = 0..999,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     val colors = IconButtonDefaults.filledIconButtonColors(
         containerColor = AppColors.extended.card,
-        contentColor = MaterialTheme.colorScheme.onSurface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     )
     Row(
         modifier.background(AppColors.extended.rowTint, AppShapes.pill).padding(Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
         FilledIconButton(
             onClick = { onValueChange((value - 1).coerceIn(range)) },
             modifier = Modifier.size(BUTTON),
             enabled = enabled && value > range.first,
-            colors = colors,
+            colors = colors
         ) { Icon(painterResource(R.drawable.ic_remove), stringResource(R.string.decrease_format, label)) }
         Text(
             value.toString(),
@@ -64,13 +64,13 @@ fun QuantityStepper(
             modifier = Modifier.widthIn(min = VALUE_WIDTH).semantics {
                 contentDescription = "$value $label"
                 liveRegion = LiveRegionMode.Polite
-            },
+            }
         )
         FilledIconButton(
             onClick = { onValueChange((value + 1).coerceIn(range)) },
             modifier = Modifier.size(BUTTON),
             enabled = enabled && value < range.last,
-            colors = colors,
+            colors = colors
         ) { Icon(painterResource(R.drawable.ic_add), stringResource(R.string.increase_format, label)) }
     }
 }

@@ -60,7 +60,10 @@ class EditorStateTest {
     fun `ogiltigt sparförsök visar alla fel och skriver inget`() = runTest {
         val editor = editor()
         var writes = 0
-        editor.save { writes++; Result.success(Unit) }
+        editor.save {
+            writes++
+            Result.success(Unit)
+        }
         assertEquals(0, writes)
         assertEquals(R.string.error_unknown, editor.state.value.errorFor(NAME))
     }
@@ -71,7 +74,10 @@ class EditorStateTest {
         editor.update(NAME) { it.copy(name = "Solkräm") }
         editor.state.test {
             var saved: Form? = null
-            editor.save { saved = it; Result.success(Unit) }
+            editor.save {
+                saved = it
+                Result.success(Unit)
+            }
             assertTrue(expectMostRecentItem().done)
             assertEquals(Form("Solkräm"), saved)
         }
@@ -161,10 +167,19 @@ class EditorStateTest {
         editor.update(NAME) { it.copy(name = "Solkräm") }
         val gate = CompletableDeferred<Unit>()
         var writes = 0
-        val first = launch { editor.save { writes++; gate.await(); Result.success(Unit) } }
+        val first = launch {
+            editor.save {
+                writes++
+                gate.await()
+                Result.success(Unit)
+            }
+        }
         testScheduler.runCurrent()
         assertTrue(editor.state.value.saving)
-        editor.save { writes++; Result.success(Unit) }
+        editor.save {
+            writes++
+            Result.success(Unit)
+        }
         gate.complete(Unit)
         first.join()
         assertEquals(1, writes)
@@ -175,10 +190,16 @@ class EditorStateTest {
         val editor = EditorState(Form(), validator, loading = true)
         editor.update(NAME) { it.copy(name = "Platshållare") }
         var writes = 0
-        editor.save { writes++; Result.success(Unit) }
+        editor.save {
+            writes++
+            Result.success(Unit)
+        }
         assertTrue(editor.state.value.loading, "laddningen avbryts inte av ett sparförsök")
         editor.loadFailed(DataError.Offline)
-        editor.save { writes++; Result.success(Unit) }
+        editor.save {
+            writes++
+            Result.success(Unit)
+        }
         assertEquals(DataError.Offline, editor.state.value.loadError)
         assertEquals(0, writes)
     }
@@ -188,7 +209,12 @@ class EditorStateTest {
         val editor = editor()
         editor.update(NAME) { it.copy(name = "Solkräm") }
         val gate = CompletableDeferred<Unit>()
-        val saving = launch { editor.save { gate.await(); Result.success(Unit) } }
+        val saving = launch {
+            editor.save {
+                gate.await()
+                Result.success(Unit)
+            }
+        }
         testScheduler.runCurrent()
         editor.update(NOTE) { it.copy(note = "SPF 50") }
         gate.complete(Unit)
@@ -203,7 +229,12 @@ class EditorStateTest {
     fun `arkivera eller radera stänger alltid, även om något ändrats under tiden`() = runTest {
         val editor = editor(Form("Solkräm"))
         val gate = CompletableDeferred<Unit>()
-        val deleting = launch { editor.run { gate.await(); Result.success(Unit) } }
+        val deleting = launch {
+            editor.run {
+                gate.await()
+                Result.success(Unit)
+            }
+        }
         testScheduler.runCurrent()
         editor.update(NOTE) { it.copy(note = "skrivet under raderingen") }
         gate.complete(Unit)

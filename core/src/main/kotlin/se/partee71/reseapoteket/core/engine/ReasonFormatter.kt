@@ -29,16 +29,20 @@ object ReasonFormatter {
         val base = when (val schedule = regimen.schedule) {
             is DoseSchedule.Daily ->
                 "${schedule.dosesPerDay} × ${UnitNames.quantity(schedule.unitsPerDose, unit)}/dag × ${period(trip, settings)}$total"
+
             is DoseSchedule.Weekdays -> {
                 val matching = PackingEngine.weekdayCount(schedule, trip, settings) ?: return Texts.NO_START_DATE
                 "${UnitNames.quantity(schedule.unitsPerDose, unit)} × ${UnitNames.days(matching)} " +
                     "(${DoseScheduleFormatter.days(schedule.days)}) under ${period(trip, settings)}$total"
             }
+
             is DoseSchedule.IntervalDays ->
                 "${UnitNames.quantity(schedule.unitsPerDose, unit)} ${DoseScheduleFormatter.every(schedule.intervalDays)} " +
                     "under ${period(trip, settings)}$total"
+
             is DoseSchedule.AsNeeded ->
                 if (schedule.quantity > 0) "vid behov: ${UnitNames.quantity(schedule.quantity, unit)}" else Texts.AS_NEEDED_MISSING
+
             is DoseSchedule.Unknown -> return Texts.CANNOT_CALCULATE
         }
         val size = regimen.packageSize
@@ -46,8 +50,7 @@ object ReasonFormatter {
     }
 
     /** Mängden stort i packlistan och förhandsvisningen (PAK-2): "18 tabletter · 2 kartor". */
-    fun amount(line: PackingLine, unit: ItemUnit): String =
-        listOfNotNull(UnitNames.quantity(line.quantity, unit), line.packages?.let { UnitNames.packages(it, unit) }).joinToString(" · ")
+    fun amount(line: PackingLine, unit: ItemUnit): String = listOfNotNull(UnitNames.quantity(line.quantity, unit), line.packages?.let { UnitNames.packages(it, unit) }).joinToString(" · ")
 
     /** Sammanhanget i förhandsvisningen för ett recept eller kosttillskott (REC-4): "För en 7-dagarsresa". */
     fun tripContext(days: Int): String = "För en $days-dagarsresa"
@@ -59,11 +62,10 @@ object ReasonFormatter {
     fun suggestionCount(suggestion: PackingSuggestion): String = "${UnitNames.things(suggestion.items.size)} att packa"
 
     /** Vad förslaget består av, sektion för sektion (RES-3): "6 recept · 3 kosttillskott · 7 familjeartiklar"; `null` om det är tomt. */
-    fun suggestionParts(suggestion: PackingSuggestion): String? =
-        suggestion.items.groupingBy { it.section }.eachCount().toSortedMap()
-            .map { (section, count) -> UnitNames.section(count, section) }
-            .joinToString(" · ")
-            .ifEmpty { null }
+    fun suggestionParts(suggestion: PackingSuggestion): String? = suggestion.items.groupingBy { it.section }.eachCount().toSortedMap()
+        .map { (section, count) -> UnitNames.section(count, section) }
+        .joinToString(" · ")
+        .ifEmpty { null }
 
     fun family(item: FamilyItem, travellers: Int, trip: Trip, settings: HouseholdSettings, quantity: Int?): String {
         val total = UnitNames.quantity(quantity ?: 0, item.unit)

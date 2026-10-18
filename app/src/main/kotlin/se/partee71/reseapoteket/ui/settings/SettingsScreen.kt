@@ -92,7 +92,7 @@ data class SettingsUiState(
     val exporting: Boolean = false,
     val error: SettingsError? = null,
     /** Exportfilen som delningsmenyn ska öppnas för; kvitteras med [SettingsEvent.ShareShown]. */
-    val share: ShareExport? = null,
+    val share: ShareExport? = null
 )
 
 sealed interface SettingsEvent {
@@ -127,7 +127,7 @@ class SettingsViewModel @Inject constructor(
     private val files: ExportFiles,
     private val clock: Clock,
     private val timeZone: TimeZone,
-    medicines: MedicineRepository,
+    medicines: MedicineRepository
 ) : ViewModel() {
 
     /** Datumet för den inbyggda läkemedelslistan (REC-6), eller `null` om den saknas. */
@@ -143,7 +143,7 @@ class SettingsViewModel @Inject constructor(
         auth.authState.withFallback(null),
         settings.themeMode,
         settings.moveCheckedLast.withFallback(true),
-        action,
+        action
     ) { household, account, theme, checkedLast, action ->
         SettingsUiState(household, account, theme, checkedLast, action.exporting, action.error, action.share)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), SettingsUiState())
@@ -151,10 +151,15 @@ class SettingsViewModel @Inject constructor(
     fun onEvent(event: SettingsEvent) {
         when (event) {
             is SettingsEvent.SetTheme -> viewModelScope.launch { settings.setThemeMode(event.mode) }
+
             is SettingsEvent.SetMoveCheckedLast -> viewModelScope.launch { settings.setMoveCheckedLast(event.on) }
+
             is SettingsEvent.SetMarginDays -> setMarginDays(event.days)
+
             SettingsEvent.SignOut -> run(SettingsSection.Account) { auth.signOut() }
+
             SettingsEvent.Export -> exportHousehold()
+
             // En gång per export – delningsmenyn visas inte igen vid nästa visning.
             SettingsEvent.ShareShown -> action.update { it.copy(share = null) }
         }
@@ -196,7 +201,7 @@ fun SettingsScreen(
     onEditHousehold: () -> Unit,
     onOpenGallery: (() -> Unit)?,
     viewModel: SettingsViewModel = hiltViewModel(),
-    remindersViewModel: RemindersViewModel = hiltViewModel(),
+    remindersViewModel: RemindersViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val medicinesUpdated by viewModel.medicinesUpdated.collectAsStateWithLifecycle()
@@ -247,7 +252,7 @@ fun SettingsContent(
     onOpenGallery: (() -> Unit)?,
     modifier: Modifier = Modifier,
     medicinesUpdated: LocalDate? = null,
-    reminders: (@Composable () -> Unit)? = null,
+    reminders: (@Composable () -> Unit)? = null
 ) {
     var confirmSignOut by rememberSaveable { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
@@ -262,7 +267,7 @@ fun SettingsContent(
                         title = household.name.ifBlank { stringResource(R.string.settings_household) },
                         subtitle = stringResource(R.string.settings_household_name),
                         onClick = onEditHousehold,
-                        navigates = true,
+                        navigates = true
                     )
                     AppDivider()
                     ItemRow(
@@ -273,9 +278,9 @@ fun SettingsContent(
                                 household.marginDays,
                                 { onEvent(SettingsEvent.SetMarginDays(it)) },
                                 stringResource(R.string.settings_margin_days),
-                                range = HouseholdSettings.MARGIN_DAYS_RANGE,
+                                range = HouseholdSettings.MARGIN_DAYS_RANGE
                             )
-                        },
+                        }
                     )
                 }
             }
@@ -285,7 +290,7 @@ fun SettingsContent(
                     stringResource(R.string.settings_move_checked_last),
                     state.moveCheckedLast,
                     { onEvent(SettingsEvent.SetMoveCheckedLast(it)) },
-                    subtitle = stringResource(R.string.settings_move_checked_last_note),
+                    subtitle = stringResource(R.string.settings_move_checked_last_note)
                 )
             }
             reminders?.let {
@@ -300,9 +305,9 @@ fun SettingsContent(
                         AppSegmentedChoice(
                             options = THEME_OPTIONS.map { stringResource(it.second) },
                             selectedIndex = THEME_OPTIONS.indexOfFirst { it.first == state.themeMode },
-                            onSelect = { onEvent(SettingsEvent.SetTheme(THEME_OPTIONS[it].first)) },
+                            onSelect = { onEvent(SettingsEvent.SetTheme(THEME_OPTIONS[it].first)) }
                         )
-                    },
+                    }
                 )
             }
             GroupLabel(stringResource(R.string.settings_account))
@@ -312,7 +317,7 @@ fun SettingsContent(
                     ItemRow(
                         title = name,
                         subtitle = account.email?.takeIf { it != name } ?: stringResource(R.string.settings_signed_in),
-                        leading = { PersonAvatar(name.take(1).uppercase(), AppColors.person(0)) },
+                        leading = { PersonAvatar(name.take(1).uppercase(), AppColors.person(0)) }
                     )
                     AppDivider()
                 }
@@ -322,18 +327,18 @@ fun SettingsContent(
             SettingsCard(state.error, SettingsSection.Data) {
                 ItemRow(
                     title = stringResource(R.string.settings_sync_title),
-                    subtitle = stringResource(R.string.settings_sync_note),
+                    subtitle = stringResource(R.string.settings_sync_note)
                 )
                 ItemRow(
                     title = stringResource(R.string.settings_data_version),
-                    subtitle = stringResource(R.string.settings_data_format, state.household?.schemaVersion ?: Schema.FIRST_VERSION, versionName),
+                    subtitle = stringResource(R.string.settings_data_format, state.household?.schemaVersion ?: Schema.FIRST_VERSION, versionName)
                 )
                 AppDivider()
                 ItemRow(
                     title = stringResource(R.string.settings_export),
                     subtitle = stringResource(if (state.exporting) R.string.settings_export_busy else R.string.settings_export_note),
                     onClick = { onEvent(SettingsEvent.Export) }.takeUnless { state.exporting },
-                    navigates = true,
+                    navigates = true
                 )
             }
             GroupLabel(stringResource(R.string.settings_about))
@@ -348,7 +353,7 @@ fun SettingsContent(
                     title = stringResource(R.string.settings_source),
                     subtitle = stringResource(R.string.settings_source_note),
                     onClick = { uriHandler.openUri(sourceUrl) },
-                    navigates = true,
+                    navigates = true
                 )
                 if (onOpenGallery != null) {
                     AppDivider()
@@ -356,7 +361,7 @@ fun SettingsContent(
                         title = stringResource(R.string.settings_components),
                         subtitle = stringResource(R.string.settings_components_note),
                         onClick = onOpenGallery,
-                        navigates = true,
+                        navigates = true
                     )
                 }
             }
@@ -374,7 +379,7 @@ fun SettingsContent(
                 onEvent(SettingsEvent.SignOut)
             },
             onDismiss = { confirmSignOut = false },
-            destructive = true,
+            destructive = true
         )
     }
 }

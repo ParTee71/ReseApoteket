@@ -16,14 +16,14 @@ object UnitNames {
         ItemUnit.DOS to Noun("dos", "doser"),
         ItemUnit.PUFF to Noun("puff", "puffar"),
         ItemUnit.ST to Noun("st", "st"),
-        ItemUnit.TUB to Noun("tub", "tuber"),
+        ItemUnit.TUB to Noun("tub", "tuber")
     )
 
     /** Vad en förpackning av enheten kallas ("karta à 10 tabletter"). */
     private val packages = mapOf(
         ItemUnit.TABLETT to Noun("karta", "kartor"),
         ItemUnit.KAPSEL to Noun("karta", "kartor"),
-        ItemUnit.ML to Noun("flaska", "flaskor"),
+        ItemUnit.ML to Noun("flaska", "flaskor")
     )
     private val defaultPackage = Noun("förpackning", "förpackningar")
 
@@ -68,7 +68,13 @@ object UnitNames {
     /** Svenska ordningstal: 1:a, 2:a, 3:e … 11:e, 12:e … 21:a, 22:a. */
     fun ordinal(n: Int): String {
         val lastTwo = n % 100
-        val suffix = if (lastTwo in 11..12) "e" else if (n % 10 in 1..2) "a" else "e"
+        val suffix = if (lastTwo in 11..12) {
+            "e"
+        } else if (n % 10 in 1..2) {
+            "a"
+        } else {
+            "e"
+        }
         return "$n:$suffix"
     }
 }

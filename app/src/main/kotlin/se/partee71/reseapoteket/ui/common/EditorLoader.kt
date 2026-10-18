@@ -16,7 +16,7 @@ class EditorLoader<T>(
     private val editor: EditorState<T>,
     private val scope: CoroutineScope,
     private val read: (suspend () -> Result<T?>)?,
-    private val prepare: (T) -> T = { it },
+    private val prepare: (T) -> T = { it }
 ) {
     private val _stored = MutableStateFlow<T?>(null)
     val stored: StateFlow<T?> = _stored.asStateFlow()
@@ -34,6 +34,11 @@ class EditorLoader<T>(
 
     private fun load() {
         val read = read ?: return
-        scope.launch { editor.loadFrom(read) { stored -> _stored.value = stored; prepare(stored) } }
+        scope.launch {
+            editor.loadFrom(read) { stored ->
+                _stored.value = stored
+                prepare(stored)
+            }
+        }
     }
 }

@@ -19,7 +19,8 @@ verifierade API:er står bara i [ARKITEKTUR.md](../../../ARKITEKTUR.md).
 - Ramarna (regel 4): listskärmar `EntityListScreen` + `asListUiState()`, redigering `EntityEditScreen` + `EditorState<T>` – aldrig egna varianter.
 - Navigation: en Activity (`MainActivity`), back stacken är vanligt state i `navigation/`, övergångar en gång i `navigation/Transitions`.
 - Bakgrundsjobb: inga WorkManager-jobb – Firestore synkar själv och backupen körs i GitHub Actions (`tools/db`, veckovis krypterad). Ingen backupkod i appen. Behövs bakgrundsarbete: skriv en skill först.
-- **Nuvarande läge, avviker från pluginen:** `SavedStateHandle` i stället för assisted injection, ingen Spotless/ktlint, Renovate eller Baseline Profile. Tas i egna PR:er senare; ny kod följer pluginen där det går.
+- **Nuvarande läge, avviker från pluginen:** `SavedStateHandle` i stället för assisted injection, ingen Renovate eller Baseline Profile, och sex compose-rules-regler avstängda i ktlint för befintliga komponent-API:er (`parameter-naming`, `lambda-param-event-trailing`, `lambda-param-in-effect`, `content-slot-reused`, `multiple-emitters-check`, `modifier-naming`, listade i `ktlintRules` i `build.gradle.kts`). Tas i egna PR:er senare; ny kod följer pluginen där det går.
+- Kodstil: ktlint 1.8 (stil `android_studio`) med compose-rules via Spotless, bara lokalt och inte i CI (regel 5). Kör `./gradlew spotlessApply` före push; `spotlessCheck` kontrollerar. Nya CompositionLocals läggs i `compose_allowed_composition_locals` i samma map.
 - Koden byggs för Java 17; JDK 21 kör bygget lokalt och i CI, eftersom Robolectric kräver 21 för SDK 36. Tester JVM först (JUnit, Turbine, Robolectric, Roborazzi), fakes byggda på `FakeCollection<T>` (skill `testing-strategy`).
 
 ## Coroutines (android:kotlin-coroutines)

@@ -95,7 +95,7 @@ private fun ExpressiveProbe() {
         LoadingIndicator()
         SplitButtonLayout(
             leadingButton = { SplitButtonDefaults.LeadingButton(onClick = {}) { Text("Lägg till") } },
-            trailingButton = { SplitButtonDefaults.TrailingButton(checked = false, onCheckedChange = {}) { Text("▾") } },
+            trailingButton = { SplitButtonDefaults.TrailingButton(checked = false, onCheckedChange = {}) { Text("▾") } }
         )
         ButtonGroup(overflowIndicator = {}) {
             clickableItem(onClick = {}, label = "−")
@@ -103,13 +103,13 @@ private fun ExpressiveProbe() {
         }
         HorizontalFloatingToolbar(
             expanded = true,
-            colors = FloatingToolbarDefaults.standardFloatingToolbarColors(toolbarContainerColor = Color.Black, toolbarContentColor = Color.White),
+            colors = FloatingToolbarDefaults.standardFloatingToolbarColors(toolbarContainerColor = Color.Black, toolbarContentColor = Color.White)
         ) { Text("Verktygsrad") }
         val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
         Box(
             Modifier
                 .size(24.dp)
-                .drawBehind { scale(size.minDimension, pivot = Offset.Zero) { drawPath(morph.toPath(0.5f), Color.Black) } },
+                .drawBehind { scale(size.minDimension, pivot = Offset.Zero) { drawPath(morph.toPath(0.5f), Color.Black) } }
         )
     }
 }
@@ -120,20 +120,19 @@ internal data object TripsKey : NavKey
 internal class ProbeViewModel : ViewModel()
 
 @Composable
-private fun NavigationProbe() {
+private fun NavigationProbe(vm: ProbeViewModel = viewModel()) {
     val backStack = rememberNavBackStack(TripsKey)
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator()
         ),
         entryProvider = entryProvider {
             entry<TripsKey> {
-                val vm: ProbeViewModel = viewModel()
                 Text("Resor: ${vm::class.simpleName}")
             }
-        },
+        }
     )
 }

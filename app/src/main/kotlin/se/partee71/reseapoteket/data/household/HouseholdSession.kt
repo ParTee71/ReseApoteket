@@ -38,7 +38,7 @@ import se.partee71.reseapoteket.di.ApplicationScope
 class HouseholdSession @Inject constructor(
     private val settings: SettingsStore,
     private val versions: HouseholdVersionSource,
-    @ApplicationScope scope: CoroutineScope,
+    @ApplicationScope scope: CoroutineScope
 ) : HouseholdScope {
 
     override val householdId: StateFlow<String?> =

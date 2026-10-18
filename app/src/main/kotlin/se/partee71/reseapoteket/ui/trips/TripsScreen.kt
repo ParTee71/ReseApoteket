@@ -59,7 +59,7 @@ sealed interface TripsEvent {
 class TripsViewModel @Inject constructor(
     trips: TripRepository,
     persons: PersonRepository,
-    packing: PackingRepository,
+    packing: PackingRepository
 ) : ViewModel() {
     /** Svep-arkivera, Ångra och "Visa arkiverade" (RES-1) – samma som i alla listor. */
     val archive = ArchiveActions(viewModelScope, trips::setArchived)
@@ -88,10 +88,9 @@ class TripsViewModel @Inject constructor(
     private companion object {
         val NEWEST_FIRST: Comparator<Trip> = compareByDescending<Trip> { it.startDate }.thenBy(SwedishOrder.names) { it.name }
 
-        fun progressFor(packing: PackingRepository, ids: Set<String>): Flow<Map<String, PackingProgress>> =
-            packing.packingFor(ids.toList())
-                .map { byTrip -> byTrip.mapValues { PackingEngine.progress(it.value) } }
-                .withFallback(emptyMap())
+        fun progressFor(packing: PackingRepository, ids: Set<String>): Flow<Map<String, PackingProgress>> = packing.packingFor(ids.toList())
+            .map { byTrip -> byTrip.mapValues { PackingEngine.progress(it.value) } }
+            .withFallback(emptyMap())
     }
 }
 
@@ -109,7 +108,7 @@ fun TripsContent(
     onAdd: () -> Unit,
     onOpen: (String) -> Unit,
     modifier: Modifier = Modifier,
-    archive: ListArchive = ListArchive(),
+    archive: ListArchive = ListArchive()
 ) {
     EntityListScreen(
         title = stringResource(R.string.tab_trips),
@@ -118,13 +117,13 @@ fun TripsContent(
             icon = R.drawable.ic_luggage,
             title = stringResource(R.string.trips_empty_title),
             message = stringResource(R.string.trips_empty_message),
-            actionLabel = stringResource(R.string.trips_add),
+            actionLabel = stringResource(R.string.trips_add)
         ),
         onAdd = onAdd,
         key = { it.trip.id },
         modifier = modifier,
         onRetry = { onEvent(TripsEvent.List(ListEvent.Retry)) },
-        archive = archive,
+        archive = archive
     ) { item ->
         val trip = item.trip
         SwipeToHide(onHide = { archive.archive(trip.id, trip.name) }, enabled = !trip.archived) { swipe ->
@@ -157,7 +156,7 @@ private fun TripRow(item: TripListItem, modifier: Modifier = Modifier, onOpen: (
                 AvatarStack(item.travellers.map { StackedAvatar(it.emoji, AppColors.person(it.colorHex), it.name) })
                 if (item.progress.total > 0) SuitcaseProgress(item.progress.packed, item.progress.total, compact = true)
             }
-        },
+        }
     )
 }
 

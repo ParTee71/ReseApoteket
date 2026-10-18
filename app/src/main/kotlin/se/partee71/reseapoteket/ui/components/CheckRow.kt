@@ -51,7 +51,7 @@ fun CheckRow(
     trailing: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onClickLabel: String? = null,
-    accent: Color? = null,
+    accent: Color? = null
 ) {
     val toggle = Modifier.toggleable(value = checked, role = Role.Checkbox, onValueChange = onCheckedChange)
     ItemRowLayout(
@@ -68,7 +68,7 @@ fun CheckRow(
         trailing = trailing,
         tinted = checked,
         done = checked,
-        accent = accent,
+        accent = accent
     )
 }
 
@@ -77,7 +77,7 @@ private fun MorphingCheck(checked: Boolean) {
     val progress by animateFloatAsState(
         targetValue = if (checked) 1f else 0f,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "kryss",
+        label = "kryss"
     )
     val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
     val color = MaterialTheme.colorScheme.primary
@@ -98,7 +98,7 @@ private fun MorphingCheck(checked: Boolean) {
             painterResource(R.drawable.ic_check),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(ICON).alpha(progress.coerceIn(0f, 1f)),
+            modifier = Modifier.size(ICON).alpha(progress.coerceIn(0f, 1f))
         )
     }
 }

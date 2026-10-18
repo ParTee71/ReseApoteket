@@ -16,7 +16,7 @@ object AppShapes {
         topStart = if (top) CARD_RADIUS else 0.dp,
         topEnd = if (top) CARD_RADIUS else 0.dp,
         bottomStart = if (bottom) CARD_RADIUS else 0.dp,
-        bottomEnd = if (bottom) CARD_RADIUS else 0.dp,
+        bottomEnd = if (bottom) CARD_RADIUS else 0.dp
     )
 
     val row: Shape = RoundedCornerShape(18.dp)

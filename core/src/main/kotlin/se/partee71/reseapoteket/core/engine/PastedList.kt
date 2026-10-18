@@ -11,7 +11,7 @@ enum class PastedStatus {
     EXISTS,
 
     /** Längre än ett namn får vara ([TextLimits.SHORT]) – läggs inte till. */
-    TOO_LONG,
+    TOO_LONG
 }
 
 /** En rad ur en inklistrad lista: namnet, antalet och om den läggs till. */

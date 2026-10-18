@@ -23,13 +23,12 @@ import se.partee71.reseapoteket.data.common.retryWithBackoff
  * förnyas) och alla andra fel försöker igen, så att versionen aldrig blir okänd för gott.
  */
 class FirestoreHouseholdVersions @Inject constructor(private val db: FirebaseFirestore) : HouseholdVersionSource {
-    override fun schemaVersion(householdId: String): Flow<Int> =
-        db.document(Paths.household(householdId)).snapshots()
-            .map { doc -> Schema.versionOf(doc.get("schemaVersion")) }
-            .catch { error ->
-                throw if (error.firestoreCode() == Code.PERMISSION_DENIED) DataError.PermissionDenied else error
-            }
-            .retryWithBackoff(first = 2.seconds, max = 60.seconds, retryOn = { it != DataError.PermissionDenied })
+    override fun schemaVersion(householdId: String): Flow<Int> = db.document(Paths.household(householdId)).snapshots()
+        .map { doc -> Schema.versionOf(doc.get("schemaVersion")) }
+        .catch { error ->
+            throw if (error.firestoreCode() == Code.PERMISSION_DENIED) DataError.PermissionDenied else error
+        }
+        .retryWithBackoff(first = 2.seconds, max = 60.seconds, retryOn = { it != DataError.PermissionDenied })
 
     /** `update`, inte `set`: bara versionen ändras, och ett hushåll som inte finns skapas inte. */
     override fun stamp(householdId: String, version: Int) {

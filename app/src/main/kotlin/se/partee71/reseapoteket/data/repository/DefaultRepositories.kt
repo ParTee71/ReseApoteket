@@ -33,7 +33,7 @@ class DefaultHouseholdRepository @Inject constructor(
     private val directory: HouseholdDirectory,
     private val session: HouseholdSession,
     private val settings: SettingsStore,
-    private val clock: Clock,
+    private val clock: Clock
 ) : HouseholdRepository {
     private val households = collections.households()
 
@@ -81,13 +81,16 @@ class DefaultHouseholdRepository @Inject constructor(
 }
 
 class DefaultPersonRepository @Inject constructor(collections: CollectionFactory) :
-    PersonRepository, EntityCollection<Person> by collections.persons()
+    PersonRepository,
+    EntityCollection<Person> by collections.persons()
 
 class DefaultFamilyItemRepository @Inject constructor(collections: CollectionFactory) :
-    FamilyItemRepository, EntityCollection<FamilyItem> by collections.familyItems()
+    FamilyItemRepository,
+    EntityCollection<FamilyItem> by collections.familyItems()
 
 class DefaultTripRepository @Inject constructor(collections: CollectionFactory) :
-    TripRepository, EntityCollection<Trip> by collections.trips()
+    TripRepository,
+    EntityCollection<Trip> by collections.trips()
 
 class DefaultRegimenRepository @Inject constructor(private val collections: CollectionFactory) : RegimenRepository {
 
@@ -113,9 +116,8 @@ class DefaultPackingRepository @Inject constructor(private val collections: Coll
 }
 
 /** En samling per ID, sammanslagen till en karta per ID; tom lista ger en tom karta direkt. */
-private fun <T : Identified> observeEach(ids: List<String>, collection: (String) -> EntityCollection<T>): Flow<Map<String, List<T>>> =
-    if (ids.isEmpty()) {
-        flowOf(emptyMap())
-    } else {
-        combine(ids.distinct().map { id -> collection(id).observe().map { id to it } }) { it.toMap() }
-    }
+private fun <T : Identified> observeEach(ids: List<String>, collection: (String) -> EntityCollection<T>): Flow<Map<String, List<T>>> = if (ids.isEmpty()) {
+    flowOf(emptyMap())
+} else {
+    combine(ids.distinct().map { id -> collection(id).observe().map { id to it } }) { it.toMap() }
+}

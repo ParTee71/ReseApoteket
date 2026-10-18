@@ -36,21 +36,21 @@ fun AppBottomSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     error: DataError? = null,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         modifier = modifier,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = AppShapes.sheet,
-        containerColor = AppColors.extended.card,
+        containerColor = AppColors.extended.card
     ) {
         Column(
             Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.xl),
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Text(title, style = AppTypography.sectionTitle, modifier = Modifier.semantics { heading() })
             content()

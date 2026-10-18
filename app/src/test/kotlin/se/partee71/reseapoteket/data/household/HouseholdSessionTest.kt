@@ -6,9 +6,9 @@ import java.io.IOException
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -33,11 +33,11 @@ class HouseholdSessionTest {
 
     /** Hushåll vars dokument servern nekar. */
     private val denied = mutableSetOf<String>()
+
     /** Stämplingar som sessionen gjort: (hushåll, version). */
     private val stamps = mutableListOf<Pair<String, Int>>()
     private val versionSource = object : HouseholdVersionSource {
-        override fun schemaVersion(householdId: String) =
-            if (householdId in denied) flow { throw DataError.PermissionDenied } else versions.getOrPut(householdId) { MutableStateFlow(Schema.CURRENT_VERSION) }
+        override fun schemaVersion(householdId: String) = if (householdId in denied) flow { throw DataError.PermissionDenied } else versions.getOrPut(householdId) { MutableStateFlow(Schema.CURRENT_VERSION) }
 
         override fun stamp(householdId: String, version: Int) {
             stamps += householdId to version
@@ -134,7 +134,7 @@ class HouseholdSessionTest {
     fun `ett oläsbart hushåll vars val inte går att rensa kraschar inte appen`() = runTest {
         val store = FakeDataStore(
             initial = mutablePreferencesOf(stringPreferencesKey("activeHouseholdId") to "borta"),
-            writeFailure = IOException("disken är full"),
+            writeFailure = IOException("disken är full")
         )
         denied += "borta"
         val session = HouseholdSession(SettingsStore(store), versionSource, backgroundScope)

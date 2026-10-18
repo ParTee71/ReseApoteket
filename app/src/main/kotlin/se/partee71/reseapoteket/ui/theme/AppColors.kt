@@ -18,7 +18,7 @@ enum class Tone {
     Green,
 
     /** Blå – Övrigt och förhandsvisningar. */
-    Blue,
+    Blue
 }
 
 /** Behållare och innehåll för en [Tone]; innehållet klarar 4,5:1 mot behållaren. */
@@ -34,7 +34,7 @@ data class ExtendedColors(
     val onToolbar: Color,
     val primaryTone: ToneColors,
     val greenTone: ToneColors,
-    val blueTone: ToneColors,
+    val blueTone: ToneColors
 )
 
 /**
@@ -79,7 +79,7 @@ object AppColors {
         surfaceContainerLow = Color(0xFFFDF1EA),
         surfaceContainer = Color(0xFFFFFFFF),
         surfaceContainerHigh = Color(0xFFFFFFFF),
-        surfaceContainerHighest = Color(0xFFF6E6DD),
+        surfaceContainerHighest = Color(0xFFF6E6DD)
     )
 
     val dark: ColorScheme = darkColorScheme(
@@ -118,7 +118,7 @@ object AppColors {
         surfaceContainerLow = Color(0xFF33271F),
         surfaceContainer = Color(0xFF2A201B),
         surfaceContainerHigh = Color(0xFF2A201B),
-        surfaceContainerHighest = Color(0xFF3A2E28),
+        surfaceContainerHighest = Color(0xFF3A2E28)
     )
 
     val lightExtended = ExtendedColors(
@@ -128,7 +128,7 @@ object AppColors {
         onToolbar = Color(0xFFF3E6DF),
         primaryTone = ToneColors(Color(0xFFFFE6DA), Color(0xFF7A2E18)),
         greenTone = ToneColors(Color(0xFFE3F0D6), Color(0xFF3F5A1C)),
-        blueTone = ToneColors(Color(0xFFE2EFF6), Color(0xFF1F4C66)),
+        blueTone = ToneColors(Color(0xFFE2EFF6), Color(0xFF1F4C66))
     )
 
     val darkExtended = ExtendedColors(
@@ -138,12 +138,19 @@ object AppColors {
         onToolbar = Color(0xFF33271F),
         primaryTone = ToneColors(Color(0xFF6E2A15), Color(0xFFFFDBCD)),
         greenTone = ToneColors(Color(0xFF34451F), Color(0xFFD2EDB0)),
-        blueTone = ToneColors(Color(0xFF1D3A4B), Color(0xFFC6E5F7)),
+        blueTone = ToneColors(Color(0xFF1D3A4B), Color(0xFFC6E5F7))
     )
 
     /** De åtta personfärgerna som hex – det som lagras i `Person.colorHex`. */
     val PERSON_HEX: List<String> = listOf(
-        "#D97757", "#3B7EA1", "#7A9A3C", "#8E5BA8", "#C9892A", "#3E8E7E", "#B8527A", "#5B6BB5",
+        "#D97757",
+        "#3B7EA1",
+        "#7A9A3C",
+        "#8E5BA8",
+        "#C9892A",
+        "#3E8E7E",
+        "#B8527A",
+        "#5B6BB5"
     )
 
     /** Personfärg nummer [index] (varvar efter åtta). */

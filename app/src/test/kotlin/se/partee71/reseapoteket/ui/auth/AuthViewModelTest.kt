@@ -1,13 +1,13 @@
 package se.partee71.reseapoteket.ui.auth
 
 import android.content.Context
+import kotlin.test.assertEquals
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -39,8 +39,7 @@ class AuthViewModelTest {
     private val context: Context = RuntimeEnvironment.getApplication()
     private val auth = FakeAuthRepository()
 
-    private fun TestScope.viewModel(fixture: HouseholdFixture = HouseholdFixture(backgroundScope, folder.root)) =
-        fixture to AuthViewModel(auth, fixture.session, fixture.ensureHousehold)
+    private fun TestScope.viewModel(fixture: HouseholdFixture = HouseholdFixture(backgroundScope, folder.root)) = fixture to AuthViewModel(auth, fixture.session, fixture.ensureHousehold)
 
     private suspend fun AuthViewModel.awaitGate(gate: AuthGate) = state.first { it.gate == gate && !it.busy }
 

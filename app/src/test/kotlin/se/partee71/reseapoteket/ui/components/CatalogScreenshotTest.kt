@@ -38,7 +38,7 @@ class CatalogScreenshotTest {
         Column(
             Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
-            content = content,
+            content = content
         )
     }
 
@@ -124,12 +124,18 @@ class CatalogScreenshotTest {
                     "Namn",
                     listOf(Suggestion("Alvedon 500 mg", "Filmdragerad tablett", 0..4), Suggestion("Alvedon forte 1 g", "Filmdragerad tablett", 0..4)),
                     {},
-                    footer = "Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns",
+                    footer = "Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns"
                 )
             }
         }
         captureLightAndDark("InfoPill_toner") {
-            Sheet { Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) { InfoPill("Mediciner"); InfoPill("Kosttillskott", tone = Tone.Green); InfoPill("Övrigt", tone = Tone.Blue) } }
+            Sheet {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                    InfoPill("Mediciner")
+                    InfoPill("Kosttillskott", tone = Tone.Green)
+                    InfoPill("Övrigt", tone = Tone.Blue)
+                }
+            }
         }
         captureLightAndDark("InfoPill_ikon_klickbar") {
             Sheet { InfoPill("Väntar på synk", tone = Tone.Blue, icon = R.drawable.ic_cloud_upload, onClick = {}) }
@@ -143,8 +149,21 @@ class CatalogScreenshotTest {
             }
         }
         captureLightAndDark("PersonAvatar_stor") { Sheet { PersonAvatar("🦉", AppColors.person(3), size = AvatarSize.Large) } }
-        captureLightAndDark("GroupLabel_over_kort") { Sheet { GroupLabel("Utseende"); ApotekCard { ItemRow("Tema") } } }
-        captureLightAndDark("AppDivider_i_kort") { Sheet { ApotekCard { ItemRow("Anna"); AppDivider(); ItemRow("Erik") } } }
+        captureLightAndDark("GroupLabel_over_kort") {
+            Sheet {
+                GroupLabel("Utseende")
+                ApotekCard { ItemRow("Tema") }
+            }
+        }
+        captureLightAndDark("AppDivider_i_kort") {
+            Sheet {
+                ApotekCard {
+                    ItemRow("Anna")
+                    AppDivider()
+                    ItemRow("Erik")
+                }
+            }
+        }
         captureLightAndDark("AvatarStack_resenarer") {
             Sheet {
                 AvatarStack(listOf("🦊", "🐻", "🐰", "🦉").mapIndexed { i, e -> StackedAvatar(e, AppColors.person(i), "Person $i") })
@@ -155,7 +174,7 @@ class CatalogScreenshotTest {
                         trailing = { InfoPill("Planeras", tone = Tone.Blue) },
                         navigates = true,
                         onClick = {},
-                        below = { AvatarStack(listOf(StackedAvatar("🦊", AppColors.person(0), "Anna"), StackedAvatar("🐻", AppColors.person(1), "Erik"))) },
+                        below = { AvatarStack(listOf(StackedAvatar("🦊", AppColors.person(0), "Anna"), StackedAvatar("🐻", AppColors.person(1), "Erik"))) }
                     )
                 }
             }
@@ -180,7 +199,7 @@ class CatalogScreenshotTest {
                         trailing = { InfoPill("Pausat", tone = Tone.Blue) },
                         navigates = true,
                         onClick = {},
-                        inactive = true,
+                        inactive = true
                     )
                 }
             }
@@ -323,10 +342,10 @@ class CatalogScreenshotTest {
                         ToolbarItem("Resor", R.drawable.ic_luggage),
                         ToolbarItem("Personer", R.drawable.ic_person),
                         ToolbarItem("Familjeartiklar", R.drawable.ic_family_items),
-                        ToolbarItem("Inställningar", R.drawable.ic_settings),
+                        ToolbarItem("Inställningar", R.drawable.ic_settings)
                     ),
                     selectedIndex = 0,
-                    onSelect = {},
+                    onSelect = {}
                 )
             }
         }

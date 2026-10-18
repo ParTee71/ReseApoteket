@@ -49,7 +49,7 @@ class AppIconTest {
     fun `Appikon`() = captureLightAndDark("AppIcon_launcher") {
         Row(
             Modifier.background(MaterialTheme.colorScheme.background).padding(Spacing.l),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.l)
         ) {
             for (size in listOf(108.dp, 48.dp)) {
                 AndroidView({ ImageView(it).apply { setImageResource(R.mipmap.ic_launcher) } }, Modifier.size(size))

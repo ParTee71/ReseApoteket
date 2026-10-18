@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -149,7 +150,7 @@ class ComponentBehaviorTest {
 
     @Test
     fun `stegaren ökar och minskar inom intervallet och beskriver värdet`() {
-        var value by mutableStateOf(1)
+        var value by mutableIntStateOf(1)
         show { QuantityStepper(value, { value = it }, "dagar", range = 1..2) }
         rule.onNodeWithContentDescription("Minska dagar").assertIsNotEnabled()
         rule.onNodeWithContentDescription("Öka dagar").performClick()
@@ -193,7 +194,12 @@ class ComponentBehaviorTest {
     fun `datumfältet öppnar väljaren och OK behåller valt datum`() {
         var date by mutableStateOf<LocalDate?>(LocalDate(2026, 12, 19))
         var changes = 0
-        show { DateField("Startdatum", date, { date = it; changes++ }) }
+        show {
+            DateField("Startdatum", date, {
+                date = it
+                changes++
+            })
+        }
         rule.onNodeWithContentDescription("Startdatum, lör 19 dec 2026").assertIsDisplayed().performClick()
         rule.onNodeWithText("OK").performClick()
         assertEquals(1, changes)
@@ -204,7 +210,12 @@ class ComponentBehaviorTest {
     fun `tidsfältet öppnar väljaren och OK behåller vald tid`() {
         var time by mutableStateOf(LocalTime(18, 0))
         var changes = 0
-        show { TimeField("Tid", time, { time = it; changes++ }) }
+        show {
+            TimeField("Tid", time, {
+                time = it
+                changes++
+            })
+        }
         rule.onNodeWithContentDescription("Tid, 18:00").assertIsDisplayed().performClick()
         rule.onNodeWithText("OK").performClick()
         assertEquals(1, changes)
@@ -280,7 +291,10 @@ class ComponentBehaviorTest {
         var time by mutableStateOf<LocalTime?>(null)
         show {
             CompositionLocalProvider(LocalTravelDayMorning provides LocalTime(6, 45)) {
-                TravelDayField(travelDay, time, { travelDay = it.on; time = it.ownTime })
+                TravelDayField(travelDay, time, {
+                    travelDay = it.on
+                    time = it.ownTime
+                })
             }
         }
         rule.onNodeWithContentDescription("Påminn kl., 06:45", substring = true).assertDoesNotExist()
@@ -298,7 +312,7 @@ class ComponentBehaviorTest {
     @Test
     fun `valchips och segmentval rapporterar valet`() {
         var chip = 0
-        var segment by mutableStateOf(2)
+        var segment by mutableIntStateOf(2)
         show {
             Column {
                 AppFilterChip("Tablett", false, { chip++ })

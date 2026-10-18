@@ -34,7 +34,7 @@ enum class FamilyItemExample(
     @param:StringRes val label: Int,
     val category: FamilyItemCategory,
     val unit: ItemUnit,
-    val rule: QuantityRule,
+    val rule: QuantityRule
 ) {
     SUNSCREEN(R.string.example_sunscreen, FamilyItemCategory.CREAM, ItemUnit.TUB, QuantityRule.PerDays(quantity = 1, perDays = 7)),
     PLASTER(R.string.example_plaster, FamilyItemCategory.PLASTER, ItemUnit.ST, QuantityRule.PerTraveller(quantity = 10)),

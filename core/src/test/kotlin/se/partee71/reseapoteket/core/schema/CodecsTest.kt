@@ -33,14 +33,14 @@ class CodecsTest {
         HouseholdCodec,
         Household("h1", "Familjen Test", listOf("uid-a", "uid-b"), marginDays = 3, schemaVersion = 7, createdAt = created),
         // Ett hushåll utan schemaVersion har det första formatet (Schema.FIRST_VERSION).
-        Household("h1", schemaVersion = Schema.FIRST_VERSION),
+        Household("h1", schemaVersion = Schema.FIRST_VERSION)
     )
 
     @Test
     fun `PersonCodec`() = assertCodecContract(
         PersonCodec,
         Person("p1", "Anna", "🦊", "#BF4A2A", sortOrder = 2, archived = true),
-        Person("p1"),
+        Person("p1")
     )
 
     @Test
@@ -50,9 +50,9 @@ class CodecsTest {
             id = "r1", kind = RegimenKind.SUPPLEMENT, name = "D-vitamin", form = MedicineForm.CAPSULE,
             strength = "20 µg", unit = ItemUnit.KAPSEL, packageSize = 90,
             schedule = DoseSchedule.Weekdays(setOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY), unitsPerDose = 2),
-            notes = "Till frukost", active = false, travelDay = true, travelDayTime = LocalTime(7, 30), sortOrder = 4, archived = true,
+            notes = "Till frukost", active = false, travelDay = true, travelDayTime = LocalTime(7, 30), sortOrder = 4, archived = true
         ),
-        Regimen("r1"),
+        Regimen("r1")
     )
 
     @Test
@@ -70,9 +70,9 @@ class CodecsTest {
         FamilyItem(
             id = "f1", name = "Solkräm", category = FamilyItemCategory.CREAM, unit = ItemUnit.TUB,
             rule = QuantityRule.PerDays(quantity = 1, perDays = 5), notes = "SPF 50", active = false,
-            travelDay = true, travelDayTime = LocalTime(6, 5), sortOrder = 1, archived = true,
+            travelDay = true, travelDayTime = LocalTime(6, 5), sortOrder = 1, archived = true
         ),
-        FamilyItem("f1"),
+        FamilyItem("f1")
     )
 
     @Test
@@ -81,9 +81,9 @@ class CodecsTest {
         Trip(
             id = "t1", name = "Kreta", startDate = LocalDate(2026, 7, 4), days = 9,
             travellerIds = listOf("p2", "p1"), status = TripStatus.PACKED,
-            createdAt = created, updatedAt = updated, archived = true,
+            createdAt = created, updatedAt = updated, archived = true
         ),
-        Trip("t1"),
+        Trip("t1")
     )
 
     @Test
@@ -93,9 +93,9 @@ class CodecsTest {
             id = "i1", section = PackingSection.FAMILY, personId = "p1", sourceType = PackingSource.REGIMEN,
             sourceId = "r1", name = "Levaxin", unit = ItemUnit.TABLETT, suggestedQuantity = 18, quantity = 20,
             packages = 2, reason = "2 × 1 tablett/dag × 9 dagar", checked = true, checkedAt = updated,
-            hidden = true, travelDay = true, travelDayTime = LocalTime(23, 59), sortOrder = 3,
+            hidden = true, travelDay = true, travelDayTime = LocalTime(23, 59), sortOrder = 3
         ),
-        PackingItem("i1"),
+        PackingItem("i1")
     )
 
     @Test

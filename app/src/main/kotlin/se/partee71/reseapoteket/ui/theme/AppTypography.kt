@@ -19,14 +19,12 @@ private val Nunito = FontFamily(Font(R.font.nunito_extrabold, FontWeight.ExtraBo
 private val NunitoSans = FontFamily(
     Font(R.font.nunito_sans_regular, FontWeight.Normal),
     Font(R.font.nunito_sans_semibold, FontWeight.SemiBold),
-    Font(R.font.nunito_sans_bold, FontWeight.Bold),
+    Font(R.font.nunito_sans_bold, FontWeight.Bold)
 )
 
-private fun nunito(size: Int, line: Int, spacing: Double = 0.0) =
-    TextStyle(fontFamily = Nunito, fontWeight = FontWeight.ExtraBold, fontSize = size.sp, lineHeight = line.sp, letterSpacing = spacing.em)
+private fun nunito(size: Int, line: Int, spacing: Double = 0.0) = TextStyle(fontFamily = Nunito, fontWeight = FontWeight.ExtraBold, fontSize = size.sp, lineHeight = line.sp, letterSpacing = spacing.em)
 
-private fun sans(size: Int, line: Int, weight: FontWeight) =
-    TextStyle(fontFamily = NunitoSans, fontWeight = weight, fontSize = size.sp, lineHeight = line.sp)
+private fun sans(size: Int, line: Int, weight: FontWeight) = TextStyle(fontFamily = NunitoSans, fontWeight = weight, fontSize = size.sp, lineHeight = line.sp)
 
 /** Material 3-typskalan med Nunito (rubriker) och Nunito Sans (brödtext) – används av [ReseApoteketTheme]. */
 internal val AppTypeScale = Typography(
@@ -41,7 +39,7 @@ internal val AppTypeScale = Typography(
     bodySmall = sans(13, 18, FontWeight.SemiBold),
     labelLarge = nunito(15, 20),
     labelMedium = sans(13, 16, FontWeight.Bold),
-    labelSmall = sans(12, 16, FontWeight.Bold).copy(letterSpacing = 0.05.em),
+    labelSmall = sans(12, 16, FontWeight.Bold).copy(letterSpacing = 0.05.em)
 )
 
 /**

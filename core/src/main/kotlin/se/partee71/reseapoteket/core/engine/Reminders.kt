@@ -25,7 +25,7 @@ data class ReminderSetting(val enabled: Boolean, val time: LocalTime, val daysBe
  */
 data class ReminderSettings(
     val personIds: Set<String> = emptySet(),
-    private val byKind: Map<ReminderKind, ReminderSetting> = DEFAULTS,
+    private val byKind: Map<ReminderKind, ReminderSetting> = DEFAULTS
 ) {
     operator fun get(kind: ReminderKind): ReminderSetting = byKind[kind] ?: DEFAULTS.getValue(kind)
 
@@ -39,7 +39,7 @@ data class ReminderSettings(
             ReminderKind.NO_LIST to ReminderSetting(true, LocalTime(18, 0), 7),
             ReminderKind.TIME_TO_PACK to ReminderSetting(true, LocalTime(18, 0), 3),
             ReminderKind.DAY_BEFORE to ReminderSetting(true, LocalTime(18, 0), 1),
-            ReminderKind.TRAVEL_DAY to ReminderSetting(true, LocalTime(7, 0), 0),
+            ReminderKind.TRAVEL_DAY to ReminderSetting(true, LocalTime(7, 0), 0)
         )
 
         /** Påminnelser där användaren väljer antal dagar före; de andra har fast dag. */
@@ -59,7 +59,7 @@ data class Reminder(
      * Antal oprickade rader som packas på resedagen (PAK-6): för dagen före alla, för resedagen de
      * som påminns om vid just den här tiden. Bara antalet – namnen hamnar aldrig i en notis (PÅM-5).
      */
-    val travelDayCount: Int = 0,
+    val travelDayCount: Int = 0
 ) {
     /** Samma påminnelse för samma resa och tid – en notis ersätter sin förra, "Senare" hittar den igen. */
     val key: String get() = "$tripId/${kind.name}/${at.time}"
@@ -73,32 +73,28 @@ data class Reminder(
 object ReminderPlanner {
 
     /** Alla påminnelser som gäller just nu, tidigast först. */
-    fun plan(trips: List<Trip>, packing: Map<String, List<PackingItem>>, settings: ReminderSettings): List<Reminder> =
-        trips.filter { remindsAbout(it, settings) }.flatMap { trip ->
-            val items = packing[trip.id].orEmpty()
-            val progress = PackingEngine.progress(items)
-            val travelDay = items.filter { it.travelDay && !it.hidden && !it.checked }
-            ReminderKind.entries.flatMap { kind -> reminders(kind, trip, progress, travelDay, settings) }
-        }.sortedBy { it.at }
+    fun plan(trips: List<Trip>, packing: Map<String, List<PackingItem>>, settings: ReminderSettings): List<Reminder> = trips.filter { remindsAbout(it, settings) }.flatMap { trip ->
+        val items = packing[trip.id].orEmpty()
+        val progress = PackingEngine.progress(items)
+        val travelDay = items.filter { it.travelDay && !it.hidden && !it.checked }
+        ReminderKind.entries.flatMap { kind -> reminders(kind, trip, progress, travelDay, settings) }
+    }.sortedBy { it.at }
 
     /** PÅM-1: en resa som planeras, har startdatum och där någon av telefonens personer reser. */
-    fun remindsAbout(trip: Trip, settings: ReminderSettings): Boolean =
-        !trip.archived && trip.startDate != null && trip.status == TripStatus.PLANNING &&
-            trip.travellerIds.any { it in settings.personIds }
+    fun remindsAbout(trip: Trip, settings: ReminderSettings): Boolean = !trip.archived && trip.startDate != null && trip.status == TripStatus.PLANNING &&
+        trip.travellerIds.any { it in settings.personIds }
 
     /**
      * Påminnelser vars tid passerats efter [since] och senast [now] – men inte äldre än [grace]:
      * en telefon som varit avstängd skickar inte gamla påminnelser i efterhand (PÅM-6).
      */
-    fun due(planned: List<Reminder>, since: Instant, now: Instant, zone: TimeZone, grace: Duration): List<Reminder> =
-        planned.filter {
-            val at = it.at.toInstant(zone)
-            at > since && at <= now && now - at <= grace
-        }
+    fun due(planned: List<Reminder>, since: Instant, now: Instant, zone: TimeZone, grace: Duration): List<Reminder> = planned.filter {
+        val at = it.at.toInstant(zone)
+        at > since && at <= now && now - at <= grace
+    }
 
     /** När nästa påminnelse efter [now] kommer, eller `null` om ingen är planerad. */
-    fun next(planned: List<Reminder>, now: Instant, zone: TimeZone): Instant? =
-        planned.map { it.at.toInstant(zone) }.filter { it > now }.minOrNull()
+    fun next(planned: List<Reminder>, now: Instant, zone: TimeZone): Instant? = planned.map { it.at.toInstant(zone) }.filter { it > now }.minOrNull()
 
     /**
      * En påminnelse av [kind] för resan – för resedagen även en per egen tid bland raderna som
@@ -109,7 +105,7 @@ object ReminderPlanner {
         trip: Trip,
         progress: PackingProgress,
         travelDay: List<PackingItem>,
-        settings: ReminderSettings,
+        settings: ReminderSettings
     ): List<Reminder> {
         val setting = settings[kind]
         val start = trip.startDate ?: return emptyList()

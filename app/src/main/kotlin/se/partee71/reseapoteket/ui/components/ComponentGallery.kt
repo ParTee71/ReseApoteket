@@ -36,10 +36,10 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.AppTypography
@@ -57,7 +57,7 @@ fun ComponentGallery(onBack: () -> Unit, modifier: Modifier = Modifier) {
         AppTopBar("Komponenter", size = TopBarSize.Small, onBack = onBack)
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.l, vertical = Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l)
         ) {
             GallerySection("Knappar och meny") { Buttons() }
             GallerySection("Kort, rader och rubriker") { Rows() }
@@ -104,7 +104,7 @@ private fun Buttons() {
 @Composable
 private fun sampleMenu() = listOf(
     AppMenuItem("Arkivera", {}, R.drawable.ic_archive),
-    AppMenuItem("Radera", {}, R.drawable.ic_delete, destructive = true),
+    AppMenuItem("Radera", {}, R.drawable.ic_delete, destructive = true)
 )
 
 @Composable
@@ -118,7 +118,7 @@ private fun Rows() {
             subtitle = "3 recept · 1 kosttillskott",
             leading = { PersonAvatar("🦊", AppColors.person(0)) },
             navigates = true,
-            onClick = {},
+            onClick = {}
         )
         AppDivider()
         ItemRow(
@@ -129,7 +129,7 @@ private fun Rows() {
             navigates = true,
             below = {
                 AvatarStack(listOf(StackedAvatar("🦊", AppColors.person(0), "Anna"), StackedAvatar("🐻", AppColors.person(1), "Erik")))
-            },
+            }
         )
         AppDivider()
         PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
@@ -175,14 +175,17 @@ private fun Fields() {
         suggestions = listOf(Suggestion("Alvedon 500 mg", "Filmdragerad tablett", 0..4), Suggestion("Alvedon forte 1 g", "Filmdragerad tablett", 0..4))
             .takeIf { medicine == "Alved" }.orEmpty(),
         onPick = { medicine = "Alvedon" },
-        footer = "Från Läkemedelsverkets lista",
+        footer = "Från Läkemedelsverkets lista"
     )
     DateField("Startdatum", date, { date = it })
     var time by remember { mutableStateOf(LocalTime(18, 0)) }
     TimeField("Tid", time, { time = it })
     var travelDay by remember { mutableStateOf(true) }
     var travelTime by remember { mutableStateOf<LocalTime?>(null) }
-    TravelDayField(travelDay, travelTime, { travelDay = it.on; travelTime = it.ownTime })
+    TravelDayField(travelDay, travelTime, {
+        travelDay = it.on
+        travelTime = it.ownTime
+    })
     LabeledGroup("Form") {
         ChoiceChips(listOf(0, 1, 2, 3), form, { form = it }, { listOf("Tablett", "Kapsel", "Flytande", "Inhalator")[it] })
     }
@@ -202,7 +205,7 @@ private fun Fields() {
         schedule,
         { schedule = it },
         unitName = { if (it == 1) "tablett" else "tabletter" },
-        error = "Välj minst en veckodag".takeIf { (schedule as? DoseSchedule.Weekdays)?.days?.isEmpty() == true },
+        error = "Välj minst en veckodag".takeIf { (schedule as? DoseSchedule.Weekdays)?.days?.isEmpty() == true }
     )
     PackingPreview("För en 7-dagarsresa", "18 tabletter · 2 kartor", reason = "2 × 1 tablett/dag × (7 + 2) dagar")
     QuantityRuleRow(rule, { rule = it }, unitName = { if (it == 1) "tub" else "tuber" })
@@ -226,10 +229,10 @@ private fun Progress() {
             ToolbarItem("Resor", R.drawable.ic_luggage),
             ToolbarItem("Personer", R.drawable.ic_person),
             ToolbarItem("Familjeartiklar", R.drawable.ic_family_items),
-            ToolbarItem("Inställningar", R.drawable.ic_settings),
+            ToolbarItem("Inställningar", R.drawable.ic_settings)
         ),
         selectedIndex = tab,
-        onSelect = { tab = it },
+        onSelect = { tab = it }
     )
     CompositionLocalProvider(LocalSyncIndicator provides SyncIndicator(pending = true)) {
         AppTopBar("Gran Canaria", size = TopBarSize.Small, onBack = {})
@@ -284,7 +287,7 @@ private fun Frames(onBack: () -> Unit) {
                 "Inga familjeartiklar än",
                 "Solkräm, plåster, febertermometer.",
                 "Lägg till",
-                examples = listOf(EmptyExample("Solkräm") { items = listOf("Solkräm") }),
+                examples = listOf(EmptyExample("Solkräm") { items = listOf("Solkräm") })
             ),
             onAdd = {},
             key = { it },
@@ -294,12 +297,17 @@ private fun Frames(onBack: () -> Unit) {
                         undo?.let { items = items + it.name }
                         undo = null
                     }
+
                     ArchiveEvent.UndoDismissed -> undo = null
+
                     else -> Unit
                 }
-            },
+            }
         ) { item ->
-            SwipeToHide(onHide = { items = items - item; undo = UndoRequest(item, item) }) { swipe ->
+            SwipeToHide(onHide = {
+                items = items - item
+                undo = UndoRequest(item, item)
+            }) { swipe ->
                 ItemRow(item, swipe, subtitle = "1 per resenär", navigates = true, onClick = {})
             }
         }
@@ -311,7 +319,7 @@ private fun Frames(onBack: () -> Unit) {
             state = ListUiState.Error(DataError.Offline),
             empty = EmptyContent(R.drawable.ic_person, "Inga personer än", "", "Lägg till person"),
             onAdd = {},
-            key = { it },
+            key = { it }
         ) {}
     }
     Label("EntityListScreen – rubrik, grupper, undergrupper, kolumner, hopfällbar")
@@ -333,7 +341,7 @@ private fun Frames(onBack: () -> Unit) {
                     else -> ListGroup("Mediciner", tone = Tone.Blue, count = "1 / 2")
                 }
             },
-            subgroup = { (who, _) -> if (who.length > 1) ListSubgroup(who, AppColors.person(if (who == "Anna") 0 else 1)) else null },
+            subgroup = { (who, _) -> if (who.length > 1) ListSubgroup(who, AppColors.person(if (who == "Anna") 0 else 1)) else null }
         ) { (_, name) -> CheckRow(name, name.startsWith("S") || name.startsWith("L"), {}) }
     }
     Label("EntityDetailScreen – finns inte längre")
@@ -350,7 +358,7 @@ private fun Frames(onBack: () -> Unit) {
             onSave = {},
             onClose = onBack,
             onArchive = {},
-            delete = DeleteAction("Radera Solkräm?", "Artikeln tas bort för gott. Det går inte att ångra.") {},
+            delete = DeleteAction("Radera Solkräm?", "Artikeln tas bort för gott. Det går inte att ångra.") {}
         ) {
             AppTextField(name, { name = it }, "Namn")
         }
@@ -363,7 +371,7 @@ private fun Frames(onBack: () -> Unit) {
             onBack = onBack,
             onEdit = {},
             menu = { listOf(AppMenuItem("Arkivera", {}, R.drawable.ic_archive)) },
-            leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) },
+            leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) }
         ) {
             ApotekCard {
                 SectionHeader("Recept", icon = R.drawable.ic_medication, count = "1")

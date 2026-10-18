@@ -30,7 +30,7 @@ fun DoseScheduleRow(
     onChange: (DoseSchedule) -> Unit,
     unitName: (Int) -> String,
     modifier: Modifier = Modifier,
-    error: String? = null,
+    error: String? = null
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         if (schedule is DoseSchedule.Unknown) {
@@ -47,29 +47,33 @@ fun DoseScheduleRow(
                 LabeledStepper(schedule.dosesPerDay, { onChange(schedule.copy(dosesPerDay = it)) }, stringResource(R.string.dose_doses_per_day), 1..24)
                 UnitsPerDose(schedule.unitsPerDose, unitName) { onChange(schedule.copy(unitsPerDose = it)) }
             }
+
             is DoseSchedule.Weekdays -> {
                 ChipRow {
                     DayOfWeek.entries.forEach { day ->
                         AppFilterChip(
                             stringResource(day.shortName()),
                             selected = day in schedule.days,
-                            onClick = { onChange(schedule.copy(days = if (day in schedule.days) schedule.days - day else schedule.days + day)) },
+                            onClick = { onChange(schedule.copy(days = if (day in schedule.days) schedule.days - day else schedule.days + day)) }
                         )
                     }
                 }
                 UnitsPerDose(schedule.unitsPerDose, unitName) { onChange(schedule.copy(unitsPerDose = it)) }
             }
+
             is DoseSchedule.IntervalDays -> {
                 LabeledStepper(schedule.intervalDays, { onChange(schedule.copy(intervalDays = it)) }, stringResource(R.string.dose_interval_days), 2..365)
                 UnitsPerDose(schedule.unitsPerDose, unitName) { onChange(schedule.copy(unitsPerDose = it)) }
             }
+
             is DoseSchedule.AsNeeded ->
                 LabeledStepper(
                     schedule.quantity,
                     { onChange(schedule.copy(quantity = it)) },
                     stringResource(R.string.dose_as_needed_quantity, unitName(schedule.quantity)),
-                    1..999,
+                    1..999
                 )
+
             is DoseSchedule.Unknown -> Unit
         }
         error?.let { FieldError(it) }
@@ -77,8 +81,7 @@ fun DoseScheduleRow(
 }
 
 @Composable
-private fun UnitsPerDose(value: Int, unitName: (Int) -> String, onChange: (Int) -> Unit) =
-    LabeledStepper(value, onChange, stringResource(R.string.dose_units_per_dose, unitName(value)), 1..99)
+private fun UnitsPerDose(value: Int, unitName: (Int) -> String, onChange: (Int) -> Unit) = LabeledStepper(value, onChange, stringResource(R.string.dose_units_per_dose, unitName(value)), 1..99)
 
 /** En [QuantityStepper] med sin etikett bredvid – delas av [DoseScheduleRow] och [QuantityRuleRow]. */
 @Composable

@@ -26,7 +26,7 @@ fun ConfirmDialog(
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
     dismissLabel: String = stringResource(R.string.cancel),
-    onDecline: () -> Unit = onDismiss,
+    onDecline: () -> Unit = onDismiss
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -38,6 +38,6 @@ fun ConfirmDialog(
         title = { Text(title, style = AppTypography.headline) },
         text = { Text(message, style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant) },
         shape = AppShapes.card,
-        containerColor = AppColors.extended.card,
+        containerColor = AppColors.extended.card
     )
 }
