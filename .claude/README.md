@@ -14,6 +14,20 @@ som finns i `.claude/agents/` och `.claude/skills/`.
 | `testskrivare` | Skriver/utökar tester med de delade testhjälparna – bara när tre eller fler testnivåer berörs. |
 | `db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
 
+## Modellval
+
+Modellen väljs efter uppgiftens komplexitet – för sessionen och för varje agent. **Opus är
+standard.** Frontmatterns modell är agentens standard; huvudsessionen anger `model` när
+agenten startas, efter uppgiften. Sessionen byter själv via `/model`, eller låter en billigare
+agent ta rutindelarna.
+
+| Uppgift | Modell |
+|---|---|
+| Uppslag och läsning – loggar, data, sökningar | Haiku |
+| Små avgränsade ändringar – en fil, en komponent, ett test | Sonnet |
+| Flera lager, datamodell, migrering, backup och granskning | Opus |
+| Väldigt komplexa issues – anges då i issuet | Fable |
+
 ## Skills (`.claude/skills/`)
 
 | Skill | När |
