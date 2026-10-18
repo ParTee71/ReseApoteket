@@ -93,7 +93,7 @@ class AuthViewModel @Inject constructor(
 
     /**
      * Kontoväljaren kräver aktivitetens kontext, som hålls bara medan väljaren är öppen
-     * (skill firebase-auth); roteras skärmen under tiden frigörs den när väljaren stängts.
+     * (skill android:firebase-auth + android-projekt); roteras skärmen under tiden frigörs den när väljaren stängts.
      */
     private fun signIn(activityContext: Context) {
         if (signingIn.value) return

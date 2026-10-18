@@ -9,7 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 /**
- * Bara startskärmen av appens egna komponenter når andra appar (skill android-intent-security,
+ * Bara startskärmen av appens egna komponenter når andra appar (skill android:android-intent-security,
  * #88). Bibliotekens komponenter skyddas av egna behörigheter och räknas inte här – utom Firebase
  * Auths inloggningsaktiviteter, som appen inte använder och som tas bort ur manifestet (#92, NFR-8).
  */

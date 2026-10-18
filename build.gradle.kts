@@ -16,7 +16,7 @@ plugins {
     alias(libs.plugins.roborazzi) apply false
 }
 
-// Gemensam byggkonfiguration – enda stället (skill android-gradle-logic, regel 4).
+// Gemensam byggkonfiguration – enda stället (skill android:android-gradle-logic + android-projekt, regel 4).
 // Modulfilerna innehåller bara det som är unikt för modulen.
 val javaVersion = JavaVersion.VERSION_17
 

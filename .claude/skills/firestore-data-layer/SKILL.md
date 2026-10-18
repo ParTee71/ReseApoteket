@@ -134,7 +134,7 @@ alla samlingar.
   som typerna bara på fält som skrivs (DAT-6). `AppTextField` har samma tak.
 - **Förälder:** ett dokument i en undersamling (recept, packrad) skapas bara under en förälder
   som finns (`existsAfter`, så att föräldern får skapas i samma batch). Ny undersamling → samma kontroll.
-- Varje rules-ändring granskas med Googles skill `firebase-security-rules-auditor` (rättigheter,
+- Varje rules-ändring granskas med Googles skill `android:firebase-security-rules-auditor` (rättigheter,
   create mot update, typer, storlek, `hasOnly`); dess fynd blir rules-tester. Våra regler ovan går före.
 - Deploy sker från GitHub Actions: `rules.yml` (manuellt, dry-run som standard) och `release.yml`
   (före publiceringen, när de ändrats), båda efter rules-testerna mot emulatorn – aldrig från en PR. Reservväg:
