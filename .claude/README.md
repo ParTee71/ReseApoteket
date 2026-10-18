@@ -62,3 +62,10 @@ krockar med projektets regler gäller projektets.
 
 Hur hookarna, behörigheterna och SDK-skriptet fungerar står i README, avsnittet
 [Utveckling via Claude](../README.md#utveckling-via-claude).
+
+## Gemensam plugin (prov)
+
+`.claude/settings.json` slår på pluginen `android@claude-android` från det privata repot
+[ParTee71/claude-android](https://github.com/ParTee71/claude-android). Den bär än så länge bara
+`android:navigation-3`, en kopia av `navigation-3` här, för att prova att en molnsession
+installerar den. De generella skillsen flyttar dit först när provet gått igenom.
