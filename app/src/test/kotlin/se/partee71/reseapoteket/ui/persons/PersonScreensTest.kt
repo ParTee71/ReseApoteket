@@ -19,17 +19,18 @@ import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+import se.partee71.ui.common.DetailUiState
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.ListUiState
 
 /** Personskärmarna (PER-1–4): ramarnas kontrakt och det som är unikt för personer. */
 @RunWith(RobolectricTestRunner::class)
@@ -53,7 +54,7 @@ class PersonScreensTest {
 
     @Test
     fun `redigeringen uppfyller formulärkontraktet`() {
-        val editor = EditorState(gunnar.copy(name = ""), PersonValidator)
+        val editor = EditorState(gunnar.copy(name = ""), PersonValidator, AppErrors)
         rule.runEditScreenContract(
             editor = editor,
             makeInvalid = {

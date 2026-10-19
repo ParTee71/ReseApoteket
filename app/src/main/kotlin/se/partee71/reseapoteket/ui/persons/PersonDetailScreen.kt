@@ -23,25 +23,26 @@ import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.listed
-import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.data.common.dataError
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
-import se.partee71.reseapoteket.ui.common.DetailLoader
-import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.AppMenuItem
 import se.partee71.reseapoteket.ui.components.AvatarSize
 import se.partee71.reseapoteket.ui.components.DetailHeader
 import se.partee71.reseapoteket.ui.components.EntityDetailScreen
 import se.partee71.reseapoteket.ui.components.PersonAvatar
-import se.partee71.reseapoteket.ui.components.SectionHeader
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
 import se.partee71.reseapoteket.ui.regimens.RegimenRow
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.common.DetailLoader
+import se.partee71.ui.common.DetailUiState
+import se.partee71.ui.common.UiError
+import se.partee71.ui.common.uiErrorOrNull
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.SectionHeader
 import se.partee71.ui.theme.AppTheme
 
 /** En person med sina recept och kosttillskott, utan arkiverade (PER-4). */
@@ -73,20 +74,21 @@ class PersonDetailViewModel @AssistedInject constructor(
                 PersonDetail(it, all.listed(RegimenKind.MEDICINE), all.listed(RegimenKind.SUPPLEMENT))
             }
         },
-        viewModelScope
+        viewModelScope,
+        AppErrors
     )
     val state = loader.state
 
     /** Ett misslyckat arkivera/återställ, tills skärmen visat det. */
-    private val _error = MutableStateFlow<DataError?>(null)
-    val error: StateFlow<DataError?> = _error.asStateFlow()
+    private val _error = MutableStateFlow<UiError?>(null)
+    val error: StateFlow<UiError?> = _error.asStateFlow()
 
     fun onEvent(event: PersonDetailEvent) {
         when (event) {
             PersonDetailEvent.Retry -> loader.retry()
 
             is PersonDetailEvent.SetArchived -> viewModelScope.launch {
-                persons.setArchived(personId, event.archived).dataError()?.let { _error.value = it }
+                persons.setArchived(personId, event.archived).uiErrorOrNull(AppErrors)?.let { _error.value = it }
             }
 
             PersonDetailEvent.ErrorShown -> _error.value = null
@@ -116,7 +118,7 @@ fun PersonDetailContent(
     onAddRegimen: (RegimenKind) -> Unit,
     onOpenRegimen: (Regimen) -> Unit,
     modifier: Modifier = Modifier,
-    error: DataError? = null
+    error: UiError? = null
 ) {
     val archive = stringResource(R.string.archive)
     val restore = stringResource(R.string.restore)
@@ -149,7 +151,7 @@ fun PersonDetailContent(
 /** Recept eller kosttillskott i ett kort: rubrik med antal, raderna och "Lägg till" (PER-4, REC-3, REC-5). */
 @Composable
 private fun RegimenSection(config: RegimenKindConfig, regimens: List<Regimen>, onAdd: () -> Unit, onOpen: (Regimen) -> Unit) {
-    ApotekCard {
+    AppCard {
         SectionHeader(stringResource(config.title), icon = config.icon, count = regimens.size.toString(), tone = config.tone)
         if (regimens.isEmpty()) {
             Text(stringResource(config.none), style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)

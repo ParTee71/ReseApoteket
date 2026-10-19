@@ -35,30 +35,47 @@ import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.common.DetailUiState
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.ListUiState
 import se.partee71.ui.components.AddSplitButton
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.AppFilterChip
 import se.partee71.ui.components.AppIconButton
 import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppSegmentedChoice
 import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.AppTopBar
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.ChoiceChips
+import se.partee71.ui.components.ColorSwatchPicker
 import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.EmptyState
+import se.partee71.ui.components.ExampleChips
+import se.partee71.ui.components.FieldError
+import se.partee71.ui.components.GroupLabel
 import se.partee71.ui.components.IconButtonVariant
+import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.QuantityStepper
+import se.partee71.ui.components.SectionHeader
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.TimeField
 import se.partee71.ui.components.TopBarSize
+import se.partee71.ui.components.UndoRequest
+import se.partee71.ui.components.UndoSnackbar
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
@@ -128,7 +145,7 @@ private fun sampleMenu() = listOf(
 private fun Rows() {
     var packed by remember { mutableStateOf(false) }
     var sorted by remember { mutableStateOf(true) }
-    ApotekCard {
+    AppCard {
         SectionHeader("Mediciner", icon = R.drawable.ic_medication, count = "4 / 5")
         ItemRow(
             "Anna",
@@ -231,13 +248,13 @@ private fun Fields() {
     Label("EmojiPicker")
     EmojiPicker(emoji, { emoji = it })
     Label("ColorSwatchPicker")
-    ColorSwatchPicker(color, { color = it })
+    ColorSwatchPicker(AppColors.PERSON_HEX, color, { color = it }, AppColors::person, { personColorLabel(it) }, PersonColorMarker)
 }
 
 @Composable
 private fun Progress() {
-    ApotekCard { SuitcaseProgress(packed = 9, total = 14) }
-    ApotekCard(tone = Tone.Green) { SuitcaseProgress(packed = 14, total = 14) }
+    AppCard { SuitcaseProgress(packed = 9, total = 14) }
+    AppCard(tone = Tone.Green) { SuitcaseProgress(packed = 14, total = 14) }
     SuitcaseProgress(packed = 4, total = 10, compact = true)
     Box(Modifier.fillMaxWidth().height(96.dp)) { AppLoading() }
     var tab by remember { mutableIntStateOf(0) }
@@ -333,7 +350,7 @@ private fun Frames(onBack: () -> Unit) {
     Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
         EntityListScreen<String>(
             title = "Personer",
-            state = ListUiState.Error(DataError.Offline),
+            state = ListUiState.Error(AppErrors.map(DataError.Offline)),
             empty = EmptyContent(R.drawable.ic_person, "Inga personer än", "", "Lägg till person"),
             onAdd = {},
             key = { it }
@@ -350,7 +367,7 @@ private fun Frames(onBack: () -> Unit) {
             onAdd = {},
             key = { it.second },
             onBack = {},
-            header = { ApotekCard { SuitcaseProgress(packed = 2, total = 5) } },
+            header = { AppCard { SuitcaseProgress(packed = 2, total = 5) } },
             group = { (who, _) ->
                 when (who) {
                     "" -> ListGroup("Övrigt", count = "1 / 3", columns = 2)
@@ -363,7 +380,7 @@ private fun Frames(onBack: () -> Unit) {
     }
     Label("EntityDetailScreen – finns inte längre")
     Box(Modifier.fillMaxWidth().height(FRAME_HEIGHT)) {
-        EntityDetailScreen<String>(DetailUiState.Error(DataError.NotFound), header = { DetailHeader(it) }, onBack = {}) {}
+        EntityDetailScreen<String>(DetailUiState.Error(AppErrors.notFound()), header = { DetailHeader(it) }, onBack = {}) {}
     }
     Label("EntityEditScreen")
     var name by remember { mutableStateOf("") }
@@ -390,7 +407,7 @@ private fun Frames(onBack: () -> Unit) {
             menu = { listOf(AppMenuItem("Arkivera", {}, R.drawable.ic_archive)) },
             leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) }
         ) {
-            ApotekCard {
+            AppCard {
                 SectionHeader("Recept", icon = R.drawable.ic_medication, count = "1")
                 ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", navigates = true, onClick = {})
             }

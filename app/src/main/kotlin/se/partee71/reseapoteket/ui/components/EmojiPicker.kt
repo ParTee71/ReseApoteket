@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import se.partee71.ui.components.ChoiceGrid
 import se.partee71.ui.theme.AppTheme
 
 /** Den kurerade listan för personens avatar (PER-2): djur först, sedan saker som går att känna igen. */

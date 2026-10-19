@@ -25,6 +25,7 @@ import se.partee71.reseapoteket.core.engine.SwedishOrder
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.combineByKey
 import se.partee71.reseapoteket.data.common.withFallback
 import se.partee71.reseapoteket.data.repository.PackingRepository
@@ -32,14 +33,10 @@ import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.ui.common.ArchiveActions
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.ListEvent
-import se.partee71.reseapoteket.ui.common.ListLoader
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.AvatarStack
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
-import se.partee71.reseapoteket.ui.components.InfoPill
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.StackedAvatar
@@ -47,6 +44,10 @@ import se.partee71.reseapoteket.ui.components.SuitcaseProgress
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.common.ListEvent
+import se.partee71.ui.common.ListLoader
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.InfoPill
 import se.partee71.ui.components.SwipeToHide
 import se.partee71.ui.theme.Tone
 
@@ -78,7 +79,7 @@ class TripsViewModel @Inject constructor(
                 list.map { trip -> TripListItem(trip, trip.travellerIds.mapNotNull(byId::get), progress[trip.id] ?: PackingProgress.NONE) }
             }
 
-    private val loader = ListLoader(items, viewModelScope)
+    private val loader = ListLoader(items, viewModelScope, AppErrors)
     val state = loader.state
 
     fun onEvent(event: TripsEvent) {

@@ -45,15 +45,23 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.ListUiState
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.common.UiError
 import se.partee71.ui.components.AddSplitButton
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.CardSegment
+import se.partee71.ui.components.EmptyState
+import se.partee71.ui.components.ErrorSnackbar
+import se.partee71.ui.components.ExampleChips
+import se.partee71.ui.components.LoadErrorState
+import se.partee71.ui.components.SectionHeader
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.UndoRequest
+import se.partee71.ui.components.UndoSnackbar
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
@@ -99,7 +107,7 @@ data class ListSubgroup(val title: String, val color: Color)
 data class ListArchive(
     val showing: Boolean = false,
     val undo: UndoRequest? = null,
-    val error: DataError? = null,
+    val error: UiError? = null,
     val showToggle: Boolean = true,
     val onEvent: (ArchiveEvent) -> Unit = {}
 ) {

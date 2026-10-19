@@ -21,20 +21,14 @@ import se.partee71.reseapoteket.core.engine.PackingList
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
-import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ListEvent
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.collectAsListArchive
-import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.AppMenuItem
 import se.partee71.reseapoteket.ui.components.AvatarStack
 import se.partee71.reseapoteket.ui.components.CheckRow
 import se.partee71.reseapoteket.ui.components.ConfirmDialog
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
-import se.partee71.reseapoteket.ui.components.InfoPill
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.ListGroup
@@ -45,10 +39,16 @@ import se.partee71.reseapoteket.ui.components.SuitcaseProgress
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.ListEvent
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.common.UiError
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppIconButton
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.InfoPill
 import se.partee71.ui.components.SwipeToHide
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
@@ -95,7 +95,7 @@ fun PackingListContent(
     addList: AddListState = AddListState(),
     askRecount: Boolean = false,
     celebrate: Boolean = false,
-    sheetError: DataError? = null
+    sheetError: UiError? = null
 ) {
     val groups = packingGroups(header?.groups.orEmpty())
     val progress = header?.progress ?: PackingProgress.NONE
@@ -137,7 +137,7 @@ fun PackingListContent(
             },
             header = header?.let {
                 {
-                    ApotekCard(tone = if (progress.isComplete) Tone.Green else null) { SuitcaseProgress(progress.packed, progress.total) }
+                    AppCard(tone = if (progress.isComplete) Tone.Green else null) { SuitcaseProgress(progress.packed, progress.total) }
                 }
             },
             subgroup = { row ->

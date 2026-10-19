@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import se.partee71.ui.components.AppFilterChip
+import se.partee71.ui.components.chipColors
 import se.partee71.ui.theme.AppTheme
 
 /** Personchip ("Vem åker med?"): avatar och namn, samma färger som [AppFilterChip]. */

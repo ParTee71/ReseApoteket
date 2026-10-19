@@ -145,7 +145,7 @@ ReseApoteket/
 ├── app/                          Android-appen
 │   └── se.partee71.reseapoteket
 │       ├── data/
-│       │   ├── common/           DataError, suspendRunCatching, EntityCollection, CollectionFactory,
+│       │   ├── common/           DataError, AppErrors (DataError → UiError), suspendRunCatching, EntityCollection, CollectionFactory,
 │       │   │                     HouseholdScope, SyncStatus, läs- och skrivregler (DocumentRules)
 │       │   ├── auth/             AuthRepository → GoogleAuthRepository (Credential Manager + Firebase Auth), authError
 │       │   ├── firestore/        FirestoreCollection<T>, CollectionTable, Paths, FirestoreSyncStatus,
@@ -164,8 +164,8 @@ ReseApoteket/
 │       ├── navigation/           Navigation 3: AppKey, AppBackStack (en stack per flik), AppNavHost (+ synkindikator och appens meddelanden), Transitions
 │       └── ui/
 │           ├── theme/            ReseApoteketTheme (android-ui:s AppTheme), AppColors, AppTypeScale (Nunito)
-│           ├── components/       delade komponenter och skärmramar, ComponentGallery (11 komponenter från android-ui)
-│           ├── common/           ListUiState, ListLoader, EditorState, Validator, DateFormat, DataError.toMessage(), shownAfter
+│           ├── components/       appens komponenter och skärmramar, ComponentGallery (övriga komponenter från android-ui)
+│           ├── common/           ArchiveActions, activeOnly, DateFormat, DataError.toMessage() (tillstånden från android-ui:s ui-common)
 │           ├── auth/             AuthViewModel (vad appen visar), SignInScreen, UpdateRequiredScreen
 │           ├── sync/             SyncViewModel (synkläget för UI:t, NFR-6)
 │           └── persons/ regimens/ familyitems/ trips/ packing/ settings/
@@ -179,11 +179,11 @@ Vad som är delat och var det bor: skill `shared-ui-components` (enda källan).
 
 **Komponentbiblioteket android-ui** ([ParTee71/android-ui](https://github.com/ParTee71/android-ui),
 delat med Dagboken, sedan #126): tema-API:t (`AppTheme`, `ExtendedColors`, `Tone`, `AppShapes`,
-`AppTypography`, `Spacing`) i `se.partee71.ui:ui-theme` och elva komponenter (`AddSplitButton`,
-`AppButton`, `AppDivider`, `AppIconButton`, `AppLoading`, `AppSegmentedChoice`, `AppSnackbarHost`,
-`AppTopBar`, `ChipRow`, `Confetti`, `SwipeToHide`) i `se.partee71.ui:ui-components`. Appen har kvar
+`AppTypography`, `Spacing`) i `se.partee71.ui:ui-theme`, kort, knappar, fält, val, pills, snackbars,
+tomt läge och läsfel i `se.partee71.ui:ui-components`, och sedan #129 ramarnas tillstånd (`UiError`/`ErrorMapper`,
+`ListUiState`, `DetailUiState`, `EditorState`, `EditorLoader`, `shownAfter`) i `se.partee71.ui:ui-common`. Appen har kvar
 sina färger, typsnitt och former och skickar in dem i `AppTheme` via `ReseApoteketTheme`; övriga
-komponenter och ramarna bor i `ui/components`. Biblioteket hämtas från GitHub Packages (se
+komponenter (rader, menyer, datumfält, packprogress m.m.) och ramarna bor i `ui/components`. Biblioteket hämtas från GitHub Packages (se
 [Byggkonfiguration](#byggkonfiguration)); vilka rader som kommer därifrån står i skill
 `shared-ui-components` (märkta *(android-ui)*).
 
@@ -206,7 +206,7 @@ Läkemedel:  Läkemedelsverkets öppna data → tools/medicines (vid release) �
 
 - Fel mappas till `DataError` en gång, med `suspendRunCatching` i `data/common/` – av
   `FirestoreCollection` för data och `AuthRepository` för inloggning – och visas via
-  `DataError.toMessage()`.
+  `DataError.toMessage()`; till ramarna som android-ui:s `UiError` via `AppErrors` (`ErrorMapper`), också en gång i `data/common/`.
 - Skrivningar görs med merge och codecens fullständiga fältlista, så att fält från en nyare
   appversion aldrig raderas av en äldre (skill `data-safety-backup`).
 - Listskärmar använder `EntityListScreen` + `asListUiState()`, formulär `EntityEditScreen` + `EditorState`.
@@ -330,7 +330,7 @@ Beslutad och uppmätt i #11.
 | Robolectric / Roborazzi / Konsist | 4.17 / 1.76.0 / 0.17.3 | Robolectric-SDK och skärmmått i `app/src/test/resources/robolectric.properties` |
 | PMD (CPD) | 7.28.0 | se `cpdCheck` nedan |
 | WorkManager | 2.12.0 | påminnelserna (#78); inget Hilt-work – workern hämtar sina beroenden via en `@EntryPoint` |
-| android-ui | 0.1.0 | `se.partee71.ui:ui-theme` + `ui-components` från GitHub Packages (`maven.pkg.github.com/ParTee71/android-ui`, bara gruppen `se.partee71.ui`), inloggning krävs även för läsning: `GPR_USER`/`GPR_TOKEN` i sessionen, Actions-secreten `GPR_TOKEN` i CI (#126) |
+| android-ui | 0.2.0 | `se.partee71.ui:ui-theme` + `ui-components` + `ui-common` från GitHub Packages (`maven.pkg.github.com/ParTee71/android-ui`, bara gruppen `se.partee71.ui`), inloggning krävs även för läsning: `GPR_USER`/`GPR_TOKEN` i sessionen, Actions-secreten `GPR_TOKEN` i CI (#126) |
 
 **Gemensam byggkonfiguration** står på ett ställe: rotens `build.gradle.kts` (`subprojects {}`):
 Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten) och testloggning

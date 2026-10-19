@@ -44,9 +44,9 @@ import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
 import se.partee71.reseapoteket.core.schema.PackingItemCodec
 import se.partee71.reseapoteket.core.schema.TripCodec
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.combineByKey
-import se.partee71.reseapoteket.data.common.dataError
 import se.partee71.reseapoteket.data.common.nextSortOrder
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.common.withFallback
@@ -57,13 +57,15 @@ import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.ListEvent
-import se.partee71.reseapoteket.ui.common.ListLoader
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.UndoRequest
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.ListEvent
+import se.partee71.ui.common.ListLoader
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.common.UiError
+import se.partee71.ui.common.Validator
+import se.partee71.ui.common.uiErrorOrNull
+import se.partee71.ui.components.UndoRequest
 
 /** En rad i packlistan: raden, personen den hör till och doseringen i kort form ("1/dag", PAK-2). */
 data class PackingRow(val item: PackingItem, val person: Person? = null, val schedule: String? = null)
@@ -206,7 +208,10 @@ class PackingListViewModel @AssistedInject constructor(
                 (arranged.visible + arranged.hidden).map { item -> PackingRow(item, item.personId?.let(byId::get), schedule(item, byPerson)) }
             }
 
-    private val loader = ListLoader(rows, viewModelScope)
+    private val loader = ListLoader(rows, viewModelScope, AppErrors)
+
+    /** Samma fel så länge resan saknas, så att listan inte byter tillstånd i onödan. */
+    private val missingTrip = ListUiState.Error(AppErrors.notFound())
 
     /**
      * Listan – eller "finns inte längre" om resan saknas (raderad, eller en okänd resa i en
@@ -214,7 +219,7 @@ class PackingListViewModel @AssistedInject constructor(
      */
     val state: StateFlow<ListUiState<PackingRow>> =
         combine(loader.state, tripRead) { list, read ->
-            if (read != null && read.trip == null) ListUiState.Error(DataError.NotFound) else list
+            if (read != null && read.trip == null) missingTrip else list
         }.stateIn(viewModelScope, SharingStarted.Eagerly, ListUiState.Loading)
 
     val header: StateFlow<PackingHeader?> = combine(trip, state, people) { trip, list, all ->
@@ -241,7 +246,7 @@ class PackingListViewModel @AssistedInject constructor(
     val adding: StateFlow<Boolean> = _adding.asStateFlow()
 
     /** Den egna raden som läggs till (PAK-4). */
-    val addEditor: EditorState<PackingItem> = EditorState(newManualItem(), ManualItemValidator)
+    val addEditor: EditorState<PackingItem> = EditorState(newManualItem(), ManualItemValidator, AppErrors)
 
     private val addMode = MutableStateFlow(AddMode.ONE)
     private val listText = MutableStateFlow("")
@@ -267,10 +272,10 @@ class PackingListViewModel @AssistedInject constructor(
      */
     val celebrate: StateFlow<Boolean> = _celebrate.asStateFlow()
 
-    private val _sheetError = MutableStateFlow<DataError?>(null)
+    private val _sheetError = MutableStateFlow<UiError?>(null)
 
     /** Ett skrivfel medan en panel är öppen – visas i panelen, som ligger över listans meddelanden. */
-    val sheetError: StateFlow<DataError?> = _sheetError.asStateFlow()
+    val sheetError: StateFlow<UiError?> = _sheetError.asStateFlow()
 
     /** Användaren har ändrat något sedan listan öppnades – först då följer statusen listan (PAK-5). */
     private var changedHere = false
@@ -295,7 +300,7 @@ class PackingListViewModel @AssistedInject constructor(
                 knownStatus = wanted
                 if (justPacked && wanted == TripStatus.PACKED) _celebrate.value = true
                 // Bara statusfältet skrivs; ett fel visas i listan, panelen kan redan vara stängd.
-                trips.update(Trip(tripId, status = wanted), STATUS_FIELDS).onFailure { knownStatus = current }.dataError()?.let(hiding::report)
+                trips.update(Trip(tripId, status = wanted), STATUS_FIELDS).onFailure { knownStatus = current }.uiErrorOrNull(AppErrors)?.let(hiding::report)
             }
         }
 
@@ -409,7 +414,7 @@ class PackingListViewModel @AssistedInject constructor(
             val items = lines.mapIndexed { index, line ->
                 newManualItem().copy(name = line.name, quantity = line.quantity, suggestedQuantity = line.quantity, sortOrder = first + index)
             }
-            val error = collection.batch(items).dataError()
+            val error = collection.batch(items).uiErrorOrNull(AppErrors)
             listSaving.value = false
             if (error != null) return@launch report(error)
             closeAdd()
@@ -456,10 +461,10 @@ class PackingListViewModel @AssistedInject constructor(
     /** En egen skrivning; ett fel visas i den öppna panelen, annars som meddelande i listan. */
     private fun write(block: suspend () -> Result<Unit>) {
         changedHere = true
-        viewModelScope.launch { block().dataError()?.let(::report) }
+        viewModelScope.launch { block().uiErrorOrNull(AppErrors)?.let(::report) }
     }
 
-    private fun report(error: DataError) {
+    private fun report(error: UiError) {
         if (editing.value != null || _adding.value) _sheetError.value = error else hiding.report(error)
     }
 

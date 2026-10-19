@@ -33,22 +33,27 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.QuantityRule
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.runListScreenContract
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Green
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+import se.partee71.ui.common.DetailUiState
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AppCard
+import se.partee71.ui.components.AppTextField
+import se.partee71.ui.components.LoadErrorState
+import se.partee71.ui.components.SectionHeader
 import se.partee71.ui.theme.Tone
 
 /** Ramarna testas grundligt en gång här; skärmarna kör bara kontrakten (skill testing-strategy). */
@@ -178,7 +183,7 @@ class FramesTest {
 
     @Test
     fun `EntityEditScreen uppfyller redigeringskontraktet`() {
-        val editor = EditorState("", Validator { if (it.isBlank()) mapOf("name" to R.string.error_no_household) else emptyMap() })
+        val editor = EditorState("", Validator { if (it.isBlank()) mapOf("name" to R.string.error_no_household) else emptyMap() }, AppErrors)
         rule.runEditScreenContract(
             editor = editor,
             makeInvalid = {
@@ -226,7 +231,7 @@ class FramesTest {
     fun `EntityEditScreen - lyckad sparning går till onSaved, bakåt till onClose`() {
         var saved = 0
         var closed = 0
-        val editor = EditorState("Kreta", Validator { emptyMap() })
+        val editor = EditorState("Kreta", Validator { emptyMap() }, AppErrors)
         rule.setContent {
             ReseApoteketTheme {
                 val state by editor.state.collectAsState()
@@ -241,7 +246,7 @@ class FramesTest {
 
     @Test
     fun `EntityEditScreen kvitterar klar och sparfel – de väntar tills skärmen visas och kommer inte igen efter rotation`() {
-        val editor = EditorState("Kreta", Validator { emptyMap() })
+        val editor = EditorState("Kreta", Validator { emptyMap() }, AppErrors)
         var saved = 0
         var shown by mutableStateOf(false)
         val restoration = StateRestorationTester(rule)
@@ -253,7 +258,7 @@ class FramesTest {
         }
         // Ett sparfel medan skärmen inte visas tappas inte: snackbaren kommer när den visas.
         rule.runOnIdle { runBlocking { editor.run { Result.failure(DataError.Offline) } } }
-        assertEquals(DataError.Offline, editor.state.value.failure)
+        assertEquals(DataError.Offline, editor.state.value.failure?.cause)
         rule.runOnIdle { shown = true }
         rule.onNodeWithText(string(R.string.error_offline)).assertIsDisplayed()
         assertNull(editor.state.value.failure, "kvitterat när snackbaren startats")
@@ -304,7 +309,7 @@ class FramesTest {
 
     @Test
     fun `LoadErrorState - något som inte finns längre har inget Försök igen (NFR-5)`() {
-        rule.setContent { ReseApoteketTheme { LoadErrorState("Kunde inte hämta uppgifterna", DataError.NotFound, {}) } }
+        rule.setContent { ReseApoteketTheme { LoadErrorState("Kunde inte hämta uppgifterna", AppErrors.notFound(), {}) } }
         rule.onNodeWithText("Det finns inte längre", substring = true).assertIsDisplayed()
         rule.onNodeWithText("Försök igen").assertDoesNotExist()
     }
@@ -341,7 +346,7 @@ class FramesTest {
         }
         rule.onNodeWithContentDescription("Laddar").assertExists()
         rule.onNodeWithContentDescription("Redigera").assertDoesNotExist()
-        state = DetailUiState.Error(DataError.Offline)
+        state = DetailUiState.Error(AppErrors.map(DataError.Offline))
         rule.onNodeWithText("Kunde inte hämta uppgifterna").assertIsDisplayed()
         rule.onNodeWithText("Försök igen").performClick()
         assertEquals(1, retries)
@@ -366,17 +371,17 @@ class FramesTest {
                 menu = { listOf(AppMenuItem("Arkivera", {})) },
                 leading = { PersonAvatar("🦊", AppColors.person(0), size = AvatarSize.Large) }
             ) {
-                ApotekCard {
+                AppCard {
                     SectionHeader("Recept", icon = R.drawable.ic_medication, count = "1")
                     ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", navigates = true, onClick = {})
                 }
             }
         }
         captureLightAndDark("EntityDetailScreen_fel") {
-            EntityDetailScreen<String>(DetailUiState.Error(DataError.Offline), header = { DetailHeader(it) }, onBack = {}) {}
+            EntityDetailScreen<String>(DetailUiState.Error(AppErrors.map(DataError.Offline)), header = { DetailHeader(it) }, onBack = {}) {}
         }
         captureLightAndDark("EntityDetailScreen_finns_inte") {
-            EntityDetailScreen<String>(DetailUiState.Error(DataError.NotFound), header = { DetailHeader(it) }, onBack = {}) {}
+            EntityDetailScreen<String>(DetailUiState.Error(AppErrors.notFound()), header = { DetailHeader(it) }, onBack = {}) {}
         }
     }
 
@@ -384,7 +389,7 @@ class FramesTest {
     fun `EntityListScreen - lägen`() {
         captureLightAndDark("EntityListScreen_laddar") { EntityListScreen<String>("Familjeartiklar", ListUiState.Loading, empty, {}, key = { it }) {} }
         captureLightAndDark("EntityListScreen_tom") { EntityListScreen<String>("Familjeartiklar", ListUiState.Empty, empty, {}, key = { it }) {} }
-        captureLightAndDark("EntityListScreen_fel") { EntityListScreen<String>("Familjeartiklar", ListUiState.Error(DataError.Offline), empty, {}, key = { it }) {} }
+        captureLightAndDark("EntityListScreen_fel") { EntityListScreen<String>("Familjeartiklar", ListUiState.Error(AppErrors.map(DataError.Offline)), empty, {}, key = { it }) {} }
         captureLightAndDark("EntityListScreen_innehall") {
             EntityListScreen(
                 "Familjeartiklar",

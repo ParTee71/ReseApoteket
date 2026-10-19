@@ -33,27 +33,28 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingPreviewText
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.withFallback
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.domain.PackingUpdate
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorLoader
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.AppTextField
 import se.partee71.reseapoteket.ui.components.ConfirmDialog
 import se.partee71.reseapoteket.ui.components.DateField
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
-import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
-import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorLoader
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.LabeledGroup
+import se.partee71.ui.components.QuantityStepper
 
 /** RES-2: 1–60 dagar och minst en som åker med; ett tomt namn blir "Resa <datum>" när det finns ett startdatum. */
 object TripValidator : Validator<Trip> {
@@ -115,7 +116,7 @@ class TripEditViewModel @AssistedInject constructor(
 
     val isNew: Boolean = tripId == null
 
-    val editor: EditorState<Trip> = EditorState(Trip(tripId ?: trips.newId(), days = DEFAULT_DAYS), TripValidator, loading = !isNew)
+    val editor: EditorState<Trip> = EditorState(Trip(tripId ?: trips.newId(), days = DEFAULT_DAYS), TripValidator, AppErrors, loading = !isNew)
     val state = editor.state
     private val loader = EditorLoader(editor, viewModelScope, tripId?.let { id -> { trips.get(id) } })
 

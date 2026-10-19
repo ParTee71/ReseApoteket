@@ -27,15 +27,28 @@ import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.reseapoteket.ui.theme.Green
 import se.partee71.ui.components.AddSplitButton
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.AppFilterChip
 import se.partee71.ui.components.AppIconButton
 import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppSegmentedChoice
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.AppTopBar
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.ChoiceChips
+import se.partee71.ui.components.ColorSwatchPicker
+import se.partee71.ui.components.ExampleChips
+import se.partee71.ui.components.FieldError
+import se.partee71.ui.components.GroupLabel
 import se.partee71.ui.components.IconButtonVariant
+import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.QuantityStepper
+import se.partee71.ui.components.SectionHeader
+import se.partee71.ui.components.TimeField
 import se.partee71.ui.components.TopBarSize
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
@@ -87,7 +100,7 @@ class CatalogScreenshotTest {
     fun `kort, rader och rubriker`() {
         captureLightAndDark("ApotekCard_rader") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     SectionHeader("Mediciner", icon = R.drawable.ic_medication, count = "4 / 5")
                     ItemRow("Enalapril 10 mg", subtitle = "18 tabletter · 2 kartor")
                     AppDivider()
@@ -97,7 +110,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("ItemRow_varianter") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     ItemRow("Anna", subtitle = "3 recept · 1 kosttillskott", leading = { PersonAvatar("🦊", AppColors.person(0)) }, navigates = true, onClick = {})
                     ItemRow("Solkräm", subtitle = "1 tub per 7 dagar", trailing = { InfoPill("ändrad") })
                     ItemRow("Erik", accent = AppColors.person(1), tinted = true)
@@ -107,7 +120,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("CheckRow_lagen") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     CheckRow("Enalapril 10 mg", false, {}, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
                     CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
                     CheckRow("Alvedon 250 mg", false, {}, subtitle = "14 tabletter", onClick = {}, accent = AppColors.person(2), trailing = { InfoPill("ändrad") })
@@ -116,7 +129,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("SwitchRow_lagen") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     SwitchRow("Flytta avprickade sist", true, {}, subtitle = "I packlistan")
                     SwitchRow("Visa arkiverade", false, {})
                     SwitchRow("Dags att packa", true, {}, subtitle = "3 dagar före · 18:00", onClick = {})
@@ -166,12 +179,12 @@ class CatalogScreenshotTest {
         captureLightAndDark("GroupLabel_over_kort") {
             Sheet {
                 GroupLabel("Utseende")
-                ApotekCard { ItemRow("Tema") }
+                AppCard { ItemRow("Tema") }
             }
         }
         captureLightAndDark("AppDivider_i_kort") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     ItemRow("Anna")
                     AppDivider()
                     ItemRow("Erik")
@@ -181,7 +194,7 @@ class CatalogScreenshotTest {
         captureLightAndDark("AvatarStack_resenarer") {
             Sheet {
                 AvatarStack(listOf("🦊", "🐻", "🐰", "🦉").mapIndexed { i, e -> StackedAvatar(e, AppColors.person(i), "Person $i") })
-                ApotekCard {
+                AppCard {
                     ItemRow(
                         "Gran Canaria",
                         subtitle = "fre 2 okt 2026 · 7 dagar",
@@ -195,7 +208,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("PausableRow_aktiv_och_pausad") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
                     AppDivider()
                     PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {})
@@ -204,7 +217,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("ItemRow_pill_och_pausad") {
             Sheet {
-                ApotekCard {
+                AppCard {
                     ItemRow("Levaxin 50 µg", subtitle = "1 tablett dagligen", trailing = { InfoPill("Dagligen", tone = Tone.Blue) }, navigates = true, onClick = {})
                     AppDivider()
                     ItemRow(
@@ -283,7 +296,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("FieldError_sparfel") { Sheet { FieldError("Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.") } }
         captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}) } }
-        captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX[3], {}) } }
+        captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX, AppColors.PERSON_HEX[3], {}, AppColors::person, { personColorLabel(it) }, PersonColorMarker) } }
         captureLightAndDark("AppSegmentedChoice_tema") { Sheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), 2, {}) } }
         captureLightAndDark("QuantityStepper_varde") {
             Sheet {
@@ -328,8 +341,8 @@ class CatalogScreenshotTest {
     fun `progress, laddning och navigering`() {
         captureLightAndDark("SuitcaseProgress_varianter") {
             Sheet {
-                ApotekCard { SuitcaseProgress(9, 14) }
-                ApotekCard(tone = Tone.Green) { SuitcaseProgress(14, 14) }
+                AppCard { SuitcaseProgress(9, 14) }
+                AppCard(tone = Tone.Green) { SuitcaseProgress(14, 14) }
                 SuitcaseProgress(4, 10, compact = true)
                 SuitcaseProgress(0, 0, compact = true)
             }

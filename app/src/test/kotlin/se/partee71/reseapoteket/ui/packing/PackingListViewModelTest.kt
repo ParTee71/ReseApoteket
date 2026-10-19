@@ -46,9 +46,9 @@ import se.partee71.reseapoteket.testing.FakeDataStore
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.components.UndoRequest
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.UndoRequest
 
 /** Packlistan (PAK-1–5) mot `FakeCollection`; ordningen och statusen testas i `:core`. */
 class PackingListViewModelTest {
@@ -184,19 +184,19 @@ class PackingListViewModelTest {
         val blocked = DefaultPackingRepository(FakeCollectionFactory(collections.store, TestHouseholdScope(version = Schema.CURRENT_VERSION + 1)))
         val vm = PackingListViewModel("t1", trips, persons, regimens, blocked, settings, tripPacking, FixedClock())
         vm.onEvent(PackingListEvent.Check(vm.row("Levaxin").item.id, true))
-        assertEquals(DataError.UpdateRequired, vm.hiding.error.value)
+        assertEquals(DataError.UpdateRequired, vm.hiding.error.value?.cause)
         assertNull(vm.sheetError.value)
 
         vm.onEvent(PackingListEvent.Open(vm.row("Levaxin").item.id))
         vm.onEvent(PackingListEvent.Quantity(5))
-        assertEquals(DataError.UpdateRequired, vm.sheetError.value)
+        assertEquals(DataError.UpdateRequired, vm.sheetError.value?.cause)
         vm.onEvent(PackingListEvent.CloseQuantity)
         assertNull(vm.sheetError.value)
 
         vm.onEvent(PackingListEvent.Add)
         vm.onEvent(PackingListEvent.AddName("Laddare"))
         vm.onEvent(PackingListEvent.AddSave)
-        assertEquals(DataError.UpdateRequired, vm.sheetError.value)
+        assertEquals(DataError.UpdateRequired, vm.sheetError.value?.cause)
         vm.onEvent(PackingListEvent.AddName("Laddare 2"))
         assertNull(vm.sheetError.value, "ett gammalt fel står inte kvar medan raden ändras")
     }
@@ -327,7 +327,7 @@ class PackingListViewModelTest {
 
         vm.onEvent(PackingListEvent.AddListText("Laddare\nPowerbank"))
         vm.onEvent(PackingListEvent.AddListSave)
-        assertEquals(DataError.UpdateRequired, vm.sheetError.value)
+        assertEquals(DataError.UpdateRequired, vm.sheetError.value?.cause)
         assertTrue(vm.adding.value)
         assertEquals("Laddare\nPowerbank", vm.addList.value.text)
         assertFalse(vm.addList.value.saving)
@@ -370,12 +370,12 @@ class PackingListViewModelTest {
     @Test
     fun `en resa som inte finns visar finns inte längre och går inte att lägga till under (#88)`() = runTest {
         val vm = PackingListViewModel("okand", trips, persons, regimens, packing, settings, tripPacking, FixedClock())
-        assertEquals(ListUiState.Error(DataError.NotFound), vm.state.value)
+        assertEquals(DataError.NotFound, (vm.state.value as ListUiState.Error).error.cause)
         seed()
         val open = viewModel()
         assertEquals(3, open.rows().size)
         trips.delete("t1")
-        assertEquals(ListUiState.Error(DataError.NotFound), open.state.value)
+        assertEquals(DataError.NotFound, (open.state.value as ListUiState.Error).error.cause)
     }
 }
 

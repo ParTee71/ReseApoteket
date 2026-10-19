@@ -17,30 +17,30 @@ import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
 import se.partee71.reseapoteket.core.model.PackingSource
 import se.partee71.reseapoteket.core.model.Person
-import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.AppBottomSheet
-import se.partee71.reseapoteket.ui.components.AppTextField
-import se.partee71.reseapoteket.ui.components.InfoPill
 import se.partee71.reseapoteket.ui.components.ItemRow
-import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
-import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.UiError
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppSegmentedChoice
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.LabeledGroup
+import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Tone
 
 /** Ändra mängd (PAK-3): stegare, förslaget med förklaringen och "Återställ till förslag". */
 @Composable
-internal fun QuantitySheet(row: PackingRow, onEvent: (PackingListEvent) -> Unit, error: DataError? = null) {
+internal fun QuantitySheet(row: PackingRow, onEvent: (PackingListEvent) -> Unit, error: UiError? = null) {
     val item = row.item
     AppBottomSheet(item.name, onDismiss = { onEvent(PackingListEvent.CloseQuantity) }, error = error) {
         listOfNotNull(row.person?.name, row.schedule).takeIf { it.isNotEmpty() }?.let {
@@ -67,7 +67,7 @@ internal fun AddItemSheet(
     state: EditorUiState<PackingItem>,
     travellers: List<Person>,
     onEvent: (PackingListEvent) -> Unit,
-    error: DataError? = null,
+    error: UiError? = null,
     list: AddListState = AddListState()
 ) {
     AppBottomSheet(stringResource(R.string.packing_add_title), onDismiss = { onEvent(PackingListEvent.CloseAdd) }, error = error) {
@@ -138,7 +138,7 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
     )
     if (list.lines.isNotEmpty()) {
         LabeledGroup(stringResource(R.string.packing_list_preview)) {
-            ApotekCard { list.lines.forEach { PastedRow(it) } }
+            AppCard { list.lines.forEach { PastedRow(it) } }
         }
     }
 }

@@ -13,10 +13,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Archivable
-import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.data.common.dataError
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.ui.components.ListArchive
-import se.partee71.reseapoteket.ui.components.UndoRequest
+import se.partee71.ui.common.UiError
+import se.partee71.ui.common.uiErrorOrNull
+import se.partee71.ui.components.UndoRequest
 
 /** Arkivera med svep, Ångra och "Visa arkiverade" – samma händelser i alla listor (NFR-3). */
 sealed interface ArchiveEvent {
@@ -54,14 +55,14 @@ class ArchiveActions(
     private var undoAction: (suspend () -> Result<Unit>)? = null
 
     /** Ett misslyckat arkivera/ångra, tills listan visat det. */
-    private val _error = MutableStateFlow<DataError?>(null)
-    val error: StateFlow<DataError?> = _error.asStateFlow()
+    private val _error = MutableStateFlow<UiError?>(null)
+    val error: StateFlow<UiError?> = _error.asStateFlow()
 
     /** Aktiva först; arkiverade sist och bara när de visas. Ordningen i övrigt behålls. */
     fun <T : Archivable> visible(source: Flow<List<T>>): Flow<List<T>> = combine(source, _showingArchived) { all, showArchived -> all.filter { showArchived || !it.archived }.sortedBy { it.archived } }
 
     /** Ett fel från en annan skrivning i samma lista (t.ex. en avprickning) visas på samma sätt. */
-    fun report(error: DataError) {
+    fun report(error: UiError) {
         _error.value = error
     }
 
@@ -74,7 +75,7 @@ class ArchiveActions(
     fun onEvent(event: ArchiveEvent) {
         when (event) {
             is ArchiveEvent.Archive -> scope.launch {
-                setArchived(event.id, true).dataError()?.let { _error.value = it } ?: run {
+                setArchived(event.id, true).uiErrorOrNull(AppErrors)?.let { _error.value = it } ?: run {
                     undoAction = null
                     _undo.value = UndoRequest(event.id, event.name, undoFormat)
                 }
@@ -85,7 +86,7 @@ class ArchiveActions(
                 val action = undoAction
                 _undo.value = null
                 undoAction = null
-                scope.launch { (action?.invoke() ?: setArchived(request.id, false)).dataError()?.let { _error.value = it } }
+                scope.launch { (action?.invoke() ?: setArchived(request.id, false)).uiErrorOrNull(AppErrors)?.let { _error.value = it } }
             }
 
             ArchiveEvent.UndoDismissed -> {

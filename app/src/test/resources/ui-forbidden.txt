@@ -19,11 +19,11 @@
 \bTextStyle\(	AppTheme.typography
 \bMaterialTheme\.typography\b	AppTheme.typography
 \b(fontSize|fontWeight|lineHeight|letterSpacing)\s*=	AppTheme.typography
-\.shadow\(	ApotekCard eller komponentens parametrar
+\.shadow\(	AppCard eller komponentens parametrar
 \.(height|width|size|clip|requiredHeight|requiredWidth|requiredSize)\(\s*[0-9]+(\.[0-9]+)?\.dp	komponentens parametrar eller Spacing
 \bpadding\([^)]*[0-9]+(\.[0-9]+)?\.dp	Spacing
-\bSurface\s*[({]	ApotekCard
-\b(Elevated|Outlined)?Card\s*[({]	ApotekCard
+\bSurface\s*[({]	AppCard
+\b(Elevated|Outlined)?Card\s*[({]	AppCard
 \b(Filled|FilledTonal|Outlined|Elevated|Text)?Button\s*[({]	AppButton
 \b(Filled|FilledTonal|Outlined)?IconButton\s*[({]	AppIconButton
 \b(Small|Large|Extended)?FloatingActionButton\s*[({]	AddSplitButton / AppFloatingToolbar

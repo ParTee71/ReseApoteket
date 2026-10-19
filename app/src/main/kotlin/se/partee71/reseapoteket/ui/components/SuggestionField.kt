@@ -13,6 +13,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import se.partee71.reseapoteket.R
+import se.partee71.ui.components.AppCard
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 
@@ -42,7 +44,7 @@ fun SuggestionField(
         AppTextField(value, onValueChange, label, error = error, helper = helper)
         if (suggestions.isNotEmpty()) {
             val count = pluralStringResource(R.plurals.suggestions_count, suggestions.size, suggestions.size)
-            ApotekCard(
+            AppCard(
                 Modifier.semantics {
                     liveRegion = LiveRegionMode.Polite
                     contentDescription = count

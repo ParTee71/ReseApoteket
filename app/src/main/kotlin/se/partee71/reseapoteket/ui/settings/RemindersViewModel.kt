@@ -31,7 +31,7 @@ import se.partee71.reseapoteket.data.datastore.SettingsStore
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.reminders.ReminderRunner
 import se.partee71.reseapoteket.reminders.ReminderSource
-import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
+import se.partee71.ui.common.STOP_TIMEOUT_MILLIS
 
 /** Kortet Påminnelser: personerna att välja bland, telefonens inställningar och nästa påminnelse av varje slag. */
 @Immutable

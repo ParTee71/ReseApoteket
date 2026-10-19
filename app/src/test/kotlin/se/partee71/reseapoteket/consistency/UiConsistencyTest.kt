@@ -138,11 +138,10 @@ class UiConsistencyTest {
         val copies = fromLibrary intersect publicComponents("android-ui")
         assertTrue(copies.isEmpty(), "Ta bort appens kopia – komponenten finns i android-ui: $copies")
         val gallery = galleryText()
+        val inLibrary = libraryFunctions()
         val problems = fromLibrary.flatMap { name ->
             listOfNotNull(
-                "$name finns inte i android-ui (${LIBRARY_PACKAGE}.${name}Kt)".takeIf {
-                    runCatching { Class.forName("$LIBRARY_PACKAGE.${name}Kt") }.isFailure
-                },
+                "$name finns inte i android-ui ($LIBRARY_PACKAGE)".takeIf { name !in inLibrary },
                 "$name saknas i ComponentGallery".takeIf { !inGallery(gallery, name) }
             )
         }
@@ -162,6 +161,22 @@ class UiConsistencyTest {
             )
         }
         assertTrue(problems.isEmpty(), problems.joinToString("\n"))
+    }
+
+    /** Namnen på de publika toppnivåfunktionerna i bibliotekets paket – en fil kan ha flera (t.ex. `LabeledGroup` och `FieldError` i `GroupLabelKt`). */
+    private fun libraryFunctions(): Set<String> {
+        val dir = LIBRARY_PACKAGE.replace('.', '/')
+        val jar = checkNotNull(javaClass.classLoader.getResource("$dir/AppButtonKt.class")) { "android-ui saknas på klassvägen" }
+            .let { (it.openConnection() as java.net.JarURLConnection).jarFile }
+        return jar.use { file ->
+            file.entries().asSequence()
+                .map { it.name }
+                .filter { it.startsWith("$dir/") && it.endsWith("Kt.class") && it.count { c -> c == '/' } == dir.count { c -> c == '/' } + 1 }
+                .map { Class.forName(it.removeSuffix(".class").replace('/', '.')) }
+                // En parameter av value-klass (Color, Dp) ger ett manglat namn: AppCard-xyz.
+                .flatMap { cls -> cls.methods.filter { java.lang.reflect.Modifier.isStatic(it.modifiers) }.map { it.name.substringBefore('-') } }
+                .toSet()
+        }
     }
 
     private fun inGallery(gallery: String, name: String) = Regex("""\b$name\s*[({<]""").containsMatchIn(gallery)

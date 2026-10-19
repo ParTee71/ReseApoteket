@@ -29,7 +29,6 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.components.AppFloatingToolbar
-import se.partee71.reseapoteket.ui.components.ErrorSnackbar
 import se.partee71.reseapoteket.ui.components.FloatingToolbarClearance
 import se.partee71.reseapoteket.ui.components.LocalBottomClearance
 import se.partee71.reseapoteket.ui.components.SyncIndicator
@@ -38,6 +37,7 @@ import se.partee71.reseapoteket.ui.components.topBarStatus
 import se.partee71.reseapoteket.ui.sync.SyncEvent
 import se.partee71.reseapoteket.ui.sync.SyncUiState
 import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.ErrorSnackbar
 import se.partee71.ui.components.LocalTopBarStatus
 import se.partee71.ui.theme.Spacing
 

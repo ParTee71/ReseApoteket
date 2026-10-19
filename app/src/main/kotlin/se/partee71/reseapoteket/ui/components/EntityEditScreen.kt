@@ -30,13 +30,13 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.toMessage
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.LoadErrorState
 import se.partee71.ui.components.TopBarSize
 import se.partee71.ui.theme.Spacing
 
@@ -52,7 +52,7 @@ data class DeleteAction(val title: String, val message: String, val onConfirm: (
  * - "Spara" ([saveLabel]) aktiv först när formuläret är giltigt och ändrat;
  * - bakåt med osparade ändringar → "Släng ändringar?" – likaså arkivera/återställ, som stänger
  *   formuläret utan att spara fälten;
- * - sparfel → snackbar via `DataError.toMessage()`; lyckad sparning → [onClose];
+ * - sparfel → snackbar med felets text (`UiError`, via `AppErrors`); lyckad sparning → [onClose];
  * - arkivera/återställ/radera i menyn när [onArchive]/[onRestore]/[delete] finns;
  * - läsfel → feltillstånd med "Försök igen" ([onRetry]).
  *
@@ -99,7 +99,7 @@ fun EntityEditScreen(
         if (failure != null) {
             // Egen coroutine: kvitteringen tömmer fältet, och en visad snackbar får inte hålla
             // tillbaka nästa händelse.
-            scope.launch { snackbar.showSnackbar(resources.getString(failure.toMessage())) }
+            scope.launch { snackbar.showSnackbar(resources.getString(failure.message)) }
             handled.onFailureShown()
         }
     }

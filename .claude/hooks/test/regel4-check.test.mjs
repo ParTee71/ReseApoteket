@@ -46,12 +46,12 @@ function runHook(projectDir, filePath, tool = 'Write') {
 
 const featureCard = `package x\n\n@Composable\nfun PersonRow() {\n    Card(modifier = Modifier) { Text("Anna") }\n}\n`;
 
-test('stoppar Card( i feature-kod med exit 2 och tipsar om ApotekCard', () => {
+test('stoppar Card( i feature-kod med exit 2 och tipsar om AppCard', () => {
   const { dir } = makeProject();
   const r = runHook(dir, writeKt(dir, `${pkg}/ui/persons/PersonRow.kt`, featureCard));
   assert.equal(r.status, 2);
   assert.match(r.stderr, /PersonRow\.kt:5/);
-  assert.match(r.stderr, /ApotekCard/);
+  assert.match(r.stderr, /AppCard/);
 });
 
 test('fungerar när sessionens projektrot är en föräldrakatalog med flera repon', () => {
@@ -63,7 +63,7 @@ test('fungerar när sessionens projektrot är en föräldrakatalog med flera rep
 
 test('släpper igenom samma rad i ui/components', () => {
   const { dir } = makeProject();
-  const r = runHook(dir, writeKt(dir, `${pkg}/ui/components/ApotekCard.kt`, featureCard));
+  const r = runHook(dir, writeKt(dir, `${pkg}/ui/components/AppCard.kt`, featureCard));
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stderr, '');
 });
@@ -237,7 +237,7 @@ test('Stop blockerar när en ändrad eller ny fil har förbjudna mönster', () =
   const out = JSON.parse(r.stdout);
   assert.equal(out.decision, 'block');
   assert.match(out.reason, /PersonRow\.kt:5/);
-  assert.match(out.reason, /ApotekCard/);
+  assert.match(out.reason, /AppCard/);
 });
 
 test('Stop ser även filer som redan committats på branchen', () => {

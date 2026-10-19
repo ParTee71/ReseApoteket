@@ -18,22 +18,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.repository.PersonRepository
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorLoader
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.AppTextField
 import se.partee71.reseapoteket.ui.components.AvatarSize
-import se.partee71.reseapoteket.ui.components.ColorSwatchPicker
 import se.partee71.reseapoteket.ui.components.EmojiPicker
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
-import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PERSON_EMOJIS
 import se.partee71.reseapoteket.ui.components.PersonAvatar
+import se.partee71.reseapoteket.ui.components.PersonColorMarker
+import se.partee71.reseapoteket.ui.components.personColorLabel
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorLoader
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AppTextField
+import se.partee71.ui.components.ColorSwatchPicker
+import se.partee71.ui.components.LabeledGroup
 
 /** PER-2: namnet är obligatoriskt; emoji och färg har alltid ett värde. */
 object PersonValidator : Validator<Person> {
@@ -71,10 +74,11 @@ class PersonEditViewModel @AssistedInject constructor(
     val editor: EditorState<Person> = EditorState(
         Person(id = personId ?: persons.newId(), emoji = PERSON_EMOJIS.first(), colorHex = AppColors.PERSON_HEX.first()),
         PersonValidator,
+        AppErrors,
         loading = !isNew
     )
     val state = editor.state
-    private val loader = EditorLoader(editor, viewModelScope, personId?.let { id -> { persons.get(id) } }) { it.withDefaults() }
+    private val loader = EditorLoader(editor, viewModelScope, personId?.let { id -> { persons.get(id) } }, prepare = { it.withDefaults() })
 
     fun onEvent(event: PersonEditEvent) {
         when (event) {
@@ -137,7 +141,7 @@ fun PersonEditContent(
             EmojiPicker(person.emoji, { onEvent(PersonEditEvent.Emoji(it)) })
         }
         LabeledGroup(stringResource(R.string.person_color)) {
-            ColorSwatchPicker(person.colorHex, { onEvent(PersonEditEvent.PersonColor(it)) })
+            ColorSwatchPicker(AppColors.PERSON_HEX, person.colorHex, { onEvent(PersonEditEvent.PersonColor(it)) }, AppColors::person, { personColorLabel(it) }, PersonColorMarker)
         }
     }
 }

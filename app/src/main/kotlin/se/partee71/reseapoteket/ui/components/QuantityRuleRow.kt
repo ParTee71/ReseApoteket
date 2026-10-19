@@ -8,7 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.QuantityRule
+import se.partee71.ui.components.AppFilterChip
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.FieldError
 import se.partee71.ui.theme.Spacing
 
 /**

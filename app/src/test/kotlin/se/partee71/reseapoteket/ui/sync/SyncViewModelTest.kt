@@ -49,7 +49,7 @@ class SyncViewModelTest {
         viewModel.state.test {
             assertEquals(SyncUiState(), awaitItem())
             status.lastWriteError.value = DataError.PermissionDenied
-            assertEquals(SyncUiState(writeError = DataError.PermissionDenied), awaitItem())
+            assertEquals(DataError.PermissionDenied, awaitItem().writeError?.cause)
             viewModel.onEvent(SyncEvent.WriteErrorShown)
             assertEquals(SyncUiState(), awaitItem())
         }

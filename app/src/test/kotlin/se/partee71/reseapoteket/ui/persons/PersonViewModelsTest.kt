@@ -20,11 +20,11 @@ import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.components.PERSON_EMOJIS
-import se.partee71.reseapoteket.ui.components.UndoRequest
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.common.DetailUiState
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.UndoRequest
 
 /** Personernas ViewModels (PER-1–4) mot `FakeCollection` – ramarnas beteende testas i ramarnas tester. */
 class PersonViewModelsTest {
@@ -120,7 +120,7 @@ class PersonViewModelsTest {
     @Test
     fun `en person som inte finns visar läsfel`() = runTest {
         val vm = PersonEditViewModel("borta", persons)
-        vm.state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError) }
+        vm.state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError?.cause) }
     }
 
     @Test
@@ -145,7 +145,7 @@ class PersonViewModelsTest {
     @Test
     fun `persondetaljen för en person som inte finns är ett fel`() = runTest {
         PersonDetailViewModel("borta", persons, regimens).state.test {
-            assertEquals(DetailUiState.Error(DataError.NotFound), expectMostRecentItem())
+            assertEquals(DataError.NotFound, (expectMostRecentItem() as DetailUiState.Error).error.cause)
         }
     }
 
@@ -158,13 +158,13 @@ class PersonViewModelsTest {
         scope.setVersion(Schema.CURRENT_VERSION + 1) // nyare data än appen: skrivskyddat
 
         list.archive.onEvent(ArchiveEvent.Archive("anna", "Anna"))
-        assertEquals(DataError.UpdateRequired, list.archive.error.value)
+        assertEquals(DataError.UpdateRequired, list.archive.error.value?.cause)
         assertNull(list.archive.undo.value)
         list.archive.onEvent(ArchiveEvent.ErrorShown)
         assertNull(list.archive.error.value)
 
         detail.onEvent(PersonDetailEvent.SetArchived(true))
-        assertEquals(DataError.UpdateRequired, detail.error.value)
+        assertEquals(DataError.UpdateRequired, detail.error.value?.cause)
         detail.onEvent(PersonDetailEvent.ErrorShown)
         assertNull(detail.error.value)
     }

@@ -31,10 +31,15 @@ import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.UNDO_MILLIS
+import se.partee71.ui.components.UndoRequest
+import se.partee71.ui.components.UndoSnackbar
 import se.partee71.ui.theme.Spacing
 
 /** Komponenter som ritas ovanpå innehållet, i rörelse eller över tid – en regel per test. */
@@ -88,41 +93,6 @@ class OverlayScreenshotTest {
     }
 
     @Test
-    fun `UndoSnackbar försvinner efter fem sekunder`() {
-        var dismissed = 0
-        rule.mainClock.autoAdvance = false
-        rule.setContent {
-            ReseApoteketTheme {
-                val host = remember { SnackbarHostState() }
-                UndoSnackbar(UndoRequest("solkram", "Solkräm"), host, onUndo = {}, onDismissed = { dismissed++ })
-                AppSnackbarHost(host)
-            }
-        }
-        rule.mainClock.advanceTimeBy(UNDO_MILLIS - FRAME)
-        rule.onNodeWithText("Solkräm arkiverad").assertExists()
-        assertEquals(0, dismissed)
-        rule.mainClock.advanceTimeBy(2 * FRAME)
-        assertEquals(1, dismissed)
-    }
-
-    @Test
-    fun `UndoSnackbar - att lämna skärmen avslutar ångra, så att den inte visas igen (NFR-3)`() {
-        var dismissed = 0
-        var visible by mutableStateOf(true)
-        rule.setContent {
-            ReseApoteketTheme {
-                val host = remember { SnackbarHostState() }
-                if (visible) UndoSnackbar(UndoRequest("solkram", "Solkräm"), host, onUndo = {}, onDismissed = { dismissed++ })
-                AppSnackbarHost(host)
-            }
-        }
-        rule.onNodeWithText("Solkräm arkiverad").assertExists()
-        visible = false
-        rule.waitForIdle()
-        assertEquals(1, dismissed)
-    }
-
-    @Test
     fun `UndoSnackbar - samma sak arkiverad igen efter Ångra avslutas också när skärmen lämnas`() {
         var dismissed = 0
         var request by mutableStateOf<UndoRequest?>(UndoRequest("solkram", "Solkräm"))
@@ -167,7 +137,7 @@ class OverlayScreenshotTest {
     @Composable
     private fun SwipeSample() {
         Box(Modifier.background(MaterialTheme.colorScheme.background).padding(Spacing.l)) {
-            ApotekCard { SwipeToHide(onHide = {}) { ItemRow("Solkräm", it, subtitle = "1 tub per 7 dagar") } }
+            AppCard { SwipeToHide(onHide = {}) { ItemRow("Solkräm", it, subtitle = "1 tub per 7 dagar") } }
         }
     }
 

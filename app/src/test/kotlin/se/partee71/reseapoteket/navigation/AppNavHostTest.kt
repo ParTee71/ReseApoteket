@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.sync.SyncEvent
 import se.partee71.reseapoteket.ui.sync.SyncUiState
@@ -123,7 +124,7 @@ class AppNavHostTest {
                 AppNavHost(
                     backStack,
                     { key -> NavEntry(key) { Text("Skärm: ${key::class.simpleName}") } },
-                    sync = SyncUiState(writeError = DataError.PermissionDenied),
+                    sync = SyncUiState(writeError = AppErrors.map(DataError.PermissionDenied)),
                     onSyncEvent = { events += it }
                 )
             }
@@ -144,7 +145,7 @@ class AppNavHostTest {
                 AppNavHost(
                     backStack,
                     { key -> NavEntry(key) { AppTopBar("Resor") } },
-                    sync = SyncUiState(pending = true, writeError = DataError.PermissionDenied)
+                    sync = SyncUiState(pending = true, writeError = AppErrors.map(DataError.PermissionDenied))
                 )
             }
         }

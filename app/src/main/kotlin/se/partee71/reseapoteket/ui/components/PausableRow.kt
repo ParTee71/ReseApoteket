@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.components.InfoPill
 import se.partee71.ui.theme.Tone
 
 /**

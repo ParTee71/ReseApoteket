@@ -10,13 +10,14 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.schema.HouseholdCodec
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.testing.captureLightAndDark
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.runEditScreenContract
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
 
 /** Hushållets namn (SET-2): formulärkontraktet och att bara namnet skrivs. */
 @RunWith(RobolectricTestRunner::class)
@@ -33,7 +34,7 @@ class HouseholdEditTest {
     @Test
     fun `formuläret uppfyller formulärkontraktet`() {
         rule.runEditScreenContract(
-            editor = EditorState(svensson, HouseholdValidator),
+            editor = EditorState(svensson, HouseholdValidator, AppErrors),
             makeInvalid = { update(HouseholdValidator.NAME) { it.copy(name = " ") } },
             makeValid = { update(HouseholdValidator.NAME) { it.copy(name = "Familjen Berg") } },
             invalidMessage = "Ange ett namn"

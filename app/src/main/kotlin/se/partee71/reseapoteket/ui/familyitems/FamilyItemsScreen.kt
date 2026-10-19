@@ -16,11 +16,9 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.QuantityRuleFormatter
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.FamilyItemCategory
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.repository.FamilyItemRepository
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.ListEvent
-import se.partee71.reseapoteket.ui.common.ListLoader
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EmptyExample
@@ -30,6 +28,9 @@ import se.partee71.reseapoteket.ui.components.ListGroup
 import se.partee71.reseapoteket.ui.components.PausableRow
 import se.partee71.reseapoteket.ui.components.kindLabel
 import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.common.ListEvent
+import se.partee71.ui.common.ListLoader
+import se.partee71.ui.common.ListUiState
 import se.partee71.ui.components.SwipeToHide
 import se.partee71.ui.theme.Tone
 
@@ -43,7 +44,7 @@ class FamilyItemsViewModel @Inject constructor(items: FamilyItemRepository) : Vi
     val archive = ArchiveActions(viewModelScope, items::setArchived)
 
     // Per kategori i fast ordning (FAM-1); inom kategorin aktiva först, sedan i sparad ordning.
-    private val loader = ListLoader(archive.visible(items.observe()).map { list -> list.sortedBy { it.category.ordinal } }, viewModelScope)
+    private val loader = ListLoader(archive.visible(items.observe()).map { list -> list.sortedBy { it.category.ordinal } }, viewModelScope, AppErrors)
     val state = loader.state
 
     fun onEvent(event: FamilyItemsEvent) {

@@ -15,10 +15,10 @@ import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.data.repository.DefaultTripRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsViewModel
 import se.partee71.reseapoteket.ui.persons.PersonsViewModel
 import se.partee71.reseapoteket.ui.trips.TripsViewModel
+import se.partee71.ui.common.ListUiState
 
 /** Flikarnas ViewModels visar samlingens aktiva dokument; arkiverade döljs. */
 class TabViewModelsTest {
