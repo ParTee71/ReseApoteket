@@ -24,6 +24,7 @@ import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.EmptyState
 import se.partee71.ui.theme.Spacing
 
 /** Beteende och skärmdumpar (ljust + mörkt) för de delade komponenterna. */

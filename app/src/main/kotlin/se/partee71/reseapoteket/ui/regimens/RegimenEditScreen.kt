@@ -41,25 +41,16 @@ import se.partee71.reseapoteket.core.model.MedicineForm
 import se.partee71.reseapoteket.core.model.Regimen
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.displayName
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.data.repository.householdSettings
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorLoader
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.AppTextField
-import se.partee71.reseapoteket.ui.components.ChoiceChips
 import se.partee71.reseapoteket.ui.components.DeleteAction
 import se.partee71.reseapoteket.ui.components.DoseScheduleRow
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
-import se.partee71.reseapoteket.ui.components.ExampleChips
-import se.partee71.reseapoteket.ui.components.InfoPill
-import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.Suggestion
 import se.partee71.reseapoteket.ui.components.SuggestionField
@@ -67,6 +58,16 @@ import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.components.kindLabel
 import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorLoader
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AppTextField
+import se.partee71.ui.components.ChoiceChips
+import se.partee71.ui.components.ExampleChips
+import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.theme.Tone
 
 /** REC-1, REC-2: namnet är obligatoriskt och doseringen ska gå att räkna på. */
@@ -155,6 +156,7 @@ class RegimenEditViewModel @AssistedInject constructor(
             schedule = DoseSchedule.Daily()
         ),
         RegimenValidator,
+        AppErrors,
         loading = !isNew
     )
     val state = editor.state

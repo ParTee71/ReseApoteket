@@ -61,21 +61,21 @@ import se.partee71.reseapoteket.data.export.HouseholdExport
 import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
 import se.partee71.reseapoteket.ui.common.toMessage
-import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.ConfirmDialog
-import se.partee71.reseapoteket.ui.components.FieldError
-import se.partee71.reseapoteket.ui.components.GroupLabel
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.LocalBottomClearance
 import se.partee71.reseapoteket.ui.components.PersonAvatar
-import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.common.STOP_TIMEOUT_MILLIS
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.AppSegmentedChoice
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.FieldError
+import se.partee71.ui.components.GroupLabel
+import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.theme.Spacing
 
 /** Kortet där en åtgärd gjordes – ett fel visas där (NFR-5). */
@@ -285,7 +285,7 @@ fun SettingsContent(
                 }
             }
             GroupLabel(stringResource(R.string.settings_packing))
-            ApotekCard {
+            AppCard {
                 SwitchRow(
                     stringResource(R.string.settings_move_checked_last),
                     state.moveCheckedLast,
@@ -298,7 +298,7 @@ fun SettingsContent(
                 it()
             }
             GroupLabel(stringResource(R.string.settings_appearance))
-            ApotekCard {
+            AppCard {
                 ItemRow(
                     title = stringResource(R.string.settings_theme),
                     below = {
@@ -342,7 +342,7 @@ fun SettingsContent(
                 )
             }
             GroupLabel(stringResource(R.string.settings_about))
-            ApotekCard {
+            AppCard {
                 ItemRow(stringResource(R.string.app_name), subtitle = stringResource(R.string.settings_version_format, versionName))
                 medicinesUpdated?.let {
                     AppDivider()
@@ -387,7 +387,7 @@ fun SettingsContent(
 /** Ett kort; ett fel från en åtgärd i just det kortet visas sist i det. */
 @Composable
 private fun SettingsCard(error: SettingsError?, section: SettingsSection, content: @Composable () -> Unit) {
-    ApotekCard {
+    AppCard {
         content()
         error?.takeIf { it.section == section }?.let { FieldError(stringResource(it.error.toMessage()), Modifier.padding(Spacing.s)) }
     }

@@ -15,7 +15,7 @@ manager.createNotificationChannel(channel)
 val done: Boolean = false,
 withContext(io) {
 import kotlinx.coroutines.Dispatchers
-ApotekCard { }
+AppCard { }
 AppButton(onClick = {})
 AppIconButton(onClick = {})
 AddSplitButton()

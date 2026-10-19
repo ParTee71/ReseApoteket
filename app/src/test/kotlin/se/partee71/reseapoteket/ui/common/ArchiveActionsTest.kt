@@ -12,9 +12,10 @@ import org.junit.Rule
 import org.junit.Test
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.MainDispatcherRule
-import se.partee71.reseapoteket.ui.components.UndoRequest
+import se.partee71.ui.components.UndoRequest
 
 /** Den delade arkiveringslogiken för listor (NFR-3) – listornas egna tester visar den i sitt sammanhang. */
 class ArchiveActionsTest {
@@ -63,7 +64,7 @@ class ArchiveActionsTest {
         result = Result.failure(DataError.PermissionDenied)
         archive.offerUndo(request) { result }
         archive.onEvent(ArchiveEvent.Undo)
-        assertEquals(DataError.PermissionDenied, archive.error.value)
+        assertEquals(DataError.PermissionDenied, archive.error.value?.cause)
     }
 
     @Test
@@ -85,7 +86,7 @@ class ArchiveActionsTest {
         val archive = actions()
         result = Result.failure(DataError.PermissionDenied)
         archive.onEvent(ArchiveEvent.Archive("a", "Anna"))
-        assertEquals(DataError.PermissionDenied, archive.error.value)
+        assertEquals(DataError.PermissionDenied, archive.error.value?.cause)
         assertNull(archive.undo.value)
         archive.onEvent(ArchiveEvent.ErrorShown)
         assertNull(archive.error.value)
@@ -108,7 +109,7 @@ class ArchiveActionsTest {
         val hiding = actions(R.string.hidden_format)
         hiding.onEvent(ArchiveEvent.Archive("p", "Plåster"))
         assertEquals(UndoRequest("p", "Plåster", R.string.hidden_format), hiding.undo.value)
-        hiding.report(DataError.Offline)
-        assertEquals(DataError.Offline, hiding.error.value)
+        hiding.report(AppErrors.map(DataError.Offline))
+        assertEquals(DataError.Offline, hiding.error.value?.cause)
     }
 }

@@ -15,9 +15,9 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.toMessage
-import se.partee71.reseapoteket.ui.components.EmptyState
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.EmptyState
 import se.partee71.ui.theme.Spacing
 
 /** Inloggningen (AUTH-1–3). Fel visas som snackbar ovanför knappen; avbrott visas inte alls. */

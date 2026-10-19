@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.semantics
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.InfoPill
 import se.partee71.ui.components.LocalTopBarStatus
 import se.partee71.ui.theme.Tone
 

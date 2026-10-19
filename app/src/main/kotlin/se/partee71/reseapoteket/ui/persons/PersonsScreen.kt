@@ -16,13 +16,11 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.listed
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.combineByKey
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.ListEvent
-import se.partee71.reseapoteket.ui.common.ListLoader
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
@@ -30,6 +28,9 @@ import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.common.ListEvent
+import se.partee71.ui.common.ListLoader
+import se.partee71.ui.common.ListUiState
 import se.partee71.ui.components.SwipeToHide
 
 /** En rad i personlistan: personen och hur många recept och kosttillskott den har (PER-1). */
@@ -56,7 +57,7 @@ class PersonsViewModel @Inject constructor(
             }
         }
 
-    private val loader = ListLoader(items, viewModelScope)
+    private val loader = ListLoader(items, viewModelScope, AppErrors)
     val state = loader.state
 
     fun onEvent(event: PersonsEvent) {

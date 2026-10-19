@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
@@ -32,7 +33,7 @@ import se.partee71.ui.theme.Tone
 /**
  * Packprogress: "9 av 14 packat" med vågig progress och resväska. [compact] ger bara vågen och
  * "4 / 10" – för en rad i en lista. Progressen fjädrar när den ändras. När allt är packat visar
- * den stora varianten "Allt packat! 🧳" i grönt (PAK-5); lägg den då i ett grönt `ApotekCard`.
+ * den stora varianten "Allt packat! 🧳" i grönt (PAK-5); lägg den då i ett grönt `AppCard`.
  */
 @Composable
 fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, compact: Boolean = false) {

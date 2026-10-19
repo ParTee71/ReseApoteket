@@ -51,17 +51,18 @@ import se.partee71.reseapoteket.core.model.PackingSource
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ListEvent
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.runListScreenContract
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.ListEvent
+import se.partee71.ui.common.ListUiState
 
 /** Packlistan (PAK-1–5): listkontraktet, det som är unikt för packlistan och skärmdumpar. */
 @RunWith(RobolectricTestRunner::class)
@@ -180,7 +181,7 @@ class PackingListScreensTest {
 
     @Test
     fun `ett skrivfel visas i panelen`() {
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}, editing = rows[4], sheetError = DataError.Offline) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Content(rows.toImmutableList()), header(rows), {}, {}, {}, editing = rows[4], sheetError = AppErrors.map(DataError.Offline)) } }
         rule.onNodeWithText("Ingen anslutning", substring = true).assertIsDisplayed()
     }
 
@@ -273,7 +274,7 @@ class PackingListScreensTest {
 
     @Test
     fun `en resa som inte finns visar finns inte längre utan Försök igen och Lägg till (#88)`() {
-        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Error(DataError.NotFound), null, {}, {}, {}) } }
+        rule.setContent { ReseApoteketTheme { PackingListContent(ListUiState.Error(AppErrors.notFound()), null, {}, {}, {}) } }
         rule.onNodeWithText("Det finns inte längre – det kan ha raderats på en annan enhet.").assertIsDisplayed()
         rule.onNodeWithText("Försök igen").assertDoesNotExist()
         rule.onNodeWithText("Lägg till").assertDoesNotExist()
@@ -282,7 +283,7 @@ class PackingListScreensTest {
 
     @Test
     fun `skärmdump - resan finns inte (#88)`() {
-        captureLightAndDark("PackingListScreen_finns_inte") { PackingListContent(ListUiState.Error(DataError.NotFound), null, {}, {}, {}) }
+        captureLightAndDark("PackingListScreen_finns_inte") { PackingListContent(ListUiState.Error(AppErrors.notFound()), null, {}, {}, {}) }
     }
 
     @Test

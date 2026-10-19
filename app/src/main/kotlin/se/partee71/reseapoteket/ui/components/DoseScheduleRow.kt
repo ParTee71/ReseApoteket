@@ -15,7 +15,11 @@ import androidx.compose.ui.semantics.semantics
 import kotlinx.datetime.DayOfWeek
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
+import se.partee71.ui.components.AppFilterChip
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.FieldError
+import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 
@@ -91,12 +95,6 @@ internal fun LabeledStepper(value: Int, onChange: (Int) -> Unit, label: String, 
         QuantityStepper(value, onChange, label, range = range)
         Text(label, style = AppTheme.typography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-/** Ett valideringsfel under ett fält som inte är ett textfält – delas av [DoseScheduleRow] och [QuantityRuleRow] – eller ett sparfel i en panel. */
-@Composable
-fun FieldError(text: String, modifier: Modifier = Modifier) {
-    Text(text, modifier.semantics { error(text) }, style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.error)
 }
 
 /** Meddelandet för en typ som den här appversionen inte känner till. */

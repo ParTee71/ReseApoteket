@@ -14,16 +14,17 @@ import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.Household
 import se.partee71.reseapoteket.core.schema.HouseholdCodec
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorLoader
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.AppTextField
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorLoader
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AppTextField
 
 /** SET-2: hushållet måste ha ett namn. */
 object HouseholdValidator : Validator<Household> {
@@ -44,7 +45,7 @@ sealed interface HouseholdEditEvent {
 @HiltViewModel
 class HouseholdEditViewModel @Inject constructor(private val households: HouseholdRepository) : ViewModel() {
 
-    val editor: EditorState<Household> = EditorState(Household(id = ""), HouseholdValidator, loading = true)
+    val editor: EditorState<Household> = EditorState(Household(id = ""), HouseholdValidator, AppErrors, loading = true)
     val state = editor.state
     private val loader = EditorLoader(editor, viewModelScope, { suspendRunCatching({ DataError.Unknown }) { households.current.first() } })
 

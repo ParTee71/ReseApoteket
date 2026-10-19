@@ -9,14 +9,16 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import se.partee71.reseapoteket.data.common.DataError
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.SyncStatus
-import se.partee71.reseapoteket.ui.common.shownAfter
+import se.partee71.ui.common.UiError
+import se.partee71.ui.common.shownAfter
 
 /** [pending]: ändringar har väntat minst [SyncViewModel.PENDING_DELAY] på servern; [writeError]: en nekad skrivning att visa. */
 @Immutable
-data class SyncUiState(val pending: Boolean = false, val writeError: DataError? = null)
+data class SyncUiState(val pending: Boolean = false, val writeError: UiError? = null)
 
 sealed interface SyncEvent {
     /** Felet har visats och kan släppas. */
@@ -27,7 +29,7 @@ sealed interface SyncEvent {
 @HiltViewModel
 class SyncViewModel @Inject constructor(private val status: SyncStatus) : ViewModel() {
 
-    val state: StateFlow<SyncUiState> = combine(status.syncing.shownAfter(PENDING_DELAY), status.lastWriteError, ::SyncUiState)
+    val state: StateFlow<SyncUiState> = combine(status.syncing.shownAfter(PENDING_DELAY), status.lastWriteError.map { it?.let(AppErrors::map) }, ::SyncUiState)
         .stateIn(viewModelScope, SharingStarted.Eagerly, SyncUiState())
 
     fun onEvent(event: SyncEvent) {

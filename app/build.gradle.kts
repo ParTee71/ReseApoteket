@@ -124,6 +124,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.android.ui.theme)
     implementation(libs.android.ui.components)
+    implementation(libs.android.ui.common)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(libs.hilt.android)

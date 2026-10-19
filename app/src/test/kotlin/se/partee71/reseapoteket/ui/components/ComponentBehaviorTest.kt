@@ -54,10 +54,17 @@ import se.partee71.reseapoteket.core.schema.TextLimits
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppFilterChip
 import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.ColorSwatchPicker
+import se.partee71.ui.components.ExampleChips
+import se.partee71.ui.components.InfoPill
 import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.TimeField
 
 /** Beteende och tillgänglighet i katalogens komponenter – en gång här, inte per skärm. */
 @RunWith(RobolectricTestRunner::class)
@@ -82,24 +89,6 @@ class ComponentBehaviorTest {
         val info = EditorInfo()
         rule.runOnIdle { view.onCreateInputConnection(info) }
         assertTrue(info.inputType and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES != 0, "inputType=${info.inputType}")
-    }
-
-    @Test
-    fun `textfältet växer inte förbi taket men en lagrad längre text går att korta (NFR-16)`() {
-        var text by mutableStateOf("x".repeat(TextLimits.SHORT))
-        var notes by mutableStateOf("y".repeat(TextLimits.LONG + 5))
-        show {
-            Column {
-                AppTextField(text, { text = it }, "Namn")
-                AppTextField(notes, { notes = it }, "Anteckning", singleLine = false)
-            }
-        }
-        rule.onNodeWithText("Namn").performTextInput("z")
-        assertEquals(TextLimits.SHORT, text.length)
-        rule.onNodeWithText("Anteckning").performTextReplacement("y".repeat(TextLimits.LONG + 4))
-        assertEquals(TextLimits.LONG + 4, notes.length, "kortare är tillåtet, inget kapas")
-        rule.onNodeWithText("Anteckning").performTextReplacement("kort")
-        assertEquals("kort", notes)
     }
 
     @Test
@@ -138,17 +127,6 @@ class ComponentBehaviorTest {
         show { SwitchRow("Flytta avprickade sist", on, { on = it }) }
         rule.onNodeWithText("Flytta avprickade sist").performClick()
         assertTrue(on)
-    }
-
-    @Test
-    fun `stegaren ökar och minskar inom intervallet och beskriver värdet`() {
-        var value by mutableIntStateOf(1)
-        show { QuantityStepper(value, { value = it }, "dagar", range = 1..2) }
-        rule.onNodeWithContentDescription("Minska dagar").assertIsNotEnabled()
-        rule.onNodeWithContentDescription("Öka dagar").performClick()
-        assertEquals(2, value)
-        rule.onNodeWithContentDescription("Öka dagar").assertIsNotEnabled()
-        rule.onNodeWithContentDescription("2 dagar").assertIsDisplayed()
     }
 
     @Test
@@ -196,25 +174,6 @@ class ComponentBehaviorTest {
         rule.onNodeWithText("OK").performClick()
         assertEquals(1, changes)
         assertEquals(LocalDate(2026, 12, 19), date)
-    }
-
-    @Test
-    fun `tidsfältet öppnar väljaren och OK behåller vald tid`() {
-        var time by mutableStateOf(LocalTime(18, 0))
-        var changes = 0
-        show {
-            TimeField("Tid", time, {
-                time = it
-                changes++
-            })
-        }
-        rule.onNodeWithContentDescription("Tid, 18:00").assertIsDisplayed().performClick()
-        rule.onNodeWithText("OK").performClick()
-        assertEquals(1, changes)
-        assertEquals(LocalTime(18, 0), time)
-        rule.onNodeWithContentDescription("Tid, 18:00").performClick()
-        rule.onNodeWithText("Avbryt").performClick()
-        assertEquals(1, changes)
     }
 
     @Test
@@ -302,14 +261,6 @@ class ComponentBehaviorTest {
     }
 
     @Test
-    fun `valchipset rapporterar valet`() {
-        var chip = 0
-        show { AppFilterChip("Tablett", false, { chip++ }) }
-        rule.onNodeWithText("Tablett").performClick()
-        assertEquals(1, chip)
-    }
-
-    @Test
     fun `personchipet visar namnet och kan väljas`() {
         var selected by mutableStateOf(false)
         show { PersonChip("Anna", "🦊", AppColors.person(0), selected, { selected = !selected }) }
@@ -330,17 +281,10 @@ class ComponentBehaviorTest {
     @Test
     fun `färgvalet väljer en personfärg och läser färgens namn`() {
         var color by mutableStateOf(AppColors.PERSON_HEX[0])
-        show { ColorSwatchPicker(color, { color = it }) }
+        show { ColorSwatchPicker(AppColors.PERSON_HEX, color, { color = it }, AppColors::person, { personColorLabel(it) }, PersonColorMarker) }
         rule.onNodeWithContentDescription("Färg: lila").performClick()
         assertEquals(AppColors.PERSON_HEX[3], color)
         rule.onNodeWithContentDescription("Färg: lila").assertIsSelected()
-    }
-
-    @Test
-    fun `färgvalet känner igen en lagrad färg med små bokstäver och har 48 dp tryckytor`() {
-        show { ColorSwatchPicker(AppColors.PERSON_HEX[1].lowercase(), {}) }
-        rule.onNodeWithContentDescription("Färg: blå").assertIsSelected()
-        rule.onNodeWithContentDescription("Färg: blå").assertTouchHeightIsEqualTo(48.dp).assertTouchWidthIsEqualTo(48.dp)
     }
 
     @Test
@@ -392,14 +336,6 @@ class ComponentBehaviorTest {
     }
 
     @Test
-    fun `exempel med samma text väljer var sitt objekt`() {
-        val picked = mutableListOf<Int>()
-        show { ExampleChips(listOf(1, 2), { picked += it }, label = { "Solkräm" }) }
-        rule.onAllNodesWithText("Solkräm")[1].performClick()
-        assertEquals(listOf(2), picked)
-    }
-
-    @Test
     fun `arkivera-åtgärden för TalkBack ligger på raden som TalkBack läser`() {
         var hidden = 0
         show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm", it, subtitle = "1 tub", onClick = {}) } }
@@ -407,17 +343,6 @@ class ComponentBehaviorTest {
         val actions = rule.onNodeWithText("Solkräm").fetchSemanticsNode().config[SemanticsActions.CustomActions]
         actions.single { it.label == "Arkivera" }.action()
         assertEquals(1, hidden)
-    }
-
-    @Test
-    fun `en klickbar pill är en knapp med 48 dp tryckyta`() {
-        var clicks = 0
-        show { InfoPill("Väntar på synk", icon = R.drawable.ic_cloud_upload, onClick = { clicks++ }) }
-        rule.onNodeWithText("Väntar på synk")
-            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
-            .assertTouchHeightIsEqualTo(48.dp)
-            .performClick()
-        assertEquals(1, clicks)
     }
 
     @Test

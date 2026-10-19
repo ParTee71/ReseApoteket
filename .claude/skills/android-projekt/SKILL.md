@@ -50,7 +50,7 @@ verifierade API:er står bara i [ARKITEKTUR.md](../../../ARKITEKTUR.md).
 - Inga bildbibliotek: avatarer är emoji, ikoner Material Symbols.
 - En mockup bryts ner i ramarna och katalogen (`shared-ui-components`); saknas ett element blir det en ny delad komponent.
 - Skärmstruktur: `XScreen(vm = hiltViewModel())` samlar state och lämnar till ramen, t.ex. `EntityListScreen(title, state = state.list, row, onAdd, onHide, onUndo)` med `PersonsEvent.Add`/`Archive`/`UndoArchive`.
-- Fel, laddning och knappar: `DataError.toMessage()` i snackbar, `AppLoading`, `AppButton(loading = …)`. Kort och sektioner: `ApotekCard` + `SectionHeader`.
+- Fel, laddning och knappar: `DataError.toMessage()` i snackbar, `AppLoading`, `AppButton(loading = …)`. Kort och sektioner: `AppCard` + `SectionHeader`.
 
 ## Navigation 3 (android:navigation-3)
 
@@ -80,7 +80,7 @@ Versioner, SDK-nivåer och skäl: ARKITEKTUR.md → "Byggkonfiguration".
 | `:app` | `android.application` (AGP 9, inbyggd Kotlin), `kotlin.compose`, `ksp`, `hilt`, `kotlin.serialization`, `google-services` (bara när `app/google-services.json` finns), `roborazzi` | `implementation(project(":core"))`. |
 
 - Gemensam konfiguration (Java 17 utan toolchain via `sourceCompatibility`/`targetCompatibility` + `jvmTarget`, kompilatorflaggor, testtimeout, testloggning) en gång i rotens `build.gradle.kts` (`subprojects {}` + `plugins.withId {}`), vald i #11.
-- **android-ui** (`se.partee71.ui:ui-theme`/`ui-components`, `androidUi` i katalogen) hämtas från GitHub Packages med repot i `settings.gradle.kts` (pluginens android-gradle-logic → "GitHub Packages (android-ui)"): sessionen läser med `GPR_USER`/`GPR_TOKEN`, varje Gradle-steg i `.github/workflows` med `env: GPR_TOKEN: ${{ secrets.GPR_TOKEN }}` (`instrumented.yml` får secreten av anroparen). Compose BOM, `material3`, Kotlin och AGP hålls i takt med biblioteket.
+- **android-ui** (`se.partee71.ui:ui-theme`/`ui-components`/`ui-common`, `androidUi` i katalogen) hämtas från GitHub Packages med repot i `settings.gradle.kts` (pluginens android-gradle-logic → "GitHub Packages (android-ui)"): sessionen läser med `GPR_USER`/`GPR_TOKEN`, varje Gradle-steg i `.github/workflows` med `env: GPR_TOKEN: ${{ secrets.GPR_TOKEN }}` (`instrumented.yml` får secreten av anroparen). Compose BOM, `material3`, Kotlin och AGP hålls i takt med biblioteket.
 - `material3` är pinnad utanför Compose BOM (ARKITEKTUR.md → "Verifierade API:er"); skälet står i katalogen.
 - `androidTest`-versioner som krockar höjs i `constraints {}` i `app/build.gradle.kts` med kommentar.
 - `cpdCheck` (PMD CPD via CLI som `JavaExec`) över `core/src`, `app/src/main`, `app/src/test`, kopplad till `check`. `gradle.properties`: caching, configuration cache, parallel (skill `ci-budget`).

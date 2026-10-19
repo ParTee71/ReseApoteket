@@ -27,26 +27,27 @@ import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.FamilyItemCategory
 import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.QuantityRule
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.repository.FamilyItemRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.activeCount
 import se.partee71.reseapoteket.data.repository.householdSettings
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorLoader
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.common.Validator
-import se.partee71.reseapoteket.ui.components.AppTextField
-import se.partee71.reseapoteket.ui.components.ChoiceChips
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
-import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.QuantityRuleRow
 import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.components.TravelDayField
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorLoader
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AppTextField
+import se.partee71.ui.components.ChoiceChips
+import se.partee71.ui.components.LabeledGroup
 
 /** FAM-2, FAM-3: namnet är obligatoriskt och mängdregeln ska gå att räkna på. */
 object FamilyItemValidator : Validator<FamilyItem> {
@@ -114,7 +115,7 @@ class FamilyItemEditViewModel @AssistedInject constructor(
     val isNew: Boolean = itemId == null
 
     val editor: EditorState<FamilyItem> =
-        EditorState(FamilyItem(itemId ?: items.newId(), rule = QuantityRule.Fixed()), FamilyItemValidator, loading = !isNew)
+        EditorState(FamilyItem(itemId ?: items.newId(), rule = QuantityRule.Fixed()), FamilyItemValidator, AppErrors, loading = !isNew)
     val state = editor.state
     private val loader = EditorLoader(editor, viewModelScope, itemId?.let { id -> { items.get(id) } })
 

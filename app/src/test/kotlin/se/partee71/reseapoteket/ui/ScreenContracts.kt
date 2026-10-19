@@ -23,12 +23,13 @@ import kotlin.test.assertNull
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.ui.common.EditorEvents
-import se.partee71.reseapoteket.ui.common.EditorState
-import se.partee71.reseapoteket.ui.common.EditorUiState
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+import se.partee71.ui.common.EditorEvents
+import se.partee71.ui.common.EditorState
+import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.common.ListUiState
 
 private val context: Context get() = ApplicationProvider.getApplicationContext()
 
@@ -61,7 +62,7 @@ fun <T> ComposeContentTestRule.runListScreenContract(
     onNodeWithText(addLabel).performClick()
     assertEquals(1, adds, "tomt tillstånd: knappen ska lägga till")
 
-    state = ListUiState.Error(DataError.Offline)
+    state = ListUiState.Error(AppErrors.map(DataError.Offline))
     onNodeWithText(text(R.string.list_error_title)).assertIsDisplayed()
     onNodeWithText(text(R.string.error_offline)).assertIsDisplayed()
     onNodeWithText(text(R.string.retry)).performClick()

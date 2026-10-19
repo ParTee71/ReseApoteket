@@ -10,8 +10,8 @@ import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.AppRootContent
 import se.partee71.reseapoteket.ui.auth.AuthGate
 import se.partee71.reseapoteket.ui.auth.AuthUiState
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.trips.TripsContent
+import se.partee71.ui.common.ListUiState
 
 @RunWith(RobolectricTestRunner::class)
 class ThemeScreenshotTest {

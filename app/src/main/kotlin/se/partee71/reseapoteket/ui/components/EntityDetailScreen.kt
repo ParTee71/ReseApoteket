@@ -22,12 +22,14 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.ui.common.DetailUiState
+import se.partee71.ui.common.DetailUiState
+import se.partee71.ui.common.UiError
 import se.partee71.ui.components.AppIconButton
 import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.ErrorSnackbar
+import se.partee71.ui.components.LoadErrorState
 import se.partee71.ui.components.TopBarSize
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
@@ -53,7 +55,7 @@ fun <T> EntityDetailScreen(
     onEdit: (() -> Unit)? = null,
     menu: (T) -> List<AppMenuItem> = { emptyList() },
     onRetry: () -> Unit = {},
-    error: DataError? = null,
+    error: UiError? = null,
     onErrorShown: () -> Unit = {},
     leading: @Composable (T) -> Unit = {},
     content: @Composable ColumnScope.(T) -> Unit

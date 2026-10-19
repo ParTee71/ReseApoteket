@@ -28,19 +28,19 @@ import se.partee71.reseapoteket.core.engine.ReminderSetting
 import se.partee71.reseapoteket.core.engine.ReminderSettings
 import se.partee71.reseapoteket.reminders.canPostNotifications
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.AppBottomSheet
 import se.partee71.reseapoteket.ui.components.ItemRow
-import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
-import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.components.SwitchRow
-import se.partee71.reseapoteket.ui.components.TimeField
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.LabeledGroup
+import se.partee71.ui.components.QuantityStepper
+import se.partee71.ui.components.TimeField
 import se.partee71.ui.theme.AppTheme
 
 @StringRes
@@ -86,7 +86,7 @@ fun RemindersCard(
         if (setting.enabled) onAskPermission()
         onEvent(RemindersEvent.Change(kind, setting))
     }
-    ApotekCard {
+    AppCard {
         if (!notificationsAllowed) {
             ItemRow(
                 title = stringResource(R.string.reminders_blocked),

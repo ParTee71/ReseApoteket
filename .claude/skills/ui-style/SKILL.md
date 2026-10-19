@@ -29,7 +29,7 @@ https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p
 |---|---|---|
 | Primär | korall `#BF4A2A` (4,6:1 mot ytan, 5,0:1 mot vit) | primärknappar, kryss, progress, sektionsrubrik Mediciner |
 | Yta | aprikos `#FFF4EE` | bakgrund |
-| Kort | vit | `ApotekCard` |
+| Kort | vit | `AppCard` |
 | Text | `#241B16` | brödtext |
 | Dämpad text | `#6B5A50` (≥ 4.5:1 mot vit) | undertext, avprickade rader |
 | Sektion Mediciner | korall | `SectionHeader`, ikonruta |

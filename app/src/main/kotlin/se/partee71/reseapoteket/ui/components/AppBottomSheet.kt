@@ -18,22 +18,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.ui.common.toMessage
+import se.partee71.ui.common.UiError
+import se.partee71.ui.components.FieldError
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 
 /**
  * Bottom sheet med rubrik, t.ex. "ändra mängd" i packlistan. Öppnas helt direkt, och innehåll
  * som är högre än skärmen går att scrolla (#100). Ett skrivfel ([error], via
- * `DataError.toMessage()`) visas sist i panelen, eftersom panelen ligger över skärmens meddelanden.
+ * `UiError`) visas sist i panelen, eftersom panelen ligger över skärmens meddelanden.
  */
 @Composable
 fun AppBottomSheet(
     title: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    error: DataError? = null,
+    error: UiError? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     ModalBottomSheet(
@@ -52,7 +52,7 @@ fun AppBottomSheet(
         ) {
             Text(title, style = AppTheme.typography.sectionTitle, modifier = Modifier.semantics { heading() })
             content()
-            error?.let { FieldError(stringResource(it.toMessage())) }
+            error?.let { FieldError(stringResource(it.message)) }
         }
     }
 }

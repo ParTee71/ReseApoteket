@@ -23,9 +23,9 @@ import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.components.UndoRequest
+import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.UndoRequest
 
 /** Familjeartiklarna (FAM-1–4) mot `FakeCollection` – ramarnas beteende testas i ramarnas tester. */
 class FamilyItemViewModelsTest {
@@ -152,7 +152,7 @@ class FamilyItemViewModelsTest {
 
     @Test
     fun `en artikel som inte finns visar läsfel`() = runTest {
-        editor("borta").state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError) }
+        editor("borta").state.test { assertEquals(DataError.NotFound, expectMostRecentItem().loadError?.cause) }
     }
 
     @Test
