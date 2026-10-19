@@ -24,10 +24,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingProgress
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Packprogress: "9 av 14 packat" med vågig progress och resväska. [compact] ger bara vågen och
@@ -49,7 +49,7 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
             horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             LinearWavyProgressIndicator(progress = { progress }, modifier = Modifier.width(COMPACT_WIDTH), color = primary, trackColor = track)
-            Text("$packed / $total", style = AppTypography.pill, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("$packed / $total", style = AppTheme.typography.pill, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
@@ -64,13 +64,13 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                Text(packed.toString(), style = AppTypography.bigNumber, color = primary)
-                Text(text, style = AppTypography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(packed.toString(), style = AppTheme.typography.bigNumber, color = primary)
+                Text(text, style = AppTheme.typography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             LinearWavyProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), color = primary, trackColor = track)
         }
-        val tone = AppColors.extended.primaryTone
-        Box(Modifier.size(TILE).background(tone.container, AppShapes.row), contentAlignment = Alignment.Center) {
+        val tone = AppTheme.tone(Tone.Primary)
+        Box(Modifier.size(TILE).background(tone.container, AppTheme.shapes.row), contentAlignment = Alignment.Center) {
             Icon(painterResource(R.drawable.ic_luggage), contentDescription = null, tint = tone.content, modifier = Modifier.size(ICON))
         }
     }
@@ -79,7 +79,7 @@ fun SuitcaseProgress(packed: Int, total: Int, modifier: Modifier = Modifier, com
 /** "Allt packat! 🧳 Trevlig resa" – samma plats och resväska, i grönt. */
 @Composable
 private fun AllPacked(total: Int, modifier: Modifier = Modifier) {
-    val tone = AppColors.extended.greenTone
+    val tone = AppTheme.tone(Tone.Green)
     val title = stringResource(R.string.packed_all_title)
     val message = stringResource(R.string.packed_all_message, total)
     Row(
@@ -88,10 +88,10 @@ private fun AllPacked(total: Int, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(Spacing.l)
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(title, style = AppTypography.sectionTitle, color = tone.content)
-            Text(message, style = AppTypography.itemTitle, color = tone.content)
+            Text(title, style = AppTheme.typography.sectionTitle, color = tone.content)
+            Text(message, style = AppTheme.typography.itemTitle, color = tone.content)
         }
-        Box(Modifier.size(TILE).background(AppColors.extended.card, AppShapes.row), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(TILE).background(AppTheme.extendedColors.card, AppTheme.shapes.row), contentAlignment = Alignment.Center) {
             Icon(painterResource(R.drawable.ic_luggage), contentDescription = null, tint = tone.content, modifier = Modifier.size(ICON))
         }
     }

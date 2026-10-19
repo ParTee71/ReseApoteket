@@ -45,7 +45,6 @@ import se.partee71.reseapoteket.ui.common.EditorState
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.components.AppTextField
-import se.partee71.reseapoteket.ui.components.ChipRow
 import se.partee71.reseapoteket.ui.components.ConfirmDialog
 import se.partee71.reseapoteket.ui.components.DateField
 import se.partee71.reseapoteket.ui.components.EntityEditScreen
@@ -54,6 +53,7 @@ import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
 import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.components.ChipRow
 
 /** RES-2: 1–60 dagar och minst en som åker med; ett tomt namn blir "Resa <datum>" när det finns ett startdatum. */
 object TripValidator : Validator<Trip> {

@@ -10,8 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.theme.AppTheme
 
 /** Den kurerade listan för personens avatar (PER-2): djur först, sedan saker som går att känna igen. */
 val PERSON_EMOJIS: List<String> = listOf(
@@ -27,12 +26,12 @@ val PERSON_EMOJIS: List<String> = listOf(
 fun EmojiPicker(selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier, emojis: List<String> = PERSON_EMOJIS) {
     ChoiceGrid(emojis, selected, onSelect, label = { it }, modifier = modifier) { emoji, isSelected ->
         val cell = if (isSelected) {
-            Modifier.background(MaterialTheme.colorScheme.primaryContainer, AppShapes.pill)
-                .border(SELECTED_BORDER, MaterialTheme.colorScheme.primary, AppShapes.pill)
+            Modifier.background(MaterialTheme.colorScheme.primaryContainer, AppTheme.shapes.pill)
+                .border(SELECTED_BORDER, MaterialTheme.colorScheme.primary, AppTheme.shapes.pill)
         } else {
             Modifier
         }
-        Box(cell.fillMaxSize(), contentAlignment = Alignment.Center) { Text(emoji, style = AppTypography.sectionTitle) }
+        Box(cell.fillMaxSize(), contentAlignment = Alignment.Center) { Text(emoji, style = AppTheme.typography.sectionTitle) }
     }
 }
 

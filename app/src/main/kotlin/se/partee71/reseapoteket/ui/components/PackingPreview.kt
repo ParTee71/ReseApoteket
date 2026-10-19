@@ -12,11 +12,10 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Förhandsvisning av en beräknad mängd i formulären för recept, kosttillskott och
@@ -25,17 +24,17 @@ import se.partee71.reseapoteket.ui.theme.Tone
  */
 @Composable
 fun PackingPreview(context: String, quantity: String, modifier: Modifier = Modifier, reason: String? = null) {
-    val colors = AppColors.tone(Tone.Blue)
+    val colors = AppTheme.tone(Tone.Blue)
     Column(
         modifier
             .fillMaxWidth()
-            .background(colors.container, AppShapes.row)
+            .background(colors.container, AppTheme.shapes.row)
             .padding(horizontal = Spacing.l, vertical = Spacing.m)
             .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text(context, style = AppTypography.pill, color = colors.content)
-        Text(quantity, style = AppTypography.quantity, color = colors.content)
-        reason?.let { Text(it, style = AppTypography.itemSubtitle, color = colors.content) }
+        Text(context, style = AppTheme.typography.pill, color = colors.content)
+        Text(quantity, style = AppTheme.typography.quantity, color = colors.content)
+        reason?.let { Text(it, style = AppTheme.typography.itemSubtitle, color = colors.content) }
     }
 }

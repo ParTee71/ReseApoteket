@@ -64,9 +64,6 @@ import se.partee71.reseapoteket.ui.common.DateFormat
 import se.partee71.reseapoteket.ui.common.STOP_TIMEOUT_MILLIS
 import se.partee71.reseapoteket.ui.common.toMessage
 import se.partee71.reseapoteket.ui.components.ApotekCard
-import se.partee71.reseapoteket.ui.components.AppDivider
-import se.partee71.reseapoteket.ui.components.AppSegmentedChoice
-import se.partee71.reseapoteket.ui.components.AppTopBar
 import se.partee71.reseapoteket.ui.components.ConfirmDialog
 import se.partee71.reseapoteket.ui.components.FieldError
 import se.partee71.reseapoteket.ui.components.GroupLabel
@@ -76,7 +73,10 @@ import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.AppSegmentedChoice
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.theme.Spacing
 
 /** Kortet där en åtgärd gjordes – ett fel visas där (NFR-5). */
 enum class SettingsSection { Household, Account, Data }

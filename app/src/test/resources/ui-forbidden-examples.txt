@@ -35,7 +35,7 @@ ChipRow { }
 InfoPill()
 AppFloatingToolbar()
 QuantityStepper()
-Text("Hej", style = AppTypography.itemTitle)
+Text("Hej", style = AppTheme.typography.itemTitle)
 color = MaterialTheme.colorScheme.onBackground
 Icon(Icons.Rounded.Luggage, null)
 Spacer(Modifier.height(Spacing.l))

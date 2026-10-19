@@ -6,6 +6,9 @@ name: Instrumenttester
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      GPR_TOKEN:
+        required: true
 
 permissions:
   contents: read
@@ -58,6 +61,8 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Instrumenttester (API 36, samma som targetSdk)
+        env:
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }} # android-ui från GitHub Packages
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 36

@@ -23,8 +23,22 @@ import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppSegmentedChoice
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.IconButtonVariant
+import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.TopBarSize
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Skärmdumpar (ljust + mörkt) av katalogens komponenter i vila – en bild per komponent med
@@ -63,7 +77,7 @@ class CatalogScreenshotTest {
         }
         captureLightAndDark("AddSplitButton_varianter") {
             Sheet {
-                AddSplitButton("Lägg till", {}, menuItems = listOf(AppMenuItem("Räkna om", {})))
+                AddSplitButton("Lägg till", {}, menu = listOf(AppMenuItem("Räkna om", {})).asSplitMenu())
                 AddSplitButton("Lägg till person", {})
             }
         }
@@ -328,7 +342,7 @@ class CatalogScreenshotTest {
             }
         }
         captureLightAndDark("AppTopBar_synk") {
-            CompositionLocalProvider(LocalSyncIndicator provides SyncIndicator(pending = true)) {
+            CompositionLocalProvider(LocalTopBarStatus provides SyncIndicator(pending = true).topBarStatus()) {
                 Column(Modifier.background(MaterialTheme.colorScheme.background)) {
                     AppTopBar("Resor") { AppMenu(emptyList()) }
                     AppTopBar("Gran Canaria", size = TopBarSize.Small, onBack = {}) { AppIconButton(R.drawable.ic_edit, "Redigera", {}) }

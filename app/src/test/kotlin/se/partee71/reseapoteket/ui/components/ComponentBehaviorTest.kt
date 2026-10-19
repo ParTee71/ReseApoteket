@@ -10,7 +10,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -37,7 +36,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -55,6 +53,11 @@ import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.core.schema.TextLimits
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.SwipeToHide
 
 /** Beteende och tillgänglighet i katalogens komponenter – en gång här, inte per skärm. */
 @RunWith(RobolectricTestRunner::class)
@@ -64,10 +67,6 @@ class ComponentBehaviorTest {
     val rule = createComposeRule()
 
     private fun show(content: @Composable () -> Unit) = rule.setContent { ReseApoteketTheme(content = content) }
-
-    private companion object {
-        const val SETTLE_MILLIS = 2_000L
-    }
 
     private val tablets: (Int) -> String = { if (it == 1) "tablett" else "tabletter" }
 
@@ -128,14 +127,6 @@ class ComponentBehaviorTest {
     }
 
     @Test
-    fun `konfettin säger till när regnet är över`() {
-        var finished = 0
-        show { Confetti(onFinished = { finished++ }) }
-        rule.waitForIdle()
-        assertEquals(1, finished)
-    }
-
-    @Test
     fun `allt packat visar Allt packat i stället för progressen (PAK-5)`() {
         show { SuitcaseProgress(14, 14) }
         rule.onNodeWithContentDescription("Allt packat! 🧳 Trevlig resa · 14 av 14").assertIsDisplayed()
@@ -174,7 +165,7 @@ class ComponentBehaviorTest {
     fun `split-knappen lägger till och pilen öppnar fler val`() {
         var added = 0
         var recalculated = 0
-        show { AddSplitButton("Lägg till", { added++ }, menuItems = listOf(AppMenuItem("Räkna om", { recalculated++ }))) }
+        show { AddSplitButton("Lägg till", { added++ }, menu = listOf(AppMenuItem("Räkna om", { recalculated++ })).asSplitMenu()) }
         rule.onNodeWithText("Lägg till").performClick()
         rule.onNodeWithContentDescription("Fler val").performClick()
         rule.onNodeWithText("Räkna om").performClick()
@@ -311,20 +302,11 @@ class ComponentBehaviorTest {
     }
 
     @Test
-    fun `valchips och segmentval rapporterar valet`() {
+    fun `valchipset rapporterar valet`() {
         var chip = 0
-        var segment by mutableIntStateOf(2)
-        show {
-            Column {
-                AppFilterChip("Tablett", false, { chip++ })
-                AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), segment, { segment = it })
-            }
-        }
+        show { AppFilterChip("Tablett", false, { chip++ }) }
         rule.onNodeWithText("Tablett").performClick()
-        rule.onNodeWithText("Mörkt").performClick()
         assertEquals(1, chip)
-        assertEquals(1, segment)
-        rule.onNodeWithText("Mörkt").assertIsSelected()
     }
 
     @Test
@@ -418,66 +400,6 @@ class ComponentBehaviorTest {
     }
 
     @Test
-    fun `en rad utan svep har ingen arkivera-åtgärd`() {
-        show { SwipeToHide(onHide = {}, enabled = false) { ItemRow("Solkräm", it, onClick = {}) } }
-        rule.onNodeWithText("Solkräm").assert(SemanticsMatcher.keyNotDefined(SemanticsActions.CustomActions))
-    }
-
-    @Test
-    fun `en rad behåller sitt tillstånd när den arkiveras och inte går att svepa`() {
-        var enabled by mutableStateOf(true)
-        var hidden = 0
-        show {
-            SwipeToHide(onHide = { hidden++ }, enabled = enabled) {
-                var clicks by remember { mutableIntStateOf(0) }
-                ItemRow("Klick $clicks", it, onClick = { clicks++ })
-            }
-        }
-        rule.onNodeWithText("Klick 0").performClick()
-        enabled = false
-        rule.onNodeWithText("Klick 1").assertIsDisplayed().performTouchInput { swipeLeft() }
-        rule.waitForIdle()
-        assertEquals(0, hidden)
-    }
-
-    @Test
-    fun `chipraden behåller chipsens tillstånd när radbrytningen byts`() {
-        var wrap by mutableStateOf(true)
-        show {
-            ChipRow(wrap = wrap) {
-                var clicks by remember { mutableIntStateOf(0) }
-                AppFilterChip("Klick $clicks", false, { clicks++ })
-            }
-        }
-        rule.onNodeWithText("Klick 0").performClick()
-        wrap = false
-        rule.onNodeWithText("Klick 1").assertIsDisplayed()
-    }
-
-    @Test
-    fun `svep åt vänster arkiverar`() {
-        var hidden = 0
-        show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm", it, onClick = {}) } }
-        rule.onNodeWithText("Solkräm").performTouchInput { swipeLeft() }
-        rule.waitForIdle()
-        assertEquals(1, hidden)
-    }
-
-    @Test
-    fun `en svept rad som står kvar glider tillbaka`() {
-        show { SwipeToHide(onHide = {}) { ItemRow("Solkräm", it, onClick = {}) } }
-        val x = { rule.onNodeWithText("Solkräm").fetchSemanticsNode().positionInRoot.x }
-        val start = x()
-        rule.mainClock.autoAdvance = false
-        rule.onNodeWithText("Solkräm").performTouchInput { swipeLeft() }
-        rule.mainClock.advanceTimeBy(RESET_DELAY_MILLIS / 2) // undan, men inte tillbaka än
-        assertTrue(x() < start, "raden ska ha svepts åt vänster innan den glider tillbaka")
-        rule.mainClock.advanceTimeBy(RESET_DELAY_MILLIS + SETTLE_MILLIS)
-        rule.waitForIdle()
-        assertEquals(start, x())
-    }
-
-    @Test
     fun `arkivera-åtgärden för TalkBack ligger på raden som TalkBack läser`() {
         var hidden = 0
         show { SwipeToHide(onHide = { hidden++ }) { ItemRow("Solkräm", it, subtitle = "1 tub", onClick = {}) } }
@@ -485,14 +407,6 @@ class ComponentBehaviorTest {
         val actions = rule.onNodeWithText("Solkräm").fetchSemanticsNode().config[SemanticsActions.CustomActions]
         actions.single { it.label == "Arkivera" }.action()
         assertEquals(1, hidden)
-    }
-
-    @Test
-    fun `ikonknappen har sin beskrivning och anropar onClick`() {
-        var clicks = 0
-        show { AppIconButton(R.drawable.ic_arrow_back, "Tillbaka", { clicks++ }) }
-        rule.onNodeWithContentDescription("Tillbaka").performClick()
-        assertEquals(1, clicks)
     }
 
     @Test
@@ -511,7 +425,7 @@ class ComponentBehaviorTest {
         var indicator by mutableStateOf(SyncIndicator())
         var clicks = 0
         show {
-            CompositionLocalProvider(LocalSyncIndicator provides indicator) {
+            CompositionLocalProvider(LocalTopBarStatus provides indicator.topBarStatus()) {
                 AppTopBar("Resor") { AppIconButton(R.drawable.ic_more_vert, "Fler val", {}) }
             }
         }

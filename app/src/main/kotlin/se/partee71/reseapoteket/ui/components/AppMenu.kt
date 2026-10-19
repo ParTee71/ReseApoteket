@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.theme.AppTheme
 
 /** Ett val i [AppMenu] eller [AddSplitButton]. [destructive] färgar det som radering. */
 data class AppMenuItem(
@@ -39,19 +39,22 @@ fun AppMenu(items: List<AppMenuItem>, modifier: Modifier = Modifier, contentDesc
     }
 }
 
+/** Menyn bakom pilen i [AddSplitButton] (`menu`); `null` utan val – då visas ingen pil. */
+fun List<AppMenuItem>.asSplitMenu(): (@Composable (expanded: Boolean, onDismiss: () -> Unit) -> Unit)? = if (isEmpty()) null else { expanded, onDismiss -> AppMenuPopup(this, expanded, onDismiss) }
+
 /** Själva menyn – delas av [AppMenu] och [AddSplitButton]. */
 @Composable
 internal fun AppMenuPopup(items: List<AppMenuItem>, expanded: Boolean, onDismiss: () -> Unit) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
-        shape = AppShapes.menu,
-        containerColor = AppColors.extended.card
+        shape = AppTheme.shapes.menu,
+        containerColor = AppTheme.extendedColors.card
     ) {
         items.forEach { item ->
             val color = if (item.destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
             DropdownMenuItem(
-                text = { Text(item.label, style = AppTypography.body) },
+                text = { Text(item.label, style = AppTheme.typography.body) },
                 onClick = {
                     onDismiss()
                     item.onClick()

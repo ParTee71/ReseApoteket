@@ -44,6 +44,8 @@ jobs:
 
       - name: Lint och minifierat release-bygge
         if: steps.fresh.outputs.skip != 'true'
+        env:
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }} # android-ui från GitHub Packages
         run: ./gradlew --configuration-cache --continue :app:lintDebug :app:assembleRelease
 
       - name: Lintrapport

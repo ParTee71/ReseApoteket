@@ -18,11 +18,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /** Sektionsrubrik med valfri ikonruta och räknare ("4 / 5") i sektionens [tone]. */
 @Composable
@@ -33,20 +31,20 @@ fun SectionHeader(
     count: String? = null,
     tone: Tone = Tone.Primary
 ) {
-    val colors = AppColors.tone(tone)
+    val colors = AppTheme.tone(tone)
     Row(
         modifier.fillMaxWidth().padding(horizontal = Spacing.xs, vertical = Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         if (icon != null) {
-            Box(Modifier.size(TILE).background(colors.container, AppShapes.smallTile), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(TILE).background(colors.container, AppTheme.shapes.smallTile), contentAlignment = Alignment.Center) {
                 Icon(painterResource(icon), contentDescription = null, tint = colors.content, modifier = Modifier.size(ICON))
             }
         }
         Text(
             title,
-            style = AppTypography.sectionTitle,
+            style = AppTheme.typography.sectionTitle,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f).semantics { heading() }
         )

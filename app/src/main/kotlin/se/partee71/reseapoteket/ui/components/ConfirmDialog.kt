@@ -7,9 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.theme.AppTheme
 
 /**
  * Bekräftelse. Permanent radering bekräftas alltid här med [destructive] = true – aldrig med
@@ -35,9 +35,9 @@ fun ConfirmDialog(
         },
         modifier = modifier,
         dismissButton = { AppButton(dismissLabel, onDecline, variant = ButtonVariant.Text) },
-        title = { Text(title, style = AppTypography.headline) },
-        text = { Text(message, style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant) },
-        shape = AppShapes.card,
-        containerColor = AppColors.extended.card
+        title = { Text(title, style = AppTheme.typography.headline) },
+        text = { Text(message, style = AppTheme.typography.body, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        shape = AppTheme.shapes.card,
+        containerColor = AppTheme.extendedColors.card
     )
 }

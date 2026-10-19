@@ -14,19 +14,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
-import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.testing.captureLightAndDark
-import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.theme.Spacing
 
 /** Beteende och skärmdumpar (ljust + mörkt) för de delade komponenterna. */
 @RunWith(RobolectricTestRunner::class)
@@ -34,22 +32,6 @@ class ComponentsTest {
 
     @get:Rule
     val rule = createComposeRule()
-
-    @Test
-    fun `AppButton anropar onClick`() {
-        var clicks = 0
-        rule.setContent { ReseApoteketTheme { AppButton("Spara", onClick = { clicks++ }) } }
-        rule.onNodeWithText("Spara").performClick()
-        assertEquals(1, clicks)
-    }
-
-    @Test
-    fun `AppButton som laddar är inaktiv och anropar inte onClick`() {
-        var clicks = 0
-        rule.setContent { ReseApoteketTheme { AppButton("Loggar in …", onClick = { clicks++ }, loading = true) } }
-        rule.onNodeWithText("Loggar in …").assertIsNotEnabled().performClick()
-        assertEquals(0, clicks)
-    }
 
     @Test
     fun `AppButton - varianter och lägen`() = captureLightAndDark("AppButton_varianter") {

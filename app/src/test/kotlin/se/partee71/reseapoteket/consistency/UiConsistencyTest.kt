@@ -124,11 +124,29 @@ class UiConsistencyTest {
     @Test
     fun `komponenttabellen i shared-ui-components stämmer med ui-components`() {
         val inCode = publicComponents("Dokumentdrift")
-        val inTable = documentedComponents()
+        val inTable = documentedComponents().getValue(false)
         val missingInTable = inCode - inTable
         assertTrue(missingInTable.isEmpty(), "Lägg till raden i shared-ui-components: $missingInTable")
         val missingInCode = inTable - inCode
         assertTrue(missingInCode.isEmpty(), "Ta bort raden i shared-ui-components eller bygg komponenten: $missingInCode")
+    }
+
+    @Test
+    fun `komponenterna märkta android-ui finns i biblioteket, i ComponentGallery och inte som kopia i appen`() {
+        val fromLibrary = documentedComponents().getValue(true)
+        assertTrue(fromLibrary.isNotEmpty(), "inga rader märkta $LIBRARY_MARK i shared-ui-components")
+        val copies = fromLibrary intersect publicComponents("android-ui")
+        assertTrue(copies.isEmpty(), "Ta bort appens kopia – komponenten finns i android-ui: $copies")
+        val gallery = galleryText()
+        val problems = fromLibrary.flatMap { name ->
+            listOfNotNull(
+                "$name finns inte i android-ui (${LIBRARY_PACKAGE}.${name}Kt)".takeIf {
+                    runCatching { Class.forName("$LIBRARY_PACKAGE.${name}Kt") }.isFailure
+                },
+                "$name saknas i ComponentGallery".takeIf { !inGallery(gallery, name) }
+            )
+        }
+        assertTrue(problems.isEmpty(), problems.joinToString("\n"))
     }
 
     @Test
@@ -140,11 +158,13 @@ class UiConsistencyTest {
             listOfNotNull(
                 "$name saknar skärmdump ${name}_*_light.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_light.png") } },
                 "$name saknar skärmdump ${name}_*_dark.png".takeIf { screenshots.none { it.startsWith("${name}_") && it.endsWith("_dark.png") } },
-                "$name saknas i ComponentGallery".takeIf { !Regex("""\b$name\s*[({<]""").containsMatchIn(gallery) }
+                "$name saknas i ComponentGallery".takeIf { !inGallery(gallery, name) }
             )
         }
         assertTrue(problems.isEmpty(), problems.joinToString("\n"))
     }
+
+    private fun inGallery(gallery: String, name: String) = Regex("""\b$name\s*[({<]""").containsMatchIn(gallery)
 
     private fun galleryText(): String = checkNotNull(production.files.firstOrNull { it.name == "ComponentGallery" }?.text) { "ComponentGallery saknas i ui/components" }
 
@@ -161,15 +181,27 @@ class UiConsistencyTest {
         return names
     }
 
-    /** Komponentnamnen i kolumn två i tabellerna "Utseende" och "Beteende". */
-    private fun documentedComponents(): Set<String> {
+    /**
+     * Komponentnamnen i kolumn två i tabellerna "Utseende" och "Beteende", delade på om raden är
+     * märkt [LIBRARY_MARK] (komponenten kommer från biblioteket android-ui) eller inte.
+     */
+    private fun documentedComponents(): Map<Boolean, Set<String>> {
         val skill = File(repoRoot, ".claude/skills/shared-ui-components/SKILL.md").readText()
         val tables = Regex("""## (Utseende|Beteende)[^\n]*\n(.*?)(?=\n## )""", RegexOption.DOT_MATCHES_ALL)
             .findAll(skill)
             .joinToString("\n") { it.groupValues[2] }
-        return tables.lines()
+        val cells = tables.lines()
             .filter { it.startsWith("|") }
-            .mapNotNull { row -> row.split("|").getOrNull(2)?.let { Regex("`(\\w+)`").find(it)?.groupValues?.get(1) } }
-            .toSet()
+            .mapNotNull { row -> row.split("|").getOrNull(2) }
+        return listOf(false, true).associateWith { library ->
+            cells.filter { (LIBRARY_MARK in it) == library }
+                .mapNotNull { Regex("`(\\w+)`").find(it)?.groupValues?.get(1) }
+                .toSet()
+        }
+    }
+
+    private companion object {
+        const val LIBRARY_MARK = "*(android-ui)*"
+        const val LIBRARY_PACKAGE = "se.partee71.ui.components"
     }
 }

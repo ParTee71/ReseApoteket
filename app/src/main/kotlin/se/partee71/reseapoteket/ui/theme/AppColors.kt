@@ -3,39 +3,16 @@ package se.partee71.reseapoteket.ui.theme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import se.partee71.ui.theme.ExtendedColors
+import se.partee71.ui.theme.Tone
+import se.partee71.ui.theme.ToneColors
 
-/** Färgtoner för pills, sektionsrubriker och förhandsvisningar – en per sektion (skill `ui-style`). */
-enum class Tone {
-    /** Korall – Mediciner, och det som är markerat eller ändrat. */
-    Primary,
+/** Grön – Kosttillskott (sektionston, skill `ui-style`). Korall är bibliotekets [Tone.Primary]. */
+val Tone.Companion.Green: Tone get() = Tone("green")
 
-    /** Grön – Kosttillskott. */
-    Green,
-
-    /** Blå – Övrigt och förhandsvisningar. */
-    Blue
-}
-
-/** Behållare och innehåll för en [Tone]; innehållet klarar 4,5:1 mot behållaren. */
-@Immutable
-data class ToneColors(val container: Color, val content: Color)
-
-/** Appens färger utöver Material 3-rollerna: kort, radtoning, verktygsrad och sektionstoner. */
-@Immutable
-data class ExtendedColors(
-    val card: Color,
-    val rowTint: Color,
-    val toolbar: Color,
-    val onToolbar: Color,
-    val primaryTone: ToneColors,
-    val greenTone: ToneColors,
-    val blueTone: ToneColors
-)
+/** Blå – Övrigt och förhandsvisningar. */
+val Tone.Companion.Blue: Tone get() = Tone("blue")
 
 /**
  * Den enda paletten (skill `ui-style`): korall på aprikos, mörkt tema med samma roller.
@@ -121,26 +98,6 @@ object AppColors {
         surfaceContainerHighest = Color(0xFF3A2E28)
     )
 
-    val lightExtended = ExtendedColors(
-        card = Color(0xFFFFFFFF),
-        rowTint = Color(0xFFFDF1EA),
-        toolbar = Color(0xFF241B16),
-        onToolbar = Color(0xFFF3E6DF),
-        primaryTone = ToneColors(Color(0xFFFFE6DA), Color(0xFF7A2E18)),
-        greenTone = ToneColors(Color(0xFFE3F0D6), Color(0xFF3F5A1C)),
-        blueTone = ToneColors(Color(0xFFE2EFF6), Color(0xFF1F4C66))
-    )
-
-    val darkExtended = ExtendedColors(
-        card = Color(0xFF2A201B),
-        rowTint = Color(0xFF33271F),
-        toolbar = Color(0xFFF3E6DF),
-        onToolbar = Color(0xFF33271F),
-        primaryTone = ToneColors(Color(0xFF6E2A15), Color(0xFFFFDBCD)),
-        greenTone = ToneColors(Color(0xFF34451F), Color(0xFFD2EDB0)),
-        blueTone = ToneColors(Color(0xFF1D3A4B), Color(0xFFC6E5F7))
-    )
-
     /** De åtta personfärgerna som hex – det som lagras i `Person.colorHex`. */
     val PERSON_HEX: List<String> = listOf(
         "#D97757",
@@ -151,6 +108,32 @@ object AppColors {
         "#3E8E7E",
         "#B8527A",
         "#5B6BB5"
+    )
+
+    val lightExtended = ExtendedColors(
+        card = Color(0xFFFFFFFF),
+        rowTint = Color(0xFFFDF1EA),
+        toolbar = Color(0xFF241B16),
+        onToolbar = Color(0xFFF3E6DF),
+        tones = mapOf(
+            Tone.Primary to ToneColors(Color(0xFFFFE6DA), Color(0xFF7A2E18)),
+            Tone.Green to ToneColors(Color(0xFFE3F0D6), Color(0xFF3F5A1C)),
+            Tone.Blue to ToneColors(Color(0xFFE2EFF6), Color(0xFF1F4C66))
+        ),
+        accents = PERSON_HEX.map(::parse)
+    )
+
+    val darkExtended = ExtendedColors(
+        card = Color(0xFF2A201B),
+        rowTint = Color(0xFF33271F),
+        toolbar = Color(0xFFF3E6DF),
+        onToolbar = Color(0xFF33271F),
+        tones = mapOf(
+            Tone.Primary to ToneColors(Color(0xFF6E2A15), Color(0xFFFFDBCD)),
+            Tone.Green to ToneColors(Color(0xFF34451F), Color(0xFFD2EDB0)),
+            Tone.Blue to ToneColors(Color(0xFF1D3A4B), Color(0xFFC6E5F7))
+        ),
+        accents = PERSON_HEX.map(::parse)
     )
 
     /** Personfärg nummer [index] (varvar efter åtta). */
@@ -164,19 +147,4 @@ object AppColors {
         require(digits.length == 6) { "Förväntade #RRGGBB" }
         return Color(0xFF000000 or digits.toLong(16))
     }
-
-    val extended: ExtendedColors
-        @Composable @ReadOnlyComposable
-        get() = LocalExtendedColors.current
-
-    /** Färgerna för en [Tone] i aktuellt tema. */
-    @Composable
-    @ReadOnlyComposable
-    fun tone(tone: Tone): ToneColors = when (tone) {
-        Tone.Primary -> extended.primaryTone
-        Tone.Green -> extended.greenTone
-        Tone.Blue -> extended.blueTone
-    }
 }
-
-internal val LocalExtendedColors = staticCompositionLocalOf { AppColors.lightExtended }

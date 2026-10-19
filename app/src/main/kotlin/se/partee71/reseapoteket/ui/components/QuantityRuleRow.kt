@@ -8,7 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.QuantityRule
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.theme.Spacing
 
 /**
  * Mängdregel för en familjeartikel: Fast antal · Per resenär · Per N dagar och dess antal.

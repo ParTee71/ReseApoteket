@@ -66,7 +66,8 @@ import se.partee71.reseapoteket.ui.components.SuggestionField
 import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.components.kindLabel
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.theme.Tone
 
 /** REC-1, REC-2: namnet är obligatoriskt och doseringen ska gå att räkna på. */
 object RegimenValidator : Validator<Regimen> {

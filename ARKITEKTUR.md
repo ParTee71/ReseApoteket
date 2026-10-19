@@ -163,8 +163,8 @@ ReseApoteket/
 │       ├── di/                   övriga Hilt-moduler (Firestore-modulen ligger i data/firestore)
 │       ├── navigation/           Navigation 3: AppKey, AppBackStack (en stack per flik), AppNavHost (+ synkindikator och appens meddelanden), Transitions
 │       └── ui/
-│           ├── theme/            Expressive-tema, AppColors, AppTypography, AppShapes, Spacing
-│           ├── components/       delade komponenter och skärmramar, ComponentGallery
+│           ├── theme/            ReseApoteketTheme (android-ui:s AppTheme), AppColors, AppTypeScale (Nunito)
+│           ├── components/       delade komponenter och skärmramar, ComponentGallery (11 komponenter från android-ui)
 │           ├── common/           ListUiState, ListLoader, EditorState, Validator, DateFormat, DataError.toMessage(), shownAfter
 │           ├── auth/             AuthViewModel (vad appen visar), SignInScreen, UpdateRequiredScreen
 │           ├── sync/             SyncViewModel (synkläget för UI:t, NFR-6)
@@ -176,6 +176,16 @@ ReseApoteket/
 ```
 
 Vad som är delat och var det bor: skill `shared-ui-components` (enda källan).
+
+**Komponentbiblioteket android-ui** ([ParTee71/android-ui](https://github.com/ParTee71/android-ui),
+delat med Dagboken, sedan #126): tema-API:t (`AppTheme`, `ExtendedColors`, `Tone`, `AppShapes`,
+`AppTypography`, `Spacing`) i `se.partee71.ui:ui-theme` och elva komponenter (`AddSplitButton`,
+`AppButton`, `AppDivider`, `AppIconButton`, `AppLoading`, `AppSegmentedChoice`, `AppSnackbarHost`,
+`AppTopBar`, `ChipRow`, `Confetti`, `SwipeToHide`) i `se.partee71.ui:ui-components`. Appen har kvar
+sina färger, typsnitt och former och skickar in dem i `AppTheme` via `ReseApoteketTheme`; övriga
+komponenter och ramarna bor i `ui/components`. Biblioteket hämtas från GitHub Packages (se
+[Byggkonfiguration](#byggkonfiguration)); vilka rader som kommer därifrån står i skill
+`shared-ui-components` (märkta *(android-ui)*).
 
 ---
 
@@ -320,6 +330,7 @@ Beslutad och uppmätt i #11.
 | Robolectric / Roborazzi / Konsist | 4.17 / 1.76.0 / 0.17.3 | Robolectric-SDK och skärmmått i `app/src/test/resources/robolectric.properties` |
 | PMD (CPD) | 7.28.0 | se `cpdCheck` nedan |
 | WorkManager | 2.12.0 | påminnelserna (#78); inget Hilt-work – workern hämtar sina beroenden via en `@EntryPoint` |
+| android-ui | 0.1.0 | `se.partee71.ui:ui-theme` + `ui-components` från GitHub Packages (`maven.pkg.github.com/ParTee71/android-ui`, bara gruppen `se.partee71.ui`), inloggning krävs även för läsning: `GPR_USER`/`GPR_TOKEN` i sessionen, Actions-secreten `GPR_TOKEN` i CI (#126) |
 
 **Gemensam byggkonfiguration** står på ett ställe: rotens `build.gradle.kts` (`subprojects {}`):
 Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten) och testloggning

@@ -21,11 +21,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.AppBottomSheet
-import se.partee71.reseapoteket.ui.components.AppButton
-import se.partee71.reseapoteket.ui.components.AppSegmentedChoice
 import se.partee71.reseapoteket.ui.components.AppTextField
-import se.partee71.reseapoteket.ui.components.ButtonVariant
-import se.partee71.reseapoteket.ui.components.ChipRow
 import se.partee71.reseapoteket.ui.components.InfoPill
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.LabeledGroup
@@ -34,8 +30,13 @@ import se.partee71.reseapoteket.ui.components.PersonChip
 import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppSegmentedChoice
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Tone
 
 /** Ändra mängd (PAK-3): stegare, förslaget med förklaringen och "Återställ till förslag". */
 @Composable
@@ -43,7 +44,7 @@ internal fun QuantitySheet(row: PackingRow, onEvent: (PackingListEvent) -> Unit,
     val item = row.item
     AppBottomSheet(item.name, onDismiss = { onEvent(PackingListEvent.CloseQuantity) }, error = error) {
         listOfNotNull(row.person?.name, row.schedule).takeIf { it.isNotEmpty() }?.let {
-            Text(it.joinToString(" · "), style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(it.joinToString(" · "), style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         QuantityStepper(item.quantity, { onEvent(PackingListEvent.Quantity(it)) }, UnitNames.name(item.quantity, item.unit))
         if (item.sourceType != PackingSource.MANUAL) {

@@ -44,9 +44,11 @@ import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.StackedAvatar
 import se.partee71.reseapoteket.ui.components.SuitcaseProgress
-import se.partee71.reseapoteket.ui.components.SwipeToHide
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.theme.Tone
 
 /** En rad i reselistan: resan, resenärerna och hur mycket som är packat (RES-1). */
 data class TripListItem(val trip: Trip, val travellers: List<Person> = emptyList(), val progress: PackingProgress = PackingProgress.NONE)

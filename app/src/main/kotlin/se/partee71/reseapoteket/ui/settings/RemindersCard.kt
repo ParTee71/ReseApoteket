@@ -30,9 +30,6 @@ import se.partee71.reseapoteket.reminders.canPostNotifications
 import se.partee71.reseapoteket.ui.common.DateFormat
 import se.partee71.reseapoteket.ui.components.ApotekCard
 import se.partee71.reseapoteket.ui.components.AppBottomSheet
-import se.partee71.reseapoteket.ui.components.AppButton
-import se.partee71.reseapoteket.ui.components.AppDivider
-import se.partee71.reseapoteket.ui.components.ChipRow
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.LabeledGroup
 import se.partee71.reseapoteket.ui.components.PackingPreview
@@ -41,7 +38,10 @@ import se.partee71.reseapoteket.ui.components.QuantityStepper
 import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.components.TimeField
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.theme.AppTheme
 
 @StringRes
 private fun ReminderKind.title(): Int = when (this) {
@@ -131,7 +131,7 @@ fun RemindersCard(
 private fun ReminderSheet(kind: ReminderKind, state: RemindersUiState, onChange: (ReminderSetting) -> Unit, onClose: () -> Unit) {
     val setting = state.settings[kind]
     AppBottomSheet(stringResource(kind.title()), onDismiss = onClose) {
-        Text(stringResource(kind.note()), style = AppTypography.itemSubtitle)
+        Text(stringResource(kind.note()), style = AppTheme.typography.itemSubtitle)
         SwitchRow(stringResource(kind.title()), setting.enabled, { onChange(setting.copy(enabled = it)) })
         if (ReminderSettings.hasDaysBefore(kind)) {
             LabeledGroup(stringResource(R.string.reminder_days_before_label)) {

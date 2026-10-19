@@ -38,6 +38,7 @@ pmd                      = "7.28.0"
 spotless                 = "8.10.4"
 ktlint                   = "1.8.0"
 composeRules             = "0.6.8"
+androidUi                = "0.1.0"   # komponentbiblioteket (github.com/ParTee71/android-ui)
 
 [libraries]
 androidx-core-ktx                     = { group = "androidx.core",               name = "core-ktx",                          version.ref = "coreKtx" }
@@ -74,6 +75,8 @@ kotlinx-coroutines-android            = { group = "org.jetbrains.kotlinx",      
 kotlinx-coroutines-play-services      = { group = "org.jetbrains.kotlinx",       name = "kotlinx-coroutines-play-services",  version.ref = "kotlinxCoroutines" }
 kotlinx-collections-immutable         = { group = "org.jetbrains.kotlinx",       name = "kotlinx-collections-immutable",     version.ref = "kotlinxCollections" }
 kotlinx-coroutines-test               = { group = "org.jetbrains.kotlinx",       name = "kotlinx-coroutines-test",           version.ref = "kotlinxCoroutines" }
+android-ui-theme                      = { group = "se.partee71.ui",              name = "ui-theme",                          version.ref = "androidUi" }
+android-ui-components                 = { group = "se.partee71.ui",              name = "ui-components",                     version.ref = "androidUi" }
 # Test
 junit                                 = { group = "junit",                       name = "junit",                             version.ref = "junit" }
 kotlin-test                           = { group = "org.jetbrains.kotlin",        name = "kotlin-test",                       version.ref = "kotlin" }

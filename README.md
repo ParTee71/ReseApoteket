@@ -41,7 +41,10 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 2. Klona repot och öppna det. Utan `app/google-services.json` bygger appen ändå (debug får
    en stubbad Firebase-konfiguration mot demo-projektet), men inloggning fungerar inte – se
    [Firebase-setup](#firebase-setup).
-3. Byggkommandon och vilka tester som finns: [CLAUDE.md → Bygg & test](CLAUDE.md#bygg--test).
+3. Komponentbiblioteket [android-ui](https://github.com/ParTee71/android-ui) hämtas från GitHub
+   Packages, som kräver inloggning även för läsning: sätt `GPR_USER` (GitHub-användaren) och
+   `GPR_TOKEN` (classic token med bara `read:packages`) i miljön. CI läser med Actions-secreten `GPR_TOKEN`.
+4. Byggkommandon och vilka tester som finns: [CLAUDE.md → Bygg & test](CLAUDE.md#bygg--test).
    Arkitektur och byggkonfiguration: [ARKITEKTUR.md](ARKITEKTUR.md).
 
 ---
@@ -84,6 +87,7 @@ från nästa session.
 | `FIREBASE_SERVICE_ACCOUNT` | service-account-JSON (rå eller base64) med rollen **Cloud Datastore Viewer** (läs) | för att läsa databasen från sessionen |
 | `FIREBASE_SERVICE_ACCOUNT_RW` | samma, men rollen **Cloud Datastore User** | bara när du uttryckligen vill att Claude ska kunna importera/migrera |
 | `FIREBASE_PROJECT_ID` | projekt-ID som nyckeln måste höra till | bara om det inte är `reseapoteket` |
+| `GPR_USER` / `GPR_TOKEN` | GitHub-användaren och en classic token med bara `read:packages` | för att bygga appen (komponentbiblioteket android-ui från GitHub Packages) |
 
 Nyckeln skapas i Google Cloud Console → IAM → Service accounts → Keys. Filens innehåll kan
 läggas in som det är eller base64-kodat (`base64 -w0 nyckel.json`). **Klistra aldrig in en nyckel i chatten**, och checka aldrig in
@@ -92,7 +96,7 @@ den – den hör bara hemma i miljöns inställningar och i GitHub-secrets.
 **Nätverk** – tillåt dessa värdar:
 `firestore.googleapis.com`, `oauth2.googleapis.com`, `www.googleapis.com`,
 `registry.npmjs.org`, `dl.google.com`, `maven.google.com`, `services.gradle.org`,
-`plugins.gradle.org`, `repo.maven.apache.org`.
+`plugins.gradle.org`, `repo.maven.apache.org`, `maven.pkg.github.com`.
 
 ### Läsa databasen från sessionen
 1. Skapa en läsnyckel (rollen **Cloud Datastore Viewer**, Firebase-setup steg 3) och lägg den
@@ -214,4 +218,4 @@ Versionen och raden nedan höjs och skrivs i funktions-PR:en; releasen görs via
 | 0.5.0 | Klistra in en lista i packlistan: "Lägg till" → Lista lägger in en sak per rad under Övrigt, med antal, förhandsvisning och Ångra (#97, PAK-7); uppdaterad läkemedelslista. |
 | 0.5.1 | Buggfix: en lång inklistrad lista går att lägga till – bladet scrollar, fältet visar högst 8 rader och knappen står direkt under fältet (#100). |
 | 0.5.2 | Packlistan på telefon: Övrigt visas i en kolumn så att namnen får plats, och två kolumner bara där de ryms; ett långtryck på en kapad rad visar hela texten (#103, NFR-20); uppdaterad läkemedelslista. |
-| 0.5.4 | Intern: coroutine-dispatchers injiceras från `di/DispatchersModule`, och bygget och hooken stoppar `Dispatchers.` utanför `di/`; listor och kartor i skärmtillstånden är oföränderliga och tillstånden märkta `@Immutable`, så att Compose hoppar över oförändrade delar, och listans rader har `contentType`; engångshändelser (formulärets klar och sparfel, konfettin, delningen av exporten) är fält i skärmtillståndet som skärmen kvitterar i stället för `Channel`, och bygget och hooken stoppar `Channel(` i `ui/`; appen riktar sig mot Android 16 (targetSdk 36); effekter anropar alltid den senaste callbacken, och en rad som arkiveras eller en chiprad som byter radbrytning behåller sitt tillstånd; Material 3 är uppgraderat från alfa till 1.5.0-beta01. Ingen synlig ändring. |
+| 0.5.4 | Intern: coroutine-dispatchers injiceras från `di/DispatchersModule`, och bygget och hooken stoppar `Dispatchers.` utanför `di/`; listor och kartor i skärmtillstånden är oföränderliga och tillstånden märkta `@Immutable`, så att Compose hoppar över oförändrade delar, och listans rader har `contentType`; engångshändelser (formulärets klar och sparfel, konfettin, delningen av exporten) är fält i skärmtillståndet som skärmen kvitterar i stället för `Channel`, och bygget och hooken stoppar `Channel(` i `ui/`; appen riktar sig mot Android 16 (targetSdk 36); effekter anropar alltid den senaste callbacken, och en rad som arkiveras eller en chiprad som byter radbrytning behåller sitt tillstånd; Material 3 är uppgraderat från alfa till 1.5.0-beta01; temat och elva komponenter kommer från det gemensamma komponentbiblioteket android-ui 0.1.0 i stället för egna kopior (#126). Ingen synlig ändring. |

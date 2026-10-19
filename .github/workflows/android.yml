@@ -130,6 +130,7 @@ jobs:
           RUN_CORE: ${{ needs.changes.outputs.run_core }}
           RUN_APP: ${{ needs.changes.outputs.run_app }}
           RUN_INSTRUMENTED: ${{ needs.changes.outputs.run_instrumented }}
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }} # android-ui från GitHub Packages (ARKITEKTUR.md → Byggkonfiguration)
         run: |
           set -euo pipefail
           tasks=(cpdCheck)
@@ -200,6 +201,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_instrumented == 'true'
     uses: ./.github/workflows/instrumented.yml
+    secrets:
+      GPR_TOKEN: ${{ secrets.GPR_TOKEN }}
 
   ci-ok:
     name: ci-ok

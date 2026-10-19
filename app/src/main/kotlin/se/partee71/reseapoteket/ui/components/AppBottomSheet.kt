@@ -20,10 +20,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.toMessage
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /**
  * Bottom sheet med rubrik, t.ex. "ändra mängd" i packlistan. Öppnas helt direkt, och innehåll
@@ -42,8 +40,8 @@ fun AppBottomSheet(
         onDismissRequest = onDismiss,
         modifier = modifier,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        shape = AppShapes.sheet,
-        containerColor = AppColors.extended.card
+        shape = AppTheme.shapes.sheet,
+        containerColor = AppTheme.extendedColors.card
     ) {
         Column(
             Modifier
@@ -52,7 +50,7 @@ fun AppBottomSheet(
                 .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
-            Text(title, style = AppTypography.sectionTitle, modifier = Modifier.semantics { heading() })
+            Text(title, style = AppTheme.typography.sectionTitle, modifier = Modifier.semantics { heading() })
             content()
             error?.let { FieldError(stringResource(it.toMessage())) }
         }

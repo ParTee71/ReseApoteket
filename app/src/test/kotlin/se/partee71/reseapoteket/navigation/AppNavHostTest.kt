@@ -21,10 +21,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.ui.components.AppTopBar
 import se.partee71.reseapoteket.ui.sync.SyncEvent
 import se.partee71.reseapoteket.ui.sync.SyncUiState
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
+import se.partee71.ui.components.AppTopBar
 
 /** Navigationsramen: verktygsraden i flikarnas rot, dold på undersidor (NAV-1). */
 @RunWith(RobolectricTestRunner::class)

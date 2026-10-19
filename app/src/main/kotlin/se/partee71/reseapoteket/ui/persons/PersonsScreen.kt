@@ -29,8 +29,8 @@ import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.PersonAvatar
-import se.partee71.reseapoteket.ui.components.SwipeToHide
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.components.SwipeToHide
 
 /** En rad i personlistan: personen och hur många recept och kosttillskott den har (PER-1). */
 data class PersonListItem(val person: Person, val medicines: Int = 0, val supplements: Int = 0)

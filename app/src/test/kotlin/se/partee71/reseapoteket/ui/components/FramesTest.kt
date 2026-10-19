@@ -47,8 +47,9 @@ import se.partee71.reseapoteket.ui.common.Validator
 import se.partee71.reseapoteket.ui.runEditScreenContract
 import se.partee71.reseapoteket.ui.runListScreenContract
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.reseapoteket.ui.theme.Green
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.ui.theme.Tone
 
 /** Ramarna testas grundligt en gång här; skärmarna kör bara kontrakten (skill testing-strategy). */
 @RunWith(RobolectricTestRunner::class)

@@ -40,10 +40,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /**
  * Den enda listraden (skill shared-ui-components): valfri [leading] (avatar, kryss), titel,
@@ -109,7 +107,7 @@ internal fun ItemRowLayout(
     below: (@Composable () -> Unit)? = null,
     titleHighlight: IntRange? = null
 ) {
-    val tint = AppColors.extended.rowTint
+    val tint = AppTheme.extendedColors.rowTint
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     // Bubblan finns bara när titeln faktiskt kapas – annars är långtrycket radens som vanligt.
     var truncated by remember { mutableStateOf(false) }
@@ -124,7 +122,7 @@ internal fun ItemRowLayout(
             modifier
                 .fillMaxWidth()
                 .heightIn(min = MIN_HEIGHT)
-                .clip(AppShapes.row)
+                .clip(AppTheme.shapes.row)
                 .then(if (tinted) Modifier.background(tint) else Modifier)
                 .then(interaction)
                 .then(if (accent != null) Modifier.drawBehind { drawAccent(accent) } else Modifier)
@@ -137,14 +135,14 @@ internal fun ItemRowLayout(
                     val decoration = if (done) TextDecoration.LineThrough else null
                     Text(
                         highlighted(title, titleHighlight),
-                        style = AppTypography.itemTitle,
+                        style = AppTheme.typography.itemTitle,
                         color = if (done) muted else MaterialTheme.colorScheme.onSurface,
                         textDecoration = decoration,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { truncated = it.hasVisualOverflow }
                     )
-                    subtitle?.let { Text(it, style = AppTypography.itemSubtitle, color = muted, textDecoration = decoration) }
+                    subtitle?.let { Text(it, style = AppTheme.typography.itemSubtitle, color = muted, textDecoration = decoration) }
                 }
                 trailing?.invoke()
             }
@@ -157,8 +155,8 @@ internal fun ItemRowLayout(
 @Composable
 private fun FullText(title: String, subtitle: String?) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(title, style = AppTypography.itemTitle)
-        subtitle?.let { Text(it, style = AppTypography.itemSubtitle) }
+        Text(title, style = AppTheme.typography.itemTitle)
+        subtitle?.let { Text(it, style = AppTheme.typography.itemSubtitle) }
     }
 }
 

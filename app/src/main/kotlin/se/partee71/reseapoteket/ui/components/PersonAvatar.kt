@@ -11,8 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.theme.AppTheme
 
 enum class AvatarSize(internal val size: Dp) { Regular(40.dp), Small(28.dp), Large(72.dp) }
 
@@ -24,13 +23,13 @@ enum class AvatarSize(internal val size: Dp) { Regular(40.dp), Small(28.dp), Lar
 @Composable
 fun PersonAvatar(emoji: String, color: Color, modifier: Modifier = Modifier, size: AvatarSize = AvatarSize.Regular) {
     Box(
-        modifier.size(size.size).background(color, AppShapes.pill).clearAndSetSemantics {},
+        modifier.size(size.size).background(color, AppTheme.shapes.pill).clearAndSetSemantics {},
         contentAlignment = Alignment.Center
     ) {
         val style = when (size) {
-            AvatarSize.Small -> AppTypography.pill
-            AvatarSize.Regular -> AppTypography.sectionTitle
-            AvatarSize.Large -> AppTypography.screenTitle
+            AvatarSize.Small -> AppTheme.typography.pill
+            AvatarSize.Regular -> AppTheme.typography.sectionTitle
+            AvatarSize.Large -> AppTheme.typography.screenTitle
         }
         Text(emoji, style = style)
     }

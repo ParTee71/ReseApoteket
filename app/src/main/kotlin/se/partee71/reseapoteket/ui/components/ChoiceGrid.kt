@@ -18,8 +18,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /**
  * Ett rutnät av runda val där precis ett är valt – grunden för [EmojiPicker] och
@@ -60,7 +60,7 @@ private fun <T> ChoiceRows(
                     // Tryckytan är 48 dp (NFR-11); den synliga cirkeln är mindre.
                     Box(
                         Modifier.size(TOUCH)
-                            .clip(AppShapes.pill)
+                            .clip(AppTheme.shapes.pill)
                             .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(item) })
                             .semantics { contentDescription = description },
                         contentAlignment = Alignment.Center
