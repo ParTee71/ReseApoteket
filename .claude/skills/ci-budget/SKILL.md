@@ -93,6 +93,8 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 - Robolectric-SDK-jar och Firebase-emulatorn cachas.
 - Gemensamma steg i composite actions (`.github/actions/setup-android`, `doc-checks`,
   `open-issue-on-failure`, `setup-tools-db`, `rules-tests`, `deploy-rules`) – en ändring, alla flöden.
+- `setup-android` provar först att `GPR_TOKEN` når android-ui och stoppar på en sekund om secreten
+  saknas eller är fel, i stället för efter bygget och emulatorn.
 - `:core` utan Android-beroenden kompilerar och testar på sekunder.
 
 ## När du lägger till något

@@ -124,6 +124,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-android
+        with:
+          gpr-token: ${{ secrets.GPR_TOKEN }}
 
       - name: Bygg och testa
         env:
