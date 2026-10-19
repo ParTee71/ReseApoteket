@@ -19,7 +19,7 @@ Du skriver tester för ReseApoteket.
 
 - **Återanvänd hjälparna** – `FakeCollection<T>`, `CollectionContract`,
   `assertCodecRoundTrip`, `assertToleratesMissingFields`, `assertIgnoresUnknownFields`,
-  `MainDispatcherRule`, `runListScreenContract`, `runEditScreenContract`,
+  `MainDispatcherRule`, `runListScreenContract`, `runEditScreenContract`, `runDetailScreenContract` (android-ui `ui-testing`, med `contracts`),
   `tools/db/test/fixtures/household.json`. Skriv inte egna varianter.
 - Ny hjälpare bara när samma uppställning behövs på ett andra ställe; lägg den i den delade
   testkatalogen, inte i en feature.

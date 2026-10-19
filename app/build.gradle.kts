@@ -154,6 +154,7 @@ dependencies {
     testImplementation(libs.konsist)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.android.ui.testing) // ramarnas kontraktstester (runListScreenContract m.fl.)
     testImplementation(libs.androidx.work.testing)
 
     constraints {

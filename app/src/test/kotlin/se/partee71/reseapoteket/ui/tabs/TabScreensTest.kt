@@ -10,17 +10,18 @@ import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.contracts
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsContent
 import se.partee71.reseapoteket.ui.familyitems.FamilyItemsEvent
 import se.partee71.reseapoteket.ui.persons.PersonListItem
 import se.partee71.reseapoteket.ui.persons.PersonsContent
 import se.partee71.reseapoteket.ui.persons.PersonsEvent
-import se.partee71.reseapoteket.ui.runListScreenContract
 import se.partee71.reseapoteket.ui.trips.TripListItem
 import se.partee71.reseapoteket.ui.trips.TripsContent
 import se.partee71.reseapoteket.ui.trips.TripsEvent
 import se.partee71.ui.common.ListEvent
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.testing.runListScreenContract
 
 /** Flikarna Resor, Personer och Familjeartiklar är listskärmar på `EntityListScreen` (NAV-1, NFR-1). */
 @RunWith(RobolectricTestRunner::class)
@@ -30,17 +31,17 @@ class TabScreensTest {
     val rule = createComposeRule()
 
     @Test
-    fun `Resor uppfyller listkontraktet`() = rule.runListScreenContract(TripListItem(Trip("t1", "Kreta", days = 7)), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
+    fun `Resor uppfyller listkontraktet`() = rule.runListScreenContract(contracts, TripListItem(Trip("t1", "Kreta", days = 7)), "Kreta", "Inga resor än", "Ny resa") { state, onAdd, onRetry ->
         TripsContent(state, { if (it == TripsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
     }
 
     @Test
-    fun `Personer uppfyller listkontraktet`() = rule.runListScreenContract(PersonListItem(Person("p1", "Anna", "🦊", "#D97757")), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
+    fun `Personer uppfyller listkontraktet`() = rule.runListScreenContract(contracts, PersonListItem(Person("p1", "Anna", "🦊", "#D97757")), "Anna", "Inga personer än", "Lägg till person") { state, onAdd, onRetry ->
         PersonsContent(state, { if (it == PersonsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
     }
 
     @Test
-    fun `Familjeartiklar uppfyller listkontraktet`() = rule.runListScreenContract(FamilyItem("f1", "Solkräm"), "Solkräm", "Inga familjeartiklar än", "Lägg till") { state, onAdd, onRetry ->
+    fun `Familjeartiklar uppfyller listkontraktet`() = rule.runListScreenContract(contracts, FamilyItem("f1", "Solkräm"), "Solkräm", "Inga familjeartiklar än", "Lägg till") { state, onAdd, onRetry ->
         FamilyItemsContent(state, { if (it == FamilyItemsEvent.List(ListEvent.Retry)) onRetry() }, onAdd, {})
     }
 

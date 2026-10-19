@@ -38,9 +38,7 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.runEditScreenContract
-import se.partee71.reseapoteket.ui.runListScreenContract
+import se.partee71.reseapoteket.ui.contracts
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Green
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
@@ -50,10 +48,26 @@ import se.partee71.ui.common.EditorState
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.ListUiState
 import se.partee71.ui.common.Validator
+import se.partee71.ui.components.AddAction
 import se.partee71.ui.components.AppCard
+import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.AppTextField
+import se.partee71.ui.components.ArchiveEvent
+import se.partee71.ui.components.ConfirmDialog
+import se.partee71.ui.components.DeleteAction
+import se.partee71.ui.components.DetailHeader
+import se.partee71.ui.components.EmptyContent
+import se.partee71.ui.components.EntityDetailScreen
+import se.partee71.ui.components.EntityEditScreen
+import se.partee71.ui.components.EntityListScreen
+import se.partee71.ui.components.ItemRow
+import se.partee71.ui.components.ListArchive
+import se.partee71.ui.components.ListGroup
+import se.partee71.ui.components.ListSubgroup
 import se.partee71.ui.components.LoadErrorState
 import se.partee71.ui.components.SectionHeader
+import se.partee71.ui.testing.runEditScreenContract
+import se.partee71.ui.testing.runListScreenContract
 import se.partee71.ui.theme.Tone
 
 /** Ramarna testas grundligt en gång här; skärmarna kör bara kontrakten (skill testing-strategy). */
@@ -63,7 +77,8 @@ class FramesTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private val empty = EmptyContent(R.drawable.ic_family_items, "Inga familjeartiklar än", "Solkräm, plåster, febertermometer – saker hela familjen delar.", "Lägg till")
+    private val empty = EmptyContent(R.drawable.ic_family_items, "Inga familjeartiklar än", "Solkräm, plåster, febertermometer – saker hela familjen delar.")
+    private val add = AddAction("Lägg till", {})
     private val items = listOf("Solkräm" to "Krämer & salvor", "Hydrokortison 1 %" to "Krämer & salvor", "Plåster" to "Plåster & förband")
 
     private fun string(id: Int) = ApplicationProvider.getApplicationContext<Context>().getString(id)
@@ -71,15 +86,15 @@ class FramesTest {
     private fun group(item: Pair<String, String>) = ListGroup(item.second, tone = if (item.second.startsWith("Plåster")) Tone.Green else Tone.Primary)
 
     @Test
-    fun `EntityListScreen uppfyller listkontraktet`() = rule.runListScreenContract("Solkräm", "Solkräm", empty.title, empty.actionLabel) { state, onAdd, onRetry ->
-        EntityListScreen("Familjeartiklar", state, empty, onAdd, key = { it }, onRetry = onRetry) { ItemRow(it) }
+    fun `EntityListScreen uppfyller listkontraktet`() = rule.runListScreenContract(contracts, "Solkräm", "Solkräm", empty.title, add.label) { state, onAdd, onRetry ->
+        EntityListScreen("Familjeartiklar", state, empty, add.copy(onClick = onAdd), key = { it }, onRetry = onRetry) { ItemRow(it) }
     }
 
     @Test
     fun `grupperad lista visar en rubrik med antal per grupp`() {
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Familjeartiklar", ListUiState.Content(items.toImmutableList()), empty, {}, key = { it.first }, group = ::group) { ItemRow(it.first) }
+                EntityListScreen("Familjeartiklar", ListUiState.Content(items.toImmutableList()), empty, add, key = { it.first }, group = ::group) { ItemRow(it.first) }
             }
         }
         rule.onNodeWithText("Krämer & salvor").assertIsDisplayed()
@@ -103,7 +118,7 @@ class FramesTest {
                     "Gran Canaria",
                     ListUiState.Content(rows.toImmutableList()),
                     empty,
-                    {},
+                    add,
                     key = { it.first },
                     group = { groups.getValue(if (it.second == "b") "a" else it.second) },
                     subtitle = "7 dagar",
@@ -135,7 +150,7 @@ class FramesTest {
         val rows = listOf("Solkräm SPF 50", "Resetabletter mot åksjuka")
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Gran Canaria", ListUiState.Content(rows.toImmutableList()), empty, {}, key = { it }, group = { ListGroup("Övrigt", columns = 2) }) { ItemRow(it) }
+                EntityListScreen("Gran Canaria", ListUiState.Content(rows.toImmutableList()), empty, add, key = { it }, group = { ListGroup("Övrigt", columns = 2) }) { ItemRow(it) }
             }
         }
         val first = rule.onNodeWithText(rows[0]).fetchSemanticsNode().positionInRoot
@@ -145,20 +160,11 @@ class FramesTest {
     }
 
     @Test
-    fun `kolumner får plats först när var och en blir minst 260 dp bred (NFR-20)`() {
-        assertEquals(1, columnsThatFit(358.dp), "telefon")
-        assertEquals(1, columnsThatFit(523.dp), "strax under två")
-        assertEquals(2, columnsThatFit(524.dp), "precis två")
-        assertEquals(2, columnsThatFit(568.dp), "surfplatta")
-        assertEquals(1, columnsThatFit(0.dp), "alltid minst en")
-    }
-
-    @Test
     fun `en utfälld grupp står kvar efter att skärmen återskapats`() {
         val restore = StateRestorationTester(rule)
         restore.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Gran Canaria", ListUiState.Content(persistentListOf("A1", "D1")), empty, {}, key = { it }, group = { ListGroup(if (it == "D1") "Dolda" else "Övrigt", collapsible = it == "D1") }) { ItemRow(it) }
+                EntityListScreen("Gran Canaria", ListUiState.Content(persistentListOf("A1", "D1")), empty, add, key = { it }, group = { ListGroup(if (it == "D1") "Dolda" else "Övrigt", collapsible = it == "D1") }) { ItemRow(it) }
             }
         }
         rule.onNodeWithText("D1").assertDoesNotExist()
@@ -173,7 +179,7 @@ class FramesTest {
         var toggles = 0
         rule.setContent {
             ReseApoteketTheme {
-                EntityListScreen("Familjeartiklar", ListUiState.Content(persistentListOf("Solkräm")), empty, {}, key = { it }, archive = ListArchive { if (it == ArchiveEvent.ToggleArchived) toggles++ }) { ItemRow(it) }
+                EntityListScreen("Familjeartiklar", ListUiState.Content(persistentListOf("Solkräm")), empty, add, key = { it }, archive = ListArchive { if (it == ArchiveEvent.ToggleArchived) toggles++ }) { ItemRow(it) }
             }
         }
         rule.onNodeWithContentDescription("Fler val").performClick()
@@ -185,6 +191,7 @@ class FramesTest {
     fun `EntityEditScreen uppfyller redigeringskontraktet`() {
         val editor = EditorState("", Validator { if (it.isBlank()) mapOf("name" to R.string.error_no_household) else emptyMap() }, AppErrors)
         rule.runEditScreenContract(
+            contracts,
             editor = editor,
             makeInvalid = {
                 update("name") { "x" }
@@ -387,18 +394,17 @@ class FramesTest {
 
     @Test
     fun `EntityListScreen - lägen`() {
-        captureLightAndDark("EntityListScreen_laddar") { EntityListScreen<String>("Familjeartiklar", ListUiState.Loading, empty, {}, key = { it }) {} }
-        captureLightAndDark("EntityListScreen_tom") { EntityListScreen<String>("Familjeartiklar", ListUiState.Empty, empty, {}, key = { it }) {} }
-        captureLightAndDark("EntityListScreen_fel") { EntityListScreen<String>("Familjeartiklar", ListUiState.Error(AppErrors.map(DataError.Offline)), empty, {}, key = { it }) {} }
+        captureLightAndDark("EntityListScreen_laddar") { EntityListScreen<String>("Familjeartiklar", ListUiState.Loading, empty, add, key = { it }) {} }
+        captureLightAndDark("EntityListScreen_tom") { EntityListScreen<String>("Familjeartiklar", ListUiState.Empty, empty, add, key = { it }) {} }
+        captureLightAndDark("EntityListScreen_fel") { EntityListScreen<String>("Familjeartiklar", ListUiState.Error(AppErrors.map(DataError.Offline)), empty, add, key = { it }) {} }
         captureLightAndDark("EntityListScreen_innehall") {
             EntityListScreen(
                 "Familjeartiklar",
                 ListUiState.Content(items.toImmutableList()),
                 empty,
-                {},
+                add.copy(menu = listOf(AppMenuItem("Visa arkiverade", {}))),
                 key = { it.first },
-                group = ::group,
-                addMenu = listOf(AppMenuItem("Visa arkiverade", {}))
+                group = ::group
             ) { ItemRow(it.first, subtitle = "1 tub per 7 dagar", navigates = true, onClick = {}) }
         }
     }

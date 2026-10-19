@@ -41,7 +41,7 @@ kod ändras.
 | Modell/codec | `assertCodecRoundTrip` + tolerans-hjälparna (skill `data-safety-backup`) |
 | ViewModel | Initialt state, varje event → nytt state, fel-state; Turbine; `MainDispatcherRule` |
 | Repository | Mot `FakeCollection<T>`; ändras `FirestoreCollection` → utöka `CollectionContract` – instrumenttesterna körs i PR:en |
-| Skärm som använder en ram | `runListScreenContract` / `runEditScreenContract` + bara det unika |
+| Skärm som använder en ram | `runListScreenContract` / `runEditScreenContract` / `runDetailScreenContract` + bara det unika |
 | Delad komponent/ram | Robolectric-test, skärmdump ljust + mörkt, plats i `ComponentGallery` |
 | `firestore.rules` | Rules-test: medlem, icke-medlem, oautentiserad |
 | `tools/db` | Rundturstest och verktygets eget test |
@@ -62,8 +62,9 @@ hjälparna och testar bara det som är unikt för funktionen:
 | `HouseholdFixture` (riktig `HouseholdSession` + fejkad Firestore + `FakeHouseholdDirectory`, `EnsureHouseholdUseCase`) | `app/src/test/.../testing/` | egen uppställning av hushåll och session per test |
 | `FakeAuthRepository` | `app/src/test/.../ui/auth/` | Google-inloggning i ViewModel-tester |
 | `captureLightAndDark(name) { … }`, `rule.captureLightAndDark(name, settle) { … }` och `rule.captureScreenLightAndDark(name, open) { … }` | `app/src/test/.../testing/Screenshots.kt` | egna Roborazzi-anrop; regelvarianten behåller en visad snackbar mellan bilderna, skärmvarianten fotograferar dialoger, menyer och sheets |
-| `runListScreenContract(item, itemText, emptyTitle, addLabel) { state, onAdd, onRetry -> … }` | `app/src/test/.../ui/ScreenContracts.kt` | att testa tomt/fel/laddar/lägg till per skärm |
-| `runEditScreenContract(editor, makeInvalid, makeValid, invalidMessage) { state, events, onSave, onClose -> … }` | `app/src/test/.../ui/ScreenContracts.kt` | att testa spara-aktivering/släng-dialog/sparfel per skärm |
+| `runListScreenContract(contracts, item, itemText, emptyTitle, addLabel) { state, onAdd, onRetry -> … }` | android-ui `ui-testing` (`se.partee71.ui.testing`); `contracts` i `app/src/test/.../ui/Contracts.kt` | att testa tomt/fel/laddar/lägg till per skärm |
+| `runEditScreenContract(contracts, editor, makeInvalid, makeValid, invalidMessage) { state, events, onSave, onClose -> … }` | android-ui `ui-testing` | att testa spara-aktivering/släng-dialog (pilen och systemets bakåt)/sparfel per skärm |
+| `runDetailScreenContract(contracts, value, valueText) { state, onRetry, onEdit, onBack -> … }` | android-ui `ui-testing` | att testa laddar/läsfel/finns inte/Redigera/tillbaka per skärm |
 | `test/fixtures/household.json` | `tools/db/test/` | egna seeds per Nodetest |
 
 Behövs samma testuppställning på två ställen → gör en hjälpare innan det tredje.

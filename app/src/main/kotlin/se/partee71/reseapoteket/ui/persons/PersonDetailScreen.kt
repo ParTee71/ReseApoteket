@@ -26,10 +26,7 @@ import se.partee71.reseapoteket.core.model.listed
 import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
-import se.partee71.reseapoteket.ui.components.AppMenuItem
 import se.partee71.reseapoteket.ui.components.AvatarSize
-import se.partee71.reseapoteket.ui.components.DetailHeader
-import se.partee71.reseapoteket.ui.components.EntityDetailScreen
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
 import se.partee71.reseapoteket.ui.regimens.RegimenRow
@@ -41,7 +38,10 @@ import se.partee71.ui.common.uiErrorOrNull
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.DetailHeader
+import se.partee71.ui.components.EntityDetailScreen
 import se.partee71.ui.components.SectionHeader
 import se.partee71.ui.theme.AppTheme
 

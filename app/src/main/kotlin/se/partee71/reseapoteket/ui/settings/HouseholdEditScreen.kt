@@ -18,13 +18,13 @@ import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.common.suspendRunCatching
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
-import se.partee71.reseapoteket.ui.components.EntityEditScreen
 import se.partee71.ui.common.EditorEvents
 import se.partee71.ui.common.EditorLoader
 import se.partee71.ui.common.EditorState
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.Validator
 import se.partee71.ui.components.AppTextField
+import se.partee71.ui.components.EntityEditScreen
 
 /** SET-2: hushållet måste ha ett namn. */
 object HouseholdValidator : Validator<Household> {

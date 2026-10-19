@@ -37,8 +37,8 @@ import se.partee71.reseapoteket.domain.PackingUpdate
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.ArchiveEvent
 import se.partee71.ui.components.UndoRequest
 
 /** Resorna (RES-1–4) mot `FakeCollection` – motorn testas i `:core`, ramarna i ramarnas tester. */

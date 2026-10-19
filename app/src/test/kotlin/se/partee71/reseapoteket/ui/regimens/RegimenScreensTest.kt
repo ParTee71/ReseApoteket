@@ -34,11 +34,12 @@ import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.testing.FakeMedicines
 import se.partee71.reseapoteket.testing.captureLightAndDark
-import se.partee71.reseapoteket.ui.runEditScreenContract
+import se.partee71.reseapoteket.ui.contracts
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.common.EditorEvents
 import se.partee71.ui.common.EditorState
 import se.partee71.ui.common.EditorUiState
+import se.partee71.ui.testing.runEditScreenContract
 
 /**
  * Formuläret för recept och kosttillskott (REC-1–5, KOS-1–3): ramens kontrakt för båda sorterna
@@ -70,6 +71,7 @@ class RegimenScreensTest {
         val config = RegimenKindConfig.of(kind).editor
         val editor = EditorState(levaxin.copy(kind = kind, name = ""), RegimenValidator, AppErrors)
         rule.runEditScreenContract(
+            contracts,
             editor = editor,
             makeInvalid = {
                 update(RegimenValidator.NAME) { it.copy(name = "x") }

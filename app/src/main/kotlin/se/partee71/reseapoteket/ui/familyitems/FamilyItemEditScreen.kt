@@ -35,10 +35,8 @@ import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.activeCount
 import se.partee71.reseapoteket.data.repository.householdSettings
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.components.EntityEditScreen
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.QuantityRuleRow
-import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.components.TravelDayField
 import se.partee71.ui.common.EditorEvents
 import se.partee71.ui.common.EditorLoader
@@ -47,7 +45,9 @@ import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.Validator
 import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ChoiceChips
+import se.partee71.ui.components.EntityEditScreen
 import se.partee71.ui.components.LabeledGroup
+import se.partee71.ui.components.SwitchRow
 
 /** FAM-2, FAM-3: namnet är obligatoriskt och mängdregeln ska gå att räkna på. */
 object FamilyItemValidator : Validator<FamilyItem> {

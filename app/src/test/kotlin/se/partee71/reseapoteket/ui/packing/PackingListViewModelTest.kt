@@ -45,9 +45,9 @@ import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.testing.FakeDataStore
 import se.partee71.reseapoteket.testing.MainDispatcherRule
 import se.partee71.reseapoteket.testing.StubHouseholds
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.ArchiveEvent
 import se.partee71.ui.components.UndoRequest
 
 /** Packlistan (PAK-1–5) mot `FakeCollection`; ordningen och statusen testas i `:core`. */

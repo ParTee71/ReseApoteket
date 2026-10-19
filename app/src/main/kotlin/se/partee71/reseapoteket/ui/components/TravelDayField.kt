@@ -13,6 +13,7 @@ import se.partee71.reseapoteket.core.engine.ReminderSettings
 import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.SwitchRow
 import se.partee71.ui.components.TimeField
 import se.partee71.ui.theme.Spacing
 

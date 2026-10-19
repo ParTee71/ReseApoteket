@@ -28,18 +28,18 @@ import se.partee71.reseapoteket.core.engine.ReminderSetting
 import se.partee71.reseapoteket.core.engine.ReminderSettings
 import se.partee71.reseapoteket.reminders.canPostNotifications
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.components.AppBottomSheet
-import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
-import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.components.AppBottomSheet
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.ItemRow
 import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.components.QuantityStepper
+import se.partee71.ui.components.SwitchRow
 import se.partee71.ui.components.TimeField
 import se.partee71.ui.theme.AppTheme
 
@@ -130,7 +130,7 @@ fun RemindersCard(
 @Composable
 private fun ReminderSheet(kind: ReminderKind, state: RemindersUiState, onChange: (ReminderSetting) -> Unit, onClose: () -> Unit) {
     val setting = state.settings[kind]
-    AppBottomSheet(stringResource(kind.title()), onDismiss = onClose) {
+    AppBottomSheet(stringResource(kind.title()), onDismiss = onClose, footer = { AppButton(stringResource(R.string.done), onClose, Modifier.fillMaxWidth()) }) {
         Text(stringResource(kind.note()), style = AppTheme.typography.itemSubtitle)
         SwitchRow(stringResource(kind.title()), setting.enabled, { onChange(setting.copy(enabled = it)) })
         if (ReminderSettings.hasDaysBefore(kind)) {
@@ -151,7 +151,6 @@ private fun ReminderSheet(kind: ReminderKind, state: RemindersUiState, onChange:
             quantity = next?.let { nextAt(it.at) } ?: stringResource(R.string.reminder_next_none),
             reason = next?.tripName
         )
-        AppButton(stringResource(R.string.done), onClose, Modifier.fillMaxWidth())
     }
 }
 

@@ -17,8 +17,6 @@ import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
 import se.partee71.reseapoteket.core.model.PackingSource
 import se.partee71.reseapoteket.core.model.Person
-import se.partee71.reseapoteket.ui.components.AppBottomSheet
-import se.partee71.reseapoteket.ui.components.ItemRow
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
 import se.partee71.reseapoteket.ui.components.TravelDayField
@@ -26,6 +24,7 @@ import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.UiError
+import se.partee71.ui.components.AppBottomSheet
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppSegmentedChoice
@@ -33,6 +32,7 @@ import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.ChipRow
 import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.ItemRow
 import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.theme.AppTheme
@@ -42,7 +42,12 @@ import se.partee71.ui.theme.Tone
 @Composable
 internal fun QuantitySheet(row: PackingRow, onEvent: (PackingListEvent) -> Unit, error: UiError? = null) {
     val item = row.item
-    AppBottomSheet(item.name, onDismiss = { onEvent(PackingListEvent.CloseQuantity) }, error = error) {
+    AppBottomSheet(
+        item.name,
+        onDismiss = { onEvent(PackingListEvent.CloseQuantity) },
+        error = error,
+        footer = { AppButton(stringResource(R.string.packing_done), { onEvent(PackingListEvent.CloseQuantity) }, Modifier.fillMaxWidth()) }
+    ) {
         listOfNotNull(row.person?.name, row.schedule).takeIf { it.isNotEmpty() }?.let {
             Text(it.joinToString(" · "), style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -54,7 +59,6 @@ internal fun QuantitySheet(row: PackingRow, onEvent: (PackingListEvent) -> Unit,
         if (PackingList.isChanged(item)) {
             AppButton(stringResource(R.string.packing_reset_format, item.suggestedQuantity), { onEvent(PackingListEvent.ResetQuantity) }, variant = ButtonVariant.Text)
         }
-        AppButton(stringResource(R.string.packing_done), { onEvent(PackingListEvent.CloseQuantity) }, Modifier.fillMaxWidth())
     }
 }
 
@@ -70,7 +74,17 @@ internal fun AddItemSheet(
     error: UiError? = null,
     list: AddListState = AddListState()
 ) {
-    AppBottomSheet(stringResource(R.string.packing_add_title), onDismiss = { onEvent(PackingListEvent.CloseAdd) }, error = error) {
+    AppBottomSheet(
+        stringResource(R.string.packing_add_title),
+        onDismiss = { onEvent(PackingListEvent.CloseAdd) },
+        error = error,
+        footer = {
+            when (list.mode) {
+                AddMode.ONE -> AppButton(stringResource(R.string.add), { onEvent(PackingListEvent.AddSave) }, Modifier.fillMaxWidth(), enabled = state.canSave, loading = state.saving)
+                AddMode.LIST -> AddListButton(list, onEvent)
+            }
+        }
+    ) {
         AppSegmentedChoice(
             listOf(stringResource(R.string.packing_add_one), stringResource(R.string.packing_add_list)),
             selectedIndex = list.mode.ordinal,
@@ -113,10 +127,9 @@ private fun AddOneContent(state: EditorUiState<PackingItem>, travellers: List<Pe
         QuantityStepper(item.quantity, { onEvent(PackingListEvent.AddQuantity(it)) }, UnitNames.name(item.quantity, item.unit), range = ManualItemValidator.QUANTITY_RANGE)
     }
     TravelDayField(item.travelDay, item.travelDayTime, { onEvent(PackingListEvent.AddTravelDay(it)) })
-    AppButton(stringResource(R.string.add), { onEvent(PackingListEvent.AddSave) }, Modifier.fillMaxWidth(), enabled = state.canSave, loading = state.saving)
 }
 
-/** En inklistrad lista (PAK-7): en sak per rad, knappen och vad som läggs till under Övrigt. */
+/** En inklistrad lista (PAK-7): en sak per rad och vad som läggs till under Övrigt; knappen står fast i arkets botten. */
 @Composable
 private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Unit) {
     AppTextField(
@@ -127,7 +140,16 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
         singleLine = false,
         maxLines = LIST_MAX_LINES
     )
-    // Knappen direkt under fältet, så att den syns även när listan är lång (#100).
+    if (list.lines.isNotEmpty()) {
+        LabeledGroup(stringResource(R.string.packing_list_preview)) {
+            AppCard { list.lines.forEach { PastedRow(it) } }
+        }
+    }
+}
+
+/** "Lägg till 3 saker" – i arkets fasta knapprad, så att den syns även när listan är lång (#100). */
+@Composable
+private fun AddListButton(list: AddListState, onEvent: (PackingListEvent) -> Unit) {
     val count = list.toAdd.size
     AppButton(
         if (count == 0) stringResource(R.string.add) else pluralStringResource(R.plurals.packing_list_add, count, count),
@@ -136,11 +158,6 @@ private fun AddListContent(list: AddListState, onEvent: (PackingListEvent) -> Un
         enabled = list.canSave,
         loading = list.saving
     )
-    if (list.lines.isNotEmpty()) {
-        LabeledGroup(stringResource(R.string.packing_list_preview)) {
-            AppCard { list.lines.forEach { PastedRow(it) } }
-        }
-    }
 }
 
 /** Så många rader visar listans fält; en längre lista scrollar i fältet (#100). */
