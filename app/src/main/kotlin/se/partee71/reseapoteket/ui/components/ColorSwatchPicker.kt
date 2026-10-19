@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
+import se.partee71.ui.theme.AppTheme
 
 /**
  * Välj en av personfärgerna (`AppColors.PERSON_HEX`) som hex – det som lagras i
@@ -38,9 +38,9 @@ fun ColorSwatchPicker(selected: String, onSelect: (String) -> Unit, modifier: Mo
         modifier = modifier,
         columns = COLUMNS
     ) { hex, isSelected ->
-        val ring = if (isSelected) Modifier.border(RING, MaterialTheme.colorScheme.onSurface, AppShapes.pill) else Modifier
+        val ring = if (isSelected) Modifier.border(RING, MaterialTheme.colorScheme.onSurface, AppTheme.shapes.pill) else Modifier
         Box(ring.fillMaxSize().padding(if (isSelected) RING_GAP else 0.dp), contentAlignment = Alignment.Center) {
-            Box(Modifier.fillMaxSize().background(AppColors.person(hex), AppShapes.pill), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize().background(AppColors.person(hex), AppTheme.shapes.pill), contentAlignment = Alignment.Center) {
                 if (isSelected) Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = Color.White, modifier = Modifier.size(CHECK))
             }
         }

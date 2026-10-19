@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.Spacing
 
 /** Appikonen (NFR-19): adaptiv, med enfärgad temaikon, och satt i manifestet. */
 @RunWith(RobolectricTestRunner::class)

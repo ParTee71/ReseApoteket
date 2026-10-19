@@ -17,7 +17,9 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.datetime.LocalDate
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.theme.AppColors
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.theme.AppTheme
 
 /**
  * Datumfält: visar datumet på svenska ("lör 19 dec 2026") och öppnar datumväljaren vid tryck.
@@ -52,7 +54,7 @@ fun DateField(
                 }, variant = ButtonVariant.Text)
             },
             dismissButton = { AppButton(stringResource(R.string.cancel), { picking = false }, variant = ButtonVariant.Text) },
-            colors = DatePickerDefaults.colors(containerColor = AppColors.extended.card)
+            colors = DatePickerDefaults.colors(containerColor = AppTheme.extendedColors.card)
         ) {
             DatePicker(state)
         }

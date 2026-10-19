@@ -42,9 +42,26 @@ import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppSegmentedChoice
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.IconButtonVariant
+import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.TopBarSize
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Alla komponenter och ramar på en skärm, med riktiga svenska texter (skill
@@ -72,7 +89,7 @@ fun ComponentGallery(onBack: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 private fun GallerySection(title: String, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        Text(title, style = AppTypography.headline, modifier = Modifier.semantics { heading() })
+        Text(title, style = AppTheme.typography.headline, modifier = Modifier.semantics { heading() })
         content()
     }
 }
@@ -97,7 +114,7 @@ private fun Buttons() {
         AppIconButton(R.drawable.ic_add, "Lägg till", {}, variant = IconButtonVariant.Tonal)
         AppMenu(sampleMenu())
     }
-    AddSplitButton("Lägg till", {}, menuItems = listOf(AppMenuItem("Räkna om", {}), AppMenuItem("Dölj packade", {})))
+    AddSplitButton("Lägg till", {}, menu = listOf(AppMenuItem("Räkna om", {}), AppMenuItem("Dölj packade", {})).asSplitMenu())
     AddSplitButton("Lägg till person", {})
 }
 
@@ -234,7 +251,7 @@ private fun Progress() {
         selectedIndex = tab,
         onSelect = { tab = it }
     )
-    CompositionLocalProvider(LocalSyncIndicator provides SyncIndicator(pending = true)) {
+    CompositionLocalProvider(LocalTopBarStatus provides SyncIndicator(pending = true).topBarStatus()) {
         AppTopBar("Gran Canaria", size = TopBarSize.Small, onBack = {})
     }
 }

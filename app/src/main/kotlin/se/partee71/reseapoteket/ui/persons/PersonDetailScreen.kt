@@ -30,11 +30,8 @@ import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.ui.common.DetailLoader
 import se.partee71.reseapoteket.ui.common.DetailUiState
 import se.partee71.reseapoteket.ui.components.ApotekCard
-import se.partee71.reseapoteket.ui.components.AppButton
-import se.partee71.reseapoteket.ui.components.AppDivider
 import se.partee71.reseapoteket.ui.components.AppMenuItem
 import se.partee71.reseapoteket.ui.components.AvatarSize
-import se.partee71.reseapoteket.ui.components.ButtonVariant
 import se.partee71.reseapoteket.ui.components.DetailHeader
 import se.partee71.reseapoteket.ui.components.EntityDetailScreen
 import se.partee71.reseapoteket.ui.components.PersonAvatar
@@ -42,7 +39,10 @@ import se.partee71.reseapoteket.ui.components.SectionHeader
 import se.partee71.reseapoteket.ui.regimens.RegimenKindConfig
 import se.partee71.reseapoteket.ui.regimens.RegimenRow
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppDivider
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.theme.AppTheme
 
 /** En person med sina recept och kosttillskott, utan arkiverade (PER-4). */
 data class PersonDetail(val person: Person, val medicines: List<Regimen>, val supplements: List<Regimen>)
@@ -152,7 +152,7 @@ private fun RegimenSection(config: RegimenKindConfig, regimens: List<Regimen>, o
     ApotekCard {
         SectionHeader(stringResource(config.title), icon = config.icon, count = regimens.size.toString(), tone = config.tone)
         if (regimens.isEmpty()) {
-            Text(stringResource(config.none), style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(config.none), style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         regimens.forEachIndexed { index, regimen ->
             if (index > 0) AppDivider()

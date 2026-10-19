@@ -45,7 +45,7 @@ verifierade API:er står bara i [ARKITEKTUR.md](../../../ARKITEKTUR.md).
 ## Compose (android:compose-expert)
 
 - Ordning: skill `shared-ui-components` (regel 4) går före allt, sedan `ui-style` (färg, typografi, form, rörelse, texter). Skärmdumpar och kontraktstester: `testing-strategy`.
-- Tema: `MaterialExpressiveTheme`, `MotionScheme.expressive()`, `AppTypography`, `AppShapes`, `Spacing`.
+- Tema: android-ui:s `AppTheme` (`MaterialExpressiveTheme`, `MotionScheme.expressive()`) med appens färger, typskala och former; `AppTheme.typography`, `AppTheme.shapes`, `Spacing`.
 - Expressive- och Nav3-API:er används bara med namn och signaturer som står i ARKITEKTUR.md → "Verifierade API:er" (verifierade i Gradle-skelettet, #11).
 - Inga bildbibliotek: avatarer är emoji, ikoner Material Symbols.
 - En mockup bryts ner i ramarna och katalogen (`shared-ui-components`); saknas ett element blir det en ny delad komponent.
@@ -80,6 +80,7 @@ Versioner, SDK-nivåer och skäl: ARKITEKTUR.md → "Byggkonfiguration".
 | `:app` | `android.application` (AGP 9, inbyggd Kotlin), `kotlin.compose`, `ksp`, `hilt`, `kotlin.serialization`, `google-services` (bara när `app/google-services.json` finns), `roborazzi` | `implementation(project(":core"))`. |
 
 - Gemensam konfiguration (Java 17 utan toolchain via `sourceCompatibility`/`targetCompatibility` + `jvmTarget`, kompilatorflaggor, testtimeout, testloggning) en gång i rotens `build.gradle.kts` (`subprojects {}` + `plugins.withId {}`), vald i #11.
+- **android-ui** (`se.partee71.ui:ui-theme`/`ui-components`, `androidUi` i katalogen) hämtas från GitHub Packages med repot i `settings.gradle.kts` (pluginens android-gradle-logic → "GitHub Packages (android-ui)"): sessionen läser med `GPR_USER`/`GPR_TOKEN`, varje Gradle-steg i `.github/workflows` med `env: GPR_TOKEN: ${{ secrets.GPR_TOKEN }}` (`instrumented.yml` får secreten av anroparen). Compose BOM, `material3`, Kotlin och AGP hålls i takt med biblioteket.
 - `material3` är pinnad utanför Compose BOM (ARKITEKTUR.md → "Verifierade API:er"); skälet står i katalogen.
 - `androidTest`-versioner som krockar höjs i `constraints {}` i `app/build.gradle.kts` med kommentar.
 - `cpdCheck` (PMD CPD via CLI som `JavaExec`) över `core/src`, `app/src/main`, `app/src/test`, kopplad till `check`. `gradle.properties`: caching, configuration cache, parallel (skill `ci-budget`).

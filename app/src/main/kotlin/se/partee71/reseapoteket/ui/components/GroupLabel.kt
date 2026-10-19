@@ -10,15 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /** Liten etikett över en grupp kort, t.ex. "UTSEENDE" i Inställningar. Läses som rubrik. */
 @Composable
 fun GroupLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text.uppercase(),
-        style = AppTypography.caption,
+        style = AppTheme.typography.caption,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier.padding(horizontal = Spacing.s).semantics { heading() }
     )
@@ -43,7 +43,7 @@ fun LabeledGroup(
         if (error != null) {
             FieldError(error, Modifier.padding(horizontal = Spacing.l))
         } else if (helper != null) {
-            Text(helper, Modifier.padding(horizontal = Spacing.l), style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(helper, Modifier.padding(horizontal = Spacing.l), style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

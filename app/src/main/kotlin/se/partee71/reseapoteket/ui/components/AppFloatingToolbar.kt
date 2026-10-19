@@ -26,10 +26,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /** En flik i [AppFloatingToolbar]. */
 data class ToolbarItem(val label: String, @DrawableRes val icon: Int)
@@ -55,8 +53,8 @@ fun AppFloatingToolbar(
     modifier: Modifier = Modifier
 ) {
     val colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-        toolbarContainerColor = AppColors.extended.toolbar,
-        toolbarContentColor = AppColors.extended.onToolbar
+        toolbarContainerColor = AppTheme.extendedColors.toolbar,
+        toolbarContentColor = AppTheme.extendedColors.onToolbar
     )
     HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors) {
         items.forEachIndexed { index, item ->
@@ -67,13 +65,13 @@ fun AppFloatingToolbar(
 
 @Composable
 private fun ToolbarTab(item: ToolbarItem, selected: Boolean, onClick: () -> Unit) {
-    val background = if (selected) MaterialTheme.colorScheme.primary else AppColors.extended.toolbar
-    val content = if (selected) MaterialTheme.colorScheme.onPrimary else AppColors.extended.onToolbar
+    val background = if (selected) MaterialTheme.colorScheme.primary else AppTheme.extendedColors.toolbar
+    val content = if (selected) MaterialTheme.colorScheme.onPrimary else AppTheme.extendedColors.onToolbar
     Row(
         Modifier
             .heightIn(min = TAB_HEIGHT)
             .widthIn(min = TAB_HEIGHT)
-            .clip(AppShapes.pill)
+            .clip(AppTheme.shapes.pill)
             .background(background)
             .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = item.label }
@@ -83,7 +81,7 @@ private fun ToolbarTab(item: ToolbarItem, selected: Boolean, onClick: () -> Unit
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterHorizontally)
     ) {
         Icon(painterResource(item.icon), contentDescription = null, tint = content, modifier = Modifier.size(ICON))
-        if (selected) Text(item.label, style = AppTypography.button, color = content, maxLines = 1)
+        if (selected) Text(item.label, style = AppTheme.typography.button, color = content, maxLines = 1)
     }
 }
 

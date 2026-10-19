@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.withTimeoutOrNull
 import se.partee71.reseapoteket.R
+import se.partee71.ui.components.AppSnackbarHost
 
 /**
  * Något som just dolts och kan ångras; [id] skiljer två döljningar av samma namn åt. [format] är

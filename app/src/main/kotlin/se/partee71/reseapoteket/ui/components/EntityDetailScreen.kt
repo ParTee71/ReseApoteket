@@ -24,8 +24,13 @@ import androidx.compose.ui.text.style.TextAlign
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.DetailUiState
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.TopBarSize
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /** Huvudet överst i en detaljskärm: bild (t.ex. [PersonAvatar]), namn och en rad under. */
 data class DetailHeader(val title: String, val subtitle: String? = null)
@@ -86,9 +91,9 @@ fun <T> EntityDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                     ) {
                         leading(state.value)
-                        Text(top.title, style = AppTypography.screenTitle, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
+                        Text(top.title, style = AppTheme.typography.screenTitle, textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
                         top.subtitle?.let {
-                            Text(it, style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                            Text(it, style = AppTheme.typography.body, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                         }
                     }
                     content(state.value)

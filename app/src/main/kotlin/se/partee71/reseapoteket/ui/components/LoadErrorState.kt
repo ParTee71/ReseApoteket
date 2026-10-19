@@ -7,6 +7,8 @@ import androidx.compose.ui.res.stringResource
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.toMessage
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.ButtonVariant
 
 /** Läsfelet i ramarna (lista, redigering, detalj): samma ikon, text och "Försök igen" överallt – utom för något som inte finns längre (NFR-1, NFR-5). */
 @Composable

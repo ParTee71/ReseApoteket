@@ -21,9 +21,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /**
  * Tomt tillstånd (skill shared-ui-components): ikon, rubrik, en mening och en knapp som löser
@@ -47,7 +46,7 @@ fun EmptyState(
         note?.let {
             Text(
                 it,
-                style = AppTypography.itemSubtitle,
+                style = AppTheme.typography.itemSubtitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -80,7 +79,7 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
         verticalArrangement = Arrangement.spacedBy(Spacing.xl)
     ) {
         Box(
-            Modifier.size(ICON_TILE).background(tile, AppShapes.iconTile),
+            Modifier.size(ICON_TILE).background(tile, AppTheme.shapes.iconTile),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -93,14 +92,14 @@ private fun Message(@DrawableRes icon: Int, title: String, message: String, isEr
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
             Text(
                 title,
-                style = AppTypography.headline,
+                style = AppTheme.typography.headline,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.semantics { heading() }
             )
             Text(
                 message,
-                style = AppTypography.body,
+                style = AppTheme.typography.body,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )

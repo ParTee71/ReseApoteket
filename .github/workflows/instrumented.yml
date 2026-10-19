@@ -6,6 +6,9 @@ name: Instrumenttester
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      GPR_TOKEN:
+        required: true
 
 permissions:
   contents: read
@@ -26,6 +29,8 @@ jobs:
 
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-android
+        with:
+          gpr-token: ${{ secrets.GPR_TOKEN }}
 
       # Kontraktstestet för FirestoreCollection kör mot Firebase-emulatorerna (firestore + auth)
       # på värddatorn – aldrig mot den riktiga databasen.
@@ -58,6 +63,8 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Instrumenttester (API 36, samma som targetSdk)
+        env:
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }} # android-ui från GitHub Packages
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 36

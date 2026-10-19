@@ -3,6 +3,7 @@ package se.partee71.reseapoteket.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import se.partee71.reseapoteket.R
+import se.partee71.ui.components.ChipRow
 
 /**
  * Exempel att börja från – snabbval i ett formulär (KOS-3) och exempel i en tom lista (FAM-4):

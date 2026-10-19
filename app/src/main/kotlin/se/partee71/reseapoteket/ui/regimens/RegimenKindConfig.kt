@@ -5,7 +5,8 @@ import androidx.annotation.StringRes
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.MedicineForm
 import se.partee71.reseapoteket.core.model.RegimenKind
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.theme.Tone
 
 /**
  * Det enda som skiljer recept och kosttillskott åt i GUI:t: rubrik, ikon, färg, texter och

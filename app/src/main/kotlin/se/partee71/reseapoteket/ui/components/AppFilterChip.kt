@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.theme.AppTheme
 
 /** Valchip: bock och korallton när det är valt. Används ensamt eller i en [ChipRow]. */
 @Composable
@@ -31,11 +31,11 @@ fun AppFilterChip(
     FilterChip(
         selected = selected,
         onClick = onClick,
-        label = { Text(label, style = AppTypography.pill) },
+        label = { Text(label, style = AppTheme.typography.pill) },
         modifier = modifier.heightIn(min = CHIP_HEIGHT),
         enabled = enabled,
         leadingIcon = leading?.let { { Icon(painterResource(it), contentDescription = null, modifier = Modifier.size(ICON)) } },
-        shape = AppShapes.pill,
+        shape = AppTheme.shapes.pill,
         colors = chipColors()
     )
 }

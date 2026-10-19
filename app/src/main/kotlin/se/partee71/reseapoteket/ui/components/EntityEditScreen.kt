@@ -33,7 +33,12 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.EditorEvents
 import se.partee71.reseapoteket.ui.common.EditorUiState
 import se.partee71.reseapoteket.ui.common.toMessage
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.TopBarSize
+import se.partee71.ui.theme.Spacing
 
 /** Det som händer efter "Släng ändringar": lämna formuläret, arkivera eller återställa. */
 private enum class AfterDiscard { Close, Archive, Restore }

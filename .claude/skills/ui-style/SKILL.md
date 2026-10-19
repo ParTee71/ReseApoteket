@@ -15,11 +15,13 @@ https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p
 - Vilken komponent eller ram som används för vad → skill `shared-ui-components`.
 - Exakta Expressive- och Navigation 3-API:er och versioner → `ARKITEKTUR.md` →
   "Verifierade API:er" (#11). **Gissa aldrig ett API-namn.**
-- Tokens i kod → `ui/theme` (`AppColors`, `AppTypography`, `AppShapes`, `Spacing`).
+- Tokens i kod → appens värden i `ui/theme` (`AppColors`, `AppTypeScale`, formerna i `ReseApoteketTheme`),
+  lästa via android-ui:s tema-API (`AppTheme.extendedColors`, `AppTheme.typography`, `AppTheme.shapes`,
+  `AppTheme.tone`, `Spacing`) – se skill `shared-ui-components`.
 
 ## Tema
 
-- `MaterialExpressiveTheme` med `MotionScheme.expressive()`. **Ingen dynamic color** – appen
+- `ReseApoteketTheme` = android-ui:s `AppTheme` (`MaterialExpressiveTheme` med `MotionScheme.expressive()`). **Ingen dynamic color** – appen
   har en egen identitet.
 - Ljust, mörkt och system (inställning i appen).
 
@@ -38,7 +40,7 @@ https://claude.ai/artifact/6P25x1LRrkPBcF9BFqzi7p
 Mörkt tema härleds i `ui/theme` med samma roller; kontrast kontrolleras i båda. Varje
 färg som bär text ska klara 4,5:1 mot sin bakgrund – räkna efter vid ny nyans.
 
-## Typografi (`AppTypography`)
+## Typografi (`AppTheme.typography`)
 
 - **Nunito 800** för rubriker: resans namn som stor rundad display (~34 sp), sektionsrubriker.
 - **Nunito Sans** för brödtext.
@@ -51,7 +53,7 @@ färg som bär text ska klara 4,5:1 mot sin bakgrund – räkna efter vid ny nya
 
 ## Former och avstånd
 
-- `AppShapes`: kort 28 dp, rader 18 dp, pills och knappar helt rundade, sheet 28 dp upptill,
+- `AppTheme.shapes`: kort 28 dp (appens `cardRadius`; resten android-ui:s standard), rader 18 dp, pills och knappar helt rundade, sheet 28 dp upptill,
   ikonrutan i ett tomt tillstånd 40 dp (`iconTile`).
 - `Spacing`: `xs 4 · s 8 · m 12 · l 16 · xl 24 · xxl 32` dp – enda tillåtna avstånden.
 - Tryckytor minst 48 dp.

@@ -13,8 +13,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /** Ett förslag under ett [SuggestionField]: titel med den del som matchar ([highlight]) och undertext. */
 data class Suggestion(val title: String, val subtitle: String? = null, val highlight: IntRange? = null)
@@ -59,7 +59,7 @@ fun SuggestionField(
                 footer?.let {
                     Text(
                         it,
-                        style = AppTypography.itemSubtitle,
+                        style = AppTheme.typography.itemSubtitle,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xs)
                     )

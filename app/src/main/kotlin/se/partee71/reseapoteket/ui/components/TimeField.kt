@@ -17,8 +17,9 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.datetime.LocalTime
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.theme.AppTheme
 
 /**
  * Tidsfält: visar tiden som "07:00" och öppnar tidsväljaren (24 timmar) vid tryck – samma
@@ -55,9 +56,9 @@ fun TimeField(
                     picking = false
                 }, variant = ButtonVariant.Text)
             },
-            title = { Text(pickLabel, style = AppTypography.sectionTitle) },
+            title = { Text(pickLabel, style = AppTheme.typography.sectionTitle) },
             dismissButton = { AppButton(stringResource(R.string.cancel), { picking = false }, variant = ButtonVariant.Text) },
-            containerColor = AppColors.extended.card
+            containerColor = AppTheme.extendedColors.card
         ) {
             TimePicker(state)
         }

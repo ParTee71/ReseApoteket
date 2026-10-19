@@ -30,7 +30,12 @@ import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
 import se.partee71.reseapoteket.testing.clickWithoutRipple
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.theme.Spacing
 
 /** Komponenter som ritas ovanpå innehållet, i rörelse eller över tid – en regel per test. */
 @RunWith(RobolectricTestRunner::class)

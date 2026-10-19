@@ -9,8 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
+import se.partee71.ui.theme.AppTheme
 
 /** En avatar i en [AvatarStack]: personens emoji, färg och namn (för TalkBack). */
 data class StackedAvatar(val emoji: String, val color: Color, val name: String)
@@ -21,12 +20,12 @@ data class StackedAvatar(val emoji: String, val color: Color, val name: String)
  */
 @Composable
 fun AvatarStack(avatars: List<StackedAvatar>, modifier: Modifier = Modifier) {
-    val ring = AppColors.extended.card
+    val ring = AppTheme.extendedColors.card
     Row(
         modifier.clearAndSetSemantics { contentDescription = avatars.joinToString(", ") { it.name } },
         horizontalArrangement = Arrangement.spacedBy(-OVERLAP)
     ) {
-        avatars.forEach { PersonAvatar(it.emoji, it.color, Modifier.border(RING, ring, AppShapes.pill), size = AvatarSize.Small) }
+        avatars.forEach { PersonAvatar(it.emoji, it.color, Modifier.border(RING, ring, AppTheme.shapes.pill), size = AvatarSize.Small) }
     }
 }
 

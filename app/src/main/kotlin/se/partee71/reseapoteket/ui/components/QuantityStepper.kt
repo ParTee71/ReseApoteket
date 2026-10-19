@@ -23,10 +23,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import se.partee71.reseapoteket.R
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /**
  * Antal ± inom [range]. [label] beskriver vad som räknas ("doser per dag") och läses av
@@ -42,11 +40,11 @@ fun QuantityStepper(
     enabled: Boolean = true
 ) {
     val colors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = AppColors.extended.card,
+        containerColor = AppTheme.extendedColors.card,
         contentColor = MaterialTheme.colorScheme.onSurface
     )
     Row(
-        modifier.background(AppColors.extended.rowTint, AppShapes.pill).padding(Spacing.xs),
+        modifier.background(AppTheme.extendedColors.rowTint, AppTheme.shapes.pill).padding(Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
@@ -58,7 +56,7 @@ fun QuantityStepper(
         ) { Icon(painterResource(R.drawable.ic_remove), stringResource(R.string.decrease_format, label)) }
         Text(
             value.toString(),
-            style = AppTypography.quantity,
+            style = AppTheme.typography.quantity,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(min = VALUE_WIDTH).semantics {

@@ -49,7 +49,8 @@ finns på ett ställe.**
   komponent i `ui/components/`. Feature-kod anropar aldrig Material 3-komponenter direkt
   och hårdkodar aldrig utseende (`Color(…)`, `RoundedCornerShape(…)`, `fontSize`,
   `TextStyle`, literala dp för hörn/höjd). Färg, form, typografi och avstånd kommer från
-  `ui/theme` (`AppTypography`, `AppShapes`, `Spacing`, färgschemat).
+  temat: appens färger och Nunito i `ui/theme`, `AppTheme.shapes`/`.typography`/`.extendedColors`
+  och `Spacing` från biblioteket android-ui.
 - **Beteende:** varje interaktionsmönster finns **en gång**: listskärm (laddning, tomt,
   fel, lista, lägg till) = `EntityListScreen`; redigering (validering, spara aktiveras
   först när giltigt, "Släng ändringar?" vid bakåt, fel som snackbar) = `EntityEditScreen`
@@ -175,7 +176,7 @@ Compose → ViewModel (StateFlow<UiState>) → Repository → FirestoreCollectio
 ```
 
 `:core` är ren Kotlin/JVM (modeller, codecs, `PackingEngine`); `:app` är Android-appen.
-Utseende och gemensamt beteende finns bara i `ui/theme`, `ui/components` och `ui/common`;
+Utseende och gemensamt beteende finns bara i android-ui, `ui/theme`, `ui/components` och `ui/common`;
 Firestore bara i `data/firestore`; felmappning en gång i `data/common`. Paketträd,
 dataflöde och datamodell står i [ARKITEKTUR.md](ARKITEKTUR.md) (enda källan).
 

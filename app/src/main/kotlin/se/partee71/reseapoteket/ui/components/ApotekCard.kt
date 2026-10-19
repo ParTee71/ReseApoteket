@@ -10,10 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Det enda kortet: en grupperad yta med rader, rubrik eller innehåll (skill `ui-style`).
@@ -21,7 +20,7 @@ import se.partee71.reseapoteket.ui.theme.Tone
  */
 @Composable
 fun ApotekCard(modifier: Modifier = Modifier, tone: Tone? = null, content: @Composable ColumnScope.() -> Unit) {
-    CardSegment(top = true, bottom = true, modifier, tone?.let { AppColors.tone(it).container } ?: AppColors.extended.card, content)
+    CardSegment(top = true, bottom = true, modifier, tone?.let { AppTheme.tone(it).container } ?: AppTheme.extendedColors.card, content)
 }
 
 /**
@@ -33,13 +32,13 @@ internal fun CardSegment(
     top: Boolean,
     bottom: Boolean,
     modifier: Modifier = Modifier,
-    color: Color = AppColors.extended.card,
+    color: Color = AppTheme.extendedColors.card,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         modifier
             .fillMaxWidth()
-            .background(color, AppShapes.cardSegment(top, bottom))
+            .background(color, AppTheme.shapes.cardSegment(top, bottom))
             .padding(start = Spacing.m, end = Spacing.m, top = if (top) Spacing.m else HALF_GAP, bottom = if (bottom) Spacing.m else HALF_GAP),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         content = content

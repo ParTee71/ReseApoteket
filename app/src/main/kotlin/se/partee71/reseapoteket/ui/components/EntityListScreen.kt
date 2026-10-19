@@ -48,10 +48,15 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Det tomma tillståndet för en lista: ikon, rubrik, en mening och texten på lägg till-knappen.
@@ -155,7 +160,7 @@ fun <T> EntityListScreen(
         snackbarHost = { AppSnackbarHost(snackbar, Modifier.padding(bottom = clearance)) },
         floatingActionButton = {
             if (state is ListUiState.Content) {
-                AddSplitButton(empty.actionLabel, onAdd, Modifier.padding(bottom = clearance), menuItems = addMenu)
+                AddSplitButton(empty.actionLabel, onAdd, Modifier.padding(bottom = clearance), menu = remember(addMenu) { addMenu.asSplitMenu() })
             }
         }
     ) { padding ->
@@ -297,7 +302,7 @@ private fun GroupHeader(group: ListGroup, size: Int, open: Boolean, onToggle: ()
     }
     val state = stringResource(if (open) R.string.expanded else R.string.collapsed)
     Row(
-        Modifier.fillMaxWidth().clip(AppShapes.row).clickable(onClick = onToggle).semantics { stateDescription = state },
+        Modifier.fillMaxWidth().clip(AppTheme.shapes.row).clickable(onClick = onToggle).semantics { stateDescription = state },
         verticalAlignment = Alignment.CenterVertically
     ) {
         SectionHeader(group.title, Modifier.weight(1f), icon = group.icon, count = count, tone = group.tone)
@@ -314,7 +319,7 @@ private fun GroupHeader(group: ListGroup, size: Int, open: Boolean, onToggle: ()
 private fun SubgroupLabel(subgroup: ListSubgroup) {
     Text(
         subgroup.title,
-        style = AppTypography.pill,
+        style = AppTheme.typography.pill,
         color = subgroup.color,
         modifier = Modifier.padding(start = Spacing.s, top = Spacing.xs).semantics { heading() }
     )

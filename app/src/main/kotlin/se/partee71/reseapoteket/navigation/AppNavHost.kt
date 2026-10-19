@@ -29,16 +29,17 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.ui.components.AppFloatingToolbar
-import se.partee71.reseapoteket.ui.components.AppSnackbarHost
 import se.partee71.reseapoteket.ui.components.ErrorSnackbar
 import se.partee71.reseapoteket.ui.components.FloatingToolbarClearance
 import se.partee71.reseapoteket.ui.components.LocalBottomClearance
-import se.partee71.reseapoteket.ui.components.LocalSyncIndicator
 import se.partee71.reseapoteket.ui.components.SyncIndicator
 import se.partee71.reseapoteket.ui.components.ToolbarItem
+import se.partee71.reseapoteket.ui.components.topBarStatus
 import se.partee71.reseapoteket.ui.sync.SyncEvent
 import se.partee71.reseapoteket.ui.sync.SyncUiState
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppSnackbarHost
+import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.theme.Spacing
 
 /**
  * Navigationsramen: `NavDisplay` med [Transitions] och den flytande verktygsraden, som bara
@@ -61,17 +62,17 @@ fun AppNavHost(
     val messages = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
-    val indicator = remember(sync.pending, resources) {
+    val syncStatus = remember(sync.pending, resources) {
         SyncIndicator(sync.pending) {
             // Ett meddelande som redan visas (t.ex. en nekad skrivning) får stå kvar; upprepade tryck köar inget.
             if (messages.currentSnackbarData == null) {
                 scope.launch { messages.showSnackbar(resources.getString(R.string.sync_pending_explained)) }
             }
-        }
+        }.topBarStatus()
     }
     ErrorSnackbar(sync.writeError, messages, R.string.sync_write_rejected, SnackbarDuration.Long) { onSyncEvent(SyncEvent.WriteErrorShown) }
     Box(modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalBottomClearance provides clearance, LocalSyncIndicator provides indicator) {
+        CompositionLocalProvider(LocalBottomClearance provides clearance, LocalTopBarStatus provides syncStatus) {
             NavDisplay(
                 backStack = backStack.entries,
                 onBack = { if (!backStack.pop()) onExit() },

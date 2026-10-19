@@ -28,9 +28,10 @@ import se.partee71.reseapoteket.ui.components.EntityListScreen
 import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.ListGroup
 import se.partee71.reseapoteket.ui.components.PausableRow
-import se.partee71.reseapoteket.ui.components.SwipeToHide
 import se.partee71.reseapoteket.ui.components.kindLabel
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.theme.Tone
 
 sealed interface FamilyItemsEvent {
     data class List(val event: ListEvent) : FamilyItemsEvent

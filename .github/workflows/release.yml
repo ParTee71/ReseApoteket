@@ -93,8 +93,9 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           FIREBASE_RULES_DEPLOYER: ${{ secrets.FIREBASE_RULES_DEPLOYER }}
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }}
         run: |
-          for name in GOOGLE_SERVICES_JSON SIGNING_KEYSTORE_BASE64 SIGNING_STORE_PASSWORD SIGNING_KEY_ALIAS SIGNING_KEY_PASSWORD FIREBASE_RULES_DEPLOYER; do
+          for name in GOOGLE_SERVICES_JSON SIGNING_KEYSTORE_BASE64 SIGNING_STORE_PASSWORD SIGNING_KEY_ALIAS SIGNING_KEY_PASSWORD FIREBASE_RULES_DEPLOYER GPR_TOKEN; do
             if [ -z "${!name}" ]; then echo "::error::Secret $name saknas – krävs för en release."; exit 1; fi
           done
 
@@ -149,6 +150,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-android
+        with:
+          gpr-token: ${{ secrets.GPR_TOKEN }}
 
       - name: Hemligheter till filer
         env:
@@ -181,6 +184,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }} # android-ui från GitHub Packages
         run: ./gradlew --continue :app:lintRelease :app:assembleRelease
 
       - name: Lintrapport
@@ -233,6 +237,8 @@ jobs:
     needs: gate
     if: needs.gate.outputs.run_instrumented == 'true'
     uses: ./.github/workflows/instrumented.yml
+    secrets:
+      GPR_TOKEN: ${{ secrets.GPR_TOKEN }}
 
   publish:
     name: publish

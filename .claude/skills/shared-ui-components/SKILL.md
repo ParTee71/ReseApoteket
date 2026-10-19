@@ -14,6 +14,12 @@ agenter länkar hit – de kopierar dem inte. Komponenttabellen och ramtabellen 
 `UiConsistencyTest` och jämförs med koden (se *Dokumentdrift*). Håll formatet: en rad per
 komponent, komponentnamnet i backticks först i kolumn två.
 
+> Rader märkta *(android-ui)* är komponenter ur det gemensamma biblioteket
+> [android-ui](https://github.com/ParTee71/android-ui) (`se.partee71.ui.components`, sedan #126) –
+> appen har ingen egen kopia, och en ändring görs i biblioteket. Temat (`AppTheme`, `Spacing`,
+> `AppShapes`, `AppTypography`, `ExtendedColors`, `Tone`) kommer också därifrån (skill `ui-style`).
+> `UiConsistencyTest` kontrollerar att de finns i biblioteket och i `ComponentGallery`.
+>
 > Hela katalogen och ramarna finns sedan #20 och syns i `ComponentGallery` (Inställningar →
 > Komponenter i debug-bygget). De exakta API:erna bakom kolumnen *Bygger på*
 > står i `ARKITEKTUR.md` → "Verifierade API:er" – gissa aldrig ett API-namn.
@@ -22,10 +28,10 @@ komponent, komponentnamnet i backticks först i kolumn två.
 
 | Elementtyp | Komponent | Bygger på |
 |---|---|---|
-| Knapp (primär/sekundär/text/destruktiv) | `AppButton` | M3-knappar, `variant`- och `compact`-parameter |
-| Ikonknapp | `AppIconButton` | M3 ikonknapp, min 48 dp |
-| Split-knapp "Lägg till ▾" | `AddSplitButton` | Expressive split-knapp |
-| Kort / grupperad yta | `ApotekCard` | `AppShapes.card`, `Spacing`; `tone` färgar ytan (grönt när allt är packat) |
+| Knapp (primär/sekundär/text/destruktiv) | `AppButton` *(android-ui)* | M3-knappar, `variant`- och `compact`-parameter |
+| Ikonknapp | `AppIconButton` *(android-ui)* | M3 ikonknapp, min 48 dp |
+| Split-knapp "Lägg till ▾" | `AddSplitButton` *(android-ui)* | Expressive split-knapp; menyn bakom pilen är `AppMenu`s (`menu = items.asSplitMenu()`) |
+| Kort / grupperad yta | `ApotekCard` | `AppTheme.shapes.card`, `Spacing`; `tone` färgar ytan (grönt när allt är packat) |
 | Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat), `titleHighlight` färgmarkerar en del av titeln (sökträff); titeln högst två rader, och kapas den visar långtryck hela titeln och undertexten i en bubbla (NFR-20) |
 | Resenärer på en resa | `AvatarStack` | överlappande `PersonAvatar` (Small) med ring; TalkBack läser namnen |
 | Pausbar rad (recept, kosttillskott, familjeartikel) | `PausableRow` | `ItemRow` + typ som `InfoPill`; pausad nedtonad med "Pausat" |
@@ -34,11 +40,11 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Gruppetikett över kort | `GroupLabel` | versal liten text, läses som rubrik |
 | Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` | `GroupLabel` ovanför innehållet, valfri `helper` under och fältfel (`error`, `FieldError`) |
 | Fel under ett fält eller i en panel | `FieldError` | Felfärg, läses som fel; ett skrivfel i ett bottom sheet visas via `AppBottomSheet(error)` |
-| Skärmrubrik | `AppTopBar` | Expressive flexibel toppbar, `size`-parameter; visar synkindikatorn (`InfoPill` med moln) före `actions` när `LocalSyncIndicator` säger att ändringar väntar (NFR-6) |
+| Skärmrubrik | `AppTopBar` *(android-ui)* | Expressive flexibel toppbar, `size`-parameter; före `actions` står appens synkindikator (`InfoPill` med moln, `SyncIndicator.topBarStatus()` satt som `LocalTopBarStatus`) när ändringar väntar (NFR-6) |
 | Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` | M3 textfält med fel/hjälptext; flerradigt växer med texten upp till `maxLines` |
 | Textfält med förslag (läkemedelslistan, REC-6) | `SuggestionField` | `AppTextField` + kort med en `ItemRow` per `Suggestion` (matchningen färgmarkerad via `titleHighlight`) och valfri källrad; antalet läses upp; anroparen bestämmer vad ett val fyller i |
-| Etikett/pill | `InfoPill` | `AppShapes.pill`; `icon` före texten, `onClick` gör den till en knapp med 48 dp tryckyta |
+| Etikett/pill | `InfoPill` | `AppTheme.shapes.pill`; `icon` före texten, `onClick` gör den till en knapp med 48 dp tryckyta |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` | M3 filterchip |
 | Ett val bland några (form, enhet, kategori) | `ChoiceChips` | `ChipRow` + en `AppFilterChip` per alternativ |
@@ -50,20 +56,20 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper`; valideringsfel (`error`) under fälten |
 | Mängdregel | `QuantityRuleRow` | `AppFilterChip` + `QuantityStepper`; valideringsfel (`error`) under fälten |
 | Packprogress | `SuitcaseProgress` | Expressive vågig progress, `compact`-parameter; allt packat → "Allt packat! 🧳" |
-| Laddning | `AppLoading` | Expressive laddningsindikator |
+| Laddning | `AppLoading` *(android-ui)* | Expressive laddningsindikator |
 | Tomt tillstånd | `EmptyState` | ikon + text + `AppButton` |
 | Bekräftelse | `ConfirmDialog` | M3 dialog, `destructive`-parameter |
 | Bottom sheet | `AppBottomSheet` | M3 modal sheet; scrollar när innehållet är högre än skärmen |
-| Meddelande | `AppSnackbarHost` | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
-| Firande | `Confetti` | egen `Canvas`, inget bibliotek |
-| Avdelare | `AppDivider` | M3-avdelare med temats färg och tjocklek |
+| Meddelande | `AppSnackbarHost` *(android-ui)* | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
+| Firande | `Confetti` *(android-ui)* | egen `Canvas`, inget bibliotek; färgerna är personfärgerna (`ExtendedColors.accents`) |
+| Avdelare | `AppDivider` *(android-ui)* | M3-avdelare med temats färg och tjocklek |
 | Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel; med `onClick` är växeln en egen kontroll och raden öppnar detaljer (som `CheckRow`) |
-| Segmentval (t.ex. tema) | `AppSegmentedChoice` | M3 segmentknappar |
+| Segmentval (t.ex. tema) | `AppSegmentedChoice` *(android-ui)* | M3 segmentknappar |
 | Meny (arkivera/radera m.m.) | `AppMenu` | M3 rullgardinsmeny |
 | Datumfält | `DateField` | `AppTextField` + M3 datumväljare |
 | Tidsfält | `TimeField` | samma yta som `DateField` + M3 tidsväljare (24 timmar); valfri `helper` |
 | Packas på resedagen (recept, kosttillskott, familjeartikel, egen rad) | `TravelDayField` | `SwitchRow` + `TimeField`; resedagens morgon (`LocalTravelDayMorning`, telefonens tid) tills en egen tid väljs |
-| Horisontell rad av chips | `ChipRow` | horisontell lista av `PersonChip`/`AppFilterChip` |
+| Horisontell rad av chips | `ChipRow` *(android-ui)* | horisontell lista av `PersonChip`/`AppFilterChip` |
 | Förhandsvisning (mängd, nästa påminnelse) | `PackingPreview` | `ReasonFormatter` i `:core`; samma ruta för "Nästa påminnelse" |
 
 ## Beteende: interaktionsmönster → enda tillåtna ram
@@ -73,7 +79,7 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Listskärm | `EntityListScreen` | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal eller `ListGroup.count`, `columns` = upp till 2 kolumner, bara så många som får plats med minst 260 dp var (NFR-20), `collapsible` = hopfälld) och undergrupper (`ListSubgroup`, personens namn i färg); lägg till (`AddSplitButton`) ovanför verktygsraden; för en undersida `onBack`, `subtitle`, `actions` och `header` överst i listan; `ListArchive.showToggle = false` utan "Visa arkiverade" |
 | Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); båda kvitteras via `events` (formulärets `EditorState`) och visas inte igen efter rotation; arkivera/återställ/radera i menyn |
 | Detaljskärm | `EntityDetailScreen` | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `ApotekCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
-| Arkivera/dölj | `SwipeToHide` | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s (packlistan: "%s dold" via `ArchiveActions(undoFormat)`); `enabled = false` för en redan arkiverad rad |
+| Arkivera/dölj | `SwipeToHide` *(android-ui)* | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s (packlistan: "%s dold" via `ArchiveActions(undoFormat)`); `enabled = false` för en redan arkiverad rad |
 | Ångra | `UndoSnackbar` | Enda ångra-mekanismen |
 | Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep. `onDecline` när nej-knappen gör något annat än att stänga ("Behåll listan") |
 | Förhandsvisning av beräkning | `PackingPreview` | Samma format i recept, kosttillskott, familjeartiklar |
@@ -114,7 +120,7 @@ Gemensamt för ramarna: felmeddelanden via `DataError.toMessage()`, skärmbyten 
 | Firestore-instans | `FirestoreModule` (Hilt) i `data/firestore/` |
 | Aktivt hushåll | `HouseholdSession` i `data/household/` (`HouseholdScope`) |
 | Påminnelser (plan, genomgång, notiser, schemaläggning) | `ReminderPlanner` i `:core`; `reminders/` i appen (`ReminderSource`, `ReminderRunner`, `ReminderNotifier`, `ReminderScheduler`) – skill `firestore-data-layer` för läsningen |
-| Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/`; för UI:t `SyncViewModel` (`ui/sync/`) → `AppNavHost` (indikatorn via `LocalSyncIndicator`, nekad skrivning som meddelande ovanför verktygsraden) |
+| Synkläge | `SyncStatus` (`syncing`, `lastWriteError`) i `data/common/`; för UI:t `SyncViewModel` (`ui/sync/`) → `AppNavHost` (indikatorn via `LocalTopBarStatus`, nekad skrivning som meddelande ovanför verktygsraden) |
 | Läs- och skrivregler för dokument | `prepareForWrite`, `readDocument`, `sortForList` i `data/common/DocumentRules.kt` och `writeBlocker` i `HouseholdScope.kt` – används av både `FirestoreCollection` och `FakeCollection` |
 | Inställningar | `SettingsStore` (DataStore) |
 | Hushållets namn och marginaldagar | `HouseholdRepository.update(household, fields)` med `HouseholdCodec.NAME`/`MARGIN_DAYS` – aldrig hela hushållet |

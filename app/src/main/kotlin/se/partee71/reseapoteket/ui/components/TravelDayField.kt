@@ -11,7 +11,9 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.ReminderKind
 import se.partee71.reseapoteket.core.engine.ReminderSettings
 import se.partee71.reseapoteket.ui.common.TravelDayChange
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.theme.Spacing
 
 /** Telefonens tid för "Resedagens morgon" (PÅM-5) – sätts av appen; förvalet utan den. */
 val LocalTravelDayMorning = compositionLocalOf { ReminderSettings.DEFAULTS.getValue(ReminderKind.TRAVEL_DAY).time }

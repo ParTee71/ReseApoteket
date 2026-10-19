@@ -15,8 +15,9 @@ import androidx.compose.ui.semantics.semantics
 import kotlinx.datetime.DayOfWeek
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.model.DoseSchedule
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
+import se.partee71.ui.components.ChipRow
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
 
 /**
  * Dosering: typ (Dagligen · Veckodagar · Intervall · Vid behov) och dess antal. [unitName]
@@ -88,20 +89,20 @@ private fun UnitsPerDose(value: Int, unitName: (Int) -> String, onChange: (Int) 
 internal fun LabeledStepper(value: Int, onChange: (Int) -> Unit, label: String, range: IntRange) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
         QuantityStepper(value, onChange, label, range = range)
-        Text(label, style = AppTypography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(label, style = AppTheme.typography.itemTitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 /** Ett valideringsfel under ett fält som inte är ett textfält – delas av [DoseScheduleRow] och [QuantityRuleRow] – eller ett sparfel i en panel. */
 @Composable
 fun FieldError(text: String, modifier: Modifier = Modifier) {
-    Text(text, modifier.semantics { error(text) }, style = AppTypography.itemSubtitle, color = MaterialTheme.colorScheme.error)
+    Text(text, modifier.semantics { error(text) }, style = AppTheme.typography.itemSubtitle, color = MaterialTheme.colorScheme.error)
 }
 
 /** Meddelandet för en typ som den här appversionen inte känner till. */
 @Composable
 internal fun UnknownVariant() {
-    Text(stringResource(R.string.unknown_variant), style = AppTypography.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.unknown_variant), style = AppTheme.typography.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 /** Doseringstypens namn ("Dagligen", "Vid behov") – samma etikett som i väljaren; `null` för en okänd typ. */

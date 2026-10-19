@@ -18,11 +18,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.theme.AppTheme
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /**
  * Etikett eller räknare i en pill, i en av sektionstonerna ([Tone]). [icon] står före texten;
@@ -36,15 +35,15 @@ fun InfoPill(
     @DrawableRes icon: Int? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val colors = AppColors.tone(tone)
-    val click = onClick?.let { Modifier.minimumInteractiveComponentSize().clip(AppShapes.pill).clickable(role = Role.Button, onClick = it) } ?: Modifier
+    val colors = AppTheme.tone(tone)
+    val click = onClick?.let { Modifier.minimumInteractiveComponentSize().clip(AppTheme.shapes.pill).clickable(role = Role.Button, onClick = it) } ?: Modifier
     Row(
-        modifier.then(click).background(colors.container, AppShapes.pill).padding(horizontal = Spacing.m, vertical = Spacing.xs),
+        modifier.then(click).background(colors.container, AppTheme.shapes.pill).padding(horizontal = Spacing.m, vertical = Spacing.xs),
         horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
         verticalAlignment = Alignment.CenterVertically
     ) {
         icon?.let { Icon(painterResource(it), contentDescription = null, tint = colors.content, modifier = Modifier.size(ICON)) }
-        Text(text, style = AppTypography.pill, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text, style = AppTheme.typography.pill, color = colors.content, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

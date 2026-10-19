@@ -7,18 +7,18 @@
 # [expressive] = all Kotlin under app/src/main utom ui/theme/ och ui/components/
 # [dispatchers] = all Kotlin under app/src/main utom di/ (skill android:kotlin-coroutines)
 # [events]    = all Kotlin under ui/, även ui/components och ui/common (skill android:kotlin-flows)
-# Tillåtet i feature-kod: Text (med AppTypography-stil), Icon (appens ikoner i res/drawable),
+# Tillåtet i feature-kod: Text (med AppTheme.typography-stil), Icon (appens ikoner i res/drawable),
 # Column, Row, Box, Spacer med Spacing, samt allt i ui/components och ui/common.
 # Regexarna ska fungera både i JavaScript och Kotlin (ingen lookbehind).
 
 [feature]
 \bColor\(	MaterialTheme.colorScheme / AppColors
 \bColor\.[A-Z][A-Za-z]*	MaterialTheme.colorScheme / AppColors
-\bRoundedCornerShape\(	AppShapes
-\bCutCornerShape\(	AppShapes
-\bTextStyle\(	AppTypography
-\bMaterialTheme\.typography\b	AppTypography
-\b(fontSize|fontWeight|lineHeight|letterSpacing)\s*=	AppTypography
+\bRoundedCornerShape\(	AppTheme.shapes
+\bCutCornerShape\(	AppTheme.shapes
+\bTextStyle\(	AppTheme.typography
+\bMaterialTheme\.typography\b	AppTheme.typography
+\b(fontSize|fontWeight|lineHeight|letterSpacing)\s*=	AppTheme.typography
 \.shadow\(	ApotekCard eller komponentens parametrar
 \.(height|width|size|clip|requiredHeight|requiredWidth|requiredSize)\(\s*[0-9]+(\.[0-9]+)?\.dp	komponentens parametrar eller Spacing
 \bpadding\([^)]*[0-9]+(\.[0-9]+)?\.dp	Spacing

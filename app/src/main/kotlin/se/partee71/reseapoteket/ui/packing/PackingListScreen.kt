@@ -28,13 +28,9 @@ import se.partee71.reseapoteket.ui.common.ListEvent
 import se.partee71.reseapoteket.ui.common.ListUiState
 import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.ApotekCard
-import se.partee71.reseapoteket.ui.components.AppButton
-import se.partee71.reseapoteket.ui.components.AppIconButton
 import se.partee71.reseapoteket.ui.components.AppMenuItem
 import se.partee71.reseapoteket.ui.components.AvatarStack
-import se.partee71.reseapoteket.ui.components.ButtonVariant
 import se.partee71.reseapoteket.ui.components.CheckRow
-import se.partee71.reseapoteket.ui.components.Confetti
 import se.partee71.reseapoteket.ui.components.ConfirmDialog
 import se.partee71.reseapoteket.ui.components.EmptyContent
 import se.partee71.reseapoteket.ui.components.EntityListScreen
@@ -46,10 +42,16 @@ import se.partee71.reseapoteket.ui.components.ListSubgroup
 import se.partee71.reseapoteket.ui.components.LocalTravelDayMorning
 import se.partee71.reseapoteket.ui.components.StackedAvatar
 import se.partee71.reseapoteket.ui.components.SuitcaseProgress
-import se.partee71.reseapoteket.ui.components.SwipeToHide
 import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.Spacing
-import se.partee71.reseapoteket.ui.theme.Tone
+import se.partee71.reseapoteket.ui.theme.Blue
+import se.partee71.reseapoteket.ui.theme.Green
+import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /** Packlistan för en resa (PAK-1–7); pennan öppnar resans formulär (RES-1). */
 @Composable

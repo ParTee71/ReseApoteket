@@ -5,6 +5,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import kotlin.test.assertTrue
 import org.junit.Test
+import se.partee71.ui.theme.ExtendedColors
+import se.partee71.ui.theme.Tone
 
 /** Varje färg som bär text klarar 4,5:1 mot sin bakgrund, i båda temana (skill `ui-style`, NFR-11). */
 class ThemeContrastTest {
@@ -31,8 +33,8 @@ class ThemeContrastTest {
         "snackbar" to (scheme.inverseOnSurface to scheme.inverseSurface),
         "verktygsrad" to (extended.onToolbar to extended.toolbar),
         "korallton" to (extended.primaryTone.content to extended.primaryTone.container),
-        "grön ton" to (extended.greenTone.content to extended.greenTone.container),
-        "blå ton" to (extended.blueTone.content to extended.blueTone.container)
+        "grön ton" to (extended.tone(Tone.Green).content to extended.tone(Tone.Green).container),
+        "blå ton" to (extended.tone(Tone.Blue).content to extended.tone(Tone.Blue).container)
     )
 
     @Test
@@ -40,6 +42,16 @@ class ThemeContrastTest {
 
     @Test
     fun `mörkt tema`() = check("mörkt", pairs(AppColors.dark, AppColors.darkExtended))
+
+    @Test
+    fun `appens toner har egna färger i båda temana`() {
+        // Bibliotekets tone() faller annars tyst tillbaka till primärtonen.
+        listOf("ljust" to AppColors.lightExtended, "mörkt" to AppColors.darkExtended).forEach { (theme, extended) ->
+            listOf(Tone.Primary, Tone.Green, Tone.Blue).forEach { tone ->
+                assertTrue(tone in extended.tones, "$theme: ${tone.key} saknas i tones")
+            }
+        }
+    }
 
     @Test
     fun `personfärger varvar och ett oläsbart värde ger första förvalet`() {

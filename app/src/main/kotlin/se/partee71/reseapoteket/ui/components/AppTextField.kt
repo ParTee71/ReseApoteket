@@ -13,9 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import se.partee71.reseapoteket.core.schema.TextLimits
-import se.partee71.reseapoteket.ui.theme.AppColors
-import se.partee71.reseapoteket.ui.theme.AppShapes
-import se.partee71.reseapoteket.ui.theme.AppTypography
+import se.partee71.ui.theme.AppTheme
 
 /**
  * Det enda textfältet: etikett, och under fältet antingen [error] (röd, läses av TalkBack som
@@ -42,22 +40,22 @@ fun AppTextField(
     maxLength: Int = if (singleLine) TextLimits.SHORT else TextLimits.LONG,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE
 ) {
-    val card = AppColors.extended.card
+    val card = AppTheme.extendedColors.card
     OutlinedTextField(
         value = value,
         onValueChange = { if (it.length <= maxLength || it.length < value.length) onValueChange(it) },
         modifier = modifier.fillMaxWidth(),
         enabled = enabled,
         readOnly = readOnly,
-        textStyle = AppTypography.body,
+        textStyle = AppTheme.typography.body,
         label = { Text(label) },
         trailingIcon = trailingIcon?.let { { Icon(painterResource(it), contentDescription = null) } },
-        supportingText = (error ?: helper)?.let { { Text(it, style = AppTypography.itemSubtitle) } },
+        supportingText = (error ?: helper)?.let { { Text(it, style = AppTheme.typography.itemSubtitle) } },
         isError = error != null,
         keyboardOptions = keyboardOptions,
         singleLine = singleLine,
         maxLines = maxLines,
-        shape = AppShapes.field,
+        shape = AppTheme.shapes.field,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = card,
             unfocusedContainerColor = card,
