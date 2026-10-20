@@ -3,7 +3,11 @@ name: ci-budget
 description: Regel 5 i ReseApoteket — en PR kostar högst ca 8 Actions-minuter och tester körs bara när koden de testar ändrats. Enda källan för tabellen över vad som körs när. Ladda alltid vid .github/workflows, Gradle-inställningar, nya beroenden, plugins, moduler eller testnivåer, och när CI är långsam. Trigger-ord: CI, GitHub Actions, workflow, android.yml, byggtid, Actions-minuter, cache, paths-filter, emulator, lint, nytt beroende.
 ---
 
-# CI-budget
+# CI-budget i ReseApoteket
+
+**Det generella står i skill `android:ci-budget`** (pluginen): formen på `android.yml`
+(`changes`, `ci-ok`), teknikerna som håller tiden nere, när du lägger till något och
+anti-mönstren. Här står ReseApotekets tabell, jobben, composite actions och felklasser.
 
 **Regel:** PR-flödet ska ta högst ca **8 minuter** på varm cache (`timeout-minutes: 15`
 som skyddsnät) – plus instrumenttesterna (ca 9 min) när en PR rör koden de testar
@@ -91,31 +95,22 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 | Backup | `backup.yml`: veckovis cron |
 | Deploy av `firestore.rules` | `rules.yml`: `workflow_dispatch` (dry-run som standard, deploy bara från `master`); `release.yml` före publiceringen, bara om de ändrats sedan förra releasen |
 
-## Tekniker som håller tiden nere
+## ReseApotekets composite actions
 
-- `gradle/actions/setup-gradle`: cache skrivs från `master`, läses i PR.
-- `org.gradle.configuration-cache=true`, `org.gradle.parallel=true`, `--configuration-cache`.
-- `concurrency: { group: ci-${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: <bara för PR> }`
-  – en ny push avbryter PR:ens förra körning, men `master`-baslinjen och release-grindarna avbryts aldrig.
-- Robolectric-SDK-jar och Firebase-emulatorn cachas.
 - Gemensamma steg i composite actions (`.github/actions/setup-android`, `doc-checks`,
   `open-issue-on-failure`, `setup-tools-db`, `rules-tests`, `deploy-rules`) – en ändring, alla flöden.
 - `setup-android` provar först att `GPR_TOKEN` når android-ui och stoppar på en sekund om secreten
   saknas eller är fel, i stället för efter bygget och emulatorn.
-- `:core` utan Android-beroenden kompilerar och testar på sekunder.
+- Robolectric-SDK-jar och Firebase-emulatorn cachas; `:core` utan Android-beroenden kompilerar och
+  testar på sekunder.
 
-## När du lägger till något
+## Felklasser (agenten android:ci-doktor)
 
-- **Nytt beroende eller plugin:** ange uppmätt byggtidseffekt i PR-beskrivningen.
-- **Ny testnivå eller nytt verktyg:** lägg det i rätt filter; aldrig ovillkorligt i `gradle`.
-- **Över budget:** eget issue med mätning och förslag – inte en tyst höjning av timeouten.
-- **Lokalt före push** (skill `testing-strategy`): de kontroller ändringen berör, aldrig
-  `./gradlew test` av vana. Lokala körningar kostar inga Actions-minuter – en röd CI-runda gör det.
+Jobben: `changes` (dokumentkontroller), `gradle`, `rules`, `instrumented`, `ci-ok`, och i andra
+workflows `quality`, `release`, `backup`. Utöver pluginens generella felsorter:
 
-## Anti-mönster
-
-- `paths-ignore` på workflow-nivå (dokumentändringar skulle då aldrig kontrolleras).
-- Göra `gradle` eller `rules` till obligatoriska statuskrav (hoppade jobb blockerar PR:en).
-- Köra emulatorn i en PR som inte rör filtret `instrumented`, eller "bara den här gången".
-- Kopiera setup-steg mellan workflows i stället för en composite action.
-- Höja timeouten i stället för att hitta orsaken till att det blev långsamt.
+| Fel | Vad du tar reda på |
+|---|---|
+| Dokumentkontroll | `ci-budget`-tabellen mot `android.yml`, länkar, skill- och agentnamn (`plugin-skills.txt`, `plugin-agents.txt`) |
+| Rules/rundtur | vilken samling eller vilket fält; saknas den i `collections.mjs` eller rules? |
+| Backup (`backup.yml`) | vilket steg; saknade secrets har stoppat den förut (#94) |

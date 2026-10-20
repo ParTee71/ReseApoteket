@@ -127,7 +127,7 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 - [ ] **Enhetligt:** inga råa M3-komponenter, egna interaktionsmönster, hårdkodade stilvärden eller kopierad logik; `UiConsistencyTest` och `cpdCheck` gröna. (4)
 - [ ] **CI-budget:** inga nya dyra steg i PR-flödet; byggtidseffekt angiven vid nya beroenden. (5)
 - [ ] **GUI:** mockup godkänd och skärmdumpar bifogade i PR:en.
-- [ ] **Granskning:** agenten `granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **android:implement-issue**, steg 8).
+- [ ] **Granskning:** agenten `android:granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **android:implement-issue**, steg 8).
 
 ## PR-flöde
 
@@ -147,7 +147,7 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
   fortfarande bara på uttrycklig begäran (skill **android:release**) och kräver då ingen ny PR.
 - **Prenumerera automatiskt** på PR-aktivitet (`subscribe_pr_activity`) så fort en PR
   skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
-  granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `ci-doktor`
+  granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `android:ci-doktor`
   diagnostisera. Avsluta prenumerationen när PR:en är klar.
 - **Modell efter uppgift** för sessionen och varje agent, Opus som standard
   ([.claude/README.md](.claude/README.md) → Modellval).
@@ -189,11 +189,11 @@ in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs
 
 ## Agenter och skills
 
-Agenterna (`granskare`, `ci-doktor`, `testskrivare`, `db-inspektor`) och alla skills, med
-när de används, listas i [.claude/README.md](.claude/README.md).
+Agenterna (`db-inspektor` och pluginens `android:granskare`, `android:ci-doktor`,
+`android:testskrivare`) och alla skills, med när de används, listas i [.claude/README.md](.claude/README.md).
 
-**Kortrapport:** agenternas svar hamnar i huvudsessionens kontext och kostar där. `granskare` och
-`ci-doktor` svarar bara med mallen i sin fil – inga referat av det de läst, ingen upprepning av
+**Kortrapport:** agenternas svar hamnar i huvudsessionens kontext och kostar där. Granskaren och
+CI-doktorn svarar bara med mallen i sin fil – inga referat av det de läst, ingen upprepning av
 uppdraget, högst ~15 rader om inte fynden kräver mer.
 
 ## Lång session

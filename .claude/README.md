@@ -9,10 +9,15 @@ som finns i `.claude/agents/` och `.claude/skills/`.
 
 | Agent | När |
 |---|---|
-| `granskare` | Före varje PR: granskar diffen mot de fem reglerna och mockup-regeln, rapporterar i en tabell. |
-| `ci-doktor` | Vid rött CI: läser loggar, skärmdumpsdiffar och CPD-rapporter, föreslår fix. |
-| `testskrivare` | Skriver/utökar tester med de delade testhjälparna – bara när tre eller fler testnivåer berörs. |
 | `db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
+
+Från pluginen (generella, läser ReseApotekets delar ur repot; listade i `.github/scripts/plugin-agents.txt`):
+
+| Agent | När |
+|---|---|
+| `android:granskare` | Före varje PR: granskar diffen mot de fem reglerna och mockup-regeln, rapporterar i en tabell. ReseApotekets kontrollpunkter: `android-projekt` → Granskning. |
+| `android:ci-doktor` | Vid rött CI: läser loggar, skärmdumpsdiffar och CPD-rapporter, föreslår fix. ReseApotekets felklasser: `ci-budget` → Felklasser. |
+| `android:testskrivare` | Skriver/utökar tester med de delade testhjälparna – bara när tre eller fler testnivåer berörs. ReseApotekets regler: `testing-strategy` → För testskrivaren. |
 
 ## Modellval
 
@@ -35,25 +40,26 @@ agent ta rutindelarna.
 | `android-projekt` | ReseApotekets delar av pluginens `android:`-skills (se nedan) – ladda alltid tillsammans med dem; mockupmallen och mockupens data och skärmdumpar; avsnitten Arbetsflöde, Issues och Release till `android:implement-issue`, `android:refine-issue` och `android:release`. |
 | `data-privacy-security` | Hälsodata, loggning, hemligheter, minify. |
 | **`data-safety-backup`** | Regel 1 – codecs, schemaversion, export/import och rundtur. |
-| **`testing-strategy`** | Regel 2 – testnivåer, kontraktstester, skärmdumpar. |
+| **`testing-strategy`** | Regel 2 i ReseApoteket – testnivåer, hjälpare, kontraktstester, skärmdumpar, kommandon. Det generella: `android:testing-strategy`. |
 | **`requirements-kravlista`** | Regel 3 – hålla KRAVLISTA.md aktuell. |
 | **`shared-ui-components`** | Regel 4 – komponenter, ramar, byggstenar, förbud, kontroller. |
-| **`ci-budget`** | Regel 5 – vad som körs när i CI. |
+| **`ci-budget`** | Regel 5 i ReseApoteket – vad som körs när i CI och felklasser. Det generella: `android:ci-budget`. |
 | `ui-style` | Designspråket (Material 3 Expressive); API:er i `ARKITEKTUR.md` → "Verifierade API:er". |
 | `firestore-data-layer` | `FirestoreCollection`, `DocCodec`, repositories, offline, rules. |
 | `packing-engine` | Beräkningsformler och kantfall. |
 | `db-access` | Läsa databasen från en Claude-session. |
 
-Fjorton generella skills kommer från pluginen `android@claude-android` och heter `android:<namn>`
+Sexton generella skills och tre agenter kommer från pluginen `android@claude-android` och heter `android:<namn>`
 i sessionen: `android-dev` (baslinje, ladda alltid), `compose-expert`, `kotlin-coroutines`,
 `kotlin-flows`, `navigation-3`, `accessibility-compose`, `android-gradle-logic`, `firebase-auth`,
 `mockup` (mockup före ny GUI), `refine-issue` (förfina en idé till ett planerat issue),
 `implement-issue` (genomföra ett issue hela vägen till PR, med merge-kontroll först), `release`
-(endast vid uttrycklig release; versionshöjningen i funktions-PR:en) samt Googles `android-intent-security` (manifest, Intents, delning)
+(endast vid uttrycklig release; versionshöjningen i funktions-PR:en), `testing-strategy` och `ci-budget`
+(det generella i regel 2 och 5) samt Googles `android-intent-security` (manifest, Intents, delning)
 och `firebase-security-rules-auditor` (vid varje ändring i `firestore.rules`, före FUT-2).
 Pluginen är generell; ReseApotekets delar och nuvarande avvikelser står i `android-projekt`, och
-där de krockar gäller projektets regler. Namnen listas i `.github/scripts/plugin-skills.txt`, som
-dokumentkontrollen läser i stället för pluginen.
+där de krockar gäller projektets regler. Namnen listas i `.github/scripts/plugin-skills.txt` och
+`plugin-agents.txt`, som dokumentkontrollen läser i stället för pluginen.
 
 ## Hooks (`.claude/hooks/`) och inställningar
 
