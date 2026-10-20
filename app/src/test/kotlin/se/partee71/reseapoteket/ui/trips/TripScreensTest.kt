@@ -32,15 +32,16 @@ import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
 import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.testing.captureLightAndDark
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.components.ListArchive
-import se.partee71.reseapoteket.ui.runEditScreenContract
+import se.partee71.reseapoteket.ui.contracts
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.common.EditorEvents
 import se.partee71.ui.common.EditorState
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.ArchiveEvent
+import se.partee71.ui.components.ListArchive
+import se.partee71.ui.testing.runEditScreenContract
 
 /** Reseskärmarna (RES-1–4): formulärkontraktet och det som är unikt för resor. */
 @RunWith(RobolectricTestRunner::class)
@@ -62,6 +63,7 @@ class TripScreensTest {
     fun `formuläret uppfyller formulärkontraktet`() {
         val editor = EditorState(trip.copy(travellerIds = emptyList()), TripValidator, AppErrors)
         rule.runEditScreenContract(
+            contracts,
             editor = editor,
             makeInvalid = {
                 update(TripValidator.TRAVELLERS) { it.copy(travellerIds = listOf("anna")) }

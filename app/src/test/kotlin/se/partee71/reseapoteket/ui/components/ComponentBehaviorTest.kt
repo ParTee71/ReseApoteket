@@ -56,15 +56,26 @@ import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.components.AddSplitButton
 import se.partee71.ui.components.AppFilterChip
 import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppMenu
+import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.CheckRow
 import se.partee71.ui.components.ColorSwatchPicker
+import se.partee71.ui.components.ConfirmDialog
+import se.partee71.ui.components.DateField
+import se.partee71.ui.components.EmojiPicker
 import se.partee71.ui.components.ExampleChips
 import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.ItemRow
 import se.partee71.ui.components.LocalTopBarStatus
 import se.partee71.ui.components.QuantityStepper
+import se.partee71.ui.components.Suggestion
+import se.partee71.ui.components.SuggestionField
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.SwitchRow
 import se.partee71.ui.components.TimeField
+import se.partee71.ui.components.asSplitMenu
 
 /** Beteende och tillgänglighet i katalogens komponenter – en gång här, inte per skärm. */
 @RunWith(RobolectricTestRunner::class)
@@ -271,7 +282,7 @@ class ComponentBehaviorTest {
     @Test
     fun `emojivalet väljer en emoji och läses som ett av flera alternativ`() {
         var emoji by mutableStateOf("🦊")
-        show { EmojiPicker(emoji, { emoji = it }) }
+        show { EmojiPicker(emoji, { emoji = it }, PERSON_EMOJIS) }
         rule.onNodeWithContentDescription("🦉").performClick()
         assertEquals("🦉", emoji)
         rule.onNodeWithContentDescription("🦉").assertIsSelected()

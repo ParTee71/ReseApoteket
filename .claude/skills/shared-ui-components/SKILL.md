@@ -15,7 +15,7 @@ agenter länkar hit – de kopierar dem inte. Komponenttabellen och ramtabellen 
 komponent, komponentnamnet i backticks först i kolumn två.
 
 > Rader märkta *(android-ui)* är komponenter ur det gemensamma biblioteket
-> [android-ui](https://github.com/ParTee71/android-ui) (`se.partee71.ui.components`, sedan #126; fler komponenter och tillståndsmodulen `ui-common` sedan #129) –
+> [android-ui](https://github.com/ParTee71/android-ui) (`se.partee71.ui.components`, sedan #126; fler komponenter och tillståndsmodulen `ui-common` sedan #129; listrader, ark, meny, dialoger, datumfält, emojival och de tre ramarna med `ArchiveActions` sedan #131, android-ui 0.4.0) –
 > appen har ingen egen kopia, och en ändring görs i biblioteket. Temat (`AppTheme`, `Spacing`,
 > `AppShapes`, `AppTypography`, `ExtendedColors`, `Tone`) kommer också därifrån (skill `ui-style`).
 > `UiConsistencyTest` kontrollerar att de finns i biblioteket och i `ComponentGallery`.
@@ -32,25 +32,25 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Ikonknapp | `AppIconButton` *(android-ui)* | M3 ikonknapp, min 48 dp |
 | Split-knapp "Lägg till ▾" | `AddSplitButton` *(android-ui)* | Expressive split-knapp; menyn bakom pilen är `AppMenu`s (`menu = items.asSplitMenu()`) |
 | Kort / grupperad yta | `AppCard` *(android-ui)* | `AppTheme.shapes.card`, `Spacing`; `tone` färgar ytan (grönt när allt är packat); `CardSegment` är en bit av kortet i lata listor (ReseApotekets tidigare `AppCard`) |
-| Listrad | `ItemRow` | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat), `titleHighlight` färgmarkerar en del av titeln (sökträff); titeln högst två rader, och kapas den visar långtryck hela titeln och undertexten i en bubbla (NFR-20) |
+| Listrad | `ItemRow` *(android-ui)* | bas för alla listor; `navigates` ger pil (efter `trailing`), `done` packad-stil, `accent` personens färg, `inactive` nedtonad (pausat), `below` en rad under (resenärer och packat), `titleHighlight` färgmarkerar en del av titeln (sökträff); titeln högst två rader, och kapas den visar långtryck hela titeln och undertexten i en bubbla (NFR-20) |
 | Resenärer på en resa | `AvatarStack` | överlappande `PersonAvatar` (Small) med ring; TalkBack läser namnen |
-| Pausbar rad (recept, kosttillskott, familjeartikel) | `PausableRow` | `ItemRow` + typ som `InfoPill`; pausad nedtonad med "Pausat" |
-| Kryssrad | `CheckRow` | `ItemRow` + formmorfande kryss; med `onClick` är krysset en egen knapp (läses med namn och mängd) och raden öppnar detaljer; `accent` = personens färg |
+| Pausbar rad (recept, kosttillskott, familjeartikel) | `PausableRow` *(android-ui)* | `ItemRow` + typ som `InfoPill` (`pillTone = Tone.Blue`); pausad nedtonad med "Pausat" |
+| Kryssrad | `CheckRow` *(android-ui)* | `ItemRow` + formmorfande kryss; med `onClick` är krysset en egen knapp (läses med namn och mängd) och raden öppnar detaljer; `accent` = personens färg |
 | Sektionsrubrik med räknare | `SectionHeader` *(android-ui)* | `InfoPill` för räknaren |
 | Gruppetikett över kort | `GroupLabel` *(android-ui)* | versal liten text, läses som rubrik |
 | Formulärfält med etikett (val, väljare, dosering) | `LabeledGroup` *(android-ui)* | `GroupLabel` ovanför innehållet, valfri `helper` under och fältfel (`error`, `FieldError`) |
 | Fel under ett fält eller i en panel | `FieldError` *(android-ui)* | Felfärg, läses som fel; ett skrivfel i ett bottom sheet visas via `AppBottomSheet(error)` |
 | Skärmrubrik | `AppTopBar` *(android-ui)* | Expressive flexibel toppbar, `size`-parameter; före `actions` står appens synkindikator (`InfoPill` med moln, `SyncIndicator.topBarStatus()` satt som `LocalTopBarStatus`) när ändringar väntar (NFR-6) |
-| Toppnivånavigering | `AppFloatingToolbar` | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
+| Toppnivånavigering | `AppFloatingToolbar` *(android-ui)* | Expressive flytande verktygsrad; `LocalBottomClearance` ger plats under den |
 | Textfält | `AppTextField` *(android-ui)* | M3 textfält med fel/hjälptext; flerradigt växer med texten upp till `maxLines` |
-| Textfält med förslag (läkemedelslistan, REC-6) | `SuggestionField` | `AppTextField` + kort med en `ItemRow` per `Suggestion` (matchningen färgmarkerad via `titleHighlight`) och valfri källrad; antalet läses upp; anroparen bestämmer vad ett val fyller i |
+| Textfält med förslag (läkemedelslistan, REC-6) | `SuggestionField` *(android-ui)* | `AppTextField` + kort med en `ItemRow` per `Suggestion` (matchningen färgmarkerad via `titleHighlight`) och valfri källrad; antalet läses upp; anroparen bestämmer vad ett val fyller i |
 | Etikett/pill | `InfoPill` *(android-ui)* | `AppTheme.shapes.pill`; `icon` före texten, `onClick` gör den till en knapp med 48 dp tryckyta |
 | Personchip | `PersonChip` | M3 filterchip + `PersonAvatar` |
 | Valchip | `AppFilterChip` *(android-ui)* | M3 filterchip |
 | Ett val bland några (form, enhet, kategori) | `ChoiceChips` *(android-ui)* | `ChipRow` + en `AppFilterChip` per alternativ |
 | Exempel att börja från (snabbval, tom lista) | `ExampleChips` *(android-ui)* | `ChipRow` + `AppFilterChip` med plus; det valda med bock; varje chip väljer sitt eget objekt (`label` ger texten) |
 | Avatar | `PersonAvatar` | emoji i färgad cirkel, `size` (`Small`, `Regular`, `Large`) |
-| Emojival | `EmojiPicker` | rutnät av runda val (`ChoiceGrid`), kurerad lista `PERSON_EMOJIS` |
+| Emojival | `EmojiPicker` *(android-ui)* | rutnät (`ChoiceGrid`) med rutnätets valmarkering (ringen); listan är appens: `PERSON_EMOJIS` i `ui/components/PersonEmojis.kt` |
 | Färgval | `ColorSwatchPicker` *(android-ui)* | rutnät av runda val (`ChoiceGrid`) över `AppColors.PERSON_HEX` med `AppColors::person`, `personColorLabel` (TalkBack läser färgens namn) och `PersonColorMarker` (ring och vit bock) |
 | Antal ± | `QuantityStepper` *(android-ui)* | M3 ikonknappar i en pill, `label` för TalkBack |
 | Dosering | `DoseScheduleRow` | `AppFilterChip` + `QuantityStepper`; valideringsfel (`error`) under fälten |
@@ -58,15 +58,15 @@ komponent, komponentnamnet i backticks först i kolumn två.
 | Packprogress | `SuitcaseProgress` | Expressive vågig progress, `compact`-parameter; allt packat → "Allt packat! 🧳" |
 | Laddning | `AppLoading` *(android-ui)* | Expressive laddningsindikator |
 | Tomt tillstånd | `EmptyState` *(android-ui)* | ikon + text + `AppButton` |
-| Bekräftelse | `ConfirmDialog` | M3 dialog, `destructive`-parameter |
-| Bottom sheet | `AppBottomSheet` | M3 modal sheet; scrollar när innehållet är högre än skärmen |
+| Bekräftelse | `ConfirmDialog` *(android-ui)* | M3 dialog, `destructive`-parameter; "Släng ändringar?" är `DiscardChangesDialog` och radering `DeleteConfirmDialog` (båda i biblioteket, används av ramarna) |
+| Bottom sheet | `AppBottomSheet` *(android-ui)* | M3 modal sheet; scrollar när innehållet är högre än skärmen; arkets knapprad ("Klar", "Lägg till") läggs i `footer` och står fast i botten ovanför tangentbordet (NFR-21) |
 | Meddelande | `AppSnackbarHost` *(android-ui)* | M3 snackbar; ramarna har var sin för skärmens åtgärder, `AppNavHost` en för appens synkmeddelanden (NFR-6) – ett pågående meddelande ersätts aldrig av ett annat |
 | Firande | `Confetti` *(android-ui)* | egen `Canvas`, inget bibliotek; färgerna är personfärgerna (`ExtendedColors.accents`) |
 | Avdelare | `AppDivider` *(android-ui)* | M3-avdelare med temats färg och tjocklek |
-| Inställningsrad med växel | `SwitchRow` | `ItemRow` + M3-växel; med `onClick` är växeln en egen kontroll och raden öppnar detaljer (som `CheckRow`) |
+| Inställningsrad med växel | `SwitchRow` *(android-ui)* | `ItemRow` + M3-växel; med `onClick` är växeln en egen kontroll och raden öppnar detaljer (som `CheckRow`) |
 | Segmentval (t.ex. tema) | `AppSegmentedChoice` *(android-ui)* | M3 segmentknappar |
-| Meny (arkivera/radera m.m.) | `AppMenu` | M3 rullgardinsmeny |
-| Datumfält | `DateField` | `AppTextField` + M3 datumväljare |
+| Meny (arkivera/radera m.m.) | `AppMenu` *(android-ui)* | M3 rullgardinsmeny |
+| Datumfält | `DateField` *(android-ui)* | `AppTextField` + M3 datumväljare |
 | Tidsfält | `TimeField` *(android-ui)* | samma yta som `DateField` + M3 tidsväljare (24 timmar); valfri `helper` |
 | Packas på resedagen (recept, kosttillskott, familjeartikel, egen rad) | `TravelDayField` | `SwitchRow` + `TimeField`; resedagens morgon (`LocalTravelDayMorning`, telefonens tid) tills en egen tid väljs |
 | Horisontell rad av chips | `ChipRow` *(android-ui)* | horisontell lista av `PersonChip`/`AppFilterChip` |
@@ -76,18 +76,20 @@ komponent, komponentnamnet i backticks först i kolumn två.
 
 | Mönster | Ram | Beteende (identiskt överallt) |
 |---|---|---|
-| Listskärm | `EntityListScreen` | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal eller `ListGroup.count`, `columns` = upp till 2 kolumner, bara så många som får plats med minst 260 dp var (NFR-20), `collapsible` = hopfälld) och undergrupper (`ListSubgroup`, personens namn i färg); lägg till (`AddSplitButton`) ovanför verktygsraden; för en undersida `onBack`, `subtitle`, `actions` och `header` överst i listan; `ListArchive.showToggle = false` utan "Visa arkiverade" |
-| Redigeraskärm | `EntityEditScreen` | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); båda kvitteras via `events` (formulärets `EditorState`) och visas inte igen efter rotation; arkivera/återställ/radera i menyn |
-| Detaljskärm | `EntityDetailScreen` | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `AppCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
+| Listskärm | `EntityListScreen` *(android-ui)* | Arkivering via `archive: ListArchive` ("Visa arkiverade" i menyn, Ångra, fel som meddelande); laddning → `AppLoading`; lägg till via `add: AddAction` (text, åtgärd och valfri `menu` i pilen; `null` = ingen knapp); tomt → `EmptyState` med primärknapp och valfria exempel (`EmptyContent.examples`, `ExampleChips`); fel → feltillstånd (`EmptyState` med `isError`) och "Försök igen"; rader (`ItemRow`) i kort; valfri gruppering (`SectionHeader` med antal eller `ListGroup.count`, `columns` = upp till 2 kolumner, bara så många som får plats med minst 260 dp var (NFR-20), `collapsible` = hopfälld, rubriken minst 48 dp, läses som knapp och chevronen fjädrar) och undergrupper (`ListSubgroup`, personens namn i färg); lägg till (`AddSplitButton`) ovanför verktygsraden; för en undersida `onBack`, `subtitle`, `actions` och `header` överst i listan; `ListArchive.showToggle = false` utan "Visa arkiverade" |
+| Redigeraskärm | `EntityEditScreen` *(android-ui)* | Tillsammans med `EditorState<T>`: "Spara" aktiv först när giltig och ändrad (`saveLabel`-parameter); fältfel visas när fältet ändrats eller efter ett sparförsök; läsfel → feltillstånd med "Försök igen"; bakåt med osparat → "Släng ändringar?"; sparfel → snackbar; lyckad sparning → tillbaka (eller `onSaved`, t.ex. till packlistan för en ny resa); båda kvitteras via `events` (formulärets `EditorState`) och visas inte igen efter rotation; arkivera/återställ/radera i menyn; tangentbordet krymper den rullande ytan så att fältet hamnar ovanför det (NFR-2) |
+| Detaljskärm | `EntityDetailScreen` *(android-ui)* | Tillsammans med `DetailUiState`/`DetailLoader`: toppbar med tillbaka, "Redigera" och meny (arkivera/återställ); laddning → `AppLoading`; fel → läsfel med "Försök igen" (samma som listan och redigeringen); innehåll → centrerat huvud (bild, namn, rad under) och sektioner i `AppCard` med `SectionHeader`; fel från en åtgärd (`error`) som meddelande |
 | Arkivera/dölj | `SwipeToHide` *(android-ui)* | Svep → dolt direkt → `UndoSnackbar` "%s arkiverad · Ångra" i 5 s (packlistan: "%s dold" via `ArchiveActions(undoFormat)`); `enabled = false` för en redan arkiverad rad |
 | Ångra | `UndoSnackbar` *(android-ui)* | Enda ångra-mekanismen |
-| Permanent radering | `ConfirmDialog` | `destructive = true`; alltid bekräftelse, aldrig svep. `onDecline` när nej-knappen gör något annat än att stänga ("Behåll listan") |
+| Permanent radering | `ConfirmDialog` *(android-ui)* | `DeleteConfirmDialog` (`destructive = true`) i redigeringen; alltid bekräftelse, aldrig svep. `onDecline` när nej-knappen gör något annat än att stänga ("Behåll listan") |
 | Förhandsvisning av beräkning | `PackingPreview` | Samma format i recept, kosttillskott, familjeartiklar |
 | Komponentöversikt | `ComponentGallery` | Debug-skärm med alla komponenter och ramar i alla tillstånd |
 
 Gemensamt för ramarna: felmeddelanden via `UiError` (`AppErrors` → `DataError.toMessage()`), skärmbyten via
-`navigation/Transitions`, återkommande texter ("Spara", "Släng ändringar?", "Ångra",
-"Försök igen", "Inget här än") en gång i `strings.xml`.
+`navigation/Transitions`, ramarnas och komponenternas texter ("Spara", "Släng ändringar?", "Ångra", "Försök igen") en gång
+i android-ui, appens återkommande texter en gång i `strings.xml`. Kontraktstesterna kommer från
+android-ui `ui-testing` (`runListScreenContract`, `runEditScreenContract`, `runDetailScreenContract`) med appens
+`ContractEnvironment` (`contracts` i testkällornas `ui/Contracts.kt`).
 
 ## Kod: delade byggstenar i andra lager
 
@@ -98,7 +100,7 @@ Gemensamt för ramarna: felmeddelanden via `UiError` (`AppErrors` → `DataError
 | Map ↔ modell | `DocCodec<T>` + fälthjälpare i `:core` |
 | Formulär | `EditorState<T>` + `Validator<T>` *(android-ui, `ui-common`)*, skapad med `AppErrors` (läsfel står kvar medan man skriver; arkivera/radera via `run` väntar tills det lagrade är läst; fel per fält visas efter ändring eller sparförsök; klar och sparfel som `EditorUiState.done`/`failure`, kvitterade via `EditorEvents`) |
 | Listtillstånd | `Flow<List<T>>.asListUiState(AppErrors)` → `ListUiState<T>`, och `ListLoader(…, AppErrors)` (med "Försök igen") *(android-ui, `ui-common`)*; `activeOnly()` i `ui/common/` |
-| Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions` + `ArchiveEvent` i `ui/common/` (en per list-ViewModel, exponerad som `archive`); skärmen skickar `archive.collectAsListArchive()` till `EntityListScreen`. Ångra för något annat än arkivering (t.ex. rader som just lagts till, PAK-7) erbjuds med `offerUndo(request) { … }` – samma snackbar |
+| Svep-arkivera, Ångra, "Visa arkiverade" i en lista | `ArchiveActions(scope, AppErrors, …)` + `ArchiveEvent` *(android-ui)*, `visible(källa, Archivable::archived)` (en per list-ViewModel, exponerad som `archive`); skärmen skickar `archive.collectAsListArchive()` till `EntityListScreen`. Ångra för något annat än arkivering (t.ex. rader som just lagts till, PAK-7) erbjuds med `offerUndo(request) { … }` – samma snackbar |
 | Detaljtillstånd | `Flow<T?>.asDetailUiState(AppErrors, retry)` → `DetailUiState<T>`, och `DetailLoader(…, AppErrors)` (med "Försök igen") för en detaljskärms ViewModel *(android-ui, `ui-common`)* |
 | ViewModel med nyckel | Hilt assisted injection: `@HiltViewModel(assistedFactory = …)` + `hiltViewModel<VM, VM.Factory> { it.create(key.…) }` i `appEntries` (ARKITEKTUR → Verifierade API:er) |
 | Datum i UI | `DateFormat` i `ui/common/` ("lör 19 dec 2026", millis för datumväljaren) |

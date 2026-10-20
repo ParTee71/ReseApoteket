@@ -22,17 +22,7 @@ import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.model.PackingItem
 import se.partee71.reseapoteket.core.model.PackingSection
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.collectAsListArchive
-import se.partee71.reseapoteket.ui.components.AppMenuItem
 import se.partee71.reseapoteket.ui.components.AvatarStack
-import se.partee71.reseapoteket.ui.components.CheckRow
-import se.partee71.reseapoteket.ui.components.ConfirmDialog
-import se.partee71.reseapoteket.ui.components.EmptyContent
-import se.partee71.reseapoteket.ui.components.EntityListScreen
-import se.partee71.reseapoteket.ui.components.ItemRow
-import se.partee71.reseapoteket.ui.components.ListArchive
-import se.partee71.reseapoteket.ui.components.ListGroup
-import se.partee71.reseapoteket.ui.components.ListSubgroup
 import se.partee71.reseapoteket.ui.components.LocalTravelDayMorning
 import se.partee71.reseapoteket.ui.components.StackedAvatar
 import se.partee71.reseapoteket.ui.components.SuitcaseProgress
@@ -43,13 +33,24 @@ import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.ListEvent
 import se.partee71.ui.common.ListUiState
 import se.partee71.ui.common.UiError
+import se.partee71.ui.components.AddAction
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppIconButton
+import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.CheckRow
 import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.ConfirmDialog
+import se.partee71.ui.components.EmptyContent
+import se.partee71.ui.components.EntityListScreen
 import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.ItemRow
+import se.partee71.ui.components.ListArchive
+import se.partee71.ui.components.ListGroup
+import se.partee71.ui.components.ListSubgroup
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.collectAsListArchive
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
 
@@ -114,16 +115,18 @@ fun PackingListContent(
             empty = EmptyContent(
                 icon = R.drawable.ic_luggage,
                 title = stringResource(R.string.packing_empty_title),
-                message = stringResource(R.string.packing_empty_message),
-                actionLabel = stringResource(R.string.add)
+                message = stringResource(R.string.packing_empty_message)
             ),
-            onAdd = { onEvent(PackingListEvent.Add) },
+            add = AddAction(
+                stringResource(R.string.add),
+                { onEvent(PackingListEvent.Add) },
+                menu = listOf(
+                    AppMenuItem(stringResource(R.string.packing_recount), { onEvent(PackingListEvent.AskRecount) }, R.drawable.ic_refresh),
+                    AppMenuItem(stringResource(R.string.packing_hide_checked), { onEvent(PackingListEvent.HideChecked) }, R.drawable.ic_visibility_off)
+                )
+            ),
             key = { it.item.id },
             onRetry = { onEvent(PackingListEvent.List(ListEvent.Retry)) },
-            addMenu = listOf(
-                AppMenuItem(stringResource(R.string.packing_recount), { onEvent(PackingListEvent.AskRecount) }, R.drawable.ic_refresh),
-                AppMenuItem(stringResource(R.string.packing_hide_checked), { onEvent(PackingListEvent.HideChecked) }, R.drawable.ic_visibility_off)
-            ),
             group = { row -> groups.getValue(if (row.item.hidden) null else PackingList.group(row.item)) },
             archive = archive,
             subtitle = header?.let { subtitle(it) },

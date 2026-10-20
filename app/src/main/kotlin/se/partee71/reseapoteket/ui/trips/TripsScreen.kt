@@ -22,6 +22,7 @@ import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.PackingEngine
 import se.partee71.reseapoteket.core.engine.PackingProgress
 import se.partee71.reseapoteket.core.engine.SwedishOrder
+import se.partee71.reseapoteket.core.model.Archivable
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.Trip
 import se.partee71.reseapoteket.core.model.TripStatus
@@ -31,14 +32,8 @@ import se.partee71.reseapoteket.data.common.withFallback
 import se.partee71.reseapoteket.data.repository.PackingRepository
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
-import se.partee71.reseapoteket.ui.common.ArchiveActions
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.common.collectAsListArchive
 import se.partee71.reseapoteket.ui.components.AvatarStack
-import se.partee71.reseapoteket.ui.components.EmptyContent
-import se.partee71.reseapoteket.ui.components.EntityListScreen
-import se.partee71.reseapoteket.ui.components.ItemRow
-import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.StackedAvatar
 import se.partee71.reseapoteket.ui.components.SuitcaseProgress
 import se.partee71.reseapoteket.ui.theme.AppColors
@@ -47,8 +42,15 @@ import se.partee71.reseapoteket.ui.theme.Green
 import se.partee71.ui.common.ListEvent
 import se.partee71.ui.common.ListLoader
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.AddAction
+import se.partee71.ui.components.ArchiveActions
+import se.partee71.ui.components.EmptyContent
+import se.partee71.ui.components.EntityListScreen
 import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.ItemRow
+import se.partee71.ui.components.ListArchive
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.collectAsListArchive
 import se.partee71.ui.theme.Tone
 
 /** En rad i reselistan: resan, resenärerna och hur mycket som är packat (RES-1). */
@@ -65,14 +67,14 @@ class TripsViewModel @Inject constructor(
     packing: PackingRepository
 ) : ViewModel() {
     /** Svep-arkivera, Ångra och "Visa arkiverade" (RES-1) – samma som i alla listor. */
-    val archive = ArchiveActions(viewModelScope, trips::setArchived)
+    val archive = ArchiveActions(viewModelScope, AppErrors, trips::setArchived)
 
     // Senaste start först; resor utan startdatum sist (RES-1). Arkiverade sist och bara när de
     // visas (ArchiveActions behåller ordningen i övrigt). Packlistorna följs per uppsättning resor –
     // inte om när en resa ändras eller flyttas. Resenärer och packat är tillägg: går de inte att
     // läsa visas resorna ändå, utan avatarer eller packat.
     private val items: Flow<List<TripListItem>> =
-        archive.visible(trips.observe().map { it.sortedWith(NEWEST_FIRST) })
+        archive.visible(trips.observe().map { it.sortedWith(NEWEST_FIRST) }, Archivable::archived)
             .combineByKey({ list -> list.map { it.id }.toSet() }, { ids -> progressFor(packing, ids) }, ::Pair)
             .combine(persons.observe().withFallback(emptyList())) { (list, progress), people ->
                 val byId = people.associateBy { it.id }
@@ -119,10 +121,9 @@ fun TripsContent(
         empty = EmptyContent(
             icon = R.drawable.ic_luggage,
             title = stringResource(R.string.trips_empty_title),
-            message = stringResource(R.string.trips_empty_message),
-            actionLabel = stringResource(R.string.trips_add)
+            message = stringResource(R.string.trips_empty_message)
         ),
-        onAdd = onAdd,
+        add = AddAction(stringResource(R.string.trips_add), onAdd),
         key = { it.trip.id },
         modifier = modifier,
         onRetry = { onEvent(TripsEvent.List(ListEvent.Retry)) },

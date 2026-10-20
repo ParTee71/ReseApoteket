@@ -62,20 +62,20 @@ import se.partee71.reseapoteket.data.medicines.MedicineRepository
 import se.partee71.reseapoteket.data.repository.HouseholdRepository
 import se.partee71.reseapoteket.ui.common.DateFormat
 import se.partee71.reseapoteket.ui.common.toMessage
-import se.partee71.reseapoteket.ui.components.ConfirmDialog
-import se.partee71.reseapoteket.ui.components.ItemRow
-import se.partee71.reseapoteket.ui.components.LocalBottomClearance
 import se.partee71.reseapoteket.ui.components.PersonAvatar
-import se.partee71.reseapoteket.ui.components.SwitchRow
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.ui.common.STOP_TIMEOUT_MILLIS
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.AppSegmentedChoice
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.ConfirmDialog
 import se.partee71.ui.components.FieldError
 import se.partee71.ui.components.GroupLabel
+import se.partee71.ui.components.ItemRow
+import se.partee71.ui.components.LocalBottomClearance
 import se.partee71.ui.components.QuantityStepper
+import se.partee71.ui.components.SwitchRow
 import se.partee71.ui.theme.Spacing
 
 /** Kortet där en åtgärd gjordes – ett fel visas där (NFR-5). */

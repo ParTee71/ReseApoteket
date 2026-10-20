@@ -19,11 +19,11 @@ import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.data.repository.DefaultPersonRepository
 import se.partee71.reseapoteket.data.repository.DefaultRegimenRepository
 import se.partee71.reseapoteket.testing.MainDispatcherRule
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.components.PERSON_EMOJIS
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.ui.common.DetailUiState
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.ArchiveEvent
 import se.partee71.ui.components.UndoRequest
 
 /** Personernas ViewModels (PER-1–4) mot `FakeCollection` – ramarnas beteende testas i ramarnas tester. */

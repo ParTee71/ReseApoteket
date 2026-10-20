@@ -30,26 +30,39 @@ import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.AppFilterChip
+import se.partee71.ui.components.AppFloatingToolbar
 import se.partee71.ui.components.AppIconButton
 import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppMenu
+import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.AppSegmentedChoice
 import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.AppTopBar
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.CheckRow
 import se.partee71.ui.components.ChipRow
 import se.partee71.ui.components.ChoiceChips
 import se.partee71.ui.components.ColorSwatchPicker
+import se.partee71.ui.components.DateField
+import se.partee71.ui.components.EmojiPicker
 import se.partee71.ui.components.ExampleChips
 import se.partee71.ui.components.FieldError
 import se.partee71.ui.components.GroupLabel
 import se.partee71.ui.components.IconButtonVariant
 import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.ItemRow
 import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.PausableRow
 import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.components.SectionHeader
+import se.partee71.ui.components.Suggestion
+import se.partee71.ui.components.SuggestionField
+import se.partee71.ui.components.SwitchRow
 import se.partee71.ui.components.TimeField
+import se.partee71.ui.components.ToolbarItem
 import se.partee71.ui.components.TopBarSize
+import se.partee71.ui.components.asSplitMenu
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
 
@@ -209,9 +222,9 @@ class CatalogScreenshotTest {
         captureLightAndDark("PausableRow_aktiv_och_pausad") {
             Sheet {
                 AppCard {
-                    PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
+                    PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {}, pillTone = Tone.Blue)
                     AppDivider()
-                    PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {})
+                    PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {}, pillTone = Tone.Blue)
                 }
             }
         }
@@ -295,7 +308,7 @@ class CatalogScreenshotTest {
             }
         }
         captureLightAndDark("FieldError_sparfel") { Sheet { FieldError("Ingen anslutning just nu. Det du sparar skickas när nätet är tillbaka.") } }
-        captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}) } }
+        captureLightAndDark("EmojiPicker_val") { Sheet { EmojiPicker("🦉", {}, PERSON_EMOJIS) } }
         captureLightAndDark("ColorSwatchPicker_val") { Sheet { ColorSwatchPicker(AppColors.PERSON_HEX, AppColors.PERSON_HEX[3], {}, AppColors::person, { personColorLabel(it) }, PersonColorMarker) } }
         captureLightAndDark("AppSegmentedChoice_tema") { Sheet { AppSegmentedChoice(listOf("Ljust", "Mörkt", "System"), 2, {}) } }
         captureLightAndDark("QuantityStepper_varde") {

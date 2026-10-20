@@ -23,12 +23,13 @@ import se.partee71.reseapoteket.core.model.ItemUnit
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.testing.captureLightAndDark
-import se.partee71.reseapoteket.ui.runEditScreenContract
+import se.partee71.reseapoteket.ui.contracts
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.common.EditorEvents
 import se.partee71.ui.common.EditorState
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.testing.runEditScreenContract
 
 /** Familjeartiklarnas skärmar (FAM-1–4): formulärkontraktet och det som är unikt. */
 @RunWith(RobolectricTestRunner::class)
@@ -53,6 +54,7 @@ class FamilyItemScreensTest {
     fun `redigeringen uppfyller formulärkontraktet`() {
         val editor = EditorState(sunscreen.copy(name = ""), FamilyItemValidator, AppErrors)
         rule.runEditScreenContract(
+            contracts,
             editor = editor,
             makeInvalid = {
                 update(FamilyItemValidator.NAME) { it.copy(name = "x") }

@@ -40,9 +40,6 @@ import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.domain.PackingUpdate
 import se.partee71.reseapoteket.domain.TripPacking
 import se.partee71.reseapoteket.ui.common.DateFormat
-import se.partee71.reseapoteket.ui.components.ConfirmDialog
-import se.partee71.reseapoteket.ui.components.DateField
-import se.partee71.reseapoteket.ui.components.EntityEditScreen
 import se.partee71.reseapoteket.ui.components.PackingPreview
 import se.partee71.reseapoteket.ui.components.PersonChip
 import se.partee71.reseapoteket.ui.theme.AppColors
@@ -53,6 +50,9 @@ import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.Validator
 import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ChipRow
+import se.partee71.ui.components.ConfirmDialog
+import se.partee71.ui.components.DateField
+import se.partee71.ui.components.EntityEditScreen
 import se.partee71.ui.components.LabeledGroup
 import se.partee71.ui.components.QuantityStepper
 

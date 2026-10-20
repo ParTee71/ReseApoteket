@@ -22,8 +22,6 @@ import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.upsertPlaced
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.ui.components.AvatarSize
-import se.partee71.reseapoteket.ui.components.EmojiPicker
-import se.partee71.reseapoteket.ui.components.EntityEditScreen
 import se.partee71.reseapoteket.ui.components.PERSON_EMOJIS
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.components.PersonColorMarker
@@ -36,6 +34,8 @@ import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.Validator
 import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.ColorSwatchPicker
+import se.partee71.ui.components.EmojiPicker
+import se.partee71.ui.components.EntityEditScreen
 import se.partee71.ui.components.LabeledGroup
 
 /** PER-2: namnet är obligatoriskt; emoji och färg har alltid ett värde. */
@@ -138,7 +138,7 @@ fun PersonEditContent(
             error = state.errorFor(PersonValidator.NAME)?.let { stringResource(it) }
         )
         LabeledGroup(stringResource(R.string.person_emoji)) {
-            EmojiPicker(person.emoji, { onEvent(PersonEditEvent.Emoji(it)) })
+            EmojiPicker(person.emoji, { onEvent(PersonEditEvent.Emoji(it)) }, PERSON_EMOJIS)
         }
         LabeledGroup(stringResource(R.string.person_color)) {
             ColorSwatchPicker(AppColors.PERSON_HEX, person.colorHex, { onEvent(PersonEditEvent.PersonColor(it)) }, AppColors::person, { personColorLabel(it) }, PersonColorMarker)

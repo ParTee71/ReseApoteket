@@ -14,24 +14,26 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.map
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.core.engine.QuantityRuleFormatter
+import se.partee71.reseapoteket.core.model.Archivable
 import se.partee71.reseapoteket.core.model.FamilyItem
 import se.partee71.reseapoteket.core.model.FamilyItemCategory
 import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.repository.FamilyItemRepository
-import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.collectAsListArchive
-import se.partee71.reseapoteket.ui.components.EmptyContent
-import se.partee71.reseapoteket.ui.components.EmptyExample
-import se.partee71.reseapoteket.ui.components.EntityListScreen
-import se.partee71.reseapoteket.ui.components.ListArchive
-import se.partee71.reseapoteket.ui.components.ListGroup
-import se.partee71.reseapoteket.ui.components.PausableRow
 import se.partee71.reseapoteket.ui.components.kindLabel
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.ui.common.ListEvent
 import se.partee71.ui.common.ListLoader
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.AddAction
+import se.partee71.ui.components.ArchiveActions
+import se.partee71.ui.components.EmptyContent
+import se.partee71.ui.components.EmptyExample
+import se.partee71.ui.components.EntityListScreen
+import se.partee71.ui.components.ListArchive
+import se.partee71.ui.components.ListGroup
+import se.partee71.ui.components.PausableRow
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.collectAsListArchive
 import se.partee71.ui.theme.Tone
 
 sealed interface FamilyItemsEvent {
@@ -41,10 +43,10 @@ sealed interface FamilyItemsEvent {
 @HiltViewModel
 class FamilyItemsViewModel @Inject constructor(items: FamilyItemRepository) : ViewModel() {
     /** Svep-arkivera, Ångra och "Visa arkiverade" (FAM-2) – samma som i alla listor. */
-    val archive = ArchiveActions(viewModelScope, items::setArchived)
+    val archive = ArchiveActions(viewModelScope, AppErrors, items::setArchived)
 
     // Per kategori i fast ordning (FAM-1); inom kategorin aktiva först, sedan i sparad ordning.
-    private val loader = ListLoader(archive.visible(items.observe()).map { list -> list.sortedBy { it.category.ordinal } }, viewModelScope, AppErrors)
+    private val loader = ListLoader(archive.visible(items.observe(), Archivable::archived).map { list -> list.sortedBy { it.category.ordinal } }, viewModelScope, AppErrors)
     val state = loader.state
 
     fun onEvent(event: FamilyItemsEvent) {
@@ -86,10 +88,9 @@ fun FamilyItemsContent(
             icon = R.drawable.ic_family_items,
             title = stringResource(R.string.family_items_empty_title),
             message = stringResource(R.string.family_items_empty_message),
-            actionLabel = stringResource(R.string.add),
             examples = examples
         ),
-        onAdd = onAdd,
+        add = AddAction(stringResource(R.string.add), onAdd),
         key = FamilyItem::id,
         modifier = modifier,
         onRetry = { onEvent(FamilyItemsEvent.List(ListEvent.Retry)) },
@@ -116,6 +117,7 @@ private fun FamilyItemRow(item: FamilyItem, modifier: Modifier = Modifier, onOpe
         // En arkiverad visas som arkiverad även om den är pausad – den återställs från formuläret.
         active = item.active || item.archived,
         onClick = onOpen,
+        pillTone = Tone.Blue,
         modifier = modifier
     )
 }

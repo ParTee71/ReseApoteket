@@ -55,14 +55,15 @@ import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
 import se.partee71.reseapoteket.testing.captureLightAndDark
 import se.partee71.reseapoteket.testing.captureScreenLightAndDark
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
-import se.partee71.reseapoteket.ui.components.ListArchive
-import se.partee71.reseapoteket.ui.runListScreenContract
+import se.partee71.reseapoteket.ui.contracts
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.ReseApoteketTheme
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.ListEvent
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.ArchiveEvent
+import se.partee71.ui.components.ListArchive
+import se.partee71.ui.testing.runListScreenContract
 
 /** Packlistan (PAK-1–5): listkontraktet, det som är unikt för packlistan och skärmdumpar. */
 @RunWith(RobolectricTestRunner::class)
@@ -111,7 +112,7 @@ class PackingListScreensTest {
     private val allChecked = rows.map { it.copy(item = it.item.copy(checked = true)) }
 
     @Test
-    fun `packlistan uppfyller listkontraktet`() = rule.runListScreenContract(rows.first(), "Levaxin 50 µg", "Inget att packa än", "Lägg till") { state, onAdd, onRetry ->
+    fun `packlistan uppfyller listkontraktet`() = rule.runListScreenContract(contracts, rows.first(), "Levaxin 50 µg", "Inget att packa än", "Lägg till") { state, onAdd, onRetry ->
         PackingListContent(state, header(rows), {
             if (it == PackingListEvent.Add) {
                 onAdd()
@@ -218,7 +219,7 @@ class PackingListScreensTest {
     }
 
     @Test
-    fun `en lång lista – knappen går att nå och förhandsvisningen går att scrolla till (#100)`() {
+    fun `en lång lista – knappen står fast i arkets botten och förhandsvisningen går att scrolla till (#100)`() {
         val events = mutableListOf<PackingListEvent>()
         val lines = (1..72).map { PastedLine("Sak nummer $it i flyttlasset", 1, PastedStatus.ADD) }
         val long = AddListState(AddMode.LIST, lines.joinToString("\n") { it.name }, lines.toImmutableList())
@@ -226,7 +227,8 @@ class PackingListScreensTest {
         // Fältet växer inte med alla 72 raderna – högst 8 rader, sedan scrollar det inuti.
         val field = rule.onNodeWithText("En sak per rad").getUnclippedBoundsInRoot()
         assertTrue(field.height < 320.dp, "fältet är ${field.height} högt")
-        rule.onNodeWithText("Lägg till 72 saker").performScrollTo().assertIsDisplayed().performClick()
+        // Knappen står fast i arkets knapprad – synlig utan att rulla, hur lång listan än är.
+        rule.onNodeWithText("Lägg till 72 saker").assertIsDisplayed().performClick()
         assertEquals(listOf<PackingListEvent>(PackingListEvent.AddListSave), events)
         rule.onNodeWithText("Sak nummer 72 i flyttlasset").performScrollTo().assertIsDisplayed()
     }

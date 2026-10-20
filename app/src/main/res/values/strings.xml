@@ -24,41 +24,24 @@
     <string name="error_no_household">Inget hushåll är valt.</string>
     <string name="error_not_found">Det finns inte längre – det kan ha raderats på en annan enhet.</string>
     <string name="error_unknown">Något gick fel. Försök igen.</string>
-    <!-- Återkommande texter – används av ramarna och komponenterna, en gång (regel 4) -->
+    <!-- Återkommande texter, en gång (regel 4). Ramarnas och komponenternas egna texter står i android-ui. -->
     <string name="save">Spara</string>
     <string name="done">Klar</string>
-    <string name="cancel">Avbryt</string>
-    <string name="ok">OK</string>
     <string name="back">Tillbaka</string>
-    <string name="more_options">Fler val</string>
     <string name="add">Lägg till</string>
     <string name="archive">Arkivera</string>
     <string name="restore">Återställ</string>
-    <string name="edit">Redigera</string>
-    <string name="delete">Radera</string>
     <string name="delete_title_format">Radera %s?</string>
     <string name="name">Namn</string>
     <string name="name_required">Ange ett namn</string>
-    <string name="undo">Ångra</string>
     <string name="archived_format">%s arkiverad</string>
     <string name="retry">Försök igen</string>
     <string name="empty_generic">Inget här än</string>
     <string name="loading">Laddar</string>
-    <string name="show_archived">Visa arkiverade</string>
-    <string name="hide_archived">Dölj arkiverade</string>
     <string name="list_error_title">Kunde inte hämta listan</string>
-    <string name="load_error_title">Kunde inte hämta uppgifterna</string>
     <string name="discard_title">Släng ändringar?</string>
-    <string name="discard_message">Det du ändrat sparas inte.</string>
-    <string name="discard_confirm">Släng</string>
     <string name="keep_editing">Fortsätt redigera</string>
-    <string name="decrease_format">Minska %s</string>
-    <string name="increase_format">Öka %s</string>
-    <string name="pick_date">Välj datum</string>
-    <string name="pick_time">Välj tid</string>
     <string name="packed_of_format">av %d packat</string>
-    <string name="expanded">Utfälld</string>
-    <string name="collapsed">Hopfälld</string>
     <string name="packed_all_title">Allt packat! 🧳</string>
     <string name="packed_all_message">Trevlig resa · %1$d av %1$d</string>
     <string name="unknown_variant">Det här kan inte visas i den här versionen. Uppdatera appen för att ändra.</string>
@@ -239,8 +222,6 @@
     <string name="notes">Anteckning</string>
     <string name="active">Aktivt</string>
     <string name="active_note">Räknas med i packförslaget</string>
-    <string name="paused">Pausat</string>
-    <string name="paused_note">Pausat – räknas inte med</string>
     <string name="regimen_doses_required">Minst en dos per dag</string>
     <string name="regimen_days_required">Välj minst en veckodag</string>
     <string name="regimen_interval_min">Minst 2 dagar mellan doserna – annars Dagligen</string>
@@ -254,10 +235,6 @@
     <string name="medicine_lookup_source">Från Läkemedelsverkets lista · fortsätt skriva om ditt inte finns</string>
     <string name="medicine_lookup_no_match">Inget i Läkemedelsverkets lista heter så. Namnet sparas som du skrev det.</string>
     <string name="medicine_lookup_filled">Ifyllt från Läkemedelsverket – ändra fritt</string>
-    <plurals name="suggestions_count">
-        <item quantity="one">%d förslag</item>
-        <item quantity="other">%d förslag</item>
-    </plurals>
     <string name="regimen_suggestions_note">Fyller i namnet – resten väljer du själv</string>
     <string name="suggestion_vitamin_d">D-vitamin</string>
     <string name="suggestion_omega3">Omega-3</string>

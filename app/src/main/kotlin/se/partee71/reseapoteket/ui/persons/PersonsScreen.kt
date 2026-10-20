@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import se.partee71.reseapoteket.R
+import se.partee71.reseapoteket.core.model.Archivable
 import se.partee71.reseapoteket.core.model.Person
 import se.partee71.reseapoteket.core.model.RegimenKind
 import se.partee71.reseapoteket.core.model.listed
@@ -20,18 +21,19 @@ import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.combineByKey
 import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
-import se.partee71.reseapoteket.ui.common.ArchiveActions
-import se.partee71.reseapoteket.ui.common.collectAsListArchive
-import se.partee71.reseapoteket.ui.components.EmptyContent
-import se.partee71.reseapoteket.ui.components.EntityListScreen
-import se.partee71.reseapoteket.ui.components.ItemRow
-import se.partee71.reseapoteket.ui.components.ListArchive
 import se.partee71.reseapoteket.ui.components.PersonAvatar
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.ui.common.ListEvent
 import se.partee71.ui.common.ListLoader
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.AddAction
+import se.partee71.ui.components.ArchiveActions
+import se.partee71.ui.components.EmptyContent
+import se.partee71.ui.components.EntityListScreen
+import se.partee71.ui.components.ItemRow
+import se.partee71.ui.components.ListArchive
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.collectAsListArchive
 
 /** En rad i personlistan: personen och hur många recept och kosttillskott den har (PER-1). */
 data class PersonListItem(val person: Person, val medicines: Int = 0, val supplements: Int = 0)
@@ -46,11 +48,11 @@ class PersonsViewModel @Inject constructor(
     regimens: RegimenRepository
 ) : ViewModel() {
     /** Svep-arkivera, Ångra och "Visa arkiverade" (PER-3) – samma som i alla listor. */
-    val archive = ArchiveActions(viewModelScope, persons::setArchived)
+    val archive = ArchiveActions(viewModelScope, AppErrors, persons::setArchived)
 
     // Aktiva först; arkiverade sist och bara när de visas (PER-1, PER-3).
     private val items: Flow<List<PersonListItem>> =
-        archive.visible(persons.observe()).combineByKey({ list -> list.map { it.id }.toSet() }, { ids -> regimens.regimensFor(ids.toList()) }) { list, byPerson ->
+        archive.visible(persons.observe(), Archivable::archived).combineByKey({ list -> list.map { it.id }.toSet() }, { ids -> regimens.regimensFor(ids.toList()) }) { list, byPerson ->
             list.map { person ->
                 val own = byPerson[person.id].orEmpty()
                 PersonListItem(person, own.listed(RegimenKind.MEDICINE).size, own.listed(RegimenKind.SUPPLEMENT).size)
@@ -89,10 +91,9 @@ fun PersonsContent(
         empty = EmptyContent(
             icon = R.drawable.ic_person,
             title = stringResource(R.string.persons_empty_title),
-            message = stringResource(R.string.persons_empty_message),
-            actionLabel = stringResource(R.string.persons_add)
+            message = stringResource(R.string.persons_empty_message)
         ),
-        onAdd = onAdd,
+        add = AddAction(stringResource(R.string.persons_add), onAdd),
         key = { it.person.id },
         modifier = modifier,
         onRetry = { onEvent(PersonsEvent.List(ListEvent.Retry)) },

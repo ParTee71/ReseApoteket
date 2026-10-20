@@ -56,7 +56,6 @@ import se.partee71.reseapoteket.data.repository.PersonRepository
 import se.partee71.reseapoteket.data.repository.RegimenRepository
 import se.partee71.reseapoteket.data.repository.TripRepository
 import se.partee71.reseapoteket.domain.TripPacking
-import se.partee71.reseapoteket.ui.common.ArchiveActions
 import se.partee71.reseapoteket.ui.common.TravelDayChange
 import se.partee71.ui.common.EditorState
 import se.partee71.ui.common.ListEvent
@@ -65,6 +64,7 @@ import se.partee71.ui.common.ListUiState
 import se.partee71.ui.common.UiError
 import se.partee71.ui.common.Validator
 import se.partee71.ui.common.uiErrorOrNull
+import se.partee71.ui.components.ArchiveActions
 import se.partee71.ui.components.UndoRequest
 
 /** En rad i packlistan: raden, personen den hör till och doseringen i kort form ("1/dag", PAK-2). */
@@ -190,7 +190,7 @@ class PackingListViewModel @AssistedInject constructor(
     private val collection = packing.forTrip(tripId)
 
     /** Svep döljer en rad och kan ångras – samma mekanik som arkivering i listorna (NFR-3). */
-    val hiding = ArchiveActions(viewModelScope, ::setHidden, R.string.hidden_format)
+    val hiding = ArchiveActions(viewModelScope, AppErrors, ::setHidden, R.string.hidden_format)
 
     /** Resan som den senast lästs – [Read.trip] `null` om den inte finns; `null` innan den lästs eller vid läsfel. */
     private val tripRead: StateFlow<Read?> = trips.observe(tripId).map { Read(it) }.withFallback(null).stateIn(viewModelScope, SharingStarted.Eagerly, null)

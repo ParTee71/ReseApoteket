@@ -37,7 +37,6 @@ import se.partee71.reseapoteket.core.model.DoseSchedule
 import se.partee71.reseapoteket.core.model.QuantityRule
 import se.partee71.reseapoteket.data.common.AppErrors
 import se.partee71.reseapoteket.data.common.DataError
-import se.partee71.reseapoteket.ui.common.ArchiveEvent
 import se.partee71.reseapoteket.ui.theme.AppColors
 import se.partee71.reseapoteket.ui.theme.Blue
 import se.partee71.reseapoteket.ui.theme.Green
@@ -45,37 +44,64 @@ import se.partee71.ui.common.DetailUiState
 import se.partee71.ui.common.EditorEvents
 import se.partee71.ui.common.EditorUiState
 import se.partee71.ui.common.ListUiState
+import se.partee71.ui.components.AddAction
 import se.partee71.ui.components.AddSplitButton
+import se.partee71.ui.components.AppBottomSheet
 import se.partee71.ui.components.AppButton
 import se.partee71.ui.components.AppCard
 import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.AppFilterChip
+import se.partee71.ui.components.AppFloatingToolbar
 import se.partee71.ui.components.AppIconButton
 import se.partee71.ui.components.AppLoading
+import se.partee71.ui.components.AppMenu
+import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.AppSegmentedChoice
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.AppTextField
 import se.partee71.ui.components.AppTopBar
+import se.partee71.ui.components.ArchiveEvent
 import se.partee71.ui.components.ButtonVariant
+import se.partee71.ui.components.CheckRow
 import se.partee71.ui.components.ChipRow
 import se.partee71.ui.components.ChoiceChips
 import se.partee71.ui.components.ColorSwatchPicker
 import se.partee71.ui.components.Confetti
+import se.partee71.ui.components.ConfirmDialog
+import se.partee71.ui.components.DateField
+import se.partee71.ui.components.DeleteAction
+import se.partee71.ui.components.DetailHeader
+import se.partee71.ui.components.EmojiPicker
+import se.partee71.ui.components.EmptyContent
+import se.partee71.ui.components.EmptyExample
 import se.partee71.ui.components.EmptyState
+import se.partee71.ui.components.EntityDetailScreen
+import se.partee71.ui.components.EntityEditScreen
+import se.partee71.ui.components.EntityListScreen
 import se.partee71.ui.components.ExampleChips
 import se.partee71.ui.components.FieldError
 import se.partee71.ui.components.GroupLabel
 import se.partee71.ui.components.IconButtonVariant
 import se.partee71.ui.components.InfoPill
+import se.partee71.ui.components.ItemRow
 import se.partee71.ui.components.LabeledGroup
+import se.partee71.ui.components.ListArchive
+import se.partee71.ui.components.ListGroup
+import se.partee71.ui.components.ListSubgroup
 import se.partee71.ui.components.LocalTopBarStatus
+import se.partee71.ui.components.PausableRow
 import se.partee71.ui.components.QuantityStepper
 import se.partee71.ui.components.SectionHeader
+import se.partee71.ui.components.Suggestion
+import se.partee71.ui.components.SuggestionField
 import se.partee71.ui.components.SwipeToHide
+import se.partee71.ui.components.SwitchRow
 import se.partee71.ui.components.TimeField
+import se.partee71.ui.components.ToolbarItem
 import se.partee71.ui.components.TopBarSize
 import se.partee71.ui.components.UndoRequest
 import se.partee71.ui.components.UndoSnackbar
+import se.partee71.ui.components.asSplitMenu
 import se.partee71.ui.theme.AppTheme
 import se.partee71.ui.theme.Spacing
 import se.partee71.ui.theme.Tone
@@ -166,9 +192,9 @@ private fun Rows() {
             }
         )
         AppDivider()
-        PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {})
+        PausableRow("Solkräm SPF 50", "1 tub per 7 dagar", "Per N dagar", active = true, onClick = {}, pillTone = Tone.Blue)
         AppDivider()
-        PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {})
+        PausableRow("Hydrokortison 1 %", "1 tub", "Fast antal", active = false, onClick = {}, pillTone = Tone.Blue)
         AppDivider()
         CheckRow("Enalapril 10 mg", packed, { packed = it }, subtitle = "18 tabletter · 2 kartor", trailing = { InfoPill("1/dag", tone = Tone.Blue) })
         CheckRow("Levaxin 50 µg", true, {}, subtitle = "9 tabletter · 1 karta")
@@ -246,7 +272,7 @@ private fun Fields() {
     var emoji by remember { mutableStateOf("🦉") }
     var color by remember { mutableStateOf(AppColors.PERSON_HEX[3]) }
     Label("EmojiPicker")
-    EmojiPicker(emoji, { emoji = it })
+    EmojiPicker(emoji, { emoji = it }, PERSON_EMOJIS)
     Label("ColorSwatchPicker")
     ColorSwatchPicker(AppColors.PERSON_HEX, color, { color = it }, AppColors::person, { personColorLabel(it) }, PersonColorMarker)
 }
@@ -320,10 +346,9 @@ private fun Frames(onBack: () -> Unit) {
                 R.drawable.ic_family_items,
                 "Inga familjeartiklar än",
                 "Solkräm, plåster, febertermometer.",
-                "Lägg till",
                 examples = listOf(EmptyExample("Solkräm") { items = listOf("Solkräm") })
             ),
-            onAdd = {},
+            add = AddAction("Lägg till", {}),
             key = { it },
             archive = ListArchive(undo = undo) { event ->
                 when (event) {
@@ -351,8 +376,8 @@ private fun Frames(onBack: () -> Unit) {
         EntityListScreen<String>(
             title = "Personer",
             state = ListUiState.Error(AppErrors.map(DataError.Offline)),
-            empty = EmptyContent(R.drawable.ic_person, "Inga personer än", "", "Lägg till person"),
-            onAdd = {},
+            empty = EmptyContent(R.drawable.ic_person, "Inga personer än", ""),
+            add = AddAction("Lägg till person", {}),
             key = { it }
         ) {}
     }
@@ -363,8 +388,8 @@ private fun Frames(onBack: () -> Unit) {
             title = "Kreta",
             subtitle = "2 okt · 7 dagar",
             state = ListUiState.Content(grouped.toImmutableList()),
-            empty = EmptyContent(R.drawable.ic_family_items, "", "", ""),
-            onAdd = {},
+            empty = EmptyContent(R.drawable.ic_family_items, "", ""),
+            add = AddAction("", {}),
             key = { it.second },
             onBack = {},
             header = { AppCard { SuitcaseProgress(packed = 2, total = 5) } },
