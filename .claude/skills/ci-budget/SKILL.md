@@ -12,7 +12,8 @@ anti-mönstren. Här står ReseApotekets tabell, jobben, composite actions och f
 **Regel:** PR-flödet ska ta högst ca **8 minuter** på varm cache (`timeout-minutes: 15`
 som skyddsnät) – plus instrumenttesterna (ca 9 min) när en PR rör koden de testar
 (användarens beslut 2026-10-03). Övriga dyra steg körs inte per PR. Tester körs bara när koden
-de testar har ändrats. `master` kör allt utom instrumenttesterna (PR:en har kört dem).
+de testar har ändrats. `master` kör allt utom instrumenttesterna (PR:en har kört dem) – utom
+när merge-commiten har samma träd som en grön PR-head; då körs bara dokumentkontrollerna.
 
 ## Vad som körs när (enda källan för denna tabell)
 
@@ -37,7 +38,13 @@ resten med `dorny/paths-filter`.
   `node --test 'tools/medicines/test/*.test.mjs'` – Node utan beroenden, under en sekund, så de
   får inget eget filter. Själva skriptet (`tools/medicines/build.mjs`) körs aldrig i CI, bara vid
   release (skill `android-projekt` → Release).
-- **`push` till `master`** sätter alla filter till sant – baslinje och cache-uppvärmning.
+- **`push` till `master`** sätter alla filter till sant – baslinje och cache-uppvärmning – utom när
+  `.github/scripts/same-tree-as-green-pr.mjs` visar att merge-commiten har exakt samma träd som den
+  mergade PR:ens head och att `ci-ok` var grönt där. Då är koden redan testad och bara
+  dokumentkontrollerna körs (#136, sparade ca 138 min/vecka mätt v43). Skiljer sig träden (master
+  har ändrats sedan PR:en, squash, direkt push) eller är `ci-ok` rött eller okänt körs allt.
+  Gradle-cachen skrivs då inte från den pushen; den värms nästa gång master kör fullt eller i
+  `quality.yml`. `release.yml` läser `ci-ok` på master-commiten som förut (hoppade jobb är gröna).
 - **Gradle build cache** (`org.gradle.caching=true` + `gradle/actions/setup-gradle`) gör
   att oförändrade testtasks blir `FROM-CACHE`/`UP-TO-DATE` även inom en modul. Det kräver
   deterministiska tester (regel 2).
