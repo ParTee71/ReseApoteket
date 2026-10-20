@@ -152,11 +152,11 @@ Stegen står i pluginen; det här är ReseApotekets delar.
   tolerant `DocCodec`, `firestore.rules`, `tools/db/lib/collections.mjs` och rundturstest – i samma
   ändring (skill `data-safety-backup`).
 - **Agenter:** huvudsessionen orkestrerar, implementerar (skärmar, komponenter, datamodell, codecs,
-  rules, CI-filer) och granskar – repot har ingen `byggare` eller `arkitekt`. Agenten
-  `testskrivare` tar tester på tre eller fler nivåer, `granskare` granskar diffen (steg 8),
-  `ci-doktor` diagnostiserar rött CI och `db-inspektor` läser faktisk data. Modell och effort per
+  rules, CI-filer) och granskar – repot har ingen `byggare` eller `arkitekt`. Pluginens
+  `android:testskrivare` tar tester på tre eller fler nivåer, `android:granskare` granskar diffen
+  (steg 8), `android:ci-doktor` diagnostiserar rött CI och repots `db-inspektor` läser faktisk data. Modell och effort per
   del: avsnittet Issues nedan.
-- **`/code-review` krävs** (efter `granskare`) när ändringen rör logik i `:core`, datalagret,
+- **`/code-review` krävs** (efter `android:granskare`) när ändringen rör logik i `:core`, datalagret,
   `firestore.rules`, `tools/db` eller en delad ram eller komponent (`ui/components`, `ui/common`),
   eller när diffen är större än ett par filer.
 - **Commit-områden:** `packlista`, `berakning`, `recept`, `resor`, `paminnelser`, `lakemedel`,
@@ -170,6 +170,24 @@ Stegen står i pluginen; det här är ReseApotekets delar.
 - **Emulatortesterna:** jobbet `instrumented` körs i PR:er som rör filtret `instrumented`, och
   `ci-ok` fäller PR:en om det blir rött eller avbryts; ett överhoppat jobb fäller inte (skill
   `ci-budget`).
+
+## Granskning (agenten android:granskare)
+
+Pluginens granskare har de generella kontrollpunkterna; de här gäller ReseApoteket i tillägg.
+
+**Läs efter diffen:** persisterad data → `data-safety-backup`; tester → `testing-strategy`; UI,
+komponenter, ramar, byggstenar → `shared-ui-components`; CI, beroenden → `ci-budget`; GUI →
+avsnittet Mockup här och `ui-style`; beräkningar → `packing-engine`.
+
+- **Regel 1:** skrivning som inte går via `upsert` med merge, codec som inte skriver alla kända
+  fält; nytt persisterat fält eller ny samling utan default, codec via fälthjälpare,
+  `firestore.rules`, rad i `tools/db/lib/collections.mjs` och rundturstest som asserterar på
+  fältet?
+- **Version:** beteende är `app/src/main/**`, `core/src/main/**`, byggfiler och
+  `app/src/main/assets/medicines.tsv`; versionen står i `version.properties`.
+- **Regel 5:** Android-emulatorn bara i jobbet `instrumented` (filter `instrumented`);
+  Firebase-emulatorn i jobbet `rules` (filter `tools`) är tillåten.
+- **Integritet:** loggning av receptdata eller PII.
 
 ## Issues (android:refine-issue)
 
@@ -190,13 +208,13 @@ Stegen står i pluginen; det här är ReseApotekets delar.
   | Agent | Tar | Standard |
   |---|---|---|
   | huvudsessionen | implementationen – skärmar, komponenter, datamodell, codecs, rules, CI | Opus · medium; datamodell, rules, migrering och backup-kedjan minst Opus · high |
-  | `testskrivare` | tester när tre eller fler nivåer berörs | Sonnet · medium |
-  | `granskare` | granskningen i steg 8, alltid med | sessionens modell (Opus) · medium |
-  | `ci-doktor` | rött CI – startas vid behov, anges inte i förväg | Sonnet · medium |
+  | `android:testskrivare` | tester när tre eller fler nivåer berörs | Sonnet · medium |
+  | `android:granskare` | granskningen i steg 8, alltid med | sessionens modell (Opus) · medium |
+  | `android:ci-doktor` | rött CI – startas vid behov, anges inte i förväg | Sonnet · medium |
   | `db-inspektor` | faktisk data, bara läsning – anges när issuet kräver det | Haiku · low |
 
-  Minst två rader: huvudsessionen och `granskare`. Modellen följer tabellen i
-  `android:refine-issue`; standarden ovan är agentens frontmatter (`granskare` ärver sessionens modell).
+  Minst två rader: huvudsessionen och `android:granskare`. Modellen följer tabellen i
+  `android:refine-issue`; standarden ovan är agentens frontmatter (granskaren ärver sessionens modell).
 
 ## Release (android:release)
 

@@ -3,13 +3,12 @@ name: testing-strategy
 description: ReseApotekets testregel (regel 2) — ingen beteendeändring utan tester på rätt nivå(er), och flaky tester är buggar. Ladda denna ALLTID när du lägger till, ändrar eller fixar funktionalitet, en ViewModel, en codec, PackingEngine, ett repository, en composable, en skärmram, en hook eller en bugg. Trigger-ord: test, tester, testa, JUnit, MockK, Turbine, Robolectric, Roborazzi, skärmdump, screenshot, Konsist, UiConsistencyTest, cpdCheck, kontraktstest, FakeCollection, emulator, rules-test, regression, flaky, instabil, täckning, TDD.
 ---
 
-# Teststrategi: tester på alla nivåer
+# Teststrategi i ReseApoteket
 
-**Regel:** en ändring av beteende är inte klar förrän tester lagts till eller uppdaterats
-på varje berörd nivå. Befintliga tester **uppdateras** så att de speglar det nya
-beteendet – de tas aldrig bort, `@Ignore`:as eller försvagas för att bli gröna.
-**Ett test som ibland faller är en bugg** – hitta grundorsaken (klocka, ordning, delat
-tillstånd, otestad asynkronitet) och gör det deterministiskt. Kör aldrig bara om.
+**Det generella står i skill `android:testing-strategy`** (pluginen): tester på varje berörd
+nivå, befintliga tester uppdateras och tas aldrig bort, flaky är en bugg, mönstren,
+skärmdumpsreglerna, fallgroparna och anti-mönstren. Här står det som är ReseApotekets:
+nivåerna och filtren, hjälparna, emulatorn, skärmdumpsdetaljerna och kommandona.
 
 Krav: NFR-serien i KRAVLISTA.md.
 
@@ -77,12 +76,8 @@ svenska meningar i backticks.
 
 ## Projektmönster
 
-- **Fake framför mock för datalagret.** Repositories byggs i test med `FakeCollection`.
-  MockK för samverkande beroenden som inte är datalager.
-- **Injicera dispatcher**; kalla aldrig `Dispatchers.IO` direkt i testbar kod.
-- **Turbine** för `StateFlow`/`Flow`, inte manuell `collect`.
+- Repositories byggs i test med `FakeCollection`.
 - **`:core` är synkron** – testa rena funktioner direkt, inga coroutines.
-- **Nytt konstruktorberoende på en ViewModel** → alla dess tester får beroendet.
 
 ## Tester mot Firebase-emulatorn
 
@@ -125,22 +120,15 @@ node --test '.claude/hooks/test/*.test.mjs'           # hooktest, alltid
 `LC_ALL=C.UTF-8` sätts av `.claude/settings.json`. Kör en Gradle-körning i taget. Bara
 instrumenttesterna kräver Android-emulator och körs i Actions (`instrumented.yml`, i PR:er som
 rör koden de testar). Går ett kommando inte att köra (nät, SDK saknas): säg det i PR:en. Vid
-rött CI – låt agenten `ci-doktor` diagnostisera.
+rött CI – låt agenten `android:ci-doktor` diagnostisera.
 
-## Fallgropar
+## För testskrivaren
 
-- **Första Gradle-körningen i en ny session** hämtar Gradle, plattformen och build-tools
-  (flera minuter). Kör den i bakgrunden och fortsätt med annat.
-- **Plattformspaketet heter `android-37.0`**, inte `android-37`, från API 37 – skriptet låter
-  Gradle hämta rätt paket i stället för att gissa namnet.
-- **Två Gradle-körningar samtidigt** låser varandra eller ger förvirrande cachefel – vänta in
-  den första.
+Agenten `android:testskrivare` (pluginen) läser det här utöver tabellerna ovan:
 
-## Anti-mönster
-
-- Ta bort, `@Ignore`:a eller försvaga ett rött test för att bli klar.
-- Köra om ett test tills det blir grönt.
-- Testa implementation (interna anrop) i stället för beteende.
-- Skriva om ramens beteende-tester i varje feature i stället för att köra kontraktet.
-- Spela in nya referensbilder för att tysta en diff du inte förstår.
-- Ny funktion utan test "för att den är liten".
+- **Läs också** `data-safety-backup` vid data och `packing-engine` vid beräkning.
+- **Hjälparna:** `FakeCollection<T>`, `CollectionContract`, `assertCodecContract` och de andra
+  codec-hjälparna, `MainDispatcherRule`, `runListScreenContract`, `runEditScreenContract`,
+  `runDetailScreenContract` (android-ui `ui-testing`, med `contracts`) och fixturen
+  `tools/db/test/fixtures/household.json`.
+- **Firestore** bara mot emulatorn (`demo-reseapoteket`).
