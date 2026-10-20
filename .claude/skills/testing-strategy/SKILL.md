@@ -117,6 +117,8 @@ node --test '.claude/hooks/test/*.test.mjs'           # hooktest, alltid
 
 **Kör kontrollerna lokalt innan varje push** – en röd CI-runda är det dyraste som finns (skill
 `ci-budget`). Saknar molnsessionen Android SDK: kör `.claude/hooks/install-android-sdk.sh` först.
+Maven Central nås via Googles spegel (session-start-hooken lägger
+`maven-central-mirror.init.gradle.kts` i `~/.gradle/init.d/`), så att Gradle slipper 429.
 `LC_ALL=C.UTF-8` sätts av `.claude/settings.json`. Kör en Gradle-körning i taget. Bara
 instrumenttesterna kräver Android-emulator och körs i Actions (`instrumented.yml`, i PR:er som
 rör koden de testar). Går ett kommando inte att köra (nät, SDK saknas): säg det i PR:en. Vid

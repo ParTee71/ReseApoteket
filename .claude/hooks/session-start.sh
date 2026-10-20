@@ -26,3 +26,8 @@ if [ -n "${FIREBASE_SERVICE_ACCOUNT:-}" ]; then
 else
   echo "FIREBASE_SERVICE_ACCOUNT: saknas (databasåtkomst från sessionen är avstängd)"
 fi
+
+# Maven Central via Googles spegel (429 från repo.maven.apache.org i sessionen).
+mkdir -p "$HOME/.gradle/init.d"
+cp .claude/hooks/maven-central-mirror.init.gradle.kts "$HOME/.gradle/init.d/"
+echo "Gradle: Maven Central via Googles spegel (~/.gradle/init.d/maven-central-mirror.init.gradle.kts)"
