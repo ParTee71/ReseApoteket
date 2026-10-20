@@ -21,11 +21,15 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import se.partee71.reseapoteket.R
 import se.partee71.reseapoteket.testing.captureLightAndDark
+import se.partee71.reseapoteket.ui.theme.Green
 import se.partee71.ui.components.AppButton
+import se.partee71.ui.components.AppCard
+import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppSnackbarHost
 import se.partee71.ui.components.ButtonVariant
 import se.partee71.ui.components.EmptyState
 import se.partee71.ui.theme.Spacing
+import se.partee71.ui.theme.Tone
 
 /** Beteende och skärmdumpar (ljust + mörkt) för de delade komponenterna. */
 @RunWith(RobolectricTestRunner::class)
@@ -45,6 +49,26 @@ class ComponentsTest {
             AppButton("Lägg till", {}, variant = ButtonVariant.Secondary)
             AppButton("Avbryt", {}, variant = ButtonVariant.Text)
             AppButton("Spara", {}, enabled = false)
+        }
+    }
+
+    /** Oändlig animation: tas i regelns testklocka, där den står still (se `captureLightAndDark`). */
+    @Test
+    fun `AppLoading - standard`() = rule.captureLightAndDark("AppLoading_standard") {
+        Box(Modifier.background(MaterialTheme.colorScheme.background).padding(Spacing.xxl)) { AppLoading() }
+    }
+
+    /** Vågen i `LinearWavyProgressIndicator` rör sig hela tiden – därför regelns testklocka. */
+    @Test
+    fun `SuitcaseProgress - varianter`() = rule.captureLightAndDark("SuitcaseProgress_varianter") {
+        Column(
+            Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
+        ) {
+            AppCard { SuitcaseProgress(9, 14) }
+            AppCard(tone = Tone.Green) { SuitcaseProgress(14, 14) }
+            SuitcaseProgress(4, 10, compact = true)
+            SuitcaseProgress(0, 0, compact = true)
         }
     }
 

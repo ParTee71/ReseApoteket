@@ -32,7 +32,6 @@ import se.partee71.ui.components.AppDivider
 import se.partee71.ui.components.AppFilterChip
 import se.partee71.ui.components.AppFloatingToolbar
 import se.partee71.ui.components.AppIconButton
-import se.partee71.ui.components.AppLoading
 import se.partee71.ui.components.AppMenu
 import se.partee71.ui.components.AppMenuItem
 import se.partee71.ui.components.AppSegmentedChoice
@@ -68,7 +67,8 @@ import se.partee71.ui.theme.Tone
 
 /**
  * Skärmdumpar (ljust + mörkt) av katalogens komponenter i vila – en bild per komponent med
- * dess viktigaste lägen. Popup-komponenter och ramar fotograferas i sina egna tester.
+ * dess viktigaste lägen. Popup-komponenter och ramar fotograferas i sina egna tester, och
+ * `AppLoading` och `SuitcaseProgress` (oändliga animationer) i [ComponentsTest] – se `captureLightAndDark`.
  */
 @RunWith(RobolectricTestRunner::class)
 class CatalogScreenshotTest {
@@ -351,16 +351,7 @@ class CatalogScreenshotTest {
     }
 
     @Test
-    fun `progress, laddning och navigering`() {
-        captureLightAndDark("SuitcaseProgress_varianter") {
-            Sheet {
-                AppCard { SuitcaseProgress(9, 14) }
-                AppCard(tone = Tone.Green) { SuitcaseProgress(14, 14) }
-                SuitcaseProgress(4, 10, compact = true)
-                SuitcaseProgress(0, 0, compact = true)
-            }
-        }
-        captureLightAndDark("AppLoading_standard") { Box(Modifier.background(MaterialTheme.colorScheme.background).padding(Spacing.xxl)) { AppLoading() } }
+    fun `rubrikrader och navigering`() {
         captureLightAndDark("AppTopBar_storlekar") {
             Column(Modifier.background(MaterialTheme.colorScheme.background)) {
                 AppTopBar("Resor") { AppMenu(emptyList()) }
