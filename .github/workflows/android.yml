@@ -13,6 +13,7 @@ on:
 permissions:
   contents: read
   pull-requests: read # dorny/paths-filter läser PR:ens ändrade filer
+  checks: read # ci-ok på den mergade PR:ens head (same-tree-as-green-pr.mjs)
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -30,6 +31,8 @@ jobs:
       run_instrumented: ${{ steps.decide.outputs.run_instrumented }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # merge-commitens båda föräldrar, för trädjämförelsen på master
 
       - name: Ändrade sökvägar
         id: filter
@@ -70,10 +73,20 @@ jobs:
               - '.github/workflows/instrumented.yml'
               - '.github/actions/setup-android/**'
 
+      # En merge av en grön PR utan andra ändringar på master har redan testats (#136).
+      - name: Samma träd som en grön PR?
+        id: tree
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/same-tree-as-green-pr.mjs >> "$GITHUB_OUTPUT"
+
       - name: Vad körs
         id: decide
         env:
           EVENT: ${{ github.event_name }}
+          SAME_TREE: ${{ steps.tree.outputs.skip }}
+          SAME_TREE_WHY: ${{ steps.tree.outputs.why }}
           CORE: ${{ steps.filter.outputs.core }}
           APP: ${{ steps.filter.outputs.app }}
           TOOLS: ${{ steps.filter.outputs.tools }}
@@ -84,8 +97,10 @@ jobs:
           # Instrumenttesterna (Android-emulator) bara i PR:er som rör koden de testar – inte på
           # master: PR:en har redan kört dem, och release.yml hoppar över oförändrad kod.
           instrumented=false
-          if [ "$EVENT" != "pull_request" ]; then
-            core=true; app=true; tools=true; why="$EVENT – allt körs utom instrumenttesterna (baslinje och cache)"
+          if [ "$EVENT" != "pull_request" ] && [ "$SAME_TREE" = true ]; then
+            core=false; app=false; tools=false; why="$EVENT – $SAME_TREE_WHY; bara dokumentkontrollerna körs"
+          elif [ "$EVENT" != "pull_request" ]; then
+            core=true; app=true; tools=true; why="$EVENT – allt körs utom instrumenttesterna (baslinje och cache)${SAME_TREE_WHY:+; $SAME_TREE_WHY}"
           else
             core=false; app=false; tools=false
             if [ "$INSTRUMENTED" = true ]; then instrumented=true; fi

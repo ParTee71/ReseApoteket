@@ -20,6 +20,12 @@ private val themes = listOf("light" to false, "dark" to true)
  * Tar skärmdumpar i ljust och mörkt tema:
  * `<name>_light.png` och `<name>_dark.png` i Roborazzis outputDir (skill testing-strategy).
  * [name] följer `<Komponent>_<variant>`.
+ *
+ * Inte för innehåll med oändlig animation (`AppLoading`, `LoadingIndicator`, galleriet) i en
+ * klass utan compose-regel: då driver Robolectrics Choreographer ramarna och flyttar klockan för
+ * varje ram, så Roborazzis `idle()` blir aldrig klar och testet hänger till taskens tidsgräns.
+ * Ta sådana bilder med regelvarianten nedan, där testklockan håller animationen stilla
+ * (kontrolleras av `ScreenshotGuardTest`).
  */
 fun captureLightAndDark(name: String, content: @Composable () -> Unit) {
     for ((suffix, dark) in themes) {
