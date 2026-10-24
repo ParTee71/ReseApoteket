@@ -20,7 +20,7 @@ import se.partee71.reseapoteket.di.DefaultDispatcher
  * `tools/db/lib/collections.mjs` (`collections.test.mjs` håller dem lika) – och skriver filen med
  * [ExportFormat]. Appen kan inte lista undersamlingar som `tools/db` gör, så ett dokument under
  * en förälder som saknar eget dokument (recept under en person utan dokument) kommer bara med i
- * veckobackupen; appen själv visar aldrig sådana.
+ * backupen; appen själv visar aldrig sådana.
  */
 class HouseholdExporter @Inject constructor(
     private val raw: RawDocuments,

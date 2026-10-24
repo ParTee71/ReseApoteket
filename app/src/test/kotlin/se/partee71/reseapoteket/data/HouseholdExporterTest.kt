@@ -41,7 +41,7 @@ class HouseholdExporterTest {
 
         val exported = ExportFormat.decode(text)
         // Erik har recept men inget eget dokument: appen kan inte lista undersamlingar som
-        // tools/db gör – sådant kommer bara med i veckobackupen (och syns aldrig i appen).
+        // tools/db gör – sådant kommer bara med i backupen (och syns aldrig i appen).
         val reachable = fixture.filterNot { it.path.contains("/persons/erik/") }
         assertEquals(reachable.sortedBy { it.path }, exported.sortedBy { it.path })
         assertEquals(setOf("households", "persons", "regimens", "familyItems", "trips", "packingItems"), exported.map { collectionOf(it.path) }.toSet())

@@ -15,7 +15,7 @@ tools/db/ (git-ignorerad) och radera den när den inte behövs. En tom databas g
     if (!out) throw new Error('--out saknas');
     const data = await exportData(openFirestore(), { household });
     // Fel projekt, fel nyckel eller saknad behörighet ser ut som en tom databas – det får
-    // aldrig bli en grön veckobackup.
+    // aldrig bli en grön backup.
     if (data.documents.length === 0) throw new Error('Inga dokument hittades – kontrollera nyckeln och projektet');
     writeFileSync(out, JSON.stringify(data, null, 2));
     printSummary(`Exporterade till ${out} (schemaVersion ${data.schemaVersion}):`, summarize(data.documents));

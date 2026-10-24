@@ -1,16 +1,15 @@
-# Veckobackup av Firestore (BCK-1, BCK-2, skill data-safety-backup): export med tools/db,
+# Backup av Firestore på begäran (BCK-1, BCK-2, skill data-safety-backup): export med tools/db,
 # krypterad med gpg (AES-256, integritetskontroll), sparad som artifact i 90 dagar.
 # Klartexten lämnar aldrig jobbet. Återställning: README → Backup och återställning.
+# Inget tidsschema (#94 pausad) och stopp i ett publikt repo, där alla inloggade kan ladda ner
+# artifacts (#140). Var en schemalagd backup ska ligga avgörs när #94 återupptas.
 name: Backup
 
 on:
-  schedule:
-    - cron: '0 3 * * 1' # måndagar 03:00 UTC
   workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: backup
@@ -22,6 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Bara i ett privat repo
+        if: ${{ !github.event.repository.private }}
+        run: |
+          echo "::error::Repot är publikt – backupen laddas inte upp som artifact där (#140)"
+          exit 1
+
       - uses: actions/checkout@v4
 
       # Bara firebase-admin: inga utvecklingsverktyg i jobbet som har nyckel och lösenfras.
@@ -69,9 +74,3 @@ jobs:
           path: backup.json.gpg
           retention-days: 90
           if-no-files-found: error
-
-      - name: Issue vid fel
-        if: failure() && github.event_name == 'schedule'
-        uses: ./.github/actions/open-issue-on-failure
-        with:
-          title: 'Backup: veckobackupen fallerar'

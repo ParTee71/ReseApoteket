@@ -96,9 +96,10 @@ Enklare att enhetstesta och passar Expressive-övergångar. Om Navigation 3 sakn
 release när skelettet byggs används senaste release candidate, och det noteras här.
 
 **6. Backup med `tools/db` i GitHub Actions.**
-Ett Node-verktyg med `firebase-admin` exporterar Firestore till JSON varje vecka; filen
+Ett Node-verktyg med `firebase-admin` exporterar Firestore till JSON på begäran; filen
 krypteras med gpg (AES-256 med integritetskontroll) och `BACKUP_PASSPHRASE` och sparas som
-artifact i 90 dagar i det privata repot. Återställning sker
+artifact i 90 dagar. I ett publikt repo stoppar workflowen (#140); den veckovisa körningen är
+pausad (#94). Återställning sker
 med `import.mjs`. Samma verktyg ger sessionen läsåtkomst.
 *Övervägt:* Firestores schemalagda backups kräver Blaze-planen (betalkort) – kan bytas till senare.
 
@@ -202,7 +203,7 @@ Compose-skärm
         → Firestore (offline-cache, synk)
 
 Beräkning:  ViewModel → PackingEngine (:core, rena funktioner) → PackingItem-lista → PackingRepository
-Backup:     Firestore → tools/db export (Actions, veckovis) → krypterad artifact → tools/db import
+Backup:     Firestore → tools/db export (Actions, på begäran) → krypterad artifact → tools/db import
 Session:    Claude → tools/db query/get/stats (service account, läsroll) → Firestore
 Läkemedel:  Läkemedelsverkets öppna data → tools/medicines (vid release) → assets/medicines.tsv → MedicineCatalog (:core)
 ```

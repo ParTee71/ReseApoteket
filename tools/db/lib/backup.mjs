@@ -1,4 +1,4 @@
-// Export och import – logiken bakom export.mjs, import.mjs och veckobackupen (BCK-1–3, 6–8).
+// Export och import – logiken bakom export.mjs, import.mjs och backupen (BCK-1–3, 6–8).
 import { CURRENT_VERSION, versionOf } from './schema.mjs';
 import { fromJson, toJson } from './serialize.mjs';
 import { collectionOf, hasValidIds, householdIds, householdOf, isHouseholdDoc, walkHousehold } from './walk.mjs';

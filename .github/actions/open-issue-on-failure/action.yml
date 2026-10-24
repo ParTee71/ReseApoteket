@@ -1,7 +1,7 @@
 name: Öppna issue vid fel
 description: >-
   Öppnar ett issue (eller kommenterar ett öppet med samma titel) med länk till körningen.
-  Används av schemalagda flöden (quality.yml, backup.yml) som ingen annars tittar på.
+  Används av schemalagda flöden (quality.yml) som ingen annars tittar på.
   Kräver permissions: issues: write.
 
 inputs:

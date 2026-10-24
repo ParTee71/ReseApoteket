@@ -336,7 +336,7 @@
     <string name="sign_out_message">Hushållets data finns kvar i molnet. Du loggar in igen med samma Google-konto.</string>
     <string name="settings_data">Data &amp; backup</string>
     <string name="settings_sync_title">Sparas i molnet</string>
-    <string name="settings_sync_note">Allt synkas med Firestore och fungerar offline. En krypterad backup tas automatiskt varje vecka.</string>
+    <string name="settings_sync_note">Allt synkas med Firestore och fungerar offline. En krypterad backup kan tas vid behov.</string>
     <string name="settings_data_version">Format och version</string>
     <string name="settings_data_format">Dataformat %1$d · appversion %2$s</string>
     <string name="settings_export">Exportera som JSON</string>
