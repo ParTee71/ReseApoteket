@@ -61,7 +61,7 @@ node tools/db/migrate.mjs --to <N>                        # schemamigrering
 - Spara aldrig utdrag på disk utanför `tools/db/` och aldrig i repot.
 - Exportfiler (`tools/db/*.json`) är git-ignorerade; radera dem när de inte behövs.
 
-## Återställning från veckobackup
+## Återställning från backup
 
 1. Ladda ner senaste artifact från körningen av `backup.yml` i GitHub Actions.
 2. `gpg --decrypt --output tools/db/backup.json backup.json.gpg` – alltid **till

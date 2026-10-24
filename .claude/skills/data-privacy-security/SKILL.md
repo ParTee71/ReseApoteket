@@ -30,7 +30,7 @@ GitHub Actions-loggar.
 - Appen **kräver inloggning**; ingen data läses eller skrivs utan `request.auth`.
 
 ### 3. Backup och export är krypterade och medvetna
-- Veckobackupen (`tools/db export` i GitHub Actions) krypteras med gpg (AES-256, med
+- Backupen (`tools/db export` i GitHub Actions) krypteras med gpg (AES-256, med
   integritetskontroll) och `BACKUP_PASSPHRASE`
   innan den laddas upp som artifact; klartextfilen raderas i samma jobb. Ladda aldrig
   upp okrypterad data som artifact, i en issue eller i en PR.

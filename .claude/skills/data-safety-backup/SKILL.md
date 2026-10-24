@@ -29,7 +29,7 @@ Krav: DAT- och BCK-serierna i KRAVLISTA.md.
 | Åtkomst | `app/.../data/firestore/FirestoreCollection.kt`, `Paths.kt` | Enda stället som talar med Firestore; sökvägar på ett ställe |
 | Regler | `firestore.rules` | Bara samlingarna i `collections.mjs`, var och en skyddad av `memberUids` och med typkontroll av kända fält; `schemaVersion` minst 1, kan inte sänkas och höjs högst till `maxSchemaVersion()` |
 | Samlingslista | `tools/db/lib/collections.mjs` | Enda listan export/import/query går igenom; testad mot `Paths` och rules |
-| Backup | `.github/workflows/backup.yml` | Veckovis export, krypterad artifact, 90 dagar |
+| Backup | `.github/workflows/backup.yml` | Export på begäran, krypterad artifact, 90 dagar; stoppar i publikt repo (#140) |
 | Appens export | `core/.../schema/ExportFormat.kt` + `app/.../data/firestore/HouseholdExporter.kt` | "Exportera som JSON" (SET-5): samma format som `tools/db export` (`serialize.mjs`, `backup.mjs`), läser dokumenten rått längs `Paths` – aldrig via codecarna, så att okända fält följer med |
 
 ## Schemaversion

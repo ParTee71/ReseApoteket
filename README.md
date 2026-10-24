@@ -11,6 +11,9 @@ inför en resa, och låter er pricka av det som plockats fram.
 > Detaljer ligger som skills i [`.claude/skills/`](.claude/skills/) och agenter i
 > [`.claude/agents/`](.claude/agents/).
 
+> Koden är öppen, men appen och dess data är privata: varje hushåll har sin egen databas bakom
+> inloggning, och all testdata i repot är påhittad.
+
 ---
 
 ## Funktioner
@@ -21,7 +24,7 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Inloggning med Google-konto; hushållet skapas automatiskt vid första inloggningen (AUTH, HUS).
 - Data i Cloud Firestore som fungerar offline och synkas när nätet är tillbaka (ÖV-5).
 - "Uppdatera appen" om hushållets data sparats av en nyare appversion (HUS-3).
-- Veckovis krypterad backup och återställning med `tools/db` (BCK).
+- Krypterad backup på begäran och återställning med `tools/db` (BCK).
 - Databasåtkomst från en Claude-session, bara läsning (TP-8).
 - Fyra flikar – Resor, Personer, Familjeartiklar och Inställningar – i en flytande verktygsrad (NAV).
 - Designsystemet: Material 3 Expressive med egen palett och Nunito, ljust, mörkt eller system (SET-1).
@@ -141,7 +144,7 @@ chatten (skill [`data-privacy-security`](.claude/skills/data-privacy-security/SK
    Utan filen bygger appen ändå, men inloggning fungerar inte.
 3. **Service accounts** (Google Cloud Console → IAM → Service accounts):
    - `reseapoteket-backup` med rollen **Cloud Datastore Viewer** (backupen läser bara) →
-     nyckeln som GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (veckobackupen).
+     nyckeln som GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (backupen).
    - `reseapoteket-rules` med rollerna **Firebase Rules Admin** och **Service Usage Consumer**
      (får bara ändra security rules, inte läsa data) → nyckeln som GitHub-secret
      `FIREBASE_RULES_DEPLOYER`.
@@ -173,8 +176,10 @@ npx --prefix tools/db firebase emulators:exec --only firestore --project demo-re
 
 ## Backup och återställning
 
-`backup.yml` exporterar all data varje måndag 03:00 UTC (och på begäran: Actions → Backup →
-Run workflow), krypterar den med gpg och sparar `backup.json.gpg` som artifact i 90 dagar.
+`backup.yml` exporterar all data på begäran (Actions → Backup → Run workflow), krypterar den
+med gpg och sparar `backup.json.gpg` som artifact i 90 dagar. I ett publikt repo stoppar den
+innan exporten, eftersom alla inloggade där kan ladda ner artifacts (#140). Den veckovisa
+backupen är pausad (#94).
 
 **Inställning (en gång):** skapa en lång lösenfras och lägg den som GitHub-secret
 `BACKUP_PASSPHRASE` **och** i din lösenordshanterare – utan den går backupen inte att öppna.
@@ -220,4 +225,4 @@ Versionen och raden nedan höjs och skrivs i funktions-PR:en; releasen görs via
 | 0.5.2 | Packlistan på telefon: Övrigt visas i en kolumn så att namnen får plats, och två kolumner bara där de ryms; ett långtryck på en kapad rad visar hela texten (#103, NFR-20); uppdaterad läkemedelslista. |
 | 0.5.4 | Intern: coroutine-dispatchers injiceras från `di/DispatchersModule`, och bygget och hooken stoppar `Dispatchers.` utanför `di/`; listor och kartor i skärmtillstånden är oföränderliga och tillstånden märkta `@Immutable`, så att Compose hoppar över oförändrade delar, och listans rader har `contentType`; engångshändelser (formulärets klar och sparfel, konfettin, delningen av exporten) är fält i skärmtillståndet som skärmen kvitterar i stället för `Channel`, och bygget och hooken stoppar `Channel(` i `ui/`; appen riktar sig mot Android 16 (targetSdk 36); effekter anropar alltid den senaste callbacken, och en rad som arkiveras eller en chiprad som byter radbrytning behåller sitt tillstånd; Material 3 är uppgraderat från alfa till 1.5.0-beta01; temat och elva komponenter kommer från det gemensamma komponentbiblioteket android-ui 0.1.0 i stället för egna kopior (#126); fler komponenter (kort, fält, val, pills, stegare, tomt läge, läsfel, snackbars, tidsfält) och ramarnas tillstånd (list-, detalj- och formulärtillstånd, felen som `UiError`) kommer från android-ui 0.2.0, och `ApotekCard` heter `AppCard` (#129). Ingen synlig ändring. |
 | 0.6.0 | Listrader, paneler, meny, dialoger, datumfält, emojival, verktygsraden och skärmramarna (lista, redigering, detalj) kommer från komponentbiblioteket android-ui 0.4.0 i stället för egna kopior (#131), sedan höjt till android-ui 0.5.0 (#133). Synligt: panelernas knapprad ("Klar", "Lägg till") står fast i botten ovanför tangentbordet (NFR-21); i formulären hamnar fältet man skriver i ovanför tangentbordet (NFR-2); den hopfällbara gruppen Dolda har en högre rubrik som läses som knapp och en fjädrande pil (NFR-1); emojivalet markerar den valda med samma ring som färgvalet (PER-2). |
-| 0.6.1 | Komponentbiblioteket android-ui höjt till 0.9.2 (#141), med bibliotekets rättningar: Ångra får sina 5 sekunder från att meddelandet syns (NFR-3); formulärets meny visas först när uppgifterna är lästa (NFR-2); "Försök igen" under en pågående läsning visar inte läsfel; samma utseende som förut. |
+| 0.6.1 | Komponentbiblioteket android-ui höjt till 0.9.2 (#141), med bibliotekets rättningar: Ångra får sina 5 sekunder från att meddelandet syns (NFR-3); formulärets meny visas först när uppgifterna är lästa (NFR-2); "Försök igen" under en pågående läsning visar inte läsfel; samma utseende som förut. Inställningar → Data & backup säger att en krypterad backup tas vid behov i stället för varje vecka, och backupen kan inte laddas upp som artifact om repot är publikt (#140, BCK-2, SET-5). |

@@ -92,7 +92,7 @@ agenter som finns. Framåtreferenser står i `.github/scripts/link-allowlist.txt
 | `lintDebug` | `quality.yml`: veckovis när master ändrats; vid release `lintRelease` i `release.yml` |
 | `assembleRelease` (minifierat) | `quality.yml`: veckovis när master ändrats; vid release det signerade bygget i `release.yml` |
 | Matrisbyggen, flera API-nivåer | inte alls i dag |
-| Backup | `backup.yml`: veckovis cron |
+| Backup | `backup.yml`: `workflow_dispatch`, bara i privat repo (#140); veckovis pausad (#94) |
 | Deploy av `firestore.rules` | `rules.yml`: `workflow_dispatch` (dry-run som standard, deploy bara från `master`); `release.yml` före publiceringen, bara om de ändrats sedan förra releasen |
 
 ## ReseApotekets composite actions
