@@ -235,6 +235,19 @@ class FramesTest {
     }
 
     @Test
+    fun `redigeringens meny visas först när uppgifterna är lästa (NFR-2)`() {
+        var state by mutableStateOf(EditorUiState("Solkräm", loading = true))
+        rule.setContent {
+            ReseApoteketTheme {
+                EntityEditScreen("Solkräm", state, EditorEvents.None, {}, {}, onArchive = {}) {}
+            }
+        }
+        rule.onNodeWithContentDescription("Fler val").assertDoesNotExist()
+        state = EditorUiState("Solkräm")
+        rule.onNodeWithContentDescription("Fler val").assertIsDisplayed()
+    }
+
+    @Test
     fun `EntityEditScreen - lyckad sparning går till onSaved, bakåt till onClose`() {
         var saved = 0
         var closed = 0
