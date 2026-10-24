@@ -333,7 +333,7 @@ Beslutad och uppmätt i #11.
 | Robolectric / Roborazzi / Konsist | 4.17 / 1.76.0 / 0.17.3 | Robolectric-SDK och skärmmått i `app/src/test/resources/robolectric.properties` |
 | PMD (CPD) | 7.28.0 | se `cpdCheck` nedan |
 | WorkManager | 2.12.0 | påminnelserna (#78); inget Hilt-work – workern hämtar sina beroenden via en `@EntryPoint` |
-| android-ui | 0.5.0 | `se.partee71.ui:ui-theme` + `ui-components` + `ui-common` (och `ui-testing` i testerna) från GitHub Packages (`maven.pkg.github.com/ParTee71/android-ui`, bara gruppen `se.partee71.ui`), inloggning krävs även för läsning: `GPR_USER`/`GPR_TOKEN` i sessionen, Actions-secreten `GPR_TOKEN` i CI (#126) |
+| android-ui | 0.9.2 | `se.partee71.ui:ui-theme` + `ui-components` + `ui-common` (och `ui-testing` i testerna) från GitHub Packages (`maven.pkg.github.com/ParTee71/android-ui`, bara gruppen `se.partee71.ui`), inloggning krävs även för läsning: `GPR_USER`/`GPR_TOKEN` i sessionen, Actions-secreten `GPR_TOKEN` i CI (#126) |
 
 **Gemensam byggkonfiguration** står på ett ställe: rotens `build.gradle.kts` (`subprojects {}`):
 Java 17, Kotlins `jvmTarget`, testtimeout (4 min per testtask, inom PR-budgeten) och testloggning
