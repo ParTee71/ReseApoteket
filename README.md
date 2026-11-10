@@ -106,7 +106,7 @@ den – den hör bara hemma i miljöns inställningar och i GitHub-secrets.
    som miljövariabeln `FIREBASE_SERVICE_ACCOUNT` (tabellen ovan).
 2. Tillåt nätverksvärdarna ovan och starta en **ny** session – hooken installerar `tools/db`
    och talar om att nyckeln är satt.
-3. Fråga Claude ("hur många recept har Anna?") – agenten `db-inspektor` använder
+3. Fråga Claude ("hur många recept har Anna?") – agenten `reseapoteket-db-inspektor` använder
    `tools/db` och visar bara det du frågat om. Själv kan du köra
    `node tools/db/stats.mjs`, `query.mjs <samling>` och `get.mjs <sökväg>` (alla har `--help`).
 

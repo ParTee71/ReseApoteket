@@ -6,7 +6,7 @@
 
 Den här filen laddas automatiskt vid **varje** uppgift och gäller alltid, för alla
 ändringar, oavsett storlek. De detaljerade reglerna ligger som skills i
-`.claude/skills/` (i projekttrådar `reseapoteket:<namn>`) – den här filen är kontraktet som binder ihop dem.
+`.claude/skills/` (i projekttrådar `<namn>`, eller `ReseApoteket:<namn>` när ett annat repo i tråden har en skill med samma namn) – den här filen är kontraktet som binder ihop dem.
 
 **Svarslängd:** håll chattsvar minimala. Inga sammanfattningar, ingen upprepning av vad
 som gjordes, inga rubriker/listor om inte nödvändigt. Kod, commits och PR-beskrivningar
@@ -188,13 +188,13 @@ dataflöde och datamodell står i [ARKITEKTUR.md](ARKITEKTUR.md) (enda källan).
 
 ## Databasåtkomst från sessionen
 
-Läs med `tools/db` (skill **db-access**, agent **db-inspektor**). Kräver miljövariabeln
+Läs med `tools/db` (skill **db-access**, agent **reseapoteket-db-inspektor**). Kräver miljövariabeln
 `FIREBASE_SERVICE_ACCOUNT` i Claude-miljöns inställningar – be aldrig användaren klistra
 in en nyckel i chatten. Skrivningar bara på uttrycklig begäran via `import.mjs`/`migrate.mjs`.
 
 ## Agenter och skills
 
-Agenterna (`db-inspektor` och pluginens `android:granskare`, `android:ci-doktor`,
+Agenterna (`reseapoteket-db-inspektor` och pluginens `android:granskare`, `android:ci-doktor`,
 `android:testskrivare`) och alla skills, med när de används, listas i [.claude/README.md](.claude/README.md).
 
 **Kortrapport:** agenternas svar hamnar i huvudsessionens kontext och kostar där. Granskaren och
