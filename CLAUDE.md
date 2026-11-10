@@ -149,8 +149,13 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
   skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
   granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `android:ci-doktor`
   diagnostisera. Avsluta prenumerationen när PR:en är klar.
-- **Modell efter uppgift** för sessionen och varje agent, Opus som standard
-  ([.claude/README.md](.claude/README.md) → Modellval).
+- **Modellval** för sessionen och varje agent (skill `android:ai-model-choice`, enda källan;
+  agenterna: [.claude/README.md](.claude/README.md) → Modellval):
+  Opus 5.5 (`claude-opus-5-5`) är standard. Fable 5.2 (`claude-fable-5-2`) är ok när det behövs –
+  svår arkitektur eller design, knepiga integrationer, långa agentuppgifter, buggar Opus inte
+  klarat – men försiktigt för kostnadens skull: medium eller high effort, aldrig max eller fast
+  mode. Säg varför och vilken effort innan du byter till Fable 5.2; planera med Fable, genomför
+  med Opus när det går. Fable 5.1 används inte längre.
 
 ## Bygg & test
 
