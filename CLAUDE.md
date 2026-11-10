@@ -12,6 +12,10 @@ Den här filen laddas automatiskt vid **varje** uppgift och gäller alltid, för
 som gjordes, inga rubriker/listor om inte nödvändigt. Kod, commits och PR-beskrivningar
 skrivs normalt.
 
+**Ärliga svar:** säg emot när Mats har fel, och säg varför. Inget beröm för frågan, inga
+artighetsfraser, inga ursäkter, ingen utfyllnad. Säg vad som är osäkert eller inte kontrollerat.
+Ett nej mjukas inte upp.
+
 ---
 
 ## De fem icke-förhandlingsbara reglerna
