@@ -26,12 +26,8 @@ standard.** Frontmatterns modell är agentens standard; huvudsessionen anger `mo
 agenten startas, efter uppgiften. Sessionen byter själv via `/model`, eller låter en billigare
 agent ta rutindelarna.
 
-| Uppgift | Modell |
-|---|---|
-| Uppslag och läsning – loggar, data, sökningar | Haiku |
-| Små avgränsade ändringar – en fil, en komponent, ett test | Sonnet |
-| Flera lager, datamodell, migrering, backup och granskning | Opus |
-| Väldigt komplexa issues – anges då i issuet | Fable |
+Vilken modell som tar vad, och kostnadsspärrarna för Fable 5.2, står i skill
+`android:ai-model-choice` (pluginen) – Opus 5.5 är standard.
 
 ## Skills (`.claude/skills/`)
 
