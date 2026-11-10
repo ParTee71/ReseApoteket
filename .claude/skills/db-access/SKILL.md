@@ -6,7 +6,7 @@ description: Läsa ReseApotekets Firestore-databas från en Claude-session (tele
 # Databasåtkomst från sessionen
 
 Firestore nås med Node-verktygen i `tools/db/` (firebase-admin). För frågor om data –
-använd agenten **`db-inspektor`**, så stannar dokumentinnehållet i agenten och bara svaret
+använd agenten **`reseapoteket-db-inspektor`**, så stannar dokumentinnehållet i agenten och bara svaret
 kommer till huvudsessionen.
 
 ## Förutsättningar

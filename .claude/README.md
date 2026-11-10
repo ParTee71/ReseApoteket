@@ -9,7 +9,7 @@ som finns i `.claude/agents/` och `.claude/skills/`.
 
 | Agent | När |
 |---|---|
-| `db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
+| `reseapoteket-db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
 
 Från pluginen (generella, läser ReseApotekets delar ur repot; listade i `.github/scripts/plugin-agents.txt`):
 

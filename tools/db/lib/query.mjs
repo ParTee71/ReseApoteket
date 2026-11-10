@@ -1,4 +1,4 @@
-// Läsning för sessionen (skill db-access, agent db-inspektor): query, get och stats. Skriver
+// Läsning för sessionen (skill db-access, agent reseapoteket-db-inspektor): query, get och stats. Skriver
 // aldrig och sparar inget på disk. Samlingar och sökvägar tolkas relativt ett hushåll.
 import { readHouseholds, summarize } from './backup.mjs';
 import { toJson } from './serialize.mjs';
