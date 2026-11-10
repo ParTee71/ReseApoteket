@@ -93,7 +93,7 @@ veckovis och vid release. Nya beroenden eller moduler får inte fördubbla byggt
 sökvägar vilka testjobb som körs; Gradles build cache hoppar dessutom över oförändrade
 testtasks. På `master` körs allt utom instrumenttesterna, eller bara dokumentkontrollerna när
 merge-commiten har samma träd som en grön PR; dokumentkontrollerna (skill-tabeller mot kod
-och workflow, länkar, hooktest) körs alltid. Att slippa köra ett test är aldrig ett skäl att
+och workflow, länkar, regel 4-kontrollen) körs alltid. Att slippa köra ett test är aldrig ett skäl att
 inte skriva det.
 → Skill: **ci-budget** – enda källan för vad som körs när; kontrolleras mot `android.yml`.
 
