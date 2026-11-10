@@ -2,7 +2,7 @@
 
 Översikt över agenter och skills i `.claude/`. Reglerna står i [CLAUDE.md](../CLAUDE.md);
 den här filen läses vid behov, så att CLAUDE.md – som laddas vid varje uppgift – hålls kort.
-Dokumentkontrollen (`.github/scripts/check-links.mjs`) kräver att tabellerna listar exakt det
+Dokumentkontrollen (pluginens `checks/doc-checks.mjs`) kräver att tabellerna listar exakt det
 som finns i `.claude/agents/` och `.claude/skills/`.
 
 ## Agenter (`.claude/agents/`)
@@ -11,7 +11,7 @@ som finns i `.claude/agents/` och `.claude/skills/`.
 |---|---|
 | `reseapoteket-db-inspektor` | Svarar på frågor om faktisk data i Firestore, endast läsning. |
 
-Från pluginen (generella, läser ReseApotekets delar ur repot; listade i `.github/scripts/plugin-agents.txt`):
+Från pluginen (generella, läser ReseApotekets delar ur repot):
 
 | Agent | När |
 |---|---|
@@ -54,8 +54,7 @@ i sessionen: `android-dev` (baslinje, ladda alltid), `compose-expert`, `kotlin-c
 (det generella i regel 2 och 5) samt Googles `android-intent-security` (manifest, Intents, delning)
 och `firebase-security-rules-auditor` (vid varje ändring i `firestore.rules`, före FUT-2).
 Pluginen är generell; ReseApotekets delar och nuvarande avvikelser står i `android-projekt`, och
-där de krockar gäller projektets regler. Namnen listas i `.github/scripts/plugin-skills.txt` och
-`plugin-agents.txt`, som dokumentkontrollen läser i stället för pluginen.
+där de krockar gäller projektets regler. Dokumentkontrollen läser namnen ur pluginen.
 
 ## Hooks (`.claude/hooks/`) och inställningar
 
