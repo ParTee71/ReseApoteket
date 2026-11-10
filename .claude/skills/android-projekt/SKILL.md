@@ -154,7 +154,7 @@ Stegen står i pluginen; det här är ReseApotekets delar.
 - **Agenter:** huvudsessionen orkestrerar, implementerar (skärmar, komponenter, datamodell, codecs,
   rules, CI-filer) och granskar – repot har ingen `byggare` eller `arkitekt`. Pluginens
   `android:testskrivare` tar tester på tre eller fler nivåer, `android:granskare` granskar diffen
-  (steg 8), `android:ci-doktor` diagnostiserar rött CI och repots `reseapoteket-db-inspektor` läser faktisk data. Modell och effort per
+  (Granska i rundor), `android:ci-doktor` diagnostiserar rött CI och repots `reseapoteket-db-inspektor` läser faktisk data. Modell och effort per
   del: avsnittet Issues nedan.
 - **`/code-review` krävs** (efter `android:granskare`) när ändringen rör logik i `:core`, datalagret,
   `firestore.rules`, `tools/db` eller en delad ram eller komponent (`ui/components`, `ui/common`),
@@ -209,7 +209,7 @@ avsnittet Mockup här och `ui-style`; beräkningar → `packing-engine`.
   |---|---|---|
   | huvudsessionen | implementationen – skärmar, komponenter, datamodell, codecs, rules, CI | Opus · medium; datamodell, rules, migrering och backup-kedjan minst Opus · high |
   | `android:testskrivare` | tester när tre eller fler nivåer berörs | Sonnet · medium |
-  | `android:granskare` | granskningen i steg 8, alltid med | sessionens modell (Opus) · medium |
+  | `android:granskare` | granskningsrundorna, alltid med | sessionens modell (Opus) · medium |
   | `android:ci-doktor` | rött CI – startas vid behov, anges inte i förväg | Sonnet · medium |
   | `reseapoteket-db-inspektor` | faktisk data, bara läsning – anges när issuet kräver det | Haiku · low |
 
