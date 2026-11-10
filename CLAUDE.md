@@ -136,35 +136,20 @@ Utvecklingen sker mest från telefonen, och en release för att "se hur det blev
 - [ ] **Enhetligt:** inga råa M3-komponenter, egna interaktionsmönster, hårdkodade stilvärden eller kopierad logik; `UiConsistencyTest` och `cpdCheck` gröna. (4)
 - [ ] **CI-budget:** inga nya dyra steg i PR-flödet; byggtidseffekt angiven vid nya beroenden. (5)
 - [ ] **GUI:** mockup godkänd och skärmdumpar bifogade i PR:en.
-- [ ] **Granskning:** agenten `android:granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **android:implement-issue**, steg 8).
+- [ ] **Granskning:** agenten `android:granskare` och `/code-review` har körts på diffen – och igen på rättningarna efter dem (skill **android:arbetsflode** → Granska i rundor).
 
 ## PR-flöde
 
-- **En PR i taget.** Öppna inte nästa förrän den föregående är mergad (eller uttryckligen
-  stängd/pausad av användaren). Gäller `android:implement-issue` och manuellt arbete.
-- **Kontrollera mergen via GitHub** (`pull_request_read`) innan nästa issue påbörjas –
-  inte via antagande. Först när den är mergad startas arbetsbranchen om från `origin/master`.
-- PR:er går mot `master`. Kör testerna lokalt först (skill **testing-strategy**), pusha sedan –
-  GitHub Actions bekräftar.
-- **Förbered releasen i funktions-PR:en.** Varje PR som ändrar appens beteende höjer
-  versionen i samma ändring, så att ingen separat release-PR behövs. Välj semver efter
-  ändringen: **major** = brytande/borttagen funktion eller backupformat som äldre appar inte
-  läser, **minor** = ny funktion, **patch** = fix, chore, refactor. Höj `versionCode` med 1,
-  uppdatera `version.properties` och versionshistoriken i README, och skriv versionen i PR-beskrivningen. Ren dokument-,
-  test- eller CI-ändring utan effekt i appen höjer inte. Är versionen redan höjd sedan senaste
-  tagg, höj bara om denna PR är allvarligare. Själva releasen (tagg, bygge, publicering) körs
-  fortfarande bara på uttrycklig begäran (skill **android:release**) och kräver då ingen ny PR.
-- **Prenumerera automatiskt** på PR-aktivitet (`subscribe_pr_activity`) så fort en PR
-  skapas, utan att fråga. Bevaka tills den är mergad eller stängd: fixa CI-fel, hantera
-  granskningskommentarer, schemalägg check-in. Vid rött CI: låt agenten `android:ci-doktor`
-  diagnostisera. Avsluta prenumerationen när PR:en är klar.
-- **Modellval** för sessionen och varje agent (skill `android:ai-model-choice`, enda källan;
-  agenterna: [.claude/README.md](.claude/README.md) → Modellval):
-  Opus 5.5 (`claude-opus-5-5`) är standard. Fable 5.2 (`claude-fable-5-2`) är ok när det behövs –
-  svår arkitektur eller design, knepiga integrationer, långa agentuppgifter, buggar Opus inte
-  klarat – men försiktigt för kostnadens skull: medium eller high effort, aldrig max eller fast
-  mode. Säg varför och vilken effort innan du byter till Fable 5.2; planera med Fable, genomför
-  med Opus när det går. Fable 5.1 används inte längre.
+Stommen – en PR i taget, merge kontrollerad via GitHub, granskning i rundor, en push, bevakning
+till merge, rött CI – står i skill **android:arbetsflode**; Android-delen i
+**android:implement-issue**, när plan och ok krävs i **android:arbetsregler**. PR:er går mot
+`master`. En PR som ändrar appens beteende höjer versionen i samma ändring (`version.properties`,
+README:s versionshistorik; skill **android:release** → Versionshöjning); själva releasen bara på
+uttrycklig begäran.
+
+**Modellval** för sessionen och varje agent: skill **android:ai-model-choice** (enda källan) –
+Opus 5.5 som standard, Fable 5.2 bara med skäl och medium eller high effort. Agenterna:
+[.claude/README.md](.claude/README.md) → Modellval.
 
 ## Bygg & test
 
