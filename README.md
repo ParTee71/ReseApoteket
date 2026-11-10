@@ -61,7 +61,7 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
   - schemalagda check-ins och triggers (skapa, ändra, ta bort, köra) – samma val som i
     Dagboken, så att Claude kan följa upp PR:er utan att du behöver svara;
   - läsande databaskommandon (`tools/db` query, get, stats);
-  - hooktestet och dokumentkontrollerna (`node --test` på de två testkatalogerna, kört
+  - dokumentkontrollerna (`node --test` på `.github/scripts`, kört
     från repots rot med relativa sökvägar – i en session med flera repon frågar Claude först).
   Skrivande databaskommandon (`import`, `migrate`) kräver alltid bekräftelse.
 - Samma fil hindrar Claude från att öppna nyckelfiler med läsverktyget (`google-services.json`, keystores,
@@ -70,8 +70,9 @@ Kraven med ID:n står i [KRAVLISTA.md](KRAVLISTA.md); här är översikten.
 - Hooken `session-start.sh` installerar `tools/db` (utan livscykelskript) och talar om ifall
   databasnyckeln finns. Det gemensamma för Android-repona (SDK och `sdk.dir`, `GPR_TOKEN`, Maven
   Central-spegeln mot 429) gör pluginens hook `android-start` (claude-android #55).
-- Hooken `regel4-check.mjs` kontrollerar regel 4 direkt efter varje filändring, med samma
-  mönster som bygget (`app/src/test/resources/ui-forbidden.txt`).
+- Pluginens hook `regel4-check` kontrollerar regel 4 direkt efter varje filändring, med samma
+  mönster som bygget (`app/src/test/resources/ui-forbidden.txt`); repots scope och texter står i
+  `.claude/regel4.json` (claude-android #57).
 - Samma hook körs som Stop-hook innan Claude avslutar en tur: den går igenom alla filer som
   ändrats mot `origin/master` och ber Claude rätta en träff först (högst en gång i följd).
 - Android SDK i molnsessionen installeras av miljöns setup-skript med claude-android
@@ -122,11 +123,12 @@ som körs när, och vilka flöden som bara körs på begäran, står i skill
 **Grenskydd (en gång, i GitHub):** Settings → Branches → `master` → kräv statuskontrollen
 `ci-ok`. Gör inte `gradle` eller `rules` obligatoriska – hoppade jobb rapporterar ingen status.
 
-Dokumentkontrollerna och hooktestet kan köras lokalt:
+Dokumentkontrollerna och regel 4-kontrollen kan köras lokalt (`<claude-android>` är klonen av
+pluginens repo, i molnsessioner `/home/user/claude-android` eller `/opt/claude-android`):
 
 ```bash
 node --test '.github/scripts/*.test.mjs'
-node --test '.claude/hooks/test/*.test.mjs'
+node <claude-android>/plugins/android/hooks/regel4-check.mjs --verify .
 ```
 
 ---

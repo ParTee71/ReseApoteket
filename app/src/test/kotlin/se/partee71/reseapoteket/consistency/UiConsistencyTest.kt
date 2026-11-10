@@ -59,7 +59,7 @@ class UiConsistencyTest {
         assertEquals(emptyList(), hits, "använd backStack.popIfTop(key) – ett andra anrop får inte stänga skärmen under")
     }
 
-    // De delade exemplen körs med tom allowlist utom sektionen "allowlist" – precis som i hooktestet.
+    // De delade exemplen körs med tom allowlist utom sektionen "allowlist" – precis som i hookens --verify.
 
     @Test
     fun `delade exempel - tillåtna och förbjudna rader tolkas likadant som i hooken`() {

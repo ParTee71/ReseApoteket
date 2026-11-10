@@ -134,7 +134,7 @@ android-ui `ui-testing` (`runListScreenContract`, `runEditScreenContract`, `runD
 
 ## Förbjudet
 
-Kontrolleras av `UiConsistencyTest` (Konsist) i bygget och av hooken `regel4-check`
+Kontrolleras av `UiConsistencyTest` (Konsist) i bygget och av pluginens hook `regel4-check`
 direkt efter varje filändring. De exakta mönstren står **bara** i
 `app/src/test/resources/ui-forbidden.txt` (enda källan, `mönster<TAB>ersättning`), och
 undantag bara i `ui-allowlist.txt`. Att hooken och testet tolkar filen likadant bevisas av
