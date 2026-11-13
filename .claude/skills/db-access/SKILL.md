@@ -1,6 +1,6 @@
 ---
 name: db-access
-description: Läsa ReseApotekets Firestore-databas från en Claude-session (telefon/webb) med tools/db. Ladda denna när användaren frågar om faktisk data, vill se vad som ligger i databasen, felsöka data, köra export/import/migrering eller när FIREBASE_SERVICE_ACCOUNT nämns. Trigger-ord: databasen, vad finns i, visa data, hur många, hushållet, personer i databasen, recept i databasen, Firestore-data, query, fråga databasen, tools/db, stats, export, import, migrera, service account, FIREBASE_SERVICE_ACCOUNT.
+description: "Läsa ReseApotekets Firestore-databas från en Claude-session (telefon/webb) med tools/db. Ladda denna när användaren frågar om faktisk data, vill se vad som ligger i databasen, felsöka data, köra export/import/migrering eller när FIREBASE_SERVICE_ACCOUNT nämns. Trigger-ord: databasen, vad finns i, visa data, hur många, hushållet, personer i databasen, recept i databasen, Firestore-data, query, fråga databasen, tools/db, stats, export, import, migrera, service account, FIREBASE_SERVICE_ACCOUNT."
 ---
 
 # Databasåtkomst från sessionen

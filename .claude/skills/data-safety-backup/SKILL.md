@@ -1,6 +1,6 @@
 ---
 name: data-safety-backup
-description: Regel 1 i ReseApoteket — export/import och schemaändringar får aldrig tappa data. Ladda alltid när persisterad data läggs till, ändras eller tas bort: modellfält, ny samling, DocCodec, schemaVersion, SchemaMigrator, firestore.rules, tools/db eller backup.yml. Trigger-ord: backup, säkerhetskopia, restore, återställ, export, import, migrering, schemaVersion, codec, fält, ny samling, datamodell, rundtur, dataförlust.
+description: "Regel 1 i ReseApoteket — export/import och schemaändringar får aldrig tappa data. Ladda alltid när persisterad data läggs till, ändras eller tas bort: modellfält, ny samling, DocCodec, schemaVersion, SchemaMigrator, firestore.rules, tools/db eller backup.yml. Trigger-ord: backup, säkerhetskopia, restore, återställ, export, import, migrering, schemaVersion, codec, fält, ny samling, datamodell, rundtur, dataförlust."
 ---
 
 # Datasäkerhet: codecs, schemaversion, export/import

@@ -1,6 +1,6 @@
 ---
 name: ci-budget
-description: Regel 5 i ReseApoteket — en PR kostar högst ca 8 Actions-minuter och tester körs bara när koden de testar ändrats. Enda källan för tabellen över vad som körs när. Ladda alltid vid .github/workflows, Gradle-inställningar, nya beroenden, plugins, moduler eller testnivåer, och när CI är långsam. Trigger-ord: CI, GitHub Actions, workflow, android.yml, byggtid, Actions-minuter, cache, paths-filter, emulator, lint, nytt beroende.
+description: "Regel 5 i ReseApoteket — en PR kostar högst ca 8 Actions-minuter och tester körs bara när koden de testar ändrats. Enda källan för tabellen över vad som körs när. Ladda alltid vid .github/workflows, Gradle-inställningar, nya beroenden, plugins, moduler eller testnivåer, och när CI är långsam. Trigger-ord: CI, GitHub Actions, workflow, android.yml, byggtid, Actions-minuter, cache, paths-filter, emulator, lint, nytt beroende."
 ---
 
 # CI-budget i ReseApoteket
