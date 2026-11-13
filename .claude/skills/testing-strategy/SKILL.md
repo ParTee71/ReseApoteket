@@ -1,6 +1,6 @@
 ---
 name: testing-strategy
-description: ReseApotekets testregel (regel 2) — ingen beteendeändring utan tester på rätt nivå(er), och flaky tester är buggar. Ladda denna ALLTID när du lägger till, ändrar eller fixar funktionalitet, en ViewModel, en codec, PackingEngine, ett repository, en composable, en skärmram, en hook eller en bugg. Trigger-ord: test, tester, testa, JUnit, MockK, Turbine, Robolectric, Roborazzi, skärmdump, screenshot, Konsist, UiConsistencyTest, cpdCheck, kontraktstest, FakeCollection, emulator, rules-test, regression, flaky, instabil, täckning, TDD.
+description: "ReseApotekets testregel (regel 2) — ingen beteendeändring utan tester på rätt nivå(er), och flaky tester är buggar. Ladda denna ALLTID när du lägger till, ändrar eller fixar funktionalitet, en ViewModel, en codec, PackingEngine, ett repository, en composable, en skärmram, en hook eller en bugg. Trigger-ord: test, tester, testa, JUnit, MockK, Turbine, Robolectric, Roborazzi, skärmdump, screenshot, Konsist, UiConsistencyTest, cpdCheck, kontraktstest, FakeCollection, emulator, rules-test, regression, flaky, instabil, täckning, TDD."
 ---
 
 # Teststrategi i ReseApoteket

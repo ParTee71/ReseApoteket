@@ -1,6 +1,6 @@
 ---
 name: firestore-data-layer
-description: ReseApotekets datalager — Firestore via generisk FirestoreCollection<T> och DocCodec<T>, tunna repositories, offline-cache, security rules och FakeCollection i tester. Ladda alltid vid data/firestore, data/repository, codecs, ny samling, Paths, HouseholdSession, firestore.rules eller offline/synk. Trigger-ord: Firestore, repository, samling, dokument, codec, offline, synk, firestore.rules, hushåll, FakeCollection, DataError.
+description: "ReseApotekets datalager — Firestore via generisk FirestoreCollection<T> och DocCodec<T>, tunna repositories, offline-cache, security rules och FakeCollection i tester. Ladda alltid vid data/firestore, data/repository, codecs, ny samling, Paths, HouseholdSession, firestore.rules eller offline/synk. Trigger-ord: Firestore, repository, samling, dokument, codec, offline, synk, firestore.rules, hushåll, FakeCollection, DataError."
 ---
 
 # Datalagret: Firestore

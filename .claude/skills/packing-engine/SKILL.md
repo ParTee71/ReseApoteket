@@ -1,6 +1,6 @@
 ---
 name: packing-engine
-description: ReseApotekets beräkningsmotor — hur mycket av varje medicin, kosttillskott och familjeartikel som packas för en resa. Ladda alltid vid PackingEngine, ReasonFormatter, dos- och mängdformatterare, marginaldagar, förhandsvisning av mängd, packförslag eller BER-krav. Trigger-ord: beräkning, formel, packförslag, hur många, mängd, dos, dosering, vid behov, marginal, förpackning, kartor, avrundning, räkna om, merge, reason.
+description: "ReseApotekets beräkningsmotor — hur mycket av varje medicin, kosttillskott och familjeartikel som packas för en resa. Ladda alltid vid PackingEngine, ReasonFormatter, dos- och mängdformatterare, marginaldagar, förhandsvisning av mängd, packförslag eller BER-krav. Trigger-ord: beräkning, formel, packförslag, hur många, mängd, dos, dosering, vid behov, marginal, förpackning, kartor, avrundning, räkna om, merge, reason."
 ---
 
 # Beräkningsmotorn (`:core`)

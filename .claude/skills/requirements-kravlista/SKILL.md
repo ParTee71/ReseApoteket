@@ -1,6 +1,6 @@
 ---
 name: requirements-kravlista
-description: ReseApotekets kravregel (regel 3) — KRAVLISTA.md ska alltid spegla appens faktiska beteende. Ladda denna ALLTID när du lägger till, ändrar eller tar bort synligt beteende, en funktion, en skärm, en inställning, en beräkningsformel, ett UI-flöde eller en regel för data/backup/CI. Trigger-ord: krav, kravlista, KRAVLISTA, specifikation, requirement, feature, funktion, beteende, formel, beräkning, versionsbump, ändra UI, ta bort funktion, NFR.
+description: "ReseApotekets kravregel (regel 3) — KRAVLISTA.md ska alltid spegla appens faktiska beteende. Ladda denna ALLTID när du lägger till, ändrar eller tar bort synligt beteende, en funktion, en skärm, en inställning, en beräkningsformel, ett UI-flöde eller en regel för data/backup/CI. Trigger-ord: krav, kravlista, KRAVLISTA, specifikation, requirement, feature, funktion, beteende, formel, beräkning, versionsbump, ändra UI, ta bort funktion, NFR."
 ---
 
 # Hålla kraven aktuella (KRAVLISTA.md)
